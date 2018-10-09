@@ -31,57 +31,16 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.e2ee
+package com.virgilsecurity.e2ee.utils
 
-import com.virgilsecurity.sdk.cards.CardManager
-import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
-import com.virgilsecurity.sdk.crypto.VirgilCardCrypto
-import com.virgilsecurity.sdk.crypto.VirgilPrivateKeyExporter
-import com.virgilsecurity.sdk.jwt.Jwt
-import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
-import com.virgilsecurity.sdk.storage.JsonFileKeyStorage
 import com.virgilsecurity.sdk.storage.PrivateKeyStorage
-import kotlinx.coroutines.experimental.GlobalScope
-import kotlinx.coroutines.experimental.launch
 
 /**
  * Created by:
  * Danylo Oliinyk
  * on
- * 10/8/18
+ * 10/9/18
  * at Virgil Security
  */
-class EndToEndEncryption(private val getTokenCallback: () -> String) { // TODO add android version of sdk (key storage path ...)
 
-    private val cardManager: CardManager
-    private val keyStorage: PrivateKeyStorage
-
-    init {
-        cardManager = VirgilCardCrypto().let { cardCrypto ->
-            CardManager(cardCrypto, CachingJwtProvider(CachingJwtProvider.RenewJwtCallback { _ ->
-                Jwt(getTokenCallback())
-            }), VirgilCardVerifier(cardCrypto))
-        }
-        keyStorage = PrivateKeyStorage(VirgilPrivateKeyExporter(), JsonFileKeyStorage())
-    }
-
-    fun initUser() {
-        GlobalScope.launch {
-            cardManager.searchCards(Jwt(getTokenCallback()).identity).isEmpty().run {
-                if (this)
-            }
-        }
-    }
-
-    fun initAndSyncUser(passwordBrainKey: String) {
-
-    }
-
-    fun resetUser() {
-
-    }
-
-    fun changeKeyknoxPassword(oldPassword: String, newPassword: String) {
-
-    }
-}
+fun PrivateKeyStorage.notExists(identity: String) = !this.exists(identity)
