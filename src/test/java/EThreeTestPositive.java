@@ -31,6 +31,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import com.virgilsecurity.e2ee.interaction.EThree;
@@ -52,6 +53,7 @@ import com.virgilsecurity.sdk.storage.PrivateKeyStorage;
 import com.virgilsecurity.sdk.utils.Tuple;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import utils.TestConfig;
@@ -64,6 +66,8 @@ import utils.TestConfig;
  * at Virgil Security
  */
 public class EThreeTestPositive {
+
+    private static final int SUCCESS = 1;
 
     private String identity = UUID.randomUUID().toString();
     private String password = UUID.randomUUID().toString();
@@ -116,13 +120,18 @@ public class EThreeTestPositive {
     }
 
     @Test void bootstrap() {
-        eThree.bootstrap(() ->
-                         {
-                             return null;
-                         },
-                         throwable -> {
-                             fail();
-                             return null;
-                         });
+        final int[] result = new int[1];
+        eThree.bootstrap(new EThree.OnCompleteListener() {
+
+            @Override public void onSuccess() {
+                result[0]++;
+            }
+
+            @Override public void onError(@NotNull Throwable throwable) {
+                fail();
+            }
+        });
+
+        assertEquals(SUCCESS, result[0]);
     }
 }

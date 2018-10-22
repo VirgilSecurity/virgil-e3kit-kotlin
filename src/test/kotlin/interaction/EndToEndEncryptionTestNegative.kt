@@ -33,8 +33,6 @@
 
 package interaction
 
-import com.virgilsecurity.e2ee.data.exception.InitException
-import com.virgilsecurity.e2ee.data.exception.SessionException
 import com.virgilsecurity.e2ee.interaction.EThree
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.model.RawSignedModel
@@ -47,9 +45,7 @@ import com.virgilsecurity.sdk.jwt.accessProviders.GeneratorJwtProvider
 import com.virgilsecurity.sdk.storage.JsonFileKeyStorage
 import com.virgilsecurity.sdk.storage.PrivateKeyStorage
 import com.virgilsecurity.sdk.utils.Tuple
-import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import utils.TestConfig
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -79,7 +75,11 @@ class EndToEndEncryptionTestNegative {
                                     VirgilAccessTokenSigner(TestConfig.virgilCrypto))
 
         tokenString = jwtGenerator.generateToken(identity).stringRepresentation()
-        encryption = EThree { tokenString }
+        encryption = EThree(object : EThree.OnGetTokenCallback {
+            override fun onGetToken(): String {
+                return tokenString
+            }
+        })
     }
 
     private fun initCardManager(identity: String): CardManager {

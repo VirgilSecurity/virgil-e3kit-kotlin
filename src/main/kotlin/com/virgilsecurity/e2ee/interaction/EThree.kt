@@ -54,11 +54,8 @@ import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
 import com.virgilsecurity.sdk.jwt.contract.AccessTokenProvider
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
 import com.virgilsecurity.sdk.storage.JsonKeyEntry
-import kotlinx.coroutines.experimental.Deferred
-import kotlinx.coroutines.experimental.GlobalScope
-import kotlinx.coroutines.experimental.async
-import kotlinx.coroutines.experimental.launch
 import java.net.URL
+import java.util.concurrent.Callable
 
 /**
  * Created by:
@@ -73,7 +70,7 @@ import java.net.URL
  * In the @constructor you should provide [getTokenCallback] which must return Json Web Token with identity inside of the user,
  * which is currently active.
  */
-class EThree(private val getTokenCallback: () -> String) { // TODO add android version of sdk (key storage path ...)
+class EThree(private val onGetTokenCallback: OnGetTokenCallback) { // TODO add android version of sdk (key storage path ...)
 
     private val virgilCrypto = VirgilCrypto()
     private val cardManager: CardManager
@@ -86,7 +83,7 @@ class EThree(private val getTokenCallback: () -> String) { // TODO add android v
      */
     init {
         tokenProvider = CachingJwtProvider(CachingJwtProvider.RenewJwtCallback { _ ->
-            Jwt(getTokenCallback())
+            Jwt(onGetTokenCallback.onGetToken())
         })
         cardManager = VirgilCardCrypto().let { cardCrypto ->
             CardManager(cardCrypto,
@@ -108,50 +105,46 @@ class EThree(private val getTokenCallback: () -> String) { // TODO add android v
      * then publishes the public key in Virgil's cloud and backup private key to the cloud,
      * using the password specified. Is equivalent to [bootstrap] without password -> [backupUserKey]
      */
-    @JvmOverloads fun bootstrap(onSuccess: () -> Unit, onError: (Throwable) -> Unit, passwordBrainKey: String? = null) {
+    @JvmOverloads fun bootstrap(onCompleteListener: OnCompleteListener, passwordBrainKey: String? = null) {
         if (keyStorage.exists(currentIdentity())) {
             if (keyStorage.load(currentIdentity()).meta[LOCAL_KEY_IS_PUBLISHED]!!.toBoolean()) {
-                onSuccess()
+                onCompleteListener.onSuccess()
             } else {
-                GlobalScope.launch {
-                    try {
-                        publishCardThenUpdateLocalKey(loadCurrentPrivateKey(), loadCurrentPublicKey())
-                        onSuccess()
-                    } catch (throwable: Throwable) {
-                        onError(throwable)
-                    }
+                try {
+                    publishCardThenUpdateLocalKey(loadCurrentPrivateKey(), loadCurrentPublicKey())
+                    onCompleteListener.onSuccess()
+                } catch (throwable: Throwable) {
+                    onCompleteListener.onError(throwable)
                 }
             }
         } else {
-            GlobalScope.launch {
-                try {
-                    searchCardsAsync(currentIdentity()).await()
-                            .run {
-                                if (this.isNotEmpty())
-                                    signIn(passwordBrainKey)
-                                else
-                                    signUp(passwordBrainKey)
+            try {
+                searchCardsAsync(currentIdentity()).call()
+                        .run {
+                            if (this.isNotEmpty())
+                                signIn(passwordBrainKey)
+                            else
+                                signUp(passwordBrainKey)
 
-                                onSuccess()
-                            }
-                } catch (throwable: Throwable) {
-                    onError(throwable)
-                }
+                            onCompleteListener.onSuccess()
+                        }
+            } catch (throwable: Throwable) {
+                onCompleteListener.onError(throwable)
             }
         }
     }
 
-    private suspend fun signIn(passwordBrainKey: String?) {
+    private fun signIn(passwordBrainKey: String?) {
         if (passwordBrainKey != null)
-            restoreKeyFromKeyknox(passwordBrainKey).await()
+            restoreKeyFromKeyknox(passwordBrainKey).call()
         else
             throw InitException("Private key is not found while Card exists. " +
                                         "Try to restore your private key using bootstrap with password.")
     }
 
-    private suspend fun signUp(passwordBrainKey: String?) {
+    private fun signUp(passwordBrainKey: String?) {
         if (passwordBrainKey != null) {
-            initSyncKeyStorage(passwordBrainKey).await()
+            initSyncKeyStorage(passwordBrainKey).call()
                     .run {
                         if (this.exists(currentIdentity() + KEYKNOX_KEY_POSTFIX)) {
                             this.retrieve(currentIdentity())
@@ -169,10 +162,8 @@ class EThree(private val getTokenCallback: () -> String) { // TODO add android v
                                 JsonKeyEntry(currentIdentity(), this.second.privateKey.rawKey).apply {
                                     meta = mapOf(LOCAL_KEY_IS_PUBLISHED to false.toString())
                                 }.also {
-                                    GlobalScope.async {
-                                        this@run.first.store(listOf(it))
-                                    }.await()
-                                    publishCardAsync(this.second.privateKey, this.second.publicKey).await()
+                                    Callable { this@run.first.store(listOf(it)) }.call()
+                                    publishCardAsync(this.second.privateKey, this.second.publicKey).call()
                                     keyStorage.store(it)
                                 }
                             }
@@ -180,7 +171,7 @@ class EThree(private val getTokenCallback: () -> String) { // TODO add android v
                     }
         } else {
             virgilCrypto.generateKeys().run {
-                publishCardAsync(this.privateKey, this.publicKey).await()
+                publishCardAsync(this.privateKey, this.publicKey).call()
                 keyStorage.store(JsonKeyEntry(currentIdentity(), this.privateKey.rawKey).apply {
                     meta = mapOf(LOCAL_KEY_IS_PUBLISHED to true.toString())
                 })
@@ -196,24 +187,23 @@ class EThree(private val getTokenCallback: () -> String) { // TODO add android v
     private fun loadCurrentPublicKey(): PublicKey =
             virgilCrypto.extractPublicKey(loadCurrentPrivateKey() as VirgilPrivateKey)
 
-    private suspend fun publishCardThenUpdateLocalKey(privateKey: PrivateKey, publicKey: PublicKey) {
-        publishCardAsync(privateKey, publicKey).await()
+    private fun publishCardThenUpdateLocalKey(privateKey: PrivateKey, publicKey: PublicKey) {
+        publishCardAsync(privateKey, publicKey).call()
         keyStorage.load(currentIdentity())
                 .apply {
                     meta[LOCAL_KEY_IS_PUBLISHED] = true.toString()
-                }
-                .run {
+                }.run {
                     keyStorage.update(this)
                 }
     }
 
-    private fun searchCardsAsync(identity: String): Deferred<List<Card>> =
-            GlobalScope.async {
+    private fun searchCardsAsync(identity: String): Callable<List<Card>> =
+            Callable {
                 cardManager.searchCards(identity)
             }
 
-    private fun publishCardAsync(privateKey: PrivateKey, publicKey: PublicKey): Deferred<Card> =
-            GlobalScope.async {
+    private fun publishCardAsync(privateKey: PrivateKey, publicKey: PublicKey): Callable<Card> =
+            Callable {
                 cardManager.publishCard(privateKey, publicKey, currentIdentity())
             }
 
@@ -224,11 +214,10 @@ class EThree(private val getTokenCallback: () -> String) { // TODO add android v
      */
     fun changeKeyknoxPassword(oldPassword: String,
                               newPassword: String,
-                              onSuccess: () -> Unit,
-                              onError: (Throwable) -> Unit) { // TODO check if old password is right
-        GlobalScope.launch {
+                              onCompleteListener: OnCompleteListener) { // TODO check if old password is right
+        Callable {
             try {
-                val syncKeyStorageOld = initSyncKeyStorage(oldPassword).await()
+                val syncKeyStorageOld = initSyncKeyStorage(oldPassword).call()
                 val brainKeyContext = BrainKeyContext.Builder()
                         .setAccessTokenProvider(tokenProvider)
                         .setPythiaClient(VirgilPythiaClient(VIRGIL_BASE_URL)) // FIXME remove dev url
@@ -236,9 +225,9 @@ class EThree(private val getTokenCallback: () -> String) { // TODO add android v
                         .build()
                 val keyPair = BrainKey(brainKeyContext).generateKeyPair(newPassword)
                 syncKeyStorageOld.updateRecipients(listOf(keyPair.publicKey), keyPair.privateKey)
-                onSuccess()
+                onCompleteListener.onSuccess()
             } catch (throwable: Throwable) {
-                onError(throwable)
+                onCompleteListener.onError(throwable)
             }
         }
     }
@@ -247,41 +236,39 @@ class EThree(private val getTokenCallback: () -> String) { // TODO add android v
      * Encrypts loaded from private keys local storage user's *Private key* using *Public key* that is generated based
      * on provided [passwordBrainKey] after that pushes encrypted user's *Private key* to the Keyknox cloud storage.
      */
-    fun backupUserKey(passwordBrainKey: String, onSuccess: () -> Unit, onError: (Throwable) -> Unit) {
-        GlobalScope.launch {
+    fun backupUserKey(passwordBrainKey: String, onCompleteListener: OnCompleteListener) {
+        Callable {
             try {
-                initSyncKeyStorage(passwordBrainKey).await()
+                initSyncKeyStorage(passwordBrainKey).call()
                         .run {
                             (this to keyStorage.load(currentIdentity())).run {
                                 this.first.store(currentIdentity() + KEYKNOX_KEY_POSTFIX,
                                                  this.second.value,
                                                  this.second.meta)
-                                onSuccess()
+                                onCompleteListener.onSuccess()
                             }
                         }
             } catch (throwable: Throwable) {
-                onError(throwable)
+                onCompleteListener.onError(throwable)
             }
         }
     }
 
     fun lookupPublicKeys(identities: List<String>,
-                         onSuccess: (List<PublicKey>) -> Unit,
-                         onError: (Throwable) -> Unit) {
-        GlobalScope.launch {
+                         onResultListener: OnResultListener<List<PublicKey>>) {
+        Callable {
             try {
-
                 identities.map {
                     searchCardsAsync(it)
                 }.map {
-                    it.await()
+                    it.call()
                 }.map {
                     it.last().publicKey
                 }.run {
-                    onSuccess(this)
+                    onResultListener.onSuccess(this)
                 }
             } catch (throwable: Throwable) {
-                onError(throwable)
+                onResultListener.onError(throwable)
             }
         }
     }
@@ -290,9 +277,9 @@ class EThree(private val getTokenCallback: () -> String) { // TODO add android v
      * Pulls user's private key from the Keyknox cloud storage, decrypts it with *Private key* that is generated based
      * on provided [passwordBrainKey] and saves it to the current private keys local storage.
      */
-    private fun restoreKeyFromKeyknox(passwordBrainKey: String): Deferred<Unit> =
-            GlobalScope.async {
-                initSyncKeyStorage(passwordBrainKey).await().run {
+    private fun restoreKeyFromKeyknox(passwordBrainKey: String): Callable<Unit> =
+            Callable {
+                initSyncKeyStorage(passwordBrainKey).call().run {
                     if (this.exists(currentIdentity() + KEYKNOX_KEY_POSTFIX)) {
                         val keyEntry = this.retrieve(currentIdentity() + KEYKNOX_KEY_POSTFIX)
 
@@ -341,8 +328,8 @@ class EThree(private val getTokenCallback: () -> String) { // TODO add android v
      * Initializes [SyncKeyStorage] with default settings and provided [getTokenCallback] after that returns
      * initialized [SyncKeyStorage] object.
      */
-    private fun initSyncKeyStorage(passwordBrainKey: String): Deferred<SyncKeyStorage> =
-            GlobalScope.async {
+    private fun initSyncKeyStorage(passwordBrainKey: String): Callable<SyncKeyStorage> =
+            Callable {
                 val brainKeyContext = BrainKeyContext.Builder()
                         .setAccessTokenProvider(tokenProvider)
                         .setPythiaClient(VirgilPythiaClient(VIRGIL_BASE_URL)) // FIXME remove dev url
@@ -366,7 +353,26 @@ class EThree(private val getTokenCallback: () -> String) { // TODO add android v
     /**
      * Extracts current user's *Identity* from Json Web Token that is parsed from provided [getTokenCallback].
      */
-    private fun currentIdentity() = Jwt(getTokenCallback()).identity
+    private fun currentIdentity() = Jwt(onGetTokenCallback.onGetToken()).identity
+
+    interface OnGetTokenCallback {
+
+        fun onGetToken(): String
+    }
+
+    interface OnCompleteListener {
+
+        fun onError(throwable: Throwable)
+
+        fun onSuccess()
+    }
+
+    interface OnResultListener<T> {
+
+        fun onError(throwable: Throwable)
+
+        fun onSuccess(result: T)
+    }
 
     companion object {
         const val VIRGIL_BASE_URL = "https://api-dev.virgilsecurity.com"

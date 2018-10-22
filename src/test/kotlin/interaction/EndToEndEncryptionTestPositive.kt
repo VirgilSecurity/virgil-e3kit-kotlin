@@ -75,7 +75,12 @@ class EndToEndEncryptionTestPositive {
                                     VirgilAccessTokenSigner(TestConfig.virgilCrypto))
 
         tokenString = jwtGenerator.generateToken(identity).stringRepresentation()
-        eThree = EThree { tokenString }
+        eThree = EThree(object : EThree.OnGetTokenCallback {
+            override fun onGetToken(): String {
+                return tokenString
+            }
+
+        })
 //        eThree.bootstrap()
     }
 

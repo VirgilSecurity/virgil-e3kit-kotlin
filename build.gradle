@@ -32,8 +32,6 @@ apply plugin: 'org.junit.platform.gradle.plugin'
 apply plugin: 'maven'
 apply plugin: 'org.jetbrains.dokka'
 
-sourceCompatibility = 1.8
-
 repositories {
     jcenter()
     mavenCentral()
@@ -42,10 +40,7 @@ repositories {
 
 dependencies {
     // JDK
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$versions.kotlin"
-
-    // Coroutines
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$versions.coroutines"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$versions.kotlin"
 
     // Virgil
     implementation "com.virgilsecurity.sdk:crypto:$versions.virgilSdk"
@@ -57,13 +52,12 @@ dependencies {
         exclude group: 'com.virgilsecurity.sdk', module: 'crypto'
     }
 
-    // Klaxon
-    implementation "com.beust:klaxon:$versions.klaxon"
-
     // Tests
     testCompile "org.junit.jupiter:junit-jupiter-api:$versions.junit"
     testRuntime("org.junit.jupiter:junit-jupiter-engine:$versions.junit")
 }
+
+sourceCompatibility = 1.8
 
 compileKotlin {
     kotlinOptions.jvmTarget = "1.8"
@@ -144,10 +138,4 @@ dokka {
     outputFormat = 'html'
     outputDirectory = "$buildDir/javadoc"
     reportUndocumented = false
-}
-
-kotlin {
-    experimental {
-        coroutines "enable"
-    }
 }
