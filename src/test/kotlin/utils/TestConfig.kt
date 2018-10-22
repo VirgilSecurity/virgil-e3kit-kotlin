@@ -31,16 +31,23 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.e2ee.utils
+package utils
 
-import com.virgilsecurity.sdk.storage.PrivateKeyStorage
+import com.virgilsecurity.keyknox.utils.base64Decode
+import com.virgilsecurity.sdk.crypto.VirgilCrypto
+import com.virgilsecurity.sdk.crypto.VirgilPrivateKey
+import com.virgilsecurity.sdk.crypto.VirgilPublicKey
 
-/**
- * Created by:
- * Danylo Oliinyk
- * on
- * 10/9/18
- * at Virgil Security
- */
-
-fun PrivateKeyStorage.notExists(identity: String) = !this.exists(identity)
+class TestConfig {
+    companion object {
+        val virgilCrypto = VirgilCrypto(false)
+        val appId = System.getProperty("APP_ID")
+        val apiKey: VirgilPrivateKey by lazy {
+            this.virgilCrypto.importPrivateKey(base64Decode(System.getProperty("API_PRIVATE_KEY")))
+        }
+        val apiPublicKey: VirgilPublicKey by lazy {
+            this.virgilCrypto.importPublicKey(base64Decode(System.getProperty("API_PUBLIC_KEY")))
+        }
+        val apiPublicKeyId = System.getProperty("API_PUBLIC_KEY_ID")
+    }
+}
