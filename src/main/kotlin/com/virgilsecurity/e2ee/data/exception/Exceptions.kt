@@ -37,9 +37,21 @@ package com.virgilsecurity.e2ee.data.exception
  * Created by:
  * Danylo Oliinyk
  * on
- * 10/9/18
+ * 10/23/18
  * at Virgil Security
  */
+class BackupKeyException @JvmOverloads constructor(
+        override val message: String? = null, throwable: Throwable? = null
+) : RuntimeException(message, throwable)
+
+class InitException @JvmOverloads constructor(
+        override val message: String? = null, throwable: Throwable? = null
+) : RuntimeException(message, throwable)
+
 class RestoreKeyException @JvmOverloads constructor(
+        override val message: String? = null, throwable: Throwable? = null
+) : RuntimeException(message, throwable)
+
+class WrongPasswordException @JvmOverloads constructor(
         override val message: String? = null, throwable: Throwable? = null
 ) : RuntimeException(message, throwable)

@@ -90,7 +90,15 @@ public class EThreeTestPositive {
             e.printStackTrace();
         }
 
-        eThree = new EThree(() -> tokenString);
+        EThree.initialize(() -> tokenString, new EThree.OnResultListener<EThree>() {
+            @Override public void onSuccess(EThree result) {
+                eThree = result;
+            }
+
+            @Override public void onError(@NotNull Throwable throwable) {
+                fail();
+            }
+        });
     }
 
     private CardManager initCardManager(String identity) {
@@ -121,6 +129,7 @@ public class EThreeTestPositive {
 
     @Test void bootstrap() {
         final int[] result = new int[1];
+
         eThree.bootstrap(new EThree.OnCompleteListener() {
 
             @Override public void onSuccess() {

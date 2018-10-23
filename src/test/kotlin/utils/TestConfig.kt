@@ -49,5 +49,9 @@ class TestConfig {
             this.virgilCrypto.importPublicKey(base64Decode(System.getProperty("API_PUBLIC_KEY")))
         }
         val apiPublicKeyId = System.getProperty("API_PUBLIC_KEY_ID")
+
+        const val VIRGIL_BASE_URL = "https://api.virgilsecurity.com"
+        const val LOCAL_KEY_IS_PUBLISHED = "LOCAL_KEY_IS_PUBLISHED"
+        const val KEYKNOX_KEY_POSTFIX = "_keyknox"
     }
 }
