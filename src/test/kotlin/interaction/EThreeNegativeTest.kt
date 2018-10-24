@@ -33,10 +33,10 @@
 
 package interaction
 
-import com.virgilsecurity.e2ee.data.exception.NotBootstrappedException
-import com.virgilsecurity.e2ee.data.exception.PublicKeyDuplicateException
-import com.virgilsecurity.e2ee.data.exception.PublicKeyNotFoundException
-import com.virgilsecurity.e2ee.interaction.EThree
+import com.virgilsecurity.ethree.data.exception.NotBootstrappedException
+import com.virgilsecurity.ethree.data.exception.PublicKeyDuplicateException
+import com.virgilsecurity.ethree.data.exception.PublicKeyNotFoundException
+import com.virgilsecurity.ethree.interaction.EThree
 import com.virgilsecurity.sdk.common.TimeSpan
 import com.virgilsecurity.sdk.crypto.PublicKey
 import com.virgilsecurity.sdk.crypto.VirgilAccessTokenSigner
