@@ -86,7 +86,7 @@ task javadocJar(type: Jar, dependsOn: 'dokka') {
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            artifactId = 'e2ee'
+            artifactId = 'ethree-kotlin'
             from components.java
             artifact sourcesJar
             artifact javadocJar

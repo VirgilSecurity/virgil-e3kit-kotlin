@@ -33,8 +33,8 @@
 
 package interaction
 
-import com.virgilsecurity.e2ee.data.exception.NotBootstrappedException
-import com.virgilsecurity.e2ee.interaction.EThree
+import com.virgilsecurity.ethree.data.exception.NotBootstrappedException
+import com.virgilsecurity.ethree.interaction.EThree
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.model.RawSignedModel
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier

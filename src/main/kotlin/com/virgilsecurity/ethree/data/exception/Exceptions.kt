@@ -31,7 +31,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.e2ee.data.exception
+package com.virgilsecurity.ethree.data.exception
 
 /**
  * Created by:

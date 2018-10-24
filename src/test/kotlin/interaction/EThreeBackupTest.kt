@@ -33,9 +33,9 @@
 
 package interaction
 
-import com.virgilsecurity.e2ee.data.exception.BackupKeyException
-import com.virgilsecurity.e2ee.data.exception.WrongPasswordException
-import com.virgilsecurity.e2ee.interaction.EThree
+import com.virgilsecurity.ethree.data.exception.BackupKeyException
+import com.virgilsecurity.ethree.data.exception.WrongPasswordException
+import com.virgilsecurity.ethree.interaction.EThree
 import com.virgilsecurity.keyknox.KeyknoxManager
 import com.virgilsecurity.keyknox.client.KeyknoxClient
 import com.virgilsecurity.keyknox.cloud.CloudKeyStorage

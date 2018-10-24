@@ -31,9 +31,9 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.e2ee.interaction
+package com.virgilsecurity.ethree.interaction
 
-import com.virgilsecurity.e2ee.data.exception.*
+import com.virgilsecurity.ethree.data.exception.*
 import com.virgilsecurity.keyknox.KeyknoxManager
 import com.virgilsecurity.keyknox.client.KeyknoxClient
 import com.virgilsecurity.keyknox.cloud.CloudKeyStorage
@@ -58,9 +58,6 @@ import com.virgilsecurity.sdk.storage.DefaultKeyStorage
 import com.virgilsecurity.sdk.storage.JsonKeyEntry
 import com.virgilsecurity.sdk.storage.KeyStorage
 import com.virgilsecurity.sdk.utils.ConvertionUtils
-import javafx.beans.binding.Bindings.isNotEmpty
-import jdk.nashorn.internal.objects.NativeFunction.call
-import java.awt.SystemColor.text
 import java.net.URL
 import java.util.concurrent.Callable
 
@@ -607,7 +604,7 @@ class EThree
             }
         }
 
-        private const val VIRGIL_BASE_URL = "https://api-dev.virgilsecurity.com"
+        private const val VIRGIL_BASE_URL = "https://api.virgilsecurity.com"
         private const val VIRGIL_CARDS_SERVICE_PATH = "/card/v5/"
 
         private const val KEYKNOX_KEY_POSTFIX = "_keyknox"
