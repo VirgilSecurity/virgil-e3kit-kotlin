@@ -1,210 +1,165 @@
-# Virgil Security SDK and Crypto stack Java/Android
+# Virgil E3Kit Kotlin/Java SDK
 
-[![Build Status](https://api.travis-ci.org/VirgilSecurity/virgil-sdk-java-android.svg?branch=master)](https://travis-ci.org/VirgilSecurity/virgil-sdk-java-android)
-[![Maven](https://img.shields.io/maven-central/v/com.virgilsecurity.sdk/sdk.svg)](https://img.shields.io/maven-central/v/com.virgilsecurity.sdk/sdk.svg)
+[![Carthage compatible](https://img.shields.io/badge/Carthage-compatible-4BC51D.svg?style=flat)](https://github.com/Carthage/Carthage)
+[![Platform](https://img.shields.io/cocoapods/p/VirgilSDK.svg?style=flat)](http://cocoadocs.org/docsets/VirgilSDK)
 [![GitHub license](https://img.shields.io/badge/license-BSD%203--Clause-blue.svg)](https://github.com/VirgilSecurity/virgil/blob/master/LICENSE)
-
-[Introduction](#introduction) | [SDK Features](#sdk-features) | [Library purposes](#library-purposes) | [Installation](#installation) | [Usage Examples](#usage-examples) | [Docs](#docs) | [Support](#support)
 
 
 ## Introduction
 
-<a href="https://developer.virgilsecurity.com/docs"><img width="230px" src="https://cdn.virgilsecurity.com/assets/images/github/logos/virgil-logo-red.png" align="left" hspace="10" vspace="6"></a> [Virgil Security](https://virgilsecurity.com) provides a set of APIs for adding security to any application. In a few simple steps you can encrypt communication, securely store data, provide passwordless login, and ensure data integrity.
-
-The Virgil SDK allows developers to get up and running with Virgil API quickly and add full end-to-end security to their existing digital solutions to become HIPAA and GDPR compliant and more.
+<a href="https://developer.virgilsecurity.com/docs"><img width="230px" src="https://cdn.virgilsecurity.com/assets/images/github/logos/virgil-logo-red.png" align="left" hspace="10" vspace="6"></a> [Virgil Security](https://virgilsecurity.com) provides an SDK which symplifies work with Virgil services and presents easy to use API for adding security to any application. In a few simple steps you can setup user encryption with multidevice support.
 
 ## SDK Features
-- communicate with [Virgil Cards Service][_cards_service]
+- multidevice support
 - manage users' Public Keys
-- store private keys in secure local storage
-- use Virgil [Crypto library][_virgil_crypto]
-- use your own Crypto
 
-## Crypto Library purposes
-* Asymmetric Key Generation
-* Encryption/Decryption of data and streams
-* Generation/Verification of digital signatures
-* PFS (Perfect Forward Secrecy)
 
 ## Installation
 
-The Virgil SDK is provided as set of packages named *com.virgilsecurity.sdk*. Packages are distributed via Maven repository.  Also in this guide, you find one more package - Virgil Crypto Library that is used by the SDK to perform cryptographic operations.
+Virgil E3Kit is provided as a set of frameworks. These frameworks are distributed via Carthage.  Also in this guide, you find one more package called VirgilCrypto (Virgil Crypto Library) that is used by the E3Kit to perform cryptographic operations.
 
-### Target
+All frameworks are available for:
+- iOS 9.0+
+- macOS 10.10+
+- tvOS 9.0+
+- watchOS 2.0+
 
-* Java 7+.
-* Android API 16+.
+### Carthage
 
-### Prerequisites
+[Carthage](https://github.com/Carthage/Carthage) is a decentralized dependency manager that builds your dependencies and provides you with binary frameworks.
 
-* Java Development Kit (JDK) 7+
-* Maven 3+
+You can install Carthage with [Homebrew](http://brew.sh/) using the following command:
 
-### Installing the package
-
-You can easily add SDK dependency to your project, just follow the examples below:
-
-#### Maven
-
-Use this packages for Java projects.
-
-```
-<dependencies>
-    <dependency>
-        <groupId>com.virgilsecurity.sdk</groupId>
-        <artifactId>crypto</artifactId>
-        <version>5.0.0</version>
-    </dependency>
-    <dependency>
-        <groupId>com.virgilsecurity.sdk</groupId>
-        <artifactId>sdk</artifactId>
-        <version>5.0.0</version>
-    </dependency>
-</dependencies>
+```bash
+$ brew update
+$ brew install carthage
 ```
 
-#### Gradle
-
-Add jcenter() repository if missing:
+To integrate VirgilSDK into your Xcode project using Carthage, create an empty file with name *Cartfile* in your project's root folder and add following lines to your *Cartfile*
 
 ```
-repositories {
-    jcenter()
+github "VirgilSecurity/e3kit-x" ~> 0.1.0-beta2
+```
+
+#### Linking against prebuilt binaries
+
+To link prebuilt frameworks to your app, run following command:
+
+```bash
+$ carthage update --no-use-binaries
+```
+
+This will build each dependency or download a pre-compiled framework from github Releases.
+
+##### Building for iOS/tvOS/watchOS
+
+On your application targets’ “General” settings tab, in the “Linked Frameworks and Libraries” section, add following frameworks from the *Carthage/Build* folder inside your project's folder:
+ - VirgilSDK
+ - VirgilCryptoAPI
+ - VirgilCryptoApiImpl
+ - VirgilCrypto
+ - VSCCrypto
+ - VirgilPythiaSDK
+ - VirgilKeyknoxSDK
+
+On your application targets’ “Build Phases” settings tab, click the “+” icon and choose “New Run Script Phase.” Create a Run Script in which you specify your shell (ex: */bin/sh*), add the following contents to the script area below the shell:
+
+```bash
+/usr/local/bin/carthage copy-frameworks
+```
+
+and add the paths to the frameworks you want to use under “Input Files”, e.g.:
+
+```
+$(SRCROOT)/Carthage/Build/iOS/VirgilSDK.framework
+$(SRCROOT)/Carthage/Build/iOS/VirgilCryptoAPI.framework
+$(SRCROOT)/Carthage/Build/iOS/VirgilCryptoAPIImpl.framework
+$(SRCROOT)/Carthage/Build/iOS/VirgilCrypto.framework
+$(SRCROOT)/Carthage/Build/iOS/VSCCrypto.framework
+$(SRCROOT)/Carthage/Build/iOS/VirgilPythiaSDK.framework
+$(SRCROOT)/Carthage/Build/iOS/VirgilKeyknoxSDK.framework
+```
+
+##### Building for macOS
+
+On your application target's “General” settings tab, in the “Embedded Binaries” section, drag and drop following frameworks from the Carthage/Build folder on disk:
+ - VirgilSDK
+ - VirgilCryptoAPI
+ - VirgilCryptoApiImpl
+ - VirgilCrypto
+ - VSCCrypto
+ - VirgilPythiaSDK
+ - VirgilKeyknoxSDK
+
+Additionally, you'll need to copy debug symbols for debugging and crash reporting on macOS.
+
+On your application target’s “Build Phases” settings tab, click the “+” icon and choose “New Copy Files Phase”.
+Click the “Destination” drop-down menu and select “Products Directory”. For each framework, drag and drop corresponding dSYM file.
+
+#### Integrating as subproject
+
+It is possible to use carthage just for fetching the right sources for further integration into your project.
+Run following command:
+
+```bash
+$ carthage update --no-build
+```
+
+This will fetch dependencies into a *Carthage/Checkouts* folder inside your project's folder. Then, drag and drop VirgilCrypto.xcodeproj, VirgilCryptoAPI.xcodeproj and VirgilSDK.xcodeproj from corresponding folders inside Carthage/Checkouts folder to your Xcode Project Navigator sidebar.
+
+Next, on your application target's “General” settings tab, in the “Embedded Binaries” section add the following frameworks from subprojects:
+ - VirgilSDK
+ - VirgilCryptoAPI
+ - VirgilCryptoApiImpl
+ - VirgilCrypto
+ - VSCCrypto
+ - VirgilPythiaSDK
+ - VirgilKeyknoxSDK
+
+
+#### Bootstrap User
+Use the following lines of code to authenticate user.
+
+```swift
+import VirgilE3Kit
+
+// initialize E3Kit
+EThree.initialize(tokenCallback) { eThree, error in 
+    guard let eThree = eThree, error == nil else {
+      // error handling here
+    }
+    eThree.bootstrap(password: password) { error in 
+        // done
+    }
 }
 ```
 
-Use this packages for Android projects.
+#### Encrypt & decrypt
 
-```
-dependencies {
-    compile 'com.virgilsecurity.sdk:crypto-android:5.0.0@aar'
-    compile 'com.virgilsecurity.sdk:sdk:5.0.0'
-}
-```
+Virgil E3Kit lets you use a user's Private key and his or her Public Keys to sign, then encrypt text.
 
-## Usage Examples
-
-Before start practicing with the usage examples be sure that the SDK is configured. Check out our [SDK configuration guides][_configure_sdk] for more information.
-
-#### Generate and publish user's Cards with Public Keys inside on Cards Service
-Use the following lines of code to create and publish a user's Card with Public Key inside on Virgil Cards Service:
-
-```java
-import com.virgilsecurity.crypto.VirgilCrypto;
-
-VirgilCrypto crypto = new VirgilCrypto();
-
-// generate a key pair
-VirgilKeyPair keyPair = crypto.generateKeys();
-
-// save a private key into key storage
-privateKeyStorage.store(keyPair.getPrivateKey(), "Alice", null);
-
-// publish user's card on the Cards Service
-try {
-    Card card = cardManager.publishCard(keyPair.getPrivateKey(), keyPair.getPublicKey(), "Alice");
-    // Card is created
-} catch (Exception e) {
-    // Error occured
-}
-```
-
-#### Sign then encrypt data
-
-Virgil SDK lets you use a user's Private key and his or her Cards to sign, then encrypt any kind of data.
-
-In the following example, we load a Private Key from a customized Key Storage and get recipient's Card from the Virgil Cards Services. Recipient's Card contains a Public Key on which we will encrypt the data and verify a signature.
-
-```java
-import com.virgilsecurity.crypto.VirgilCrypto;
-
-VirgilCrypto crypto = new VirgilCrypto();
+```swift
+import VirgilE3Kit
 
 // prepare a message
-String messageToEncrypt = "Hello, Bob!";
-byte[] dataToEncrypt = ConvertionUtils.toBytes(messageToEncrypt);
+let messageToEncrypt = "Hello, Bob!"
 
-// prepare a user's private key
-Tuple<PrivateKey, Map<String, String>> alicePrivateKeyEntry =
-        privateKeyStorage.load("Alice");
-VirgilPrivateKey alicePrivateKey =
-        (VirgilPrivateKey) alicePrivateKeyEntry.getLeft();
-
-// using cardManager search for user's cards on Cards Service
-try {
-    List<Card> cards = cardManager.searchCards("Bob");
-    // Cards are obtained
-    List<VirgilPublicKey> bobRelevantCardsPublicKeys = new ArrayList<>();
-    for (Card card : cards) {
-        if (!card.isOutdated()) {
-            bobRelevantCardsPublicKeys.add(
-                    (VirgilPublicKey) card.getPublicKey());
+// initialize E3Kit
+EThree.initialize(tokenCallback) { eThree, error in 
+    // Authenticate user 
+    eThree!.bootstrap(password: password) { error in 
+        // Search user's publicKeys to encrypt for
+        eThree!.lookUpPublicKeys(of: ["Alice", "Den"]) { publicKeys, errors in 
+            // encrypt text
+            let encryptedMessage = try! eThree.encrypt(messageToEncrypt, for: publicKeys)
         }
     }
-    // sign a message with a private key then encrypt on a public key
-    byte[] encryptedData = crypto.signThenEncrypt(dataToEncrypt,
-            alicePrivateKey, bobRelevantCardsPublicKeys);
-} catch (CryptoException | VirgilServiceException e) {
-    // Error occured
 }
 ```
-
-#### Decrypt then verify data
-Once the Users receive the signed and encrypted message, they can decrypt it with their own Private Key and verify signature with a Sender's Card:
-
-```java
-import com.virgilsecurity.crypto.VirgilCrypto;
-
-VirgilCrypto crypto = new VirgilCrypto();
-
-// prepare a user's private key
-Tuple<PrivateKey, Map<String, String>> bobPrivateKeyEntry =
-        privateKeyStorage.load("Bob");
-VirgilPrivateKey bobPrivateKey =
-        (VirgilPrivateKey) bobPrivateKeyEntry.getLeft();
-
-try {
-    // using cardManager search for user's cards on Cards Service
-    List<Card> cards = cardManager.searchCards("Alice");
-    // Cards are obtained
-    List<VirgilPublicKey> aliceRelevantCardsPublicKeys = new ArrayList<>();
-    for (Card card : cards) {
-        if (!card.isOutdated()) {
-            aliceRelevantCardsPublicKeys.add(
-                    (VirgilPublicKey) card.getPublicKey());
-        }
-    }
-
-    // decrypt with a private key and verify using a public key
-    byte[] decryptedData = crypto.decryptThenVerify(encryptedData,
-            bobPrivateKey, aliceRelevantCardsPublicKeys);
-} catch (CryptoException | VirgilServiceException e) {
-    // Error occured
-}
-```
-
-## Docs
-Virgil Security has a powerful set of APIs, and the documentation below can get you started today.
-
-In order to use the Virgil SDK with your application, you will need to first configure your application. By default, the SDK will attempt to look for Virgil-specific settings in your application but you can change it during SDK configuration.
-
-* [Configure the SDK][_configure_sdk] documentation
-  * [Setup authentication][_setup_authentication] to make API calls to Virgil Services
-  * [Setup Card Manager][_card_manager] to manage user's Public Keys
-  * [Setup Card Verifier][_card_verifier] to verify signatures inside of user's Card
-  * [Setup Key storage][_key_storage] to store Private Keys
-  * [Setup your own Crypto library][_own_crypto] inside of the SDK
-* [More usage examples][_more_examples]
-  * [Create & publish a Card][_create_card] that has a Public Key on Virgil Cards Service
-  * [Search user's Card by user's identity][_search_card]
-  * [Get user's Card by its ID][_get_card]
-  * [Use Card for crypto operations][_use_card]
-* [Reference API][_reference_api]
-
 
 ## License
 
-This library is released under the [3-clause BSD License](LICENSE.md).
+This library is released under the [3-clause BSD License](LICENSE).
 
 ## Support
 Our developer support team is here to help you. Find out more information on our [Help Center](https://help.virgilsecurity.com/).
@@ -213,17 +168,17 @@ You can find us on [Twitter](https://twitter.com/VirgilSecurity) or send us emai
 
 Also, get extra help from our support team on [Slack](https://virgilsecurity.slack.com/join/shared_invite/enQtMjg4MDE4ODM3ODA4LTc2OWQwOTQ3YjNhNTQ0ZjJiZDc2NjkzYjYxNTI0YzhmNTY2ZDliMGJjYWQ5YmZiOGU5ZWEzNmJiMWZhYWVmYTM).
 
-[_virgil_crypto]: https://github.com/VirgilSecurity/virgil-crypto
+[_virgil_crypto]: https://github.com/VirgilSecurity/crypto-x
 [_cards_service]: https://developer.virgilsecurity.com/docs/api-reference/card-service/v5
-[_use_card]: https://developer.virgilsecurity.com/docs/java/how-to/public-key-management/v5/use-card-for-crypto-operation
-[_get_card]: https://developer.virgilsecurity.com/docs/java/how-to/public-key-management/v5/get-card
-[_search_card]: https://developer.virgilsecurity.com/docs/java/how-to/public-key-management/v5/search-card
-[_create_card]: https://developer.virgilsecurity.com/docs/java/how-to/public-key-management/v5/create-card
-[_own_crypto]: https://developer.virgilsecurity.com/docs/java/how-to/setup/v5/setup-own-crypto-library
-[_key_storage]: https://developer.virgilsecurity.com/docs/java/how-to/setup/v5/setup-key-storage
-[_card_verifier]: https://developer.virgilsecurity.com/docs/java/how-to/setup/v5/setup-card-verifier
-[_card_manager]: https://developer.virgilsecurity.com/docs/java/how-to/setup/v5/setup-card-manager
-[_setup_authentication]: https://developer.virgilsecurity.com/docs/java/how-to/setup/v5/setup-authentication
+[_use_card]: https://developer.virgilsecurity.com/docs/swift/how-to/public-key-management/v5/use-card-for-crypto-operation
+[_get_card]: https://developer.virgilsecurity.com/docs/swift/how-to/public-key-management/v5/get-card
+[_search_card]: https://developer.virgilsecurity.com/docs/swift/how-to/public-key-management/v5/search-card
+[_create_card]: https://developer.virgilsecurity.com/docs/swift/how-to/public-key-management/v5/create-card
+[_own_crypto]: https://developer.virgilsecurity.com/docs/swift/how-to/setup/v5/setup-own-crypto-library
+[_key_storage]: https://developer.virgilsecurity.com/docs/swift/how-to/setup/v5/setup-key-storage
+[_card_verifier]: https://developer.virgilsecurity.com/docs/swift/how-to/setup/v5/setup-card-verifier
+[_card_manager]: https://developer.virgilsecurity.com/docs/swift/how-to/setup/v5/setup-card-manager
+[_setup_authentication]: https://developer.virgilsecurity.com/docs/swift/how-to/setup/v5/setup-authentication
 [_reference_api]: https://developer.virgilsecurity.com/docs/api-reference
 [_configure_sdk]: https://developer.virgilsecurity.com/docs/how-to#sdk-configuration
 [_more_examples]: https://developer.virgilsecurity.com/docs/how-to#public-key-management
