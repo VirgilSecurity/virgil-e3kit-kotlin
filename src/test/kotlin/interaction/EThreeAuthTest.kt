@@ -158,7 +158,7 @@ class EThreeAuthTest {
         })
         val brainKeyContext = BrainKeyContext.Builder()
                 .setAccessTokenProvider(tokenProvider)
-                .setPythiaClient(VirgilPythiaClient(virgilBaseUrl)) // FIXME remove dev url
+                .setPythiaClient(VirgilPythiaClient(virgilBaseUrl))
                 .setPythiaCrypto(VirgilPythiaCrypto())
                 .build()
         val keyPair = BrainKey(brainKeyContext).generateKeyPair(passwordBrainKey)
@@ -166,7 +166,7 @@ class EThreeAuthTest {
         val syncKeyStorage =
                 SyncKeyStorage(identity, CloudKeyStorage(
                         KeyknoxManager(tokenProvider,
-                                       KeyknoxClient(URL(virgilBaseUrl)), // FIXME remove dev url
+                                       KeyknoxClient(URL(virgilBaseUrl)),
                                        listOf(keyPair.publicKey),
                                        keyPair.privateKey,
                                        KeyknoxCrypto())))

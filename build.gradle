@@ -5,7 +5,7 @@ buildscript {
             coroutines   : '0.30.2',
             klaxon   : '3.0.5',
             junit    : '5.2.0',
-            dokka    : '0.9.17'
+            dokka    : '0.9.17',
     ]
 
     repositories {
@@ -25,7 +25,7 @@ plugins {
 }
 
 group 'com.virgilsecurity'
-version '0.1.0'
+version '0.1.0-aplha'
 
 apply plugin: 'kotlin'
 apply plugin: 'org.junit.platform.gradle.plugin'
@@ -53,8 +53,8 @@ dependencies {
     }
 
     // Tests
-    testCompile "org.junit.jupiter:junit-jupiter-api:$versions.junit"
-    testRuntime("org.junit.jupiter:junit-jupiter-engine:$versions.junit")
+    testImplementation "org.junit.jupiter:junit-jupiter-api:$versions.junit"
+    testImplementation "org.junit.jupiter:junit-jupiter-engine:$versions.junit"
 }
 
 sourceCompatibility = 1.8
@@ -91,13 +91,13 @@ publishing {
             artifact sourcesJar
             artifact javadocJar
             pom {
-                name = 'Virgil E2EE Java/Kotlin/Android SDK'
-                description = 'Virgil Security provides an SDK which allows you to easily implement End to End Encrypted messenger.'
+                name = 'Virgil E3Kit Kotlin/Java SDK'
+                description = 'Virgil Security provides an SDK which symplifies work with Virgil services and presents easy to use API for adding security to any application. In a few simple steps you can setup user encryption with multidevice support.'
                 url = 'https://www.virgilsecurity.com/'
                 licenses {
                     license {
                         name = 'Virgil Security, Inc. license'
-                        url = 'https://github.com/VirgilSecurity/e2ee-kotlin/blob/master/LICENSE.txt'
+                        url = 'https://github.com/VirgilSecurity/e3kit-kotlin/blob/master/LICENSE.txt'
                     }
                 }
                 developers {
@@ -109,9 +109,9 @@ publishing {
                     }
                 }
                 scm {
-                    connection = 'scm:git:https://github.com/VirgilSecurity/e2ee-kotlin.git'
-                    developerConnection = 'scm:git:git@github.com:VirgilSecurity/e2ee-kotlin.git'
-                    url = 'https://github.com/VirgilSecurity/e2ee-kotlin'
+                    connection = 'scm:git:https://github.com/VirgilSecurity/e3kit-kotlin.git'
+                    developerConnection = 'scm:git:git@github.com:VirgilSecurity/e3kit-kotlin.git'
+                    url = 'https://github.com/VirgilSecurity/e3kit-kotlin'
                 }
             }
         }
@@ -123,8 +123,8 @@ publishing {
             def snapshotsRepoUrl = "https://oss.sonatype.org/content/repositories/snapshots"
             url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
             credentials {
-//                username "${authentication_username}"
-//                password "${authentication_password}"
+                username "${authentication_username}"
+                password "${authentication_password}"
             }
         }
     }
