@@ -55,3 +55,9 @@ class RestoreKeyException @JvmOverloads constructor(
 class WrongPasswordException @JvmOverloads constructor(
         override val message: String? = null, throwable: Throwable? = null
 ) : RuntimeException(message, throwable)
+
+class PublicKeyNotFoundException @JvmOverloads constructor(
+        val identity: String,
+        override val message: String? = null,
+        throwable: Throwable? = null
+) : RuntimeException(message, throwable)

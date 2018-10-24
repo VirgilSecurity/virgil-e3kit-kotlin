@@ -106,7 +106,8 @@ public class EThreeTestPositive {
         return new CardManager(cardCrypto,
                                new GeneratorJwtProvider(jwtGenerator, identity),
                                new VirgilCardVerifier(cardCrypto, false, false),
-                               new CardClient("https://api-dev.virgilsecurity.com/card/v5/"));
+                               new CardClient(TestConfig.Companion.getVirgilBaseUrl()
+                                                      + TestConfig.VIRGIL_CARDS_SERVICE_PATH));
     }
 
     private PrivateKeyStorage initPrivateKeyStorage() {

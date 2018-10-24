@@ -128,7 +128,7 @@ class EThreeEncryptionTest {
         return CardManager(cardCrypto,
                            GeneratorJwtProvider(jwtGenerator, identity),
                            VirgilCardVerifier(cardCrypto, false, false),
-                           CardClient("https://api-dev.virgilsecurity.com/card/v5/"))
+                           CardClient(TestConfig.virgilBaseUrl + TestConfig.VIRGIL_CARDS_SERVICE_PATH))
     }
 
     private fun generateRawCard(identity: String, cardManager: CardManager): Tuple<VirgilKeyPair, RawSignedModel> {

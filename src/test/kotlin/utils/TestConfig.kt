@@ -50,7 +50,8 @@ class TestConfig {
         }
         val apiPublicKeyId = System.getProperty("API_PUBLIC_KEY_ID")
 
-        const val VIRGIL_BASE_URL = "https://api.virgilsecurity.com"
+        val virgilBaseUrl = System.getProperty("VIRGIL_BASE_URL")
+        const val VIRGIL_CARDS_SERVICE_PATH = "/card/v5/"
         const val LOCAL_KEY_IS_PUBLISHED = "LOCAL_KEY_IS_PUBLISHED"
         const val KEYKNOX_KEY_POSTFIX = "_keyknox"
     }

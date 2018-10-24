@@ -59,7 +59,7 @@ import org.junit.jupiter.api.Assertions.*
 import utils.TestConfig
 import utils.TestConfig.Companion.KEYKNOX_KEY_POSTFIX
 import utils.TestConfig.Companion.LOCAL_KEY_IS_PUBLISHED
-import utils.TestConfig.Companion.VIRGIL_BASE_URL
+import utils.TestConfig.Companion.virgilBaseUrl
 import java.lang.IllegalStateException
 import java.net.URL
 import java.util.*
@@ -158,7 +158,7 @@ class EThreeAuthTest {
         })
         val brainKeyContext = BrainKeyContext.Builder()
                 .setAccessTokenProvider(tokenProvider)
-                .setPythiaClient(VirgilPythiaClient(VIRGIL_BASE_URL)) // FIXME remove dev url
+                .setPythiaClient(VirgilPythiaClient(virgilBaseUrl)) // FIXME remove dev url
                 .setPythiaCrypto(VirgilPythiaCrypto())
                 .build()
         val keyPair = BrainKey(brainKeyContext).generateKeyPair(passwordBrainKey)
@@ -166,7 +166,7 @@ class EThreeAuthTest {
         val syncKeyStorage =
                 SyncKeyStorage(identity, CloudKeyStorage(
                         KeyknoxManager(tokenProvider,
-                                       KeyknoxClient(URL(VIRGIL_BASE_URL)), // FIXME remove dev url
+                                       KeyknoxClient(URL(virgilBaseUrl)), // FIXME remove dev url
                                        listOf(keyPair.publicKey),
                                        keyPair.privateKey,
                                        KeyknoxCrypto())))
@@ -181,7 +181,7 @@ class EThreeAuthTest {
         return CardManager(cardCrypto,
                            GeneratorJwtProvider(jwtGenerator, identity),
                            VirgilCardVerifier(cardCrypto, false, false),
-                           CardClient("https://api-dev.virgilsecurity.com/card/v5/"))
+                           CardClient(TestConfig.virgilBaseUrl + TestConfig.VIRGIL_CARDS_SERVICE_PATH))
     }
 
     private fun generateRawCard(identity: String, cardManager: CardManager): Tuple<VirgilKeyPair, RawSignedModel> {
