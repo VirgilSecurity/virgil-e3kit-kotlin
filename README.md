@@ -1,9 +1,4 @@
-# Virgil E3Kit Kotlin/Java SDK
-
-[![Carthage compatible](https://img.shields.io/badge/Carthage-compatible-4BC51D.svg?style=flat)](https://github.com/Carthage/Carthage)
-[![Platform](https://img.shields.io/cocoapods/p/VirgilSDK.svg?style=flat)](http://cocoadocs.org/docsets/VirgilSDK)
-[![GitHub license](https://img.shields.io/badge/license-BSD%203--Clause-blue.svg)](https://github.com/VirgilSecurity/virgil/blob/master/LICENSE)
-
+# Virgil E3Kit Android SDK
 
 ## Introduction
 
@@ -13,124 +8,43 @@
 - multidevice support
 - manage users' Public Keys
 
+### Install E3Kit Package
 
-## Installation
+#### Gradle
 
-Virgil E3Kit is provided as a set of frameworks. These frameworks are distributed via Carthage.  Also in this guide, you find one more package called VirgilCrypto (Virgil Crypto Library) that is used by the E3Kit to perform cryptographic operations.
+[Gradle](https://gradle.org/) is an open-source build automation system that builds upon the concepts of Apache Ant and Apache Maven and introduces a Groovy-based domain-specific language (DSL) instead of the XML form used by Apache Maven for declaring the project configuration.
 
-All frameworks are available for:
-- iOS 9.0+
-- macOS 10.10+
-- tvOS 9.0+
-- watchOS 2.0+
-
-### Carthage
-
-[Carthage](https://github.com/Carthage/Carthage) is a decentralized dependency manager that builds your dependencies and provides you with binary frameworks.
-
-You can install Carthage with [Homebrew](http://brew.sh/) using the following command:
-
-```bash
-$ brew update
-$ brew install carthage
-```
-
-To integrate VirgilSDK into your Xcode project using Carthage, create an empty file with name *Cartfile* in your project's root folder and add following lines to your *Cartfile*
+To integrate E3Kit SDK into your Android project using Gradle, add jcenter() repository if missing:
 
 ```
-github "VirgilSecurity/e3kit-x" ~> 0.1.0-beta2
+repositories {
+    jcenter()
+}
 ```
 
-#### Linking against prebuilt binaries
-
-To link prebuilt frameworks to your app, run following command:
-
-```bash
-$ carthage update --no-use-binaries
-```
-
-This will build each dependency or download a pre-compiled framework from github Releases.
-
-##### Building for iOS/tvOS/watchOS
-
-On your application targets’ “General” settings tab, in the “Linked Frameworks and Libraries” section, add following frameworks from the *Carthage/Build* folder inside your project's folder:
- - VirgilSDK
- - VirgilCryptoAPI
- - VirgilCryptoApiImpl
- - VirgilCrypto
- - VSCCrypto
- - VirgilPythiaSDK
- - VirgilKeyknoxSDK
-
-On your application targets’ “Build Phases” settings tab, click the “+” icon and choose “New Run Script Phase.” Create a Run Script in which you specify your shell (ex: */bin/sh*), add the following contents to the script area below the shell:
-
-```bash
-/usr/local/bin/carthage copy-frameworks
-```
-
-and add the paths to the frameworks you want to use under “Input Files”, e.g.:
+Set up dependencies in your `build.gradle`:
 
 ```
-$(SRCROOT)/Carthage/Build/iOS/VirgilSDK.framework
-$(SRCROOT)/Carthage/Build/iOS/VirgilCryptoAPI.framework
-$(SRCROOT)/Carthage/Build/iOS/VirgilCryptoAPIImpl.framework
-$(SRCROOT)/Carthage/Build/iOS/VirgilCrypto.framework
-$(SRCROOT)/Carthage/Build/iOS/VSCCrypto.framework
-$(SRCROOT)/Carthage/Build/iOS/VirgilPythiaSDK.framework
-$(SRCROOT)/Carthage/Build/iOS/VirgilKeyknoxSDK.framework
+dependencies {
+    implementation 'com.virgilsecurity:ethree-android:0.1.0-alpha'
+}
 ```
-
-##### Building for macOS
-
-On your application target's “General” settings tab, in the “Embedded Binaries” section, drag and drop following frameworks from the Carthage/Build folder on disk:
- - VirgilSDK
- - VirgilCryptoAPI
- - VirgilCryptoApiImpl
- - VirgilCrypto
- - VSCCrypto
- - VirgilPythiaSDK
- - VirgilKeyknoxSDK
-
-Additionally, you'll need to copy debug symbols for debugging and crash reporting on macOS.
-
-On your application target’s “Build Phases” settings tab, click the “+” icon and choose “New Copy Files Phase”.
-Click the “Destination” drop-down menu and select “Products Directory”. For each framework, drag and drop corresponding dSYM file.
-
-#### Integrating as subproject
-
-It is possible to use carthage just for fetching the right sources for further integration into your project.
-Run following command:
-
-```bash
-$ carthage update --no-build
-```
-
-This will fetch dependencies into a *Carthage/Checkouts* folder inside your project's folder. Then, drag and drop VirgilCrypto.xcodeproj, VirgilCryptoAPI.xcodeproj and VirgilSDK.xcodeproj from corresponding folders inside Carthage/Checkouts folder to your Xcode Project Navigator sidebar.
-
-Next, on your application target's “General” settings tab, in the “Embedded Binaries” section add the following frameworks from subprojects:
- - VirgilSDK
- - VirgilCryptoAPI
- - VirgilCryptoApiImpl
- - VirgilCrypto
- - VSCCrypto
- - VirgilPythiaSDK
- - VirgilKeyknoxSDK
-
 
 #### Bootstrap User
 Use the following lines of code to authenticate user.
 
-```swift
-import VirgilE3Kit
+```kotlin
 
 // initialize E3Kit
-EThree.initialize(tokenCallback) { eThree, error in 
-    guard let eThree = eThree, error == nil else {
-      // error handling here
-    }
-    eThree.bootstrap(password: password) { error in 
-        // done
-    }
+EThree.initialize(tokenCallback, object : EThree.OnResultListener<EThree> {
+                  override fun onSuccess(result: EThree) {
+                      // done
+                  }
+
+                  override fun onError(throwable: Throwable) {
+                      // error handling
+                  }
+              }
 }
 ```
 
@@ -138,23 +52,46 @@ EThree.initialize(tokenCallback) { eThree, error in
 
 Virgil E3Kit lets you use a user's Private key and his or her Public Keys to sign, then encrypt text.
 
-```swift
-import VirgilE3Kit
-
+```kotlin
 // prepare a message
-let messageToEncrypt = "Hello, Bob!"
+val messageToEncrypt = "Hello, Bob!"
+var eThree: EThree? = null
 
-// initialize E3Kit
-EThree.initialize(tokenCallback) { eThree, error in 
-    // Authenticate user 
-    eThree!.bootstrap(password: password) { error in 
-        // Search user's publicKeys to encrypt for
-        eThree!.lookUpPublicKeys(of: ["Alice", "Den"]) { publicKeys, errors in 
-            // encrypt text
-            let encryptedMessage = try! eThree.encrypt(messageToEncrypt, for: publicKeys)
+// Listener for keys lookup
+val lookupKeysListener = object : EThree.OnResultListener<List<PublicKey>> {
+            override fun onSuccess(keys: List<PublicKey>) {
+                val encryptedMessage = eThree!!.encrypt(messageToEncrypt, keys)
+            }
+
+            override fun onError(throwable: Throwable) {
+                // Error handling
+            }
         }
-    }
-}
+
+// Listener for bootstrap
+val bootstrapListener = object : EThree.OnCompleteListener {
+            override fun onSuccess() {
+                eThree!!.lookupPublicKeys(listOf("Alice", "Bob"), lookupKeysListener)
+            }
+
+            override fun onError(throwable: Throwable) {
+                // Error handling
+            }
+        }
+        
+// Listener for E3Kit initialization
+val initListener = object : EThree.OnResultListener<EThree> {
+            override fun onSuccess(result: EThree) {
+                eThree = result
+                eThree!!.bootstrap(bootstrapListener)
+            }
+
+            override fun onError(throwable: Throwable) {
+                // Error handling
+            }
+        }
+        
+EThree.initialize(tokenCallback, initListener)
 ```
 
 ## License
@@ -168,7 +105,6 @@ You can find us on [Twitter](https://twitter.com/VirgilSecurity) or send us emai
 
 Also, get extra help from our support team on [Slack](https://virgilsecurity.slack.com/join/shared_invite/enQtMjg4MDE4ODM3ODA4LTc2OWQwOTQ3YjNhNTQ0ZjJiZDc2NjkzYjYxNTI0YzhmNTY2ZDliMGJjYWQ5YmZiOGU5ZWEzNmJiMWZhYWVmYTM).
 
-[_virgil_crypto]: https://github.com/VirgilSecurity/crypto-x
 [_cards_service]: https://developer.virgilsecurity.com/docs/api-reference/card-service/v5
 [_use_card]: https://developer.virgilsecurity.com/docs/swift/how-to/public-key-management/v5/use-card-for-crypto-operation
 [_get_card]: https://developer.virgilsecurity.com/docs/swift/how-to/public-key-management/v5/get-card
