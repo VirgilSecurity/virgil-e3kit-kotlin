@@ -33,6 +33,7 @@
 
 package interaction
 
+import com.virgilsecurity.e2ee.data.exception.NotBootstrappedException
 import com.virgilsecurity.e2ee.interaction.EThree
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.model.RawSignedModel
@@ -40,17 +41,16 @@ import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
 import com.virgilsecurity.sdk.client.CardClient
 import com.virgilsecurity.sdk.common.TimeSpan
 import com.virgilsecurity.sdk.crypto.*
-import com.virgilsecurity.sdk.crypto.exceptions.KeyEntryNotFoundException
 import com.virgilsecurity.sdk.exception.EmptyArgumentException
 import com.virgilsecurity.sdk.jwt.JwtGenerator
 import com.virgilsecurity.sdk.jwt.accessProviders.GeneratorJwtProvider
-import com.virgilsecurity.sdk.storage.*
+import com.virgilsecurity.sdk.storage.DefaultKeyStorage
+import com.virgilsecurity.sdk.storage.JsonKeyEntry
+import com.virgilsecurity.sdk.storage.KeyStorage
 import com.virgilsecurity.sdk.utils.Tuple
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 import utils.TestConfig
-import java.lang.Exception
-import java.lang.IllegalArgumentException
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -138,8 +138,7 @@ class EThreeEncryptionTest {
     }
 
     @Disabled @Test fun initEncryptionMultiplyTimes() {
-        for (i in 0..MULTIPLY_TIMES) {
-        }
+        for (i in 0..MULTIPLY_TIMES)
         eThree.bootstrap(object : EThree.OnCompleteListener {
 
             override fun onSuccess() {
@@ -153,8 +152,7 @@ class EThreeEncryptionTest {
     }
 
     @Disabled @Test fun initEncryptionWithPasswordMultiplyTimes() {
-        for (i in 0..MULTIPLY_TIMES) {
-        }
+        for (i in 0..MULTIPLY_TIMES)
         eThree.bootstrap(object : EThree.OnCompleteListener {
 
             override fun onSuccess() {
@@ -173,7 +171,6 @@ class EThreeEncryptionTest {
         val publishedCardOne = cardManagerOne.publishCard(generateRawCard(identityOne, cardManagerOne).right)
 
         eThree.lookupPublicKeys(listOf(identityOne), object : EThree.OnResultListener<List<PublicKey>> {
-
             override fun onSuccess(result: List<PublicKey>) {
                 assertTrue(result.isNotEmpty() && result.size == 1)
                 assertEquals(publishedCardOne.publicKey, result[0])
@@ -350,11 +347,11 @@ class EThreeEncryptionTest {
         val eThreeTwo = initEThree(identityTwo)
         val anyKeypair = TestConfig.virgilCrypto.generateKeys()
 
-        assertThrows<KeyEntryNotFoundException> {
+        assertThrows<NotBootstrappedException> {
             eThreeTwo.encrypt(RAW_TEXT, listOf(anyKeypair.publicKey))
         }
 
-        assertThrows<KeyEntryNotFoundException> {
+        assertThrows<NotBootstrappedException> {
             eThreeTwo.decrypt(RAW_TEXT, listOf(anyKeypair.publicKey))
         }
     }

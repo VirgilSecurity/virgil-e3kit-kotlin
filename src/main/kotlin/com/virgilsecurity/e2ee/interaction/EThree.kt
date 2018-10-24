@@ -33,10 +33,7 @@
 
 package com.virgilsecurity.e2ee.interaction
 
-import com.virgilsecurity.e2ee.data.exception.BackupKeyException
-import com.virgilsecurity.e2ee.data.exception.InitException
-import com.virgilsecurity.e2ee.data.exception.RestoreKeyException
-import com.virgilsecurity.e2ee.data.exception.WrongPasswordException
+import com.virgilsecurity.e2ee.data.exception.*
 import com.virgilsecurity.keyknox.KeyknoxManager
 import com.virgilsecurity.keyknox.client.KeyknoxClient
 import com.virgilsecurity.keyknox.cloud.CloudKeyStorage
@@ -61,7 +58,9 @@ import com.virgilsecurity.sdk.storage.DefaultKeyStorage
 import com.virgilsecurity.sdk.storage.JsonKeyEntry
 import com.virgilsecurity.sdk.storage.KeyStorage
 import com.virgilsecurity.sdk.utils.ConvertionUtils
-import java.lang.IllegalArgumentException
+import javafx.beans.binding.Bindings.isNotEmpty
+import jdk.nashorn.internal.objects.NativeFunction.call
+import java.awt.SystemColor.text
 import java.net.URL
 import java.util.concurrent.Callable
 
@@ -80,7 +79,7 @@ class EThree
 /**
  * @constructor Initializing [CardManager] with provided in [EThree.initialize] callback [getTokenCallback] using
  * [CachingJwtProvider] also initializing [DefaultKeyStorage] with default settings.
- */ private constructor(private val tokenProvider: AccessTokenProvider) { // TODO add android version of sdk (key storage path ...)
+ */ private constructor(private val tokenProvider: AccessTokenProvider) {
 
     private val virgilCrypto = VirgilCrypto()
     private val cardManager: CardManager
@@ -146,8 +145,12 @@ class EThree
      * with that private key no more.
      *
      * Cleans up user's private key from a device - call this function when you want to log your user out of the device.
+     *
+     * Can be called only after [bootstrap] otherwise [NotBootstrappedException] exception will be thrown
      */
     fun cleanup() {
+        checkIfBootstrapped()
+
         keyStorage.delete(currentIdentity())
     }
 
@@ -158,10 +161,14 @@ class EThree
      *
      * Encrypts loaded from private keys local storage user's *Private key* using *Public key* that is generated based
      * on provided [password] after that backs up encrypted user's *Private key* to the Virgil's cloud storage.
+     *
+     * Can be called only after [bootstrap] otherwise [NotBootstrappedException] exception will be returned
      */
-    fun backupPrivateKey(password: String, onCompleteListener: OnCompleteListener) { // TODO add check for bootstrap everywhere
+    fun backupPrivateKey(password: String, onCompleteListener: OnCompleteListener) {
         Callable {
             try {
+                checkIfBootstrapped()
+
                 initSyncKeyStorage(password).call()
                         .run {
                             (this to keyStorage.load(currentIdentity())).run {
@@ -186,9 +193,13 @@ class EThree
      *
      * Deletes private key backup using specified [password] and provides [onCompleteListener] callback that
      * will notify you with successful completion or with a [Throwable] if something went wrong.
+     *
+     * Can be called only after [bootstrap] otherwise [NotBootstrappedException] exception will be returned
      */
-    fun resetPrivateKeyBackup(password: String, onCompleteListener: OnCompleteListener) { // TODO wrong pass check (if works)
+    fun resetPrivateKeyBackup(password: String, onCompleteListener: OnCompleteListener) {
         try {
+            checkIfBootstrapped()
+
             initSyncKeyStorage(password).call().delete(currentIdentity() + KEYKNOX_KEY_POSTFIX)
             onCompleteListener.onSuccess()
         } catch (throwable: Throwable) {
@@ -205,12 +216,19 @@ class EThree
      * Pulls user's private key from the Keyknox cloud storage, decrypts it with *Private key* that is generated based
      * on provided [oldPassword] after that encrypts user's *Private key* using *Public key* that is generated based
      * on provided [newPassword] and pushes encrypted user's *Private key* to the Keyknox cloud storage.
+     *
+     * Can be called only after [bootstrap] otherwise [NotBootstrappedException] exception will be returned
      */
     fun changePassword(oldPassword: String,
                        newPassword: String,
                        onCompleteListener: OnCompleteListener) {
         Callable {
             try {
+                checkIfBootstrapped()
+
+                if (newPassword == oldPassword)
+                    throw IllegalArgumentException("\'newPassword\' can't be the same as the old one")
+
                 val syncKeyStorageOld = initSyncKeyStorage(oldPassword).call()
                 val brainKeyContext = BrainKeyContext.Builder()
                         .setAccessTokenProvider(tokenProvider)
@@ -234,19 +252,32 @@ class EThree
      *
      * Encrypts provided [text] using [publicKeys] list of recipients and returns encrypted message converted to
      * *base64* [String].
+     *
+     * Can be called only after [bootstrap] otherwise [NotBootstrappedException] exception will be thrown
      */
-    @JvmOverloads fun encrypt(text: String, publicKeys: List<PublicKey>? = null): String =
-            encrypt(text.toByteArray(), publicKeys).let { ConvertionUtils.toBase64String(it) }
+    @JvmOverloads fun encrypt(text: String, publicKeys: List<PublicKey>? = null): String {
+        checkIfBootstrapped()
+
+        if (text.isBlank()) throw EmptyArgumentException("data")
+        if (publicKeys?.isEmpty() == true) throw EmptyArgumentException("publicKeys")
+        if (publicKeys?.contains(loadCurrentPublicKey()) == true)
+            throw IllegalArgumentException("You should not include your own public key.")
+
+        return encrypt(text.toByteArray(), publicKeys).let { ConvertionUtils.toBase64String(it) }
+    }
 
     /**
      * Encrypts messages/other data for a group of users.
      *
      * Encrypts provided [data] using [publicKeys] list of recipients and returns encrypted data as [ByteArray].
+     *
+     * Can be called only after [bootstrap] otherwise [NotBootstrappedException] exception will be thrown
      */
     @JvmOverloads fun encrypt(data: ByteArray, publicKeys: List<PublicKey>? = null): ByteArray {
+        checkIfBootstrapped()
+
         if (data.isEmpty()) throw EmptyArgumentException("data")
         if (publicKeys?.isEmpty() == true) throw EmptyArgumentException("publicKeys")
-
         if (publicKeys?.contains(loadCurrentPublicKey()) == true)
             throw IllegalArgumentException("You should not include your own public key.")
 
@@ -268,19 +299,32 @@ class EThree
      *
      * Decrypts provided [base64String] (that was previously encrypted with [encrypt] function) using current user's
      * private key.
+     *
+     * Can be called only after [bootstrap] otherwise [NotBootstrappedException] exception will be thrown
      */
-    fun decrypt(base64String: String, publicKeys: List<PublicKey>? = null): String =
-            String(decrypt(ConvertionUtils.base64ToBytes(base64String), publicKeys))
+    fun decrypt(base64String: String, publicKeys: List<PublicKey>? = null): String {
+        checkIfBootstrapped()
+
+        if (base64String.isBlank()) throw EmptyArgumentException("data")
+        if (publicKeys?.isEmpty() == true) throw EmptyArgumentException("publicKeys")
+        if (publicKeys?.contains(loadCurrentPublicKey()) == true)
+            throw IllegalArgumentException("You should not include your own public key.")
+
+        return String(decrypt(ConvertionUtils.base64ToBytes(base64String), publicKeys))
+    }
 
     /**
      * Decrypts encrypted data.
      *
      * Decrypts provided [data] using current user's private key and returns decrypted data in [ByteArray].
+     *
+     * Can be called only after [bootstrap] otherwise [NotBootstrappedException] exception will be thrown
      */
     fun decrypt(data: ByteArray, publicKeys: List<PublicKey>? = null): ByteArray {
-        if (publicKeys?.isEmpty() == true)
-            throw EmptyArgumentException("publicKeys")
+        checkIfBootstrapped()
 
+        if (data.isEmpty()) throw EmptyArgumentException("data")
+        if (publicKeys?.isEmpty() == true) throw EmptyArgumentException("publicKeys")
         if (publicKeys?.contains(loadCurrentPublicKey()) == true)
             throw IllegalArgumentException("You should not include your own public key.")
 
@@ -305,24 +349,36 @@ class EThree
      * Searches for public keys with specified [identities] and returns list of [PublicKey] in [onResultListener]
      * callback or [Throwable] if something went wrong. [PublicKeyNotFoundException] will be thrown for the first
      * not found public key.
+     *
+     * Can be called only after [bootstrap] otherwise [NotBootstrappedException] exception will be returned
      */
     fun lookupPublicKeys(identities: List<String>,
                          onResultListener: OnResultListener<List<PublicKey>>) {
-        if (identities.isEmpty()) {
-            onResultListener.onError(EmptyArgumentException("identities"))
-            return
-        }
-
         Callable {
             try {
+                checkIfBootstrapped()
+
+                if (identities.isEmpty()) throw EmptyArgumentException("identities")
+                identities.groupingBy { it }
+                        .eachCount()
+                        .filter { it.value > 1 }
+                        .run {
+                            if (this.isNotEmpty())
+                                throw PublicKeyDuplicateException("Duplicates are not allowed. " +
+                                                                          "Duplicated identities:\n${this}")
+                        }
+
                 identities.map {
-                    searchCardsAsync(it)
+                    searchCardsAsync(it) to it
                 }.map {
-                    it.call()
+                    it.first.call() to it.second
                 }.map {
-                    it.last().publicKey
+                    if (it.first.isNotEmpty())
+                        it.first.last().publicKey
+                    else
+                        throw PublicKeyNotFoundException(it.second)
                 }.run {
-                    onResultListener.onSuccess(this) // FIXME throw error if card is not found PublicKeyNotFoundException
+                    onResultListener.onSuccess(this)
                 }
             } catch (throwable: Throwable) {
                 onResultListener.onError(throwable)
@@ -483,6 +539,10 @@ class EThree
      */
     private fun currentIdentity() = tokenProvider.getToken(null).identity
 
+    private fun checkIfBootstrapped() {
+        if (!keyStorage.exists(currentIdentity())) throw NotBootstrappedException("You have to call bootstrap() first.")
+    }
+
     /**
      * Interface that is intended to signal if some asynchronous process is completed successfully or not.
      */
@@ -540,14 +600,14 @@ class EThree
                 val tokenProvider = CachingJwtProvider(CachingJwtProvider.RenewJwtCallback { _ ->
                     Jwt(onGetTokenCallback.onGetToken())
                 })
-                if (tokenProvider.getToken(null) != null) // TODO test if getToken returns null or empty string etc
+                if (tokenProvider.getToken(null) != null)
                     onResultListener.onSuccess(EThree(tokenProvider))
             } catch (throwable: Throwable) {
                 onResultListener.onError(throwable)
             }
         }
 
-        private const val VIRGIL_BASE_URL = "https://api.virgilsecurity.com"
+        private const val VIRGIL_BASE_URL = "https://api-dev.virgilsecurity.com"
         private const val VIRGIL_CARDS_SERVICE_PATH = "/card/v5/"
 
         private const val KEYKNOX_KEY_POSTFIX = "_keyknox"

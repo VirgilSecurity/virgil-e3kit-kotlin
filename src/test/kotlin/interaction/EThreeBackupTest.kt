@@ -75,9 +75,6 @@ import java.util.concurrent.TimeUnit
  */
 class EThreeBackupTest {
 
-    private val identity = UUID.randomUUID().toString()
-    private val password = UUID.randomUUID().toString()
-
     private lateinit var jwtGenerator: JwtGenerator
     private lateinit var keyStorage: KeyStorage
 
@@ -160,7 +157,7 @@ class EThreeBackupTest {
         })
         val brainKeyContext = BrainKeyContext.Builder()
                 .setAccessTokenProvider(tokenProvider)
-                .setPythiaClient(VirgilPythiaClient(virgilBaseUrl)) // FIXME remove dev url
+                .setPythiaClient(VirgilPythiaClient(virgilBaseUrl))
                 .setPythiaCrypto(VirgilPythiaCrypto())
                 .build()
         val keyPair = BrainKey(brainKeyContext).generateKeyPair(passwordBrainKey)
@@ -168,7 +165,7 @@ class EThreeBackupTest {
         val syncKeyStorage =
                 SyncKeyStorage(identity, CloudKeyStorage(
                         KeyknoxManager(tokenProvider,
-                                       KeyknoxClient(URL(virgilBaseUrl)), // FIXME remove dev url
+                                       KeyknoxClient(URL(virgilBaseUrl)),
                                        listOf(keyPair.publicKey),
                                        keyPair.privateKey,
                                        KeyknoxCrypto())))
@@ -333,6 +330,26 @@ class EThreeBackupTest {
 
         val syncKeyStorage = initSyncKeyStorage(identity, password)
         assertFalse(syncKeyStorage.exists(identity + TestConfig.KEYKNOX_KEY_POSTFIX))
+    }
+
+    @Test fun reset_backed_key_wrong_pass() {
+        val identity = UUID.randomUUID().toString()
+        val password = UUID.randomUUID().toString()
+        val passwordWrong = UUID.randomUUID().toString()
+        val eThreeWithPass = initAndBootstrapEThreeWithPass(identity, password)
+
+        var failedKeyReset = false
+        eThreeWithPass.resetPrivateKeyBackup(passwordWrong, object : EThree.OnCompleteListener {
+            override fun onSuccess() {
+                fail<IllegalStateException>()
+            }
+
+            override fun onError(throwable: Throwable) {
+                if (throwable is WrongPasswordException)
+                    failedKeyReset = true
+            }
+        })
+        assertTrue(failedKeyReset)
     }
 
     companion object {
