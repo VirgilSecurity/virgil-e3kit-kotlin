@@ -79,7 +79,7 @@ class EThreeEncryptionTest {
                                     VirgilAccessTokenSigner(TestConfig.virgilCrypto))
 
         eThree = initAndBootstrapEThree(identity)
-        keyStorage = DefaultKeyStorage()
+        keyStorage = DefaultKeyStorage(TestConfig.DIRECTORY_PATH, TestConfig.KEYSTORE_NAME)
     }
 
     private fun initAndBootstrapEThree(identity: String): EThree {

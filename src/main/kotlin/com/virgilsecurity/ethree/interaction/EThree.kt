@@ -33,6 +33,7 @@
 
 package com.virgilsecurity.ethree.interaction
 
+import android.os.Environment
 import com.virgilsecurity.ethree.data.exception.*
 import com.virgilsecurity.keyknox.KeyknoxManager
 import com.virgilsecurity.keyknox.client.KeyknoxClient
@@ -89,7 +90,7 @@ class EThree
                         VirgilCardVerifier(cardCrypto, false, false),
                         CardClient(VIRGIL_BASE_URL + VIRGIL_CARDS_SERVICE_PATH))
         }
-        keyStorage = DefaultKeyStorage()
+        keyStorage = DefaultKeyStorage(Environment.getDataDirectory().absolutePath, KEYSTORE_NAME)
     }
 
     /**
@@ -610,5 +611,6 @@ class EThree
         private const val KEYKNOX_KEY_POSTFIX = "_keyknox"
         private const val LOCAL_KEY_IS_PUBLISHED = "LOCAL_KEY_IS_PUBLISHED"
         private const val THROTTLE_TIMEOUT = 2 * 1000L // 2 seconds
+        private const val KEYSTORE_NAME = "virgil.keystore"
     }
 }

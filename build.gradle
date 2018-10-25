@@ -6,6 +6,7 @@ buildscript {
             klaxon   : '3.0.5',
             junit    : '5.2.0',
             dokka    : '0.9.17',
+            android   : '4.1.1.4',
     ]
 
     repositories {
@@ -52,9 +53,12 @@ dependencies {
         exclude group: 'com.virgilsecurity.sdk', module: 'crypto'
     }
 
+    compileOnly "com.google.android:android:$versions.android"
+
     // Tests
     testImplementation "org.junit.jupiter:junit-jupiter-api:$versions.junit"
     testImplementation "org.junit.jupiter:junit-jupiter-engine:$versions.junit"
+    testCompileOnly "com.google.android:android:$versions.android"
 }
 
 sourceCompatibility = 1.8
