@@ -33,9 +33,8 @@
 
 package interaction
 
-import android.content.Context
-import android.support.test.InstrumentationRegistry
 import com.virgilsecurity.ethree.interaction.EThree
+import com.virgilsecurity.ethree.utils.TestUtils
 import com.virgilsecurity.keyknox.KeyknoxManager
 import com.virgilsecurity.keyknox.client.KeyknoxClient
 import com.virgilsecurity.keyknox.cloud.CloudKeyStorage
@@ -88,6 +87,8 @@ class EThreeAuthTest {
 
     @Before
     fun setup() {
+        TestUtils.pause()
+
         jwtGenerator = JwtGenerator(
             TestConfig.appId,
             TestConfig.apiKey,
@@ -246,7 +247,7 @@ class EThreeAuthTest {
         eThreeWithPass.cleanup()
         assertFalse(keyStorage.exists(identity))
 
-        Thread.sleep(THROTTLE_TIMEOUT)
+        TestUtils.pause()
 
         initAndBootstrapEThreeWithPass(identity, password)
         assertTrue(keyStorage.exists(identity))
@@ -264,6 +265,9 @@ class EThreeAuthTest {
 
         val eThreeWithPass = initAndBootstrapEThreeWithPass(identity, password)
         assertTrue(keyStorage.exists(identity))
+
+        TestUtils.pause()
+
         assertTrue(initSyncKeyStorage(identity, password).exists(identity + KEYKNOX_KEY_POSTFIX))
 
         val card = initCardManager(identity).searchCards(identity)
@@ -319,6 +323,8 @@ class EThreeAuthTest {
         assertTrue(syncKeyStorage.exists(identityTwo + KEYKNOX_KEY_POSTFIX))
         assertFalse(keyStorage.exists(identityTwo))
 
+        TestUtils.pause()
+        
         initAndBootstrapEThreeWithPass(identityTwo, passwordTwo)
         val cardIsPublished = keyStorage.load(identityTwo).meta[LOCAL_KEY_IS_PUBLISHED]
         assertNotNull(cardIsPublished)
@@ -326,9 +332,5 @@ class EThreeAuthTest {
 
         val card = initCardManager(identityTwo).searchCards(identityTwo)
         assertNotNull(card)
-    }
-
-    companion object {
-        const val THROTTLE_TIMEOUT = 2 * 1000L // 2 seconds
     }
 }

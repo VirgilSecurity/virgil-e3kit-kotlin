@@ -33,12 +33,10 @@
 
 package interaction
 
-import android.content.Context
-import android.support.test.InstrumentationRegistry
-import android.support.test.runner.AndroidJUnit4
 import com.virgilsecurity.ethree.data.exception.BackupKeyException
 import com.virgilsecurity.ethree.data.exception.WrongPasswordException
 import com.virgilsecurity.ethree.interaction.EThree
+import com.virgilsecurity.ethree.utils.TestUtils
 import com.virgilsecurity.keyknox.KeyknoxManager
 import com.virgilsecurity.keyknox.client.KeyknoxClient
 import com.virgilsecurity.keyknox.cloud.CloudKeyStorage
@@ -63,10 +61,9 @@ import com.virgilsecurity.sdk.jwt.accessProviders.GeneratorJwtProvider
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
 import com.virgilsecurity.sdk.storage.KeyStorage
 import com.virgilsecurity.sdk.utils.Tuple
-import junit.framework.Assert.*
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import org.junit.runner.RunWith
 import utils.TestConfig
 import utils.TestConfig.Companion.virgilBaseUrl
 import java.net.URL
@@ -87,6 +84,8 @@ class EThreeBackupTest {
 
     @Before
     fun setup() {
+        TestUtils.pause()
+
         jwtGenerator = JwtGenerator(
             TestConfig.appId,
             TestConfig.apiKey,
@@ -216,7 +215,8 @@ class EThreeBackupTest {
 
         val eThreeWithPass = initAndBootstrapEThreeWithPass(identity, password)
 
-        Thread.sleep(2000)
+        TestUtils.pause()
+
         var passwordChanged = false
         eThreeWithPass.changePassword(password, passwordNew, object : EThree.OnCompleteListener {
             override fun onSuccess() {
@@ -230,7 +230,7 @@ class EThreeBackupTest {
         })
         assertTrue(passwordChanged)
 
-        Thread.sleep(THROTTLE_TIMEOUT)
+        TestUtils.pause()
 
         eThreeWithPass.cleanup()
         var failedWithOldPassword = false
@@ -247,7 +247,7 @@ class EThreeBackupTest {
         }, password)
         assertTrue(failedWithOldPassword)
 
-        Thread.sleep(THROTTLE_TIMEOUT)
+        TestUtils.pause()
 
         var successWithNewPassword = false
         eThreeWithPass.bootstrap(object : EThree.OnCompleteListener {
@@ -303,7 +303,8 @@ class EThreeBackupTest {
         })
         assertTrue(successfullyBackuped)
 
-        Thread.sleep(2000)
+        TestUtils.pause()
+
         val syncKeyStorage = initSyncKeyStorage(identity, password)
         assertTrue(syncKeyStorage.exists(identity + TestConfig.KEYKNOX_KEY_POSTFIX))
         val retrievedKey = syncKeyStorage.retrieve(identity + TestConfig.KEYKNOX_KEY_POSTFIX)
@@ -315,7 +316,8 @@ class EThreeBackupTest {
         eThree.cleanup()
         assertFalse(keyStorage.exists(identity))
 
-        Thread.sleep(2000)
+        TestUtils.pause()
+
         var successfullyBootstrapped = false
         eThree.bootstrap(object : EThree.OnCompleteListener {
             override fun onSuccess() {
@@ -343,7 +345,8 @@ class EThreeBackupTest {
         val password = UUID.randomUUID().toString()
         val eThreeWithPass = initAndBootstrapEThreeWithPass(identity, password)
 
-        Thread.sleep(2000)
+        TestUtils.pause()
+
         var successfulKeyReset = false
         eThreeWithPass.resetPrivateKeyBackup(password, object : EThree.OnCompleteListener {
             override fun onSuccess() {
@@ -356,7 +359,8 @@ class EThreeBackupTest {
         })
         assertTrue(successfulKeyReset)
 
-        Thread.sleep(2000)
+        TestUtils.pause()
+
         val syncKeyStorage = initSyncKeyStorage(identity, password)
         assertFalse(syncKeyStorage.exists(identity + TestConfig.KEYKNOX_KEY_POSTFIX))
     }
@@ -367,6 +371,8 @@ class EThreeBackupTest {
         val password = UUID.randomUUID().toString()
         val passwordWrong = UUID.randomUUID().toString()
         val eThreeWithPass = initAndBootstrapEThreeWithPass(identity, password)
+
+        TestUtils.pause()
 
         var failedKeyReset = false
         eThreeWithPass.resetPrivateKeyBackup(passwordWrong, object : EThree.OnCompleteListener {
@@ -379,10 +385,6 @@ class EThreeBackupTest {
                     failedKeyReset = true
             }
         })
-        assertTrue(failedKeyReset)
-    }
-
-    companion object {
-        const val THROTTLE_TIMEOUT = 2 * 1000L // 2 seconds
+        assertTrue("Key reset failed with wrong error", failedKeyReset)
     }
 }

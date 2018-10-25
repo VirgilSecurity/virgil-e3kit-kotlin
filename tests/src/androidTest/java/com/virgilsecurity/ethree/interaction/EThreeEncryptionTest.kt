@@ -33,8 +33,6 @@
 
 package interaction
 
-import android.content.Context
-import android.support.test.InstrumentationRegistry
 import com.virgilsecurity.ethree.data.exception.NotBootstrappedException
 import com.virgilsecurity.ethree.interaction.EThree
 import com.virgilsecurity.sdk.cards.CardManager
@@ -321,7 +319,7 @@ class EThreeEncryptionTest {
     @Test
     fun decrypt_for_zero_users() {
         val identityTwo = UUID.randomUUID().toString()
-        val eThreeTwo = initAndBootstrapEThree(identityTwo)
+        initAndBootstrapEThree(identityTwo)
 
         var eThreeKey: PublicKey? = null
 

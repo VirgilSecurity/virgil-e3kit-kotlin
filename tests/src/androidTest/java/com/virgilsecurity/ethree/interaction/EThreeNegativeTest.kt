@@ -33,8 +33,6 @@
 
 package interaction
 
-import android.content.Context
-import android.support.test.InstrumentationRegistry
 import com.virgilsecurity.ethree.data.exception.NotBootstrappedException
 import com.virgilsecurity.ethree.data.exception.PublicKeyDuplicateException
 import com.virgilsecurity.ethree.data.exception.PublicKeyNotFoundException
