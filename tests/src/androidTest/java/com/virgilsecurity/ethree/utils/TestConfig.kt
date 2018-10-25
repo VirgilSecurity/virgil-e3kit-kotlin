@@ -58,7 +58,8 @@ class TestConfig {
         const val LOCAL_KEY_IS_PUBLISHED = "LOCAL_KEY_IS_PUBLISHED"
         const val KEYKNOX_KEY_POSTFIX = "_keyknox"
 
-        val DIRECTORY_PATH = InstrumentationRegistry.getContext().filesDir.absolutePath
+        val context = InstrumentationRegistry.getTargetContext()
+        val DIRECTORY_PATH = InstrumentationRegistry.getTargetContext().filesDir.absolutePath
         val KEYSTORE_NAME = "virgil.keystore"
     }
 }

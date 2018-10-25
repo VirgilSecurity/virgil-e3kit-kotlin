@@ -35,6 +35,7 @@ package interaction
 
 import android.content.Context
 import android.support.test.InstrumentationRegistry
+import android.support.test.runner.AndroidJUnit4
 import com.virgilsecurity.ethree.data.exception.BackupKeyException
 import com.virgilsecurity.ethree.data.exception.WrongPasswordException
 import com.virgilsecurity.ethree.interaction.EThree
@@ -65,6 +66,7 @@ import com.virgilsecurity.sdk.utils.Tuple
 import junit.framework.Assert.*
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 import utils.TestConfig
 import utils.TestConfig.Companion.virgilBaseUrl
 import java.net.URL
@@ -82,11 +84,9 @@ class EThreeBackupTest {
 
     private lateinit var jwtGenerator: JwtGenerator
     private lateinit var keyStorage: KeyStorage
-    private lateinit var ctx: Context
 
     @Before
     fun setup() {
-        ctx = InstrumentationRegistry.getContext()
         jwtGenerator = JwtGenerator(
             TestConfig.appId,
             TestConfig.apiKey,
@@ -106,7 +106,7 @@ class EThreeBackupTest {
 
     private fun initEThree(identity: String): EThree {
         var eThree: EThree? = null
-        EThree.initialize(ctx, object : EThree.OnGetTokenCallback {
+        EThree.initialize(TestConfig.context, object : EThree.OnGetTokenCallback {
             override fun onGetToken(): String {
                 return jwtGenerator.generateToken(identity).stringRepresentation()
             }
@@ -173,7 +173,7 @@ class EThreeBackupTest {
 
         val syncKeyStorage =
             SyncKeyStorage(
-                identity, CloudKeyStorage(
+                identity, keyStorage, CloudKeyStorage(
                     KeyknoxManager(
                         tokenProvider,
                         KeyknoxClient(URL(virgilBaseUrl)),
@@ -216,6 +216,7 @@ class EThreeBackupTest {
 
         val eThreeWithPass = initAndBootstrapEThreeWithPass(identity, password)
 
+        Thread.sleep(2000)
         var passwordChanged = false
         eThreeWithPass.changePassword(password, passwordNew, object : EThree.OnCompleteListener {
             override fun onSuccess() {
@@ -302,6 +303,7 @@ class EThreeBackupTest {
         })
         assertTrue(successfullyBackuped)
 
+        Thread.sleep(2000)
         val syncKeyStorage = initSyncKeyStorage(identity, password)
         assertTrue(syncKeyStorage.exists(identity + TestConfig.KEYKNOX_KEY_POSTFIX))
         val retrievedKey = syncKeyStorage.retrieve(identity + TestConfig.KEYKNOX_KEY_POSTFIX)
@@ -313,6 +315,7 @@ class EThreeBackupTest {
         eThree.cleanup()
         assertFalse(keyStorage.exists(identity))
 
+        Thread.sleep(2000)
         var successfullyBootstrapped = false
         eThree.bootstrap(object : EThree.OnCompleteListener {
             override fun onSuccess() {
@@ -340,6 +343,7 @@ class EThreeBackupTest {
         val password = UUID.randomUUID().toString()
         val eThreeWithPass = initAndBootstrapEThreeWithPass(identity, password)
 
+        Thread.sleep(2000)
         var successfulKeyReset = false
         eThreeWithPass.resetPrivateKeyBackup(password, object : EThree.OnCompleteListener {
             override fun onSuccess() {
@@ -352,6 +356,7 @@ class EThreeBackupTest {
         })
         assertTrue(successfulKeyReset)
 
+        Thread.sleep(2000)
         val syncKeyStorage = initSyncKeyStorage(identity, password)
         assertFalse(syncKeyStorage.exists(identity + TestConfig.KEYKNOX_KEY_POSTFIX))
     }

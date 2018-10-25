@@ -65,14 +65,12 @@ class EThreeNegativeTest {
     private lateinit var jwtGenerator: JwtGenerator
     private lateinit var keyStorage: KeyStorage
     private lateinit var eThree: EThree
-    private lateinit var ctx: Context
     private val identity = UUID.randomUUID().toString()
     private val password = UUID.randomUUID().toString()
 
 
     @Before
     fun setup() {
-        ctx = InstrumentationRegistry.getContext()
         jwtGenerator = JwtGenerator(
             TestConfig.appId,
             TestConfig.apiKey,
@@ -87,7 +85,7 @@ class EThreeNegativeTest {
 
     private fun initEThree(identity: String): EThree {
         var eThree: EThree? = null
-        EThree.initialize(ctx, object : EThree.OnGetTokenCallback {
+        EThree.initialize(TestConfig.context, object : EThree.OnGetTokenCallback {
             override fun onGetToken(): String {
                 return jwtGenerator.generateToken(identity).stringRepresentation()
             }
@@ -225,7 +223,7 @@ class EThreeNegativeTest {
     @Test
     fun init_ethree_with_empty_token() {
         var failed = false
-        EThree.initialize(ctx, object : EThree.OnGetTokenCallback {
+        EThree.initialize(TestConfig.context, object : EThree.OnGetTokenCallback {
             override fun onGetToken(): String {
                 return ""
             }

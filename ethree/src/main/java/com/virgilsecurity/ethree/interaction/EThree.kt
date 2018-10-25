@@ -34,7 +34,6 @@
 package com.virgilsecurity.ethree.interaction
 
 import android.content.Context
-import android.os.Environment
 import com.virgilsecurity.ethree.data.exception.*
 import com.virgilsecurity.keyknox.KeyknoxManager
 import com.virgilsecurity.keyknox.client.KeyknoxClient
@@ -521,7 +520,7 @@ class EThree
                         .build()
                 val keyPair = BrainKey(brainKeyContext).generateKeyPair(password)
 
-                val syncKeyStorage = SyncKeyStorage(currentIdentity(), CloudKeyStorage(
+                val syncKeyStorage = SyncKeyStorage(currentIdentity(), keyStorage, CloudKeyStorage(
                         KeyknoxManager(tokenProvider,
                                        KeyknoxClient(URL(VIRGIL_BASE_URL)),
                                        listOf(keyPair.publicKey),
