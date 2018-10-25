@@ -65,6 +65,12 @@ publishing {
                         name = 'Danylo Oliinyk'
                         email = 'doliinyk@virgilsecurity.com'
                         organizationUrl = 'https://github.com/BuddahLD'
+                    },
+                    developer {
+                        id = 'andrii-iakovenko'
+                        name = 'Andrii Iakovenko'
+                        email = 'andrii-iakovenko@gmail.com'
+                        organizationUrl = 'https://github.com/andrii-iakovenko'
                     }
                 }
                 scm {

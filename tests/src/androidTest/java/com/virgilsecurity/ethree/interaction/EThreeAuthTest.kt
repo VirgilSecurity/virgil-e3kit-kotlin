@@ -85,11 +85,9 @@ class EThreeAuthTest {
 
     private lateinit var jwtGenerator: JwtGenerator
     private lateinit var keyStorage: KeyStorage
-    private lateinit var ctx: Context
 
     @Before
     fun setup() {
-        ctx = InstrumentationRegistry.getContext()
         jwtGenerator = JwtGenerator(
             TestConfig.appId,
             TestConfig.apiKey,
@@ -109,7 +107,7 @@ class EThreeAuthTest {
 
     private fun initEThree(identity: String): EThree {
         var eThree: EThree? = null
-        EThree.initialize(ctx, object : EThree.OnGetTokenCallback {
+        EThree.initialize(TestConfig.context, object : EThree.OnGetTokenCallback {
             override fun onGetToken(): String {
                 return jwtGenerator.generateToken(identity).stringRepresentation()
             }
@@ -176,7 +174,7 @@ class EThreeAuthTest {
 
         val syncKeyStorage =
             SyncKeyStorage(
-                identity, CloudKeyStorage(
+                identity, keyStorage, CloudKeyStorage(
                     KeyknoxManager(
                         tokenProvider,
                         KeyknoxClient(URL(virgilBaseUrl)),

@@ -80,11 +80,11 @@ public class EThreeTestPositive {
 
     private JwtGenerator jwtGenerator;
 
-    private Context instrumentationCtx;
+    private Context ctx;
 
     @Before
     public void setup() {
-        this.instrumentationCtx = InstrumentationRegistry.getContext();
+        this.ctx = InstrumentationRegistry.getTargetContext();
         jwtGenerator = new JwtGenerator(TestConfig.Companion.getAppId(),
                 TestConfig.Companion.getApiKey(),
                 TestConfig.Companion.getApiPublicKeyId(),
@@ -97,7 +97,7 @@ public class EThreeTestPositive {
             e.printStackTrace();
         }
 
-        EThree.initialize(instrumentationCtx, new EThree.OnGetTokenCallback() {
+        EThree.initialize(ctx, new EThree.OnGetTokenCallback() {
             @NotNull
             @Override
             public String onGetToken() {
