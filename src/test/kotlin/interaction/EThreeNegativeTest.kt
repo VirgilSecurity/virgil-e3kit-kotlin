@@ -49,6 +49,7 @@ import utils.TestConfig
 import java.lang.IllegalArgumentException
 import java.lang.IllegalStateException
 import java.util.*
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 /**
@@ -81,6 +82,8 @@ class EThreeNegativeTest {
 
     private fun initEThree(identity: String): EThree {
         var eThree: EThree? = null
+        val waiter = CountDownLatch(1)
+
         EThree.initialize(object : EThree.OnGetTokenCallback {
             override fun onGetToken(): String {
                 return jwtGenerator.generateToken(identity).stringRepresentation()
@@ -88,27 +91,36 @@ class EThreeNegativeTest {
         }, object : EThree.OnResultListener<EThree> {
             override fun onSuccess(result: EThree) {
                 eThree = result
+                waiter.countDown()
             }
 
             override fun onError(throwable: Throwable) {
                 fail(throwable)
             }
+
         })
+
+        waiter.await(TestConfig.TIMEOUT_SECONDS.toLong(), TimeUnit.SECONDS)
 
         return eThree!!
     }
 
     private fun bootstrapEThree(eThree: EThree): EThree {
+        val waiter = CountDownLatch(1)
+
         eThree.bootstrap(object : EThree.OnCompleteListener {
 
             override fun onSuccess() {
                 // Good, go on
+                waiter.countDown()
             }
 
             override fun onError(throwable: Throwable) {
                 fail(throwable)
             }
         })
+
+        waiter.await(TestConfig.TIMEOUT_SECONDS.toLong(), TimeUnit.SECONDS)
 
         return eThree
     }
@@ -121,6 +133,7 @@ class EThreeNegativeTest {
 
     @Test fun backup_fail_without_bootstrap() {
         var failed = false
+        val waiter = CountDownLatch(1)
         eThree.backupPrivateKey(password, object : EThree.OnCompleteListener {
             override fun onSuccess() {
                 fail<NotBootstrappedException>()
@@ -128,13 +141,16 @@ class EThreeNegativeTest {
 
             override fun onError(throwable: Throwable) {
                 failed = true
+                waiter.countDown()
             }
         })
+        waiter.await(TestConfig.TIMEOUT_SECONDS.toLong(), TimeUnit.SECONDS)
         assertTrue(failed)
     }
 
     @Test fun reset_key_fail_without_bootstrap() {
         var failed = false
+        val waiter = CountDownLatch(1)
         eThree.resetPrivateKeyBackup(password, object : EThree.OnCompleteListener {
             override fun onSuccess() {
                 fail<NotBootstrappedException>()
@@ -142,13 +158,16 @@ class EThreeNegativeTest {
 
             override fun onError(throwable: Throwable) {
                 failed = true
+                waiter.countDown()
             }
         })
+        waiter.await(TestConfig.TIMEOUT_SECONDS.toLong(), TimeUnit.SECONDS)
         assertTrue(failed)
     }
 
     @Test fun change_pass_fail_without_bootstrap() {
         var failed = false
+        val waiter = CountDownLatch(1)
         eThree.changePassword(password, password + password, object : EThree.OnCompleteListener {
             override fun onSuccess() {
                 fail<NotBootstrappedException>()
@@ -156,8 +175,10 @@ class EThreeNegativeTest {
 
             override fun onError(throwable: Throwable) {
                 failed = true
+                waiter.countDown()
             }
         })
+        waiter.await(TestConfig.TIMEOUT_SECONDS.toLong(), TimeUnit.SECONDS)
         assertTrue(failed)
     }
 
@@ -187,6 +208,7 @@ class EThreeNegativeTest {
 
     @Test fun lookup_fail_without_bootstrap() {
         var failed = false
+        val waiter = CountDownLatch(1)
         eThree.lookupPublicKeys(listOf(""), object : EThree.OnResultListener<List<PublicKey>> {
             override fun onSuccess(result: List<PublicKey>) {
                 fail<NotBootstrappedException>()
@@ -194,8 +216,10 @@ class EThreeNegativeTest {
 
             override fun onError(throwable: Throwable) {
                 failed = true
+                waiter.countDown()
             }
         })
+        waiter.await(TestConfig.TIMEOUT_SECONDS.toLong(), TimeUnit.SECONDS)
         assertTrue(failed)
     }
 
@@ -203,6 +227,7 @@ class EThreeNegativeTest {
         bootstrapEThree(eThree)
 
         var failed = false
+        val waiter = CountDownLatch(1)
         eThree.lookupPublicKeys(listOf(identity, WRONG_IDENTITY), object : EThree.OnResultListener<List<PublicKey>> {
             override fun onSuccess(result: List<PublicKey>) {
                 fail<NotBootstrappedException>()
@@ -211,13 +236,17 @@ class EThreeNegativeTest {
             override fun onError(throwable: Throwable) {
                 if (throwable is PublicKeyNotFoundException && throwable.identity == WRONG_IDENTITY)
                     failed = true
+
+                waiter.countDown()
             }
         })
+        waiter.await(TestConfig.TIMEOUT_SECONDS.toLong(), TimeUnit.SECONDS)
         assertTrue(failed)
     }
 
     @Test fun init_ethree_with_empty_token() {
         var failed = false
+        val waiter = CountDownLatch(1)
         EThree.initialize(object : EThree.OnGetTokenCallback {
             override fun onGetToken(): String {
                 return ""
@@ -229,13 +258,16 @@ class EThreeNegativeTest {
 
             override fun onError(throwable: Throwable) {
                 failed = true
+                waiter.countDown()
             }
         })
+        waiter.await(TestConfig.TIMEOUT_SECONDS.toLong(), TimeUnit.SECONDS)
         assertTrue(failed)
     }
 
     @Test fun lookup_with_duplicate_identities() {
         var failed = false
+        val waiter = CountDownLatch(1)
         bootstrapEThree(eThree)
         eThree.lookupPublicKeys(listOf(identity, identity, identity,
                                        WRONG_IDENTITY, WRONG_IDENTITY,
@@ -248,13 +280,17 @@ class EThreeNegativeTest {
                                     override fun onError(throwable: Throwable) {
                                         if (throwable is PublicKeyDuplicateException)
                                             failed = true
+
+                                        waiter.countDown()
                                     }
                                 })
+        waiter.await(TestConfig.TIMEOUT_SECONDS.toLong(), TimeUnit.SECONDS)
         assertTrue(failed)
     }
 
     @Test fun change_pass_with_same_new() {
         var failed = false
+        val waiter = CountDownLatch(1)
         bootstrapEThree(eThree)
         eThree.changePassword(password, password, object : EThree.OnCompleteListener {
             override fun onSuccess() {
@@ -264,8 +300,11 @@ class EThreeNegativeTest {
             override fun onError(throwable: Throwable) {
                 if (throwable is IllegalArgumentException)
                     failed = true
+
+                waiter.countDown()
             }
         })
+        waiter.await(TestConfig.TIMEOUT_SECONDS.toLong(), TimeUnit.SECONDS)
         assertTrue(failed)
     }
 

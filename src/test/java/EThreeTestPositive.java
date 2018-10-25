@@ -52,6 +52,7 @@ import com.virgilsecurity.sdk.storage.JsonFileKeyStorage;
 import com.virgilsecurity.sdk.storage.PrivateKeyStorage;
 import com.virgilsecurity.sdk.utils.Tuple;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
@@ -70,14 +71,13 @@ public class EThreeTestPositive {
     private static final int SUCCESS = 1;
 
     private String identity = UUID.randomUUID().toString();
-    private String password = UUID.randomUUID().toString();
     private String tokenString;
     private EThree eThree;
 
     private JwtGenerator jwtGenerator;
+    private CountDownLatch lock = new CountDownLatch(1);
 
-    @BeforeEach
-    public void setup() {
+    @BeforeEach void setup() throws InterruptedException {
         jwtGenerator = new JwtGenerator(TestConfig.Companion.getAppId(),
                                         TestConfig.Companion.getApiKey(),
                                         TestConfig.Companion.getApiPublicKeyId(),
@@ -93,12 +93,15 @@ public class EThreeTestPositive {
         EThree.initialize(() -> tokenString, new EThree.OnResultListener<EThree>() {
             @Override public void onSuccess(EThree result) {
                 eThree = result;
+                lock.countDown();
             }
 
             @Override public void onError(@NotNull Throwable throwable) {
                 fail();
             }
         });
+
+        lock.await(TestConfig.TIMEOUT_SECONDS, TimeUnit.SECONDS);
     }
 
     private CardManager initCardManager(String identity) {
@@ -128,19 +131,23 @@ public class EThreeTestPositive {
         }
     }
 
-    @Test void bootstrap() {
+    @Test void bootstrap() throws InterruptedException {
+        CountDownLatch lock = new CountDownLatch(1);
         final int[] result = new int[1];
 
         eThree.bootstrap(new EThree.OnCompleteListener() {
 
             @Override public void onSuccess() {
                 result[0]++;
+                lock.countDown();
             }
 
             @Override public void onError(@NotNull Throwable throwable) {
                 fail();
             }
         });
+
+        lock.await(TestConfig.TIMEOUT_SECONDS, TimeUnit.SECONDS);
 
         assertEquals(SUCCESS, result[0]);
     }

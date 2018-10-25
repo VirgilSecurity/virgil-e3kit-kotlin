@@ -1,16 +1,19 @@
 buildscript {
     ext.versions = [
-            virgilSdk: '5.0.4',
-            kotlin   : '1.2.71',
-            coroutines   : '0.30.2',
-            klaxon   : '3.0.5',
-            junit    : '5.2.0',
-            dokka    : '0.9.17',
+            virgilSdk : '5.0.4',
+            kotlin    : '1.3.0-rc-190',
+            coroutines: '1.0.0-RC1',
+            klaxon    : '3.0.5',
+            junit     : '5.2.0',
+            dokka     : '0.9.17',
             android   : '4.1.1.4',
     ]
 
     repositories {
         mavenCentral()
+        maven {
+            url 'https://dl.bintray.com/kotlin/kotlin-eap'
+        }
     }
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${versions.kotlin}"
@@ -36,20 +39,22 @@ apply plugin: 'org.jetbrains.dokka'
 repositories {
     jcenter()
     mavenCentral()
-    mavenLocal()
 }
 
 dependencies {
     // JDK
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$versions.kotlin"
 
+    // Coroutines
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$versions.coroutines"
+
     // Virgil
     implementation "com.virgilsecurity.sdk:crypto:$versions.virgilSdk"
     implementation "com.virgilsecurity.sdk:sdk:$versions.virgilSdk"
-    implementation ('com.virgilsecurity:pythia:0.2.0') {
+    implementation('com.virgilsecurity:pythia:0.2.0') {
         exclude group: 'com.virgilsecurity.sdk', module: 'crypto'
     }
-    implementation ('com.virgilsecurity:keyknox:0.1.0') {
+    implementation('com.virgilsecurity:keyknox:0.1.0') {
         exclude group: 'com.virgilsecurity.sdk', module: 'crypto'
     }
 
@@ -120,7 +125,7 @@ publishing {
             }
         }
     }
-    
+
     repositories {
         maven {
             def releasesRepoUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
