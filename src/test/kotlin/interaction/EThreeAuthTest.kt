@@ -87,7 +87,7 @@ class EThreeAuthTest {
                                     TimeSpan.fromTime(600, TimeUnit.SECONDS),
                                     VirgilAccessTokenSigner(TestConfig.virgilCrypto))
 
-        keyStorage = DefaultKeyStorage()
+        keyStorage = DefaultKeyStorage(TestConfig.DIRECTORY_PATH, TestConfig.KEYSTORE_NAME)
     }
 
     private fun initAndBootstrapEThree(identity: String): EThree {

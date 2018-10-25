@@ -33,6 +33,7 @@
 
 package utils
 
+import android.os.Environment
 import com.virgilsecurity.keyknox.utils.base64Decode
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilPrivateKey
@@ -54,5 +55,8 @@ class TestConfig {
         const val VIRGIL_CARDS_SERVICE_PATH = "/card/v5/"
         const val LOCAL_KEY_IS_PUBLISHED = "LOCAL_KEY_IS_PUBLISHED"
         const val KEYKNOX_KEY_POSTFIX = "_keyknox"
+
+        val DIRECTORY_PATH = Environment.getDataDirectory().absolutePath
+        val KEYSTORE_NAME = "virgil.keystore"
     }
 }
