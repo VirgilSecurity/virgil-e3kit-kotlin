@@ -85,10 +85,12 @@ class EThree
 
     init {
         cardManager = VirgilCardCrypto().let { cardCrypto ->
-            CardManager(cardCrypto,
-                        tokenProvider,
-                        VirgilCardVerifier(cardCrypto, false, false),
-                        CardClient(VIRGIL_BASE_URL + VIRGIL_CARDS_SERVICE_PATH))
+            CardManager(
+                cardCrypto,
+                tokenProvider,
+                VirgilCardVerifier(cardCrypto, false, false),
+                CardClient(VIRGIL_BASE_URL + VIRGIL_CARDS_SERVICE_PATH)
+            )
         }
         keyStorage = DefaultKeyStorage(context.filesDir.absolutePath, KEYSTORE_NAME)
     }
@@ -105,7 +107,8 @@ class EThree
      * Virgil's cloud storage using the password specified. It is equivalent to [bootstrap] without password
      * following with [backupPrivateKey].
      */
-    @JvmOverloads fun bootstrap(onCompleteListener: OnCompleteListener, password: String? = null) {
+    @JvmOverloads
+    fun bootstrap(onCompleteListener: OnCompleteListener, password: String? = null) {
         if (keyStorage.exists(currentIdentity())) {
             if (keyStorage.load(currentIdentity()).meta[LOCAL_KEY_IS_PUBLISHED]!!.toBoolean()) {
                 onCompleteListener.onSuccess()
@@ -120,14 +123,14 @@ class EThree
         } else {
             try {
                 searchCardsAsync(currentIdentity()).call()
-                        .run {
-                            if (this.isNotEmpty())
-                                signIn(password)
-                            else
-                                signUp(password)
+                    .run {
+                        if (this.isNotEmpty())
+                            signIn(password)
+                        else
+                            signUp(password)
 
-                            onCompleteListener.onSuccess()
-                        }
+                        onCompleteListener.onSuccess()
+                    }
             } catch (throwable: Throwable) {
                 if (throwable is DecryptionFailedException)
                     onCompleteListener.onError(WrongPasswordException("Specified password is not valid."))
@@ -168,18 +171,24 @@ class EThree
                 checkIfBootstrapped()
 
                 initSyncKeyStorage(password).call()
-                        .run {
-                            (this to keyStorage.load(currentIdentity())).run {
-                                this.first.store(currentIdentity() + KEYKNOX_KEY_POSTFIX,
-                                                 this.second.value,
-                                                 this.second.meta)
-                                onCompleteListener.onSuccess()
-                            }
+                    .run {
+                        (this to keyStorage.load(currentIdentity())).run {
+                            this.first.store(
+                                currentIdentity() + KEYKNOX_KEY_POSTFIX,
+                                this.second.value,
+                                this.second.meta
+                            )
+                            onCompleteListener.onSuccess()
                         }
+                    }
             } catch (throwable: Throwable) {
                 if (throwable is KeychainEntryAlreadyExistsWhileStoringException)
-                    onCompleteListener.onError(BackupKeyException("Key with identity ${currentIdentity()} " +
-                                                                          "already backuped."))
+                    onCompleteListener.onError(
+                        BackupKeyException(
+                            "Key with identity ${currentIdentity()} " +
+                                    "already backuped."
+                        )
+                    )
                 else
                     onCompleteListener.onError(throwable)
             }
@@ -217,9 +226,11 @@ class EThree
      *
      * Can be called only after [bootstrap] otherwise [NotBootstrappedException] exception will be returned
      */
-    fun changePassword(oldPassword: String,
-                       newPassword: String,
-                       onCompleteListener: OnCompleteListener) {
+    fun changePassword(
+        oldPassword: String,
+        newPassword: String,
+        onCompleteListener: OnCompleteListener
+    ) {
         Callable {
             try {
                 checkIfBootstrapped()
@@ -229,10 +240,10 @@ class EThree
 
                 val syncKeyStorageOld = initSyncKeyStorage(oldPassword).call()
                 val brainKeyContext = BrainKeyContext.Builder()
-                        .setAccessTokenProvider(tokenProvider)
-                        .setPythiaClient(VirgilPythiaClient(VIRGIL_BASE_URL))
-                        .setPythiaCrypto(VirgilPythiaCrypto())
-                        .build()
+                    .setAccessTokenProvider(tokenProvider)
+                    .setPythiaClient(VirgilPythiaClient(VIRGIL_BASE_URL))
+                    .setPythiaCrypto(VirgilPythiaCrypto())
+                    .build()
 
                 Thread.sleep(THROTTLE_TIMEOUT) // To avoid next request been throttled
 
@@ -253,7 +264,8 @@ class EThree
      *
      * Can be called only after [bootstrap] otherwise [NotBootstrappedException] exception will be thrown
      */
-    @JvmOverloads fun encrypt(text: String, publicKeys: List<PublicKey>? = null): String {
+    @JvmOverloads
+    fun encrypt(text: String, publicKeys: List<PublicKey>? = null): String {
         checkIfBootstrapped()
 
         if (text.isBlank()) throw EmptyArgumentException("data")
@@ -271,7 +283,8 @@ class EThree
      *
      * Can be called only after [bootstrap] otherwise [NotBootstrappedException] exception will be thrown
      */
-    @JvmOverloads fun encrypt(data: ByteArray, publicKeys: List<PublicKey>? = null): ByteArray {
+    @JvmOverloads
+    fun encrypt(data: ByteArray, publicKeys: List<PublicKey>? = null): ByteArray {
         checkIfBootstrapped()
 
         if (data.isEmpty()) throw EmptyArgumentException("data")
@@ -335,9 +348,11 @@ class EThree
                 }
             })
         }.let { keys ->
-            virgilCrypto.decryptThenVerify(data,
-                                           loadCurrentPrivateKey() as VirgilPrivateKey,
-                                           keys)
+            virgilCrypto.decryptThenVerify(
+                data,
+                loadCurrentPrivateKey() as VirgilPrivateKey,
+                keys
+            )
         }
     }
 
@@ -350,21 +365,25 @@ class EThree
      *
      * Can be called only after [bootstrap] otherwise [NotBootstrappedException] exception will be returned
      */
-    fun lookupPublicKeys(identities: List<String>,
-                         onResultListener: OnResultListener<List<PublicKey>>) {
+    fun lookupPublicKeys(
+        identities: List<String>,
+        onResultListener: OnResultListener<List<PublicKey>>
+    ) {
         Callable {
             try {
                 checkIfBootstrapped()
 
                 if (identities.isEmpty()) throw EmptyArgumentException("identities")
                 identities.groupingBy { it }
-                        .eachCount()
-                        .filter { it.value > 1 }
-                        .run {
-                            if (this.isNotEmpty())
-                                throw PublicKeyDuplicateException("Duplicates are not allowed. " +
-                                                                          "Duplicated identities:\n${this}")
-                        }
+                    .eachCount()
+                    .filter { it.value > 1 }
+                    .run {
+                        if (this.isNotEmpty())
+                            throw PublicKeyDuplicateException(
+                                "Duplicates are not allowed. " +
+                                        "Duplicated identities:\n${this}"
+                            )
+                    }
 
                 identities.map {
                     searchCardsAsync(it) to it
@@ -391,8 +410,10 @@ class EThree
         if (password != null)
             restoreKeyFromKeyknox(password).call()
         else
-            throw InitException("Private key is not found while Card exists. " +
-                                        "Try to restore your private key using bootstrap with password.")
+            throw InitException(
+                "Private key is not found while Card exists. " +
+                        "Try to restore your private key using bootstrap with password."
+            )
     }
 
     /**
@@ -405,33 +426,37 @@ class EThree
     private fun signUp(password: String?) {
         if (password != null) {
             initSyncKeyStorage(password).call()
-                    .run {
-                        if (this.exists(currentIdentity() + KEYKNOX_KEY_POSTFIX)) {
-                            this.retrieve(currentIdentity() + KEYKNOX_KEY_POSTFIX)
-                                    .run {
-                                        keyStorage.store(JsonKeyEntry(currentIdentity(), this.value).apply {
-                                            meta = mapOf(LOCAL_KEY_IS_PUBLISHED to false.toString())
-                                        })
-                                        virgilCrypto.importPrivateKey(this.value).run {
-                                            publishCardThenUpdateLocalKey(this,
-                                                                          virgilCrypto.extractPublicKey(this as VirgilPrivateKey))
-                                        }
-                                    }
-                        } else {
-                            (this to virgilCrypto.generateKeys()).run {
-                                JsonKeyEntry(currentIdentity() + KEYKNOX_KEY_POSTFIX,
-                                             this.second.privateKey.rawKey).also {
-                                    Callable { this@run.first.store(listOf(it)) }.call()
-                                    keyStorage.store(it.apply {
-                                        name = currentIdentity()
-                                    }.apply {
-                                        meta = mapOf(LOCAL_KEY_IS_PUBLISHED to false.toString())
-                                    })
-                                    publishCardThenUpdateLocalKey(this.second.privateKey, this.second.publicKey)
+                .run {
+                    if (this.exists(currentIdentity() + KEYKNOX_KEY_POSTFIX)) {
+                        this.retrieve(currentIdentity() + KEYKNOX_KEY_POSTFIX)
+                            .run {
+                                keyStorage.store(JsonKeyEntry(currentIdentity(), this.value).apply {
+                                    meta = mapOf(LOCAL_KEY_IS_PUBLISHED to false.toString())
+                                })
+                                virgilCrypto.importPrivateKey(this.value).run {
+                                    publishCardThenUpdateLocalKey(
+                                        this,
+                                        virgilCrypto.extractPublicKey(this as VirgilPrivateKey)
+                                    )
                                 }
+                            }
+                    } else {
+                        (this to virgilCrypto.generateKeys()).run {
+                            JsonKeyEntry(
+                                currentIdentity() + KEYKNOX_KEY_POSTFIX,
+                                this.second.privateKey.rawKey
+                            ).also {
+                                Callable { this@run.first.store(listOf(it)) }.call()
+                                keyStorage.store(it.apply {
+                                    name = currentIdentity()
+                                }.apply {
+                                    meta = mapOf(LOCAL_KEY_IS_PUBLISHED to false.toString())
+                                })
+                                publishCardThenUpdateLocalKey(this.second.privateKey, this.second.publicKey)
                             }
                         }
                     }
+                }
         } else {
             virgilCrypto.generateKeys().run {
                 publishCardAsync(this.privateKey, this.publicKey).call()
@@ -446,16 +471,16 @@ class EThree
      * Loads and returns current user's [PrivateKey]. Current user's identity is taken from [tokenProvider].
      */
     private fun loadCurrentPrivateKey(): PrivateKey =
-            keyStorage.load(currentIdentity()).let {
-                virgilCrypto.importPrivateKey(it.value)
-            }
+        keyStorage.load(currentIdentity()).let {
+            virgilCrypto.importPrivateKey(it.value)
+        }
 
     /**
      * Loads and returns current user's [PublicKey] that is extracted from current user's [PrivateKey].
      * Current user's identity is taken from [tokenProvider].
      */
     private fun loadCurrentPublicKey(): PublicKey =
-            virgilCrypto.extractPublicKey(loadCurrentPrivateKey() as VirgilPrivateKey)
+        virgilCrypto.extractPublicKey(loadCurrentPrivateKey() as VirgilPrivateKey)
 
     /**
      * Publishes provided [publicKey] to the Virgil Cards Service and updates local current user's [PrivateKey]
@@ -464,73 +489,78 @@ class EThree
     private fun publishCardThenUpdateLocalKey(privateKey: PrivateKey, publicKey: PublicKey) {
         publishCardAsync(privateKey, publicKey).call()
         keyStorage.load(currentIdentity())
-                .apply {
-                    meta[LOCAL_KEY_IS_PUBLISHED] = true.toString()
-                }.run {
-                    keyStorage.update(this)
-                }
+            .apply {
+                meta[LOCAL_KEY_IS_PUBLISHED] = true.toString()
+            }.run {
+                keyStorage.update(this)
+            }
     }
 
     /**
      * Asynchronously searches for [Card] with provided [identity].
      */
     private fun searchCardsAsync(identity: String): Callable<List<Card>> =
-            Callable {
-                cardManager.searchCards(identity)
-            }
+        Callable {
+            cardManager.searchCards(identity)
+        }
 
     /**
      * Asynchronously publishes [Card] that is generated with provided [privateKey], [publicKey] and current user's
      * identity that is taken from [tokenProvider].
      */
     private fun publishCardAsync(privateKey: PrivateKey, publicKey: PublicKey): Callable<Card> =
-            Callable {
-                cardManager.publishCard(privateKey, publicKey, currentIdentity())
-            }
+        Callable {
+            cardManager.publishCard(privateKey, publicKey, currentIdentity())
+        }
 
     /**
      * Pulls user's private key from the Virgil's cloud, decrypts it with *Private key* that is generated based
      * on provided [password] and saves it to the current private keys local storage.
      */
     private fun restoreKeyFromKeyknox(password: String): Callable<Unit> =
-            Callable {
-                initSyncKeyStorage(password).call().run {
-                    if (this.exists(currentIdentity() + KEYKNOX_KEY_POSTFIX)) {
-                        val keyEntry = this.retrieve(currentIdentity() + KEYKNOX_KEY_POSTFIX)
+        Callable {
+            initSyncKeyStorage(password).call().run {
+                if (this.exists(currentIdentity() + KEYKNOX_KEY_POSTFIX)) {
+                    val keyEntry = this.retrieve(currentIdentity() + KEYKNOX_KEY_POSTFIX)
 
-                        keyStorage.store(JsonKeyEntry(currentIdentity(), keyEntry.value).apply {
-                            meta = mapOf(LOCAL_KEY_IS_PUBLISHED to true.toString())
-                        })
-                    } else {
-                        throw RestoreKeyException("There is no key backup with identity: ${currentIdentity()}")
-                    }
+                    keyStorage.store(JsonKeyEntry(currentIdentity(), keyEntry.value).apply {
+                        meta = mapOf(LOCAL_KEY_IS_PUBLISHED to true.toString())
+                    })
+                } else {
+                    throw RestoreKeyException("There is no key backup with identity: ${currentIdentity()}")
                 }
             }
+        }
 
     /**
      * Initializes [SyncKeyStorage] with default settings, [tokenProvider] and provided [password] after that returns
      * initialized [SyncKeyStorage] object.
      */
     private fun initSyncKeyStorage(password: String): Callable<SyncKeyStorage> =
-            Callable {
-                val brainKeyContext = BrainKeyContext.Builder()
-                        .setAccessTokenProvider(tokenProvider)
-                        .setPythiaClient(VirgilPythiaClient(VIRGIL_BASE_URL))
-                        .setPythiaCrypto(VirgilPythiaCrypto())
-                        .build()
-                val keyPair = BrainKey(brainKeyContext).generateKeyPair(password)
+        Callable {
+            val brainKeyContext = BrainKeyContext.Builder()
+                .setAccessTokenProvider(tokenProvider)
+                .setPythiaClient(VirgilPythiaClient(VIRGIL_BASE_URL))
+                .setPythiaCrypto(VirgilPythiaCrypto())
+                .build()
+            val keyPair = BrainKey(brainKeyContext).generateKeyPair(password)
 
-                val syncKeyStorage = SyncKeyStorage(currentIdentity(), keyStorage, CloudKeyStorage(
-                        KeyknoxManager(tokenProvider,
-                                       KeyknoxClient(URL(VIRGIL_BASE_URL)),
-                                       listOf(keyPair.publicKey),
-                                       keyPair.privateKey,
-                                       KeyknoxCrypto())))
+            val syncKeyStorage = SyncKeyStorage(
+                currentIdentity(), keyStorage, CloudKeyStorage(
+                    KeyknoxManager(
+                        tokenProvider,
+                        KeyknoxClient(URL(VIRGIL_BASE_URL)),
+                        listOf(keyPair.publicKey),
+                        keyPair.privateKey,
+                        KeyknoxCrypto()
+                    )
+                )
+            )
 
-                syncKeyStorage.sync()
+            syncKeyStorage.sync()
 
-                syncKeyStorage
-            }
+            syncKeyStorage
+        }
 
     /**
      * Extracts current user's *Identity* from Json Web Token received from [tokenProvider].
@@ -595,7 +625,12 @@ class EThree
          * will use this class. In [onResultListener] you will receive instance of [EThree] class or an [Throwable]
          * if something went wrong.
          */
-        @JvmStatic fun initialize(ctx: Context, onGetTokenCallback: OnGetTokenCallback, onResultListener: OnResultListener<EThree>) {
+        @JvmStatic
+        fun initialize(
+            ctx: Context,
+            onGetTokenCallback: OnGetTokenCallback,
+            onResultListener: OnResultListener<EThree>
+        ) {
             this.context = ctx
             try {
                 val tokenProvider = CachingJwtProvider(CachingJwtProvider.RenewJwtCallback { _ ->

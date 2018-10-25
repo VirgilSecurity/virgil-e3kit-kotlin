@@ -33,7 +33,6 @@
 
 package utils
 
-import android.os.Environment
 import android.support.test.InstrumentationRegistry
 import com.virgilsecurity.ethree.BuildConfig
 import com.virgilsecurity.sdk.crypto.VirgilCrypto

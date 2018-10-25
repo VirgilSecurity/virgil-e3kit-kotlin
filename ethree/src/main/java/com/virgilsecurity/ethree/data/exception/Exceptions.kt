@@ -41,31 +41,31 @@ package com.virgilsecurity.ethree.data.exception
  * at Virgil Security
  */
 class BackupKeyException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
+    override val message: String? = null, throwable: Throwable? = null
 ) : RuntimeException(message, throwable)
 
 class InitException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
+    override val message: String? = null, throwable: Throwable? = null
 ) : RuntimeException(message, throwable)
 
 class RestoreKeyException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
+    override val message: String? = null, throwable: Throwable? = null
 ) : RuntimeException(message, throwable)
 
 class WrongPasswordException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
+    override val message: String? = null, throwable: Throwable? = null
 ) : RuntimeException(message, throwable)
 
 class NotBootstrappedException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
+    override val message: String? = null, throwable: Throwable? = null
 ) : RuntimeException(message, throwable)
 
 class PublicKeyNotFoundException @JvmOverloads constructor(
-        val identity: String,
-        override val message: String? = null,
-        throwable: Throwable? = null
+    val identity: String,
+    override val message: String? = null,
+    throwable: Throwable? = null
 ) : RuntimeException(message, throwable)
 
 class PublicKeyDuplicateException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
+    override val message: String? = null, throwable: Throwable? = null
 ) : RuntimeException(message, throwable)
