@@ -38,6 +38,8 @@ import com.virgilsecurity.keyknox.utils.base64Decode
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilPrivateKey
 import com.virgilsecurity.sdk.crypto.VirgilPublicKey
+import java.io.File
+import java.lang.StringBuilder
 
 class TestConfig {
     companion object {
@@ -56,7 +58,11 @@ class TestConfig {
         const val LOCAL_KEY_IS_PUBLISHED = "LOCAL_KEY_IS_PUBLISHED"
         const val KEYKNOX_KEY_POSTFIX = "_keyknox"
 
-        val DIRECTORY_PATH = Environment.getDataDirectory().absolutePath
+        //        val DIRECTORY_PATH = Environment.getDataDirectory().absolutePath
+        val DIRECTORY_PATH =
+                StringBuilder(System.getProperty("user.home")).append(File.separator).append("VirgilSecurity")
+                        .append(File.separator).append("KeyStore").toString()
         val KEYSTORE_NAME = "virgil.keystore"
+        const val TIMEOUT_SECONDS = 10
     }
 }
