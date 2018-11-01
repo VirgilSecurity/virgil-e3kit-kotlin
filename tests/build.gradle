@@ -1,0 +1,56 @@
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+
+def APP_ID = hasProperty('APP_ID') ? APP_ID : System.getenv('APP_ID')
+def API_PRIVATE_KEY = hasProperty('API_PRIVATE_KEY') ? API_PRIVATE_KEY : System.getenv('API_PRIVATE_KEY')
+def API_PUBLIC_KEY = hasProperty('API_PUBLIC_KEY') ? API_PUBLIC_KEY : System.getenv('API_PUBLIC_KEY')
+def API_PUBLIC_KEY_ID = hasProperty('API_PUBLIC_KEY_ID') ? API_PUBLIC_KEY_ID : System.getenv('API_PUBLIC_KEY_ID')
+def VIRGIL_BASE_URL = hasProperty('VIRGIL_BASE_URL') ? VIRGIL_BASE_URL : System.getenv('VIRGIL_BASE_URL')
+
+android {
+    compileSdkVersion 28
+    defaultConfig {
+        applicationId "com.virgilsecurity.ethree"
+        minSdkVersion 21
+        targetSdkVersion 28
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    buildTypes {
+        buildTypes.each {
+            it.buildConfigField "String", "APP_ID", "$APP_ID"
+            it.buildConfigField "String", "API_PRIVATE_KEY", "$API_PRIVATE_KEY"
+            it.buildConfigField "String", "API_PUBLIC_KEY", "$API_PUBLIC_KEY"
+            it.buildConfigField "String", "API_PUBLIC_KEY_ID", "$API_PUBLIC_KEY_ID"
+            it.buildConfigField "String", "VIRGIL_BASE_URL", "$VIRGIL_BASE_URL"
+        }
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation project(':ethree')
+    implementation"org.jetbrains.kotlin:kotlin-stdlib-jdk7:${versions.kotlin}"
+    implementation 'com.android.support:appcompat-v7:28.0.0'
+
+    // Virgil
+    implementation "com.virgilsecurity.sdk:crypto-android:${versions.virgilSdk}@aar"
+    implementation "com.virgilsecurity.sdk:sdk:$versions.virgilSdk"
+    implementation ('com.virgilsecurity:pythia:0.2.0') {
+        exclude group: 'com.virgilsecurity.sdk', module: 'crypto'
+    }
+    implementation ('com.virgilsecurity:keyknox:0.1.0') {
+        exclude group: 'com.virgilsecurity.sdk', module: 'crypto'
+    }
+
+    // Tests
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+}

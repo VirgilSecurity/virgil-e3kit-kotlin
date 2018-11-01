@@ -1,14 +1,20 @@
 # Virgil E3Kit Android SDK
 
+[![Build Status](https://api.travis-ci.org/VirgilSecurity/e3kit-kotlin.svg?branch=master)](https://travis-ci.com/VirgilSecurity/e3kit-kotlin)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.virgilsecurity/ethree-kotlin/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.virgilsecurity/ethree-kotlin)
+[![GitHub license](https://img.shields.io/badge/license-BSD%203--Clause-blue.svg)](https://github.com/VirgilSecurity/virgil/blob/master/LICENSE)
+
+[Introduction](#introduction) | [SDK Features](#sdk-features) | [Install E3Kit Package](#install-e3kit-package) | [License](#license) | [Support](#support)
+
 ## Introduction
 
-<a href="https://developer.virgilsecurity.com/docs"><img width="230px" src="https://cdn.virgilsecurity.com/assets/images/github/logos/virgil-logo-red.png" align="left" hspace="10" vspace="6"></a> [Virgil Security](https://virgilsecurity.com) provides an SDK which symplifies work with Virgil services and presents easy to use API for adding security to any application. In a few simple steps you can setup user encryption with multidevice support.
+<a href="https://developer.virgilsecurity.com/docs"><img width="230px" src="https://cdn.virgilsecurity.com/assets/images/github/logos/virgil-logo-red.png" align="left" hspace="10" vspace="6"></a> [Virgil Security](https://virgilsecurity.com) provides an SDK which simplifies work with Virgil services and presents easy to use API for adding security to any application. In a few simple steps you can setup user encryption with multidevice support.
 
 ## SDK Features
 - multidevice support
 - manage users' Public Keys
 
-### Install E3Kit Package
+## Install E3Kit Package
 
 #### Gradle
 
@@ -31,12 +37,12 @@ dependencies {
 ```
 
 #### Bootstrap User
-Use the following lines of code to authenticate user.
+Use the following lines of code to authenticate a user.
 
 ```kotlin
 
 // initialize E3Kit
-EThree.initialize(tokenCallback, object : EThree.OnResultListener<EThree> {
+EThree.initialize(context, tokenCallback, object : EThree.OnResultListener<EThree> {
                   override fun onSuccess(result: EThree) {
                       // done
                   }
@@ -78,7 +84,7 @@ val bootstrapListener = object : EThree.OnCompleteListener {
                 // Error handling
             }
         }
-        
+
 // Listener for E3Kit initialization
 val initListener = object : EThree.OnResultListener<EThree> {
             override fun onSuccess(result: EThree) {
@@ -90,8 +96,8 @@ val initListener = object : EThree.OnResultListener<EThree> {
                 // Error handling
             }
         }
-        
-EThree.initialize(tokenCallback, initListener)
+
+EThree.initialize(context, tokenCallback, initListener)
 ```
 
 ## License

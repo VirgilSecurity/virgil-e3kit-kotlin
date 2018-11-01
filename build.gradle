@@ -8,143 +8,31 @@ buildscript {
             dokka     : '0.9.17',
             android   : '4.1.1.4',
     ]
-
     repositories {
+        google()
+        jcenter()
+        mavenLocal()
         mavenCentral()
         maven {
             url 'https://dl.bintray.com/kotlin/kotlin-eap'
         }
     }
     dependencies {
+        classpath 'com.android.tools.build:gradle:3.2.1'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${versions.kotlin}"
-        classpath 'org.junit.platform:junit-platform-gradle-plugin:1.0.0'
         classpath "org.jetbrains.dokka:dokka-gradle-plugin:${versions.dokka}"
     }
 }
 
-plugins {
-    id 'java-library'
-    id 'maven-publish'
-    id 'signing'
-}
-
-group 'com.virgilsecurity'
-version '0.1.0-aplha'
-
-apply plugin: 'kotlin'
-apply plugin: 'org.junit.platform.gradle.plugin'
-apply plugin: 'maven'
-apply plugin: 'org.jetbrains.dokka'
-
-repositories {
-    jcenter()
-    mavenCentral()
-}
-
-dependencies {
-    // JDK
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$versions.kotlin"
-
-    // Coroutines
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$versions.coroutines"
-
-    // Virgil
-    implementation "com.virgilsecurity.sdk:crypto:$versions.virgilSdk"
-    implementation "com.virgilsecurity.sdk:sdk:$versions.virgilSdk"
-    implementation('com.virgilsecurity:pythia:0.2.0') {
-        exclude group: 'com.virgilsecurity.sdk', module: 'crypto'
-    }
-    implementation('com.virgilsecurity:keyknox:0.1.0') {
-        exclude group: 'com.virgilsecurity.sdk', module: 'crypto'
-    }
-
-    compileOnly "com.google.android:android:$versions.android"
-
-    // Tests
-    testImplementation "org.junit.jupiter:junit-jupiter-api:$versions.junit"
-    testImplementation "org.junit.jupiter:junit-jupiter-engine:$versions.junit"
-    testCompileOnly "com.google.android:android:$versions.android"
-}
-
-sourceCompatibility = 1.8
-
-compileKotlin {
-    kotlinOptions.jvmTarget = "1.8"
-}
-compileTestKotlin {
-    kotlinOptions.jvmTarget = "1.8"
-}
-
-junitPlatformTest {
-    systemProperty 'APP_ID', System.getProperty('APP_ID')
-    systemProperty 'API_PRIVATE_KEY', System.getProperty('API_PRIVATE_KEY')
-    systemProperty 'API_PUBLIC_KEY', System.getProperty('API_PUBLIC_KEY')
-    systemProperty 'API_PUBLIC_KEY_ID', System.getProperty('API_PUBLIC_KEY_ID')
-}
-
-task sourcesJar(type: Jar) {
-    from(sourceSets["main"].allSource)
-    classifier = 'sources'
-}
-
-task javadocJar(type: Jar, dependsOn: 'dokka') {
-    from "$buildDir/javadoc"
-    classifier = 'javadoc'
-}
-
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            artifactId = 'ethree-kotlin'
-            from components.java
-            artifact sourcesJar
-            artifact javadocJar
-            pom {
-                name = 'Virgil E3Kit Kotlin/Java SDK'
-                description = 'Virgil Security provides an SDK which symplifies work with Virgil services and presents easy to use API for adding security to any application. In a few simple steps you can setup user encryption with multidevice support.'
-                url = 'https://www.virgilsecurity.com/'
-                licenses {
-                    license {
-                        name = 'Virgil Security, Inc. license'
-                        url = 'https://github.com/VirgilSecurity/e3kit-kotlin/blob/master/LICENSE.txt'
-                    }
-                }
-                developers {
-                    developer {
-                        id = 'BuddahLD'
-                        name = 'Danylo Oliinyk'
-                        email = 'doliinyk@virgilsecurity.com'
-                        organizationUrl = 'https://github.com/BuddahLD'
-                    }
-                }
-                scm {
-                    connection = 'scm:git:https://github.com/VirgilSecurity/e3kit-kotlin.git'
-                    developerConnection = 'scm:git:git@github.com:VirgilSecurity/e3kit-kotlin.git'
-                    url = 'https://github.com/VirgilSecurity/e3kit-kotlin'
-                }
-            }
-        }
-    }
-
+allprojects {
     repositories {
-        maven {
-            def releasesRepoUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
-            def snapshotsRepoUrl = "https://oss.sonatype.org/content/repositories/snapshots"
-            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
-            credentials {
-                username "${authentication_username}"
-                password "${authentication_password}"
-            }
-        }
+        google()
+        jcenter()
+        mavenLocal()
+        mavenCentral()
     }
 }
 
-signing {
-    sign publishing.publications.mavenJava
-}
-
-dokka {
-    outputFormat = 'html'
-    outputDirectory = "$buildDir/javadoc"
-    reportUndocumented = false
+task clean(type: Delete) {
+    delete rootProject.buildDir
 }
