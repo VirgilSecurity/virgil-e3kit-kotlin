@@ -35,7 +35,7 @@ android {
 
 dependencies {
     implementation project(':common')
-    implementation project(':ethree')
+    implementation project(':ethreeCoroutines')
 
     implementation"org.jetbrains.kotlin:kotlin-stdlib-jdk7:${versions.kotlin}"
     implementation 'com.android.support:appcompat-v7:28.0.0'
@@ -49,6 +49,9 @@ dependencies {
     implementation ('com.virgilsecurity:keyknox:0.1.0') {
         exclude group: 'com.virgilsecurity.sdk', module: 'crypto'
     }
+
+    // Coroutines
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$versions.coroutines"
 
     // Tests
     testImplementation 'junit:junit:4.12'
