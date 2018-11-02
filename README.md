@@ -32,7 +32,7 @@ Set up dependencies in your `build.gradle`:
 
 ```
 dependencies {
-    implementation 'com.virgilsecurity:ethree-android:0.1.0-alpha'
+    implementation 'com.virgilsecurity:ethree-kotlin:0.1.0-alpha'
 }
 ```
 
