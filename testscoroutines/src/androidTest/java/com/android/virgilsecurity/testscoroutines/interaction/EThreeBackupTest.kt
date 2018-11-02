@@ -36,6 +36,7 @@ package com.android.virgilsecurity.testscoroutines.interaction
 import com.android.virgilsecurity.common.BackupKeyException
 import com.android.virgilsecurity.common.WrongPasswordException
 import com.android.virgilsecurity.ethreecoroutines.interaction.EThree
+import com.android.virgilsecurity.ethreecoroutines.model.onSuccess
 import com.android.virgilsecurity.testscoroutines.utils.TestConfig
 import com.android.virgilsecurity.testscoroutines.utils.TestConfig.Companion.virgilBaseUrl
 import com.android.virgilsecurity.testscoroutines.utils.TestUtils
@@ -207,7 +208,7 @@ class EThreeBackupTest {
 
         var resultTwo: Unit? = null
         runBlocking {
-            resultTwo = eThreeWithPass.bootstrap(password).await()
+            eThreeWithPass.bootstrap(password).await().onSuccess { resultTwo = it }
         }
         assertNotNull(resultTwo)
 
@@ -215,7 +216,7 @@ class EThreeBackupTest {
 
         var resultThree: Unit? = null
         runBlocking {
-            resultThree = eThreeWithPass.bootstrap(passwordNew).await()
+            eThreeWithPass.bootstrap(password).await().onSuccess { resultThree = it }
         }
         assertNotNull(resultThree)
     }
@@ -266,7 +267,7 @@ class EThreeBackupTest {
 
         var resultTwo: Unit? = null
         runBlocking {
-            resultTwo = eThree.bootstrap(password).await()
+            eThree.bootstrap(password).await().onSuccess { resultTwo = it }
         }
         assertNotNull(resultTwo)
 

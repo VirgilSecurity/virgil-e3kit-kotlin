@@ -35,6 +35,7 @@ package com.android.virgilsecurity.testscoroutines.interaction
 
 import com.android.virgilsecurity.ethreecoroutines.extensions.onError
 import com.android.virgilsecurity.ethreecoroutines.interaction.EThree
+import com.android.virgilsecurity.ethreecoroutines.model.onError
 import com.android.virgilsecurity.testscoroutines.utils.TestConfig
 import com.android.virgilsecurity.testscoroutines.utils.TestConfig.Companion.KEYKNOX_KEY_POSTFIX
 import com.android.virgilsecurity.testscoroutines.utils.TestConfig.Companion.LOCAL_KEY_IS_PUBLISHED
@@ -263,9 +264,7 @@ class EThreeAuthTest {
         val eThreeForFail = initEThree(identity)
 
         runBlocking {
-            eThreeForFail.bootstrap().onError {
-                bootstrapFailed = true
-            }.await()
+            eThreeForFail.bootstrap().await().onError { bootstrapFailed = true }
         }
 
         assertTrue(bootstrapFailed)
