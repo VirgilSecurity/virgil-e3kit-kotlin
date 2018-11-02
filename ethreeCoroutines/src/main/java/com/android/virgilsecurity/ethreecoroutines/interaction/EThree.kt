@@ -35,7 +35,11 @@ package com.android.virgilsecurity.ethreecoroutines.interaction
 
 import android.content.Context
 import com.android.virgilsecurity.common.*
+import com.android.virgilsecurity.ethreecoroutines.extensions.asyncWithCatch
 import com.android.virgilsecurity.ethreecoroutines.extensions.onError
+import com.android.virgilsecurity.ethreecoroutines.model.Failure
+import com.android.virgilsecurity.ethreecoroutines.model.Result
+import com.android.virgilsecurity.ethreecoroutines.model.Success
 import com.virgilsecurity.keyknox.KeyknoxManager
 import com.virgilsecurity.keyknox.client.KeyknoxClient
 import com.virgilsecurity.keyknox.cloud.CloudKeyStorage
@@ -64,8 +68,6 @@ import com.virgilsecurity.sdk.utils.ConvertionUtils
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
-import java.lang.IllegalStateException
 import java.net.URL
 
 /**
@@ -112,29 +114,33 @@ class EThree
      * Virgil's cloud storage using the password specified. It is equivalent to [bootstrap] without password
      * following with [backupPrivateKey].
      */
-    @JvmOverloads fun bootstrap(password: String? = null): Deferred<Unit> =
-            GlobalScope.async {
-                if (keyStorage.exists(currentIdentity())) {
-                    if (!keyStorage.load(currentIdentity())
-                                    .meta[LOCAL_KEY_IS_PUBLISHED]!!
-                                    .toBoolean())
-                        publishCardThenUpdateLocalKey(loadCurrentPrivateKey(),
-                                                      loadCurrentPublicKey())
-                } else {
-                    cardManager.searchCards(currentIdentity())
-                            .run {
-                                if (this.isNotEmpty())
-                                    signIn(password)
-                                else
-                                    signUp(password)
-                            }
-                }
-            }.onError {
-                if (it is DecryptionFailedException)
-                    throw WrongPasswordException("Specified password is not valid.")
-                else
-                    throw it
-            }
+    @JvmOverloads fun bootstrap(password: String? = null): Deferred<Result<Unit>> =
+            GlobalScope.asyncWithCatch(
+                {
+                    if (keyStorage.exists(currentIdentity())) {
+                        if (!keyStorage.load(currentIdentity())
+                                        .meta[LOCAL_KEY_IS_PUBLISHED]!!
+                                        .toBoolean())
+                            publishCardThenUpdateLocalKey(loadCurrentPrivateKey(),
+                                                          loadCurrentPublicKey())
+                    } else {
+                        cardManager.searchCards(currentIdentity())
+                                .run {
+                                    if (this.isNotEmpty())
+                                        signIn(password)
+                                    else
+                                        signUp(password)
+                                }
+                    }
+
+                    Success(Unit)
+                },
+                {
+                    if (it is DecryptionFailedException)
+                        Failure(WrongPasswordException("Specified password is not valid."))
+                    else
+                        Failure(it)
+                })
 
     /**
      * ! *WARNING* ! If you call this function after [bootstrap] and not use [backupPrivateKey]
