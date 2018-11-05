@@ -33,9 +33,9 @@
 
 package com.android.virgilsecurity.testscoroutines.interaction
 
-import com.android.virgilsecurity.ethreecoroutines.extensions.onError
 import com.android.virgilsecurity.ethreecoroutines.interaction.EThree
-import com.android.virgilsecurity.ethreecoroutines.model.onError
+import com.android.virgilsecurity.testscoroutines.extension.awaitResult
+import com.android.virgilsecurity.testscoroutines.model.onError
 import com.android.virgilsecurity.testscoroutines.utils.TestConfig
 import com.android.virgilsecurity.testscoroutines.utils.TestConfig.Companion.KEYKNOX_KEY_POSTFIX
 import com.android.virgilsecurity.testscoroutines.utils.TestConfig.Companion.LOCAL_KEY_IS_PUBLISHED
@@ -93,11 +93,11 @@ class EThreeAuthTest {
         TestUtils.pause()
 
         jwtGenerator = JwtGenerator(
-            TestConfig.appId,
-            TestConfig.apiKey,
-            TestConfig.apiPublicKeyId,
-            TimeSpan.fromTime(600, TimeUnit.SECONDS),
-            VirgilAccessTokenSigner(TestConfig.virgilCrypto)
+                TestConfig.appId,
+                TestConfig.apiKey,
+                TestConfig.apiPublicKeyId,
+                TimeSpan.fromTime(600, TimeUnit.SECONDS),
+                VirgilAccessTokenSigner(TestConfig.virgilCrypto)
         )
 
         keyStorage = DefaultKeyStorage(TestConfig.DIRECTORY_PATH, TestConfig.KEYSTORE_NAME)
@@ -156,15 +156,15 @@ class EThreeAuthTest {
 
         val syncKeyStorage =
                 SyncKeyStorage(
-                    identity, keyStorage, CloudKeyStorage(
+                        identity, keyStorage, CloudKeyStorage(
                         KeyknoxManager(
-                            tokenProvider,
-                            KeyknoxClient(URL(virgilBaseUrl)),
-                            listOf(keyPair.publicKey),
-                            keyPair.privateKey,
-                            KeyknoxCrypto()
+                                tokenProvider,
+                                KeyknoxClient(URL(virgilBaseUrl)),
+                                listOf(keyPair.publicKey),
+                                keyPair.privateKey,
+                                KeyknoxCrypto()
                         )
-                    )
+                )
                 )
 
         syncKeyStorage.sync()
@@ -175,10 +175,10 @@ class EThreeAuthTest {
     private fun initCardManager(identity: String): CardManager {
         val cardCrypto = VirgilCardCrypto()
         return CardManager(
-            cardCrypto,
-            GeneratorJwtProvider(jwtGenerator, identity),
-            VirgilCardVerifier(cardCrypto, false, false),
-            CardClient(TestConfig.virgilBaseUrl + TestConfig.VIRGIL_CARDS_SERVICE_PATH)
+                cardCrypto,
+                GeneratorJwtProvider(jwtGenerator, identity),
+                VirgilCardVerifier(cardCrypto, false, false),
+                CardClient(TestConfig.virgilBaseUrl + TestConfig.VIRGIL_CARDS_SERVICE_PATH)
         )
     }
 
@@ -264,7 +264,7 @@ class EThreeAuthTest {
         val eThreeForFail = initEThree(identity)
 
         runBlocking {
-            eThreeForFail.bootstrap().await().onError { bootstrapFailed = true }
+            eThreeForFail.bootstrap().awaitResult().onError { bootstrapFailed = true }
         }
 
         assertTrue(bootstrapFailed)

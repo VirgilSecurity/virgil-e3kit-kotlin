@@ -33,9 +33,6 @@
 
 package com.android.virgilsecurity.ethreecoroutines.extensions
 
-import com.android.virgilsecurity.ethreecoroutines.model.Failure
-import com.android.virgilsecurity.ethreecoroutines.model.Result
-import com.android.virgilsecurity.ethreecoroutines.model.Success
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
@@ -56,17 +53,15 @@ import kotlinx.coroutines.async
  */
 
 fun <T : Any> CoroutineScope.asyncWithCatch(
-        block: suspend CoroutineScope.() -> Success<T>,
-        catch: (suspend (Throwable) -> Failure)? = null
-): Deferred<Result<T>> {
-    return async {
-        try {
-            block()
-        } catch (throwable: Throwable) {
-            if (catch != null)
-                catch(throwable)
-            else
-                Failure(throwable)
-        }
+        block: suspend CoroutineScope.() -> T,
+        catch: (suspend (Throwable) -> Nothing)? = null
+): Deferred<T> = async {
+    try {
+        block()
+    } catch (throwable: Throwable) {
+        if (catch != null)
+            catch(throwable)
+        else
+            throw throwable
     }
 }

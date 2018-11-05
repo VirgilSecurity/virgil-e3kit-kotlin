@@ -36,10 +36,6 @@ package com.android.virgilsecurity.ethreecoroutines.interaction
 import android.content.Context
 import com.android.virgilsecurity.common.*
 import com.android.virgilsecurity.ethreecoroutines.extensions.asyncWithCatch
-import com.android.virgilsecurity.ethreecoroutines.extensions.onError
-import com.android.virgilsecurity.ethreecoroutines.model.Failure
-import com.android.virgilsecurity.ethreecoroutines.model.Result
-import com.android.virgilsecurity.ethreecoroutines.model.Success
 import com.virgilsecurity.keyknox.KeyknoxManager
 import com.virgilsecurity.keyknox.client.KeyknoxClient
 import com.virgilsecurity.keyknox.cloud.CloudKeyStorage
@@ -114,33 +110,31 @@ class EThree
      * Virgil's cloud storage using the password specified. It is equivalent to [bootstrap] without password
      * following with [backupPrivateKey].
      */
-    @JvmOverloads fun bootstrap(password: String? = null): Deferred<Result<Unit>> =
+    @JvmOverloads fun bootstrap(password: String? = null): Deferred<Unit> =
             GlobalScope.asyncWithCatch(
-                {
-                    if (keyStorage.exists(currentIdentity())) {
-                        if (!keyStorage.load(currentIdentity())
-                                        .meta[LOCAL_KEY_IS_PUBLISHED]!!
-                                        .toBoolean())
-                            publishCardThenUpdateLocalKey(loadCurrentPrivateKey(),
-                                                          loadCurrentPublicKey())
-                    } else {
-                        cardManager.searchCards(currentIdentity())
-                                .run {
-                                    if (this.isNotEmpty())
-                                        signIn(password)
-                                    else
-                                        signUp(password)
-                                }
-                    }
-
-                    Success(Unit)
-                },
-                {
-                    if (it is DecryptionFailedException)
-                        Failure(WrongPasswordException("Specified password is not valid."))
-                    else
-                        Failure(it)
-                })
+                    {
+                        if (keyStorage.exists(currentIdentity())) {
+                            if (!keyStorage.load(currentIdentity())
+                                            .meta[LOCAL_KEY_IS_PUBLISHED]!!
+                                            .toBoolean())
+                                publishCardThenUpdateLocalKey(loadCurrentPrivateKey(),
+                                                              loadCurrentPublicKey())
+                        } else {
+                            cardManager.searchCards(currentIdentity())
+                                    .run {
+                                        if (this.isNotEmpty())
+                                            signIn(password)
+                                        else
+                                            signUp(password)
+                                    }
+                        }
+                    },
+                    {
+                        if (it is DecryptionFailedException)
+                            throw WrongPasswordException("Specified password is not valid.")
+                        else
+                            throw it
+                    })
 
     /**
      * ! *WARNING* ! If you call this function after [bootstrap] and not use [backupPrivateKey]
@@ -169,29 +163,29 @@ class EThree
      *
      * Can be called only after [bootstrap] otherwise [NotBootstrappedException] exception will be returned
      */
-    fun backupPrivateKey(password: String): Deferred<Unit> {
-        checkIfBootstrappedOrThrow()
+    fun backupPrivateKey(password: String): Deferred<Unit> = GlobalScope.asyncWithCatch(
+            {
+                checkIfBootstrappedOrThrow()
 
-        if (password.isBlank())
-            throw IllegalArgumentException("\'password\' should not be empty")
+                if (password.isBlank())
+                    throw IllegalArgumentException("\'password\' should not be empty")
 
-        return GlobalScope.async {
-            initSyncKeyStorage(password)
-                    .run {
-                        (this to keyStorage.load(currentIdentity())).run {
-                            this.first.store(currentIdentity() + KEYKNOX_KEY_POSTFIX,
-                                             this.second.value,
-                                             this.second.meta).let { Unit }
+                initSyncKeyStorage(password)
+                        .run {
+                            (this to keyStorage.load(currentIdentity())).run {
+                                this.first.store(currentIdentity() + KEYKNOX_KEY_POSTFIX,
+                                                 this.second.value,
+                                                 this.second.meta).let { Unit }
+                            }
                         }
-                    }
-        }.onError {
-            if (it is KeychainEntryAlreadyExistsWhileStoringException)
-                throw BackupKeyException("Key with identity ${currentIdentity()} " +
-                                         "already backed up.")
-            else
-                throw it
-        }
-    }
+            },
+            {
+                if (it is KeychainEntryAlreadyExistsWhileStoringException)
+                    throw BackupKeyException("Key with identity ${currentIdentity()} " +
+                                                     "already backed up.")
+                else
+                    throw it
+            })
 // TODO check all docs
     /**
      * Deletes the user's private key from Virgil's cloud.
@@ -203,21 +197,21 @@ class EThree
      *
      * @throws [WrongPasswordException]
      */
-    fun resetPrivateKeyBackup(password: String): Deferred<Unit> {
-        checkIfBootstrappedOrThrow()
+    fun resetPrivateKeyBackup(password: String): Deferred<Unit> = GlobalScope.asyncWithCatch(
+            {
+                checkIfBootstrappedOrThrow()
 
-        if (password.isBlank())
-            throw IllegalArgumentException("\'password\' should not be empty")
+                if (password.isBlank())
+                    throw IllegalArgumentException("\'password\' should not be empty")
 
-        return GlobalScope.async {
-            initSyncKeyStorage(password).delete(currentIdentity() + KEYKNOX_KEY_POSTFIX)
-        }.onError {
-            if (it is DecryptionFailedException)
-                throw WrongPasswordException("Specified password is not valid.")
-            else
-                throw it
-        }
-    }
+                initSyncKeyStorage(password).delete(currentIdentity() + KEYKNOX_KEY_POSTFIX)
+            },
+            {
+                if (it is DecryptionFailedException)
+                    throw WrongPasswordException("Specified password is not valid.")
+                else
+                    throw it
+            })
 
     /**
      * Changes the password on a backed-up private key.
@@ -229,7 +223,7 @@ class EThree
      * Can be called only after [bootstrap] otherwise [NotBootstrappedException] exception will be returned
      */
     fun changePassword(oldPassword: String,
-                       newPassword: String): Deferred<Unit> {
+                       newPassword: String): Deferred<Unit> = GlobalScope.async {
         checkIfBootstrappedOrThrow()
 
         if (oldPassword.isBlank())
@@ -239,19 +233,17 @@ class EThree
         if (newPassword == oldPassword)
             throw IllegalArgumentException("\'newPassword\' can't be the same as the old one")
 
-        return GlobalScope.async {
-            val syncKeyStorageOld = initSyncKeyStorage(oldPassword)
-            val brainKeyContext = BrainKeyContext.Builder()
-                    .setAccessTokenProvider(tokenProvider)
-                    .setPythiaClient(VirgilPythiaClient(VIRGIL_BASE_URL))
-                    .setPythiaCrypto(VirgilPythiaCrypto())
-                    .build()
+        val syncKeyStorageOld = initSyncKeyStorage(oldPassword)
+        val brainKeyContext = BrainKeyContext.Builder()
+                .setAccessTokenProvider(tokenProvider)
+                .setPythiaClient(VirgilPythiaClient(VIRGIL_BASE_URL))
+                .setPythiaCrypto(VirgilPythiaCrypto())
+                .build()
 
-            Thread.sleep(THROTTLE_TIMEOUT) // To avoid next request been throttled
+        Thread.sleep(THROTTLE_TIMEOUT) // To avoid next request been throttled
 
-            val keyPair = BrainKey(brainKeyContext).generateKeyPair(newPassword)
-            syncKeyStorageOld.updateRecipients(listOf(keyPair.publicKey), keyPair.privateKey)
-        }
+        val keyPair = BrainKey(brainKeyContext).generateKeyPair(newPassword)
+        syncKeyStorageOld.updateRecipients(listOf(keyPair.publicKey), keyPair.privateKey)
     }
 
     /**
@@ -347,9 +339,9 @@ class EThree
             })
         }.let { keys ->
             virgilCrypto.decryptThenVerify(
-                data,
-                loadCurrentPrivateKey() as VirgilPrivateKey,
-                keys
+                    data,
+                    loadCurrentPrivateKey() as VirgilPrivateKey,
+                    keys
             )
         }
     }
@@ -363,27 +355,25 @@ class EThree
      *
      * Can be called only after [bootstrap] otherwise [NotBootstrappedException] exception will be returned
      */
-    fun lookupPublicKeys(identities: List<String>): Deferred<List<PublicKey>> {
+    fun lookupPublicKeys(identities: List<String>): Deferred<List<PublicKey>> = GlobalScope.async {
         checkIfBootstrappedOrThrow()
 
         if (identities.isEmpty()) throw EmptyArgumentException("identities")
         identities.groupingBy { it }.eachCount().filter { it.value > 1 }.run {
             if (this.isNotEmpty())
                 throw PublicKeyDuplicateException("Duplicates are not allowed. " +
-                                                  "Duplicated identities:\n${this}")
+                                                          "Duplicated identities:\n${this}")
         }
 
-        return GlobalScope.async {
-            identities.map {
-                cardManager.searchCards(it) to it
-            }.map {
-                it.first to it.second
-            }.map {
-                if (it.first.isNotEmpty())
-                    it.first.last().publicKey
-                else
-                    throw PublicKeyNotFoundException(it.second)
-            }
+        identities.map {
+            cardManager.searchCards(it) to it
+        }.map {
+            it.first to it.second
+        }.map {
+            if (it.first.isNotEmpty())
+                it.first.last().publicKey
+            else
+                throw PublicKeyNotFoundException(it.second)
         }
     }
 
@@ -395,8 +385,8 @@ class EThree
             restoreKeyFromKeyknox(password)
         else
             throw InitException(
-                "Private key is not found while Card exists. " +
-                "Try to restore your private key using bootstrap with password."
+                    "Private key is not found while Card exists. " +
+                            "Try to restore your private key using bootstrap with password."
             )
     }
 
@@ -421,7 +411,7 @@ class EThree
                                         virgilCrypto.importPrivateKey(this.value).run {
                                             publishCardThenUpdateLocalKey(this,
                                                                           virgilCrypto.extractPublicKey(
-                                                                              this as VirgilPrivateKey))
+                                                                                  this as VirgilPrivateKey))
                                         }
                                     }
                         } else {
@@ -517,11 +507,11 @@ class EThree
                             SyncKeyStorage(currentIdentity(),
                                            keyStorage,
                                            CloudKeyStorage(KeyknoxManager(
-                                               tokenProvider,
-                                               KeyknoxClient(URL(VIRGIL_BASE_URL)),
-                                               listOf(keyPair.publicKey),
-                                               keyPair.privateKey,
-                                               KeyknoxCrypto()))).also { syncKeyStorage ->
+                                                   tokenProvider,
+                                                   KeyknoxClient(URL(VIRGIL_BASE_URL)),
+                                                   listOf(keyPair.publicKey),
+                                                   keyPair.privateKey,
+                                                   KeyknoxCrypto()))).also { syncKeyStorage ->
                                 syncKeyStorage.sync()
                             }
                         }

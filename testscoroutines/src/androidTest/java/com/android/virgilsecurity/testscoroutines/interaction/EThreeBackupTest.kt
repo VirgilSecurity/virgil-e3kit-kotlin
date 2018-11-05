@@ -36,7 +36,9 @@ package com.android.virgilsecurity.testscoroutines.interaction
 import com.android.virgilsecurity.common.BackupKeyException
 import com.android.virgilsecurity.common.WrongPasswordException
 import com.android.virgilsecurity.ethreecoroutines.interaction.EThree
-import com.android.virgilsecurity.ethreecoroutines.model.onSuccess
+import com.android.virgilsecurity.testscoroutines.extension.awaitResult
+import com.android.virgilsecurity.testscoroutines.model.onError
+import com.android.virgilsecurity.testscoroutines.model.onSuccess
 import com.android.virgilsecurity.testscoroutines.utils.TestConfig
 import com.android.virgilsecurity.testscoroutines.utils.TestConfig.Companion.virgilBaseUrl
 import com.android.virgilsecurity.testscoroutines.utils.TestUtils
@@ -44,6 +46,7 @@ import com.virgilsecurity.keyknox.KeyknoxManager
 import com.virgilsecurity.keyknox.client.KeyknoxClient
 import com.virgilsecurity.keyknox.cloud.CloudKeyStorage
 import com.virgilsecurity.keyknox.crypto.KeyknoxCrypto
+import com.virgilsecurity.keyknox.exception.DecryptionFailedException
 import com.virgilsecurity.keyknox.storage.SyncKeyStorage
 import com.virgilsecurity.pythia.brainkey.BrainKey
 import com.virgilsecurity.pythia.brainkey.BrainKeyContext
@@ -70,7 +73,6 @@ import org.junit.Before
 import org.junit.Test
 import java.net.URL
 import java.util.*
-import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 /**
@@ -196,29 +198,32 @@ class EThreeBackupTest {
 
         TestUtils.pause()
 
-        var result: Unit? = null
+        var successful = false
         runBlocking {
-            result = eThreeWithPass.changePassword(password, passwordNew).await()
+            eThreeWithPass.changePassword(password, passwordNew).awaitResult().onSuccess { successful = true }
         }
-        assertNotNull(result)
+        assertTrue(successful)
 
         TestUtils.pause()
 
         eThreeWithPass.cleanup()
 
-        var resultTwo: Unit? = null
+        var failed = false
         runBlocking {
-            eThreeWithPass.bootstrap(password).await().onSuccess { resultTwo = it }
+            eThreeWithPass.bootstrap(password).awaitResult().onError {
+                if (it is WrongPasswordException)
+                    failed = true
+            }
         }
-        assertNotNull(resultTwo)
+        assertTrue(failed)
 
         TestUtils.pause()
 
-        var resultThree: Unit? = null
+        var successfulTwo = false
         runBlocking {
-            eThreeWithPass.bootstrap(password).await().onSuccess { resultThree = it }
+            eThreeWithPass.bootstrap(passwordNew).awaitResult().onSuccess { successfulTwo = true }
         }
-        assertNotNull(resultThree)
+        assertTrue(successfulTwo)
     }
 
     // STE-KeyBackup-2
@@ -230,11 +235,14 @@ class EThreeBackupTest {
 
         TestUtils.pause()
 
-        var result: Unit? = null
+        var failed = false
         runBlocking {
-            result = eThreeWithPass.backupPrivateKey(password).await()
+            eThreeWithPass.backupPrivateKey(password).awaitResult().onError {
+                if (it is BackupKeyException)
+                    failed = true
+            }
         }
-        assertNotNull(result)
+        assertTrue(failed)
     }
 
     // STE-KeyBackup-3
@@ -267,7 +275,7 @@ class EThreeBackupTest {
 
         var resultTwo: Unit? = null
         runBlocking {
-            eThree.bootstrap(password).await().onSuccess { resultTwo = it }
+            eThree.bootstrap(password).awaitResult().onSuccess { resultTwo = it }
         }
         assertNotNull(resultTwo)
 
@@ -307,10 +315,13 @@ class EThreeBackupTest {
 
         TestUtils.pause()
 
-        var result: Unit? = null
+        var failed = false
         runBlocking {
-            result = eThreeWithPass.resetPrivateKeyBackup(passwordWrong).await()
+            eThreeWithPass.resetPrivateKeyBackup(passwordWrong).awaitResult().onError {
+                if (it is WrongPasswordException)
+                    failed = true
+            }
         }
-        assertNotNull(result)
+        assertTrue(failed)
     }
 }

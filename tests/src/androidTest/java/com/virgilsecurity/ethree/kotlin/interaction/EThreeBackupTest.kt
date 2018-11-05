@@ -33,8 +33,8 @@
 
 package com.virgilsecurity.ethree.kotlin.interaction
 
-import com.virgilsecurity.ethree.data.exception.BackupKeyException
-import com.virgilsecurity.ethree.data.exception.WrongPasswordException
+import com.android.virgilsecurity.common.BackupKeyException
+import com.android.virgilsecurity.common.WrongPasswordException
 import com.virgilsecurity.ethree.utils.TestUtils
 import com.virgilsecurity.keyknox.KeyknoxManager
 import com.virgilsecurity.keyknox.client.KeyknoxClient

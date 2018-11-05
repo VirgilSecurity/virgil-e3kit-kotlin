@@ -33,9 +33,9 @@
 
 package com.virgilsecurity.ethree.kotlin.interaction
 
-import com.virgilsecurity.ethree.data.exception.NotBootstrappedException
-import com.virgilsecurity.ethree.data.exception.PublicKeyDuplicateException
-import com.virgilsecurity.ethree.data.exception.PublicKeyNotFoundException
+import com.android.virgilsecurity.common.NotBootstrappedException
+import com.android.virgilsecurity.common.PublicKeyDuplicateException
+import com.android.virgilsecurity.common.PublicKeyNotFoundException
 import com.virgilsecurity.ethree.utils.TestUtils
 import com.virgilsecurity.sdk.common.TimeSpan
 import com.virgilsecurity.sdk.crypto.PublicKey

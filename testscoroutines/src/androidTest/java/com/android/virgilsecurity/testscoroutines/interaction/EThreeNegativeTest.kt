@@ -36,10 +36,10 @@ package com.android.virgilsecurity.testscoroutines.interaction
 import com.android.virgilsecurity.common.NotBootstrappedException
 import com.android.virgilsecurity.common.PublicKeyDuplicateException
 import com.android.virgilsecurity.common.PublicKeyNotFoundException
-import com.android.virgilsecurity.ethreecoroutines.extensions.onError
 import com.android.virgilsecurity.ethreecoroutines.interaction.EThree
+import com.android.virgilsecurity.testscoroutines.extension.awaitResult
+import com.android.virgilsecurity.testscoroutines.model.onError
 import com.android.virgilsecurity.testscoroutines.utils.TestConfig
-import com.android.virgilsecurity.testscoroutines.utils.TestUtils
 import com.virgilsecurity.sdk.common.TimeSpan
 import com.virgilsecurity.sdk.crypto.VirgilAccessTokenSigner
 import com.virgilsecurity.sdk.jwt.JwtGenerator
@@ -51,7 +51,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.util.*
-import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 /**
@@ -111,29 +110,38 @@ class EThreeNegativeTest {
 
     @Test
     fun backup_fail_without_bootstrap() {
-        var result: Unit? = null
+        var failed = false
         runBlocking {
-            result = eThree.backupPrivateKey(password).await()
+            eThree.backupPrivateKey(password).awaitResult().onError {
+                if (it is NotBootstrappedException)
+                    failed = true
+            }
         }
-        assertNotNull(result)
+        assertTrue(failed)
     }
 
     @Test
     fun reset_key_fail_without_bootstrap() {
-        var result: Unit? = null
+        var failed = false
         runBlocking {
-            result = eThree.resetPrivateKeyBackup(password).await()
+            eThree.resetPrivateKeyBackup(password).awaitResult().onError {
+                if (it is NotBootstrappedException)
+                    failed = true
+            }
         }
-        assertNotNull(result)
+        assertTrue(failed)
     }
 
     @Test
     fun change_pass_fail_without_bootstrap() {
-        var result: Unit? = null
+        var failed = false
         runBlocking {
-            result = eThree.changePassword(password, password + password).await()
+            eThree.changePassword(password, password + password).awaitResult().onError {
+                if (it is NotBootstrappedException)
+                    failed = true
+            }
         }
-        assertNotNull(result)
+        assertTrue(failed)
     }
 
     @Test(expected = NotBootstrappedException::class)
@@ -160,9 +168,9 @@ class EThreeNegativeTest {
     fun lookup_fail_without_bootstrap() {
         var failed = false
         runBlocking {
-            eThree.lookupPublicKeys(listOf("")).onError {
+            eThree.lookupPublicKeys(listOf("")).awaitResult().onError {
                 failed = true
-            }.await()
+            }
         }
         assertTrue(failed)
     }
@@ -173,10 +181,10 @@ class EThreeNegativeTest {
 
         var failed = false
         runBlocking {
-            eThree.lookupPublicKeys(listOf(identity, WRONG_IDENTITY)).onError {
+            eThree.lookupPublicKeys(listOf(identity, WRONG_IDENTITY)).awaitResult().onError {
                 if (it is PublicKeyNotFoundException && it.identity == WRONG_IDENTITY)
                     failed = true
-            }.await()
+            }
         }
         assertTrue(failed)
     }
@@ -185,9 +193,9 @@ class EThreeNegativeTest {
     fun init_ethree_with_empty_token() {
         var failed = false
         runBlocking {
-            EThree.initialize(TestConfig.context) { "" }.onError {
+            EThree.initialize(TestConfig.context) { "" }.awaitResult().onError {
                 failed = true
-            }.await()
+            }
         }
         assertTrue(failed)
     }
@@ -195,18 +203,16 @@ class EThreeNegativeTest {
     @Test
     fun lookup_with_duplicate_identities() {
         var failed = false
-        val waiter = CountDownLatch(1)
         bootstrapEThree(eThree)
 
         runBlocking {
             eThree.lookupPublicKeys(listOf(identity, identity, identity,
                                            WRONG_IDENTITY, WRONG_IDENTITY,
-                                           WRONG_IDENTITY + identity)).onError {
+                                           WRONG_IDENTITY + identity)).awaitResult().onError {
                 if (it is PublicKeyDuplicateException)
                     failed = true
-            }.await()
+            }
         }
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
         assertTrue(failed)
     }
 
@@ -215,10 +221,10 @@ class EThreeNegativeTest {
         var failed = false
         bootstrapEThree(eThree)
         runBlocking {
-            eThree.changePassword(password, password).onError {
+            eThree.changePassword(password, password).awaitResult().onError {
                 if (it is IllegalArgumentException)
                     failed = true
-            }.await()
+            }
         }
         assertTrue(failed)
     }
