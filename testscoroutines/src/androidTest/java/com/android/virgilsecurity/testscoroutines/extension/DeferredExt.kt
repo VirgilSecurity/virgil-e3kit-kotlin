@@ -31,40 +31,23 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.android.virgilsecurity.ethreecoroutines.model
+package com.android.virgilsecurity.testscoroutines.extension
+
+import com.android.virgilsecurity.testscoroutines.model.Failure
+import com.android.virgilsecurity.testscoroutines.model.Result
+import com.android.virgilsecurity.testscoroutines.model.Success
+import kotlinx.coroutines.Deferred
 
 /**
- * . _  _
- * .| || | _
- * -| || || |   Created by:
- * .| || || |-  Danylo Oliinyk
- * ..\_  || |   on
- * ....|  _/    11/1/18
- * ...-| | \    at Virgil Security
- * ....|_|-
+ * Created by:
+ * Danylo Oliinyk
+ * on
+ * 11/5/18
+ * at Virgil Security
  */
 
-/**
- * Result that can be [Success] or [Error]
- */
-
-sealed class Result<out T : Any>
-
-data class Success<out T : Any>(val data: T) : Result<T>()
-
-data class Failure(val error: Throwable?) : Result<Nothing>()
-
-inline fun <T : Any> Result<T>.onSuccess(action: (T) -> Unit): Result<T> {
-    if (this is Success) action(data)
-
-    return this
-}
-
-inline fun <T : Any> Result<T>.onError(action: (Throwable) -> Unit) {
-    if (this is Failure && error != null) action(error)
-}
-
-inline fun <T : Any, R : Any> Result<T>.mapOnSuccess(map: (T) -> R) = when (this) {
-    is Success -> Success(map(data))
-    is Failure -> this
+suspend fun <T : Any> Deferred<T>.awaitResult(): Result<T> = try {
+    Success(await())
+} catch (throwable: Throwable) {
+    Failure(throwable)
 }

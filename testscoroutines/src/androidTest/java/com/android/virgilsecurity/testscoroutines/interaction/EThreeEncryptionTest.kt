@@ -34,8 +34,9 @@
 package com.android.virgilsecurity.testscoroutines.interaction
 
 import com.android.virgilsecurity.common.NotBootstrappedException
-import com.android.virgilsecurity.ethreecoroutines.extensions.onError
 import com.android.virgilsecurity.ethreecoroutines.interaction.EThree
+import com.android.virgilsecurity.testscoroutines.extension.awaitResult
+import com.android.virgilsecurity.testscoroutines.model.onError
 import com.android.virgilsecurity.testscoroutines.utils.TestConfig
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.model.RawSignedModel
@@ -67,7 +68,6 @@ import java.util.concurrent.TimeUnit
 class EThreeEncryptionTest {
 
     private val identity = UUID.randomUUID().toString()
-    private val password = UUID.randomUUID().toString()
 
     private lateinit var eThree: EThree
     private lateinit var jwtGenerator: JwtGenerator
@@ -185,9 +185,9 @@ class EThreeEncryptionTest {
     @Test
     fun lookup_zero_users() {
         runBlocking {
-            eThree.lookupPublicKeys(listOf()).onError {
+            eThree.lookupPublicKeys(listOf()).awaitResult().onError {
                 assertTrue(it is EmptyArgumentException)
-            }.await()
+            }
         }
     }
 
@@ -336,7 +336,6 @@ class EThreeEncryptionTest {
     }
 
     companion object {
-        const val MULTIPLY_TIMES = 10
         const val RAW_TEXT = "This is the best text ever made by the whole humanity."
     }
 }

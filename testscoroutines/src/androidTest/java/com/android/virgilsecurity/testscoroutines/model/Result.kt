@@ -31,11 +31,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.android.virgilsecurity.ethreecoroutines.extensions
-
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+package com.android.virgilsecurity.testscoroutines.model
 
 /**
  * . _  _
@@ -49,16 +45,26 @@ import kotlinx.coroutines.launch
  */
 
 /**
- * Extensions for Deffered
+ * Result that can be [Success] or [Error]
  */
 
-fun <T> Deferred<T>.onError(block: suspend (Exception) -> Unit): Deferred<T> {
-    GlobalScope.launch {
-        try {
-            await()
-        } catch (e: Exception) {
-            block(e)
-        }
-    }
+sealed class Result<out T : Any>
+
+data class Success<out T : Any>(val data: T) : Result<T>()
+
+data class Failure(val error: Throwable?) : Result<Nothing>()
+
+inline fun <T : Any> Result<T>.onSuccess(action: (T) -> Unit): Result<T> {
+    if (this is Success) action(data)
+
     return this
+}
+
+inline fun <T : Any> Result<T>.onError(action: (Throwable) -> Unit) {
+    if (this is Failure && error != null) action(error)
+}
+
+inline fun <T : Any, R : Any> Result<T>.mapOnSuccess(map: (T) -> R) = when (this) {
+    is Success -> Success(map(data))
+    is Failure -> this
 }
