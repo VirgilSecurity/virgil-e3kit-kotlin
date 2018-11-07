@@ -2,16 +2,11 @@ language: android
 sudo: required
 jdk: oraclejdk8
 
-# Exclude branches
-branches:
-  except:
-  - master
-  - v0.1
-
 # Include branches
 branches:
   only:
   - dev
+  - master
 
 before_cache:
  - rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
