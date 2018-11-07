@@ -9,7 +9,7 @@ apply plugin: 'maven'
 apply plugin: 'org.jetbrains.dokka'
 
 group 'com.virgilsecurity'
-version '0.1.1-rc'
+version '0.1.1-alpha'
 
 dependencies {
     // Inner dependencies
@@ -58,7 +58,7 @@ publishing {
             artifact sourcesJar
             artifact javadocJar
             pom {
-                name = 'Virgil E3Kit Kotlin/Java SDK'
+                name = 'Virgil E3Kit Java/Kotlin SDK'
                 description = 'Virgil Security provides an SDK which symplifies work with Virgil services and presents easy to use API for adding security to any application. In a few simple steps you can setup user encryption with multidevice support.'
                 url = 'https://www.virgilsecurity.com/'
                 licenses {

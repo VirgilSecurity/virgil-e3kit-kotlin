@@ -43,10 +43,10 @@ dependencies {
     // Virgil
     implementation "com.virgilsecurity.sdk:crypto-android:${versions.virgilSdk}@aar"
     implementation "com.virgilsecurity.sdk:sdk:$versions.virgilSdk"
-    implementation ('com.virgilsecurity:pythia:0.2.0') {
+    implementation ("com.virgilsecurity:pythia:$versions.pythia") {
         exclude group: 'com.virgilsecurity.sdk', module: 'crypto'
     }
-    implementation ('com.virgilsecurity:keyknox:0.1.0') {
+    implementation ("com.virgilsecurity:keyknox:$versions.keyknox") {
         exclude group: 'com.virgilsecurity.sdk', module: 'crypto'
     }
 

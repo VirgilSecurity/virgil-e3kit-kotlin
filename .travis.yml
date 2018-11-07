@@ -5,13 +5,13 @@ jdk: oraclejdk8
 # Exclude branches
 branches:
   except:
-  - dev
+  - master
   - v0.1
 
 # Include branches
 branches:
   only:
-  - master
+  - dev
 
 before_cache:
  - rm -f $HOME/.gradle/caches/modules-2/modules-2.lock

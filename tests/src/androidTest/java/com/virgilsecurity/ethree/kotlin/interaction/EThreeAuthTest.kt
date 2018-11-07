@@ -240,6 +240,9 @@ class EThreeAuthTest {
 
         initAndBootstrapEThreeWithPass(identity, password)
         assertTrue(keyStorage.exists(identity))
+
+        TestUtils.pause()
+
         assertTrue(initSyncKeyStorage(identity, password).exists(identity + KEYKNOX_KEY_POSTFIX))
 
         val card = initCardManager(identity).searchCards(identity)
