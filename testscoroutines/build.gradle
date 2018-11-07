@@ -37,16 +37,16 @@ dependencies {
     implementation project(':common')
     implementation project(':ethreeCoroutines')
 
-    implementation"org.jetbrains.kotlin:kotlin-stdlib-jdk7:${versions.kotlin}"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$versions.kotlin"
     implementation 'com.android.support:appcompat-v7:28.0.0'
 
     // Virgil
-    implementation "com.virgilsecurity.sdk:crypto-android:${versions.virgilSdk}@aar"
+    implementation "com.virgilsecurity.sdk:crypto-android:$versions.virgilSdk@aar"
     implementation "com.virgilsecurity.sdk:sdk:$versions.virgilSdk"
-    implementation ('com.virgilsecurity:pythia:0.2.0') {
+    implementation("com.virgilsecurity:pythia:$versions.pythia") {
         exclude group: 'com.virgilsecurity.sdk', module: 'crypto'
     }
-    implementation ('com.virgilsecurity:keyknox:0.1.0') {
+    implementation("com.virgilsecurity:keyknox:$versions.keyknox") {
         exclude group: 'com.virgilsecurity.sdk', module: 'crypto'
     }
 
