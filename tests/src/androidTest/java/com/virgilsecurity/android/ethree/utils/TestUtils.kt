@@ -1,4 +1,4 @@
-package com.virgilsecurity.ethree.utils
+package com.virgilsecurity.android.ethree.utils
 
 class TestUtils {
 

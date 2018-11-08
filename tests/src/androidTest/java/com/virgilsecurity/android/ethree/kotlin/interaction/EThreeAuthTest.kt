@@ -31,11 +31,8 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.ethree.kotlin.interaction
+package com.virgilsecurity.android.ethree.kotlin.interaction
 
-import com.android.virgilsecurity.common.exceptions.BackupKeyException
-import com.android.virgilsecurity.common.exceptions.WrongPasswordException
-import com.virgilsecurity.ethree.utils.TestUtils
 import com.virgilsecurity.keyknox.KeyknoxManager
 import com.virgilsecurity.keyknox.client.KeyknoxClient
 import com.virgilsecurity.keyknox.cloud.CloudKeyStorage
@@ -58,13 +55,17 @@ import com.virgilsecurity.sdk.jwt.JwtGenerator
 import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
 import com.virgilsecurity.sdk.jwt.accessProviders.GeneratorJwtProvider
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
+import com.virgilsecurity.sdk.storage.JsonKeyEntry
 import com.virgilsecurity.sdk.storage.KeyStorage
 import com.virgilsecurity.sdk.utils.Tuple
+import com.virgilsecurity.android.ethree.utils.TestUtils
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import utils.TestConfig
-import utils.TestConfig.Companion.virgilBaseUrl
+import com.virgilsecurity.android.ethree.utils.TestConfig
+import com.virgilsecurity.android.ethree.utils.TestConfig.Companion.KEYKNOX_KEY_POSTFIX
+import com.virgilsecurity.android.ethree.utils.TestConfig.Companion.LOCAL_KEY_IS_PUBLISHED
+import com.virgilsecurity.android.ethree.utils.TestConfig.Companion.virgilBaseUrl
 import java.net.URL
 import java.util.*
 import java.util.concurrent.CountDownLatch
@@ -77,7 +78,9 @@ import java.util.concurrent.TimeUnit
  * 10/9/18
  * at Virgil Security
  */
-class EThreeBackupTest {
+class EThreeAuthTest {
+
+    private val identity = UUID.randomUUID().toString()
 
     private lateinit var jwtGenerator: JwtGenerator
     private lateinit var keyStorage: KeyStorage
@@ -219,214 +222,140 @@ class EThreeBackupTest {
         }
     }
 
-    // STE-KeyBackup-1
+    // STE-Auth-1
     @Test
-    fun change_password() {
+    fun init_and_bootstrap() {
+        initAndBootstrapEThree(identity)
+        assertTrue(keyStorage.exists(identity))
+
+        val card = initCardManager(identity).searchCards(identity)
+        assertNotNull(card)
+    }
+
+    // STE-Auth-2
+    @Test
+    fun init_and_bootstrap_with_password() {
         val identity = UUID.randomUUID().toString()
         val password = UUID.randomUUID().toString()
-        val passwordNew = UUID.randomUUID().toString()
-        val timeTrack = System.currentTimeMillis() / 1000
-        println("One: $timeTrack")
+
+        initAndBootstrapEThreeWithPass(identity, password)
+        assertTrue(keyStorage.exists(identity))
+
+        TestUtils.pause()
+
+        assertTrue(initSyncKeyStorage(identity, password).exists(identity + KEYKNOX_KEY_POSTFIX))
+
+        val card = initCardManager(identity).searchCards(identity)
+        assertNotNull(card)
+    }
+
+    // STE-Auth-3
+    @Test
+    fun delete_local_key_and_bootstrap_with_password() {
+        val identity = UUID.randomUUID().toString()
+        val password = UUID.randomUUID().toString()
 
         val eThreeWithPass = initAndBootstrapEThreeWithPass(identity, password)
 
         TestUtils.pause()
 
-        val waiter = CountDownLatch(1)
-        var passwordChanged = false
-        eThreeWithPass.changePassword(password, passwordNew, object : EThree.OnCompleteListener {
-            override fun onSuccess() {
-                println("Two: " + ((System.currentTimeMillis() / 1000) - timeTrack))
-                passwordChanged = true
-                waiter.countDown()
-            }
+        assertTrue(keyStorage.exists(identity))
+        assertTrue(initSyncKeyStorage(identity, password).exists(identity + KEYKNOX_KEY_POSTFIX))
 
-            override fun onError(throwable: Throwable) {
-                fail(throwable.message)
-            }
-        })
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
-        assertTrue(passwordChanged)
-
-        TestUtils.pause()
+        val card = initCardManager(identity).searchCards(identity)
+        assertNotNull(card)
 
         eThreeWithPass.cleanup()
-        val waiterTwo = CountDownLatch(1)
-        var failedWithOldPassword = false
-        eThreeWithPass.bootstrap(object : EThree.OnCompleteListener {
-
-            override fun onSuccess() {
-                fail("Illegal State")
-            }
-
-            override fun onError(throwable: Throwable) {
-                if (throwable is WrongPasswordException)
-                    failedWithOldPassword = true
-
-                waiterTwo.countDown()
-            }
-        }, password)
-        waiterTwo.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
-        assertTrue(failedWithOldPassword)
-
-        TestUtils.pause()
-
-        val waiterThree = CountDownLatch(1)
-        var successWithNewPassword = false
-        eThreeWithPass.bootstrap(object : EThree.OnCompleteListener {
-
-            override fun onSuccess() {
-                successWithNewPassword = true
-                waiterThree.countDown()
-            }
-
-            override fun onError(throwable: Throwable) {
-                fail(throwable.message)
-            }
-        }, passwordNew)
-        waiterThree.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
-        assertTrue(successWithNewPassword)
-    }
-
-    // STE-KeyBackup-2
-    @Test
-    fun backup_after_bootstrap_with_password() {
-        val identity = UUID.randomUUID().toString()
-        val password = UUID.randomUUID().toString()
-        val eThreeWithPass = initAndBootstrapEThreeWithPass(identity, password)
-
-        TestUtils.pause()
-
-        val waiter = CountDownLatch(1)
-        var failedToBackup = false
-        eThreeWithPass.backupPrivateKey(password, object : EThree.OnCompleteListener {
-            override fun onSuccess() {
-                fail("Illegal State")
-            }
-
-            override fun onError(throwable: Throwable) {
-                if (throwable is BackupKeyException)
-                    failedToBackup = true
-
-                waiter.countDown()
-            }
-        })
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
-        assertTrue(failedToBackup)
-    }
-
-    // STE-KeyBackup-3
-    @Test
-    fun backup_key_after_bootstrap() {
-        val identity = UUID.randomUUID().toString()
-        val password = UUID.randomUUID().toString()
-        val eThree = initAndBootstrapEThree(identity)
-
-        TestUtils.pause()
-
-        val waiter = CountDownLatch(1)
-        var successfullyBackuped = false
-        eThree.backupPrivateKey(password, object : EThree.OnCompleteListener {
-            override fun onSuccess() {
-                successfullyBackuped = true
-                waiter.countDown()
-            }
-
-            override fun onError(throwable: Throwable) {
-                fail(throwable.message)
-            }
-        })
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
-        assertTrue(successfullyBackuped)
-
-        TestUtils.pause()
-
-        val syncKeyStorage = initSyncKeyStorage(identity, password)
-        assertTrue(syncKeyStorage.exists(identity + TestConfig.KEYKNOX_KEY_POSTFIX))
-        val retrievedKey = syncKeyStorage.retrieve(identity + TestConfig.KEYKNOX_KEY_POSTFIX)
-        assertEquals(TestConfig.virgilCrypto.importPrivateKey(keyStorage.load(identity).value),
-                     TestConfig.virgilCrypto.importPrivateKey(retrievedKey.value))
-
-        eThree.cleanup()
         assertFalse(keyStorage.exists(identity))
 
         TestUtils.pause()
 
-        val waiterTwo = CountDownLatch(1)
-        var successfullyBootstrapped = false
-        eThree.bootstrap(object : EThree.OnCompleteListener {
-            override fun onSuccess() {
-                successfullyBootstrapped = true
-                waiterTwo.countDown()
-            }
+        initAndBootstrapEThreeWithPass(identity, password)
+        assertTrue(keyStorage.exists(identity))
 
-            override fun onError(throwable: Throwable) {
-                fail(throwable.message)
-            }
-        }, password)
-        waiterTwo.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
-        assertTrue(successfullyBootstrapped)
-
-        assertTrue(syncKeyStorage.exists(identity + TestConfig.KEYKNOX_KEY_POSTFIX))
-        val retrievedKeyAfterBootstrap = syncKeyStorage.retrieve(identity + TestConfig.KEYKNOX_KEY_POSTFIX)
-        assertEquals(TestConfig.virgilCrypto.importPrivateKey(keyStorage.load(identity).value),
-                     TestConfig.virgilCrypto.importPrivateKey(retrievedKeyAfterBootstrap.value))
+        val cardIsPublished = keyStorage.load(identity).meta[LOCAL_KEY_IS_PUBLISHED]
+        assertNotNull(cardIsPublished)
+        assertTrue(cardIsPublished!!.toBoolean())
     }
 
-    // STE-KeyBackup-3
+    // STE-Auth-4
     @Test
-    fun reset_backed_key() {
+    fun delete_local_key_and_bootstrap() {
         val identity = UUID.randomUUID().toString()
         val password = UUID.randomUUID().toString()
+
         val eThreeWithPass = initAndBootstrapEThreeWithPass(identity, password)
+        assertTrue(keyStorage.exists(identity))
 
         TestUtils.pause()
 
+        assertTrue(initSyncKeyStorage(identity, password).exists(identity + KEYKNOX_KEY_POSTFIX))
+
+        val card = initCardManager(identity).searchCards(identity)
+        assertNotNull(card)
+
+        eThreeWithPass.cleanup()
+        assertFalse(keyStorage.exists(identity))
+
+        var bootstrapFailed = false
+        val eThreeForFail = initEThree(identity)
         val waiter = CountDownLatch(1)
-        var successfulKeyReset = false
-        eThreeWithPass.resetPrivateKeyBackup(password, object : EThree.OnCompleteListener {
+        eThreeForFail.bootstrap(object : EThree.OnCompleteListener {
+
             override fun onSuccess() {
-                successfulKeyReset = true
-                waiter.countDown()
+                fail("Illegal State")
             }
 
             override fun onError(throwable: Throwable) {
-                fail(throwable.message)
-            }
-        })
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
-        assertTrue(successfulKeyReset)
-
-        TestUtils.pause()
-
-        val syncKeyStorage = initSyncKeyStorage(identity, password)
-        assertFalse(syncKeyStorage.exists(identity + TestConfig.KEYKNOX_KEY_POSTFIX))
-    }
-
-    @Test
-    fun reset_backed_key_wrong_pass() {
-        val identity = UUID.randomUUID().toString()
-        val password = UUID.randomUUID().toString()
-        val passwordWrong = UUID.randomUUID().toString()
-        val eThreeWithPass = initAndBootstrapEThreeWithPass(identity, password)
-
-        TestUtils.pause()
-
-        val waiter = CountDownLatch(1)
-        var failedKeyReset = false
-        eThreeWithPass.resetPrivateKeyBackup(passwordWrong, object : EThree.OnCompleteListener {
-            override fun onSuccess() {
-                fail("Illegal state")
-            }
-
-            override fun onError(throwable: Throwable) {
-                if (throwable is WrongPasswordException)
-                    failedKeyReset = true
-
+                bootstrapFailed = true
                 waiter.countDown()
             }
         })
         waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
-        assertTrue("Key reset failed with wrong error", failedKeyReset)
+        assertTrue(bootstrapFailed)
+    }
+
+    // STE-Auth-5
+    @Test
+    fun bootstrap_with_is_published_false() {
+        val identityTwo = UUID.randomUUID().toString()
+        val keyPair = TestConfig.virgilCrypto.generateKeys()
+        keyStorage.store(JsonKeyEntry(identityTwo, keyPair.privateKey.rawKey).apply {
+            meta = mapOf(LOCAL_KEY_IS_PUBLISHED to false.toString())
+        })
+
+        val cardIsPublishedBefore = keyStorage.load(identityTwo).meta[LOCAL_KEY_IS_PUBLISHED]
+        assertNotNull(cardIsPublishedBefore)
+        assertFalse(cardIsPublishedBefore!!.toBoolean())
+
+        initAndBootstrapEThree(identityTwo)
+
+        val cardIsPublishedAfter = keyStorage.load(identityTwo).meta[LOCAL_KEY_IS_PUBLISHED]
+        assertNotNull(cardIsPublishedAfter)
+        assertTrue(cardIsPublishedAfter!!.toBoolean())
+    }
+
+    // STE-Auth-6
+    @Test
+    fun restore_key_with_bootstrap_with_password() {
+        val identityTwo = UUID.randomUUID().toString()
+        val passwordTwo = UUID.randomUUID().toString()
+        val keyPair = TestConfig.virgilCrypto.generateKeys()
+
+        val syncKeyStorage = initSyncKeyStorage(identityTwo, passwordTwo)
+        syncKeyStorage.store(listOf(JsonKeyEntry(identityTwo + KEYKNOX_KEY_POSTFIX,
+                                                 keyPair.privateKey.rawKey)))
+        assertTrue(syncKeyStorage.exists(identityTwo + KEYKNOX_KEY_POSTFIX))
+        assertFalse(keyStorage.exists(identityTwo))
+
+        TestUtils.pause()
+
+        initAndBootstrapEThreeWithPass(identityTwo, passwordTwo)
+        val cardIsPublished = keyStorage.load(identityTwo).meta[LOCAL_KEY_IS_PUBLISHED]
+        assertNotNull(cardIsPublished)
+        assertTrue(cardIsPublished!!.toBoolean())
+
+        val card = initCardManager(identityTwo).searchCards(identityTwo)
+        assertNotNull(card)
     }
 }

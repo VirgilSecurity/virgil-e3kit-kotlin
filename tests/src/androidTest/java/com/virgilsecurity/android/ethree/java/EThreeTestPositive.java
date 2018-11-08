@@ -31,12 +31,13 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.ethree.java;
+package com.virgilsecurity.android.ethree.java;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import com.virgilsecurity.ethree.kotlin.interaction.EThree;
-import com.virgilsecurity.ethree.utils.TestUtils;
+import com.virgilsecurity.android.ethree.kotlin.interaction.EThree;
+import com.virgilsecurity.android.ethree.utils.TestConfig;
+import com.virgilsecurity.android.ethree.utils.TestUtils;
 import com.virgilsecurity.sdk.cards.CardManager;
 import com.virgilsecurity.sdk.cards.model.RawSignedModel;
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier;
@@ -62,8 +63,6 @@ import org.junit.runner.RunWith;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-
-import utils.TestConfig;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;

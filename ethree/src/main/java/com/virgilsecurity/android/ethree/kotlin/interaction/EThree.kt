@@ -31,10 +31,10 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.ethree.kotlin.interaction
+package com.virgilsecurity.android.ethree.kotlin.interaction
 
 import android.content.Context
-import com.android.virgilsecurity.common.exceptions.*
+import com.virgilsecurity.android.common.exceptions.*
 import com.virgilsecurity.keyknox.KeyknoxManager
 import com.virgilsecurity.keyknox.client.KeyknoxClient
 import com.virgilsecurity.keyknox.cloud.CloudKeyStorage
@@ -117,7 +117,8 @@ class EThree
             } else {
                 GlobalScope.launch {
                     try {
-                        publishCardThenUpdateLocalKey(loadCurrentPrivateKey(), loadCurrentPublicKey())
+                        publishCardThenUpdateLocalKey(loadCurrentPrivateKey(),
+                                                      loadCurrentPublicKey())
                         onCompleteListener.onSuccess()
                     } catch (throwable: Throwable) {
                         onCompleteListener.onError(throwable)
@@ -246,10 +247,10 @@ class EThree
 
                 val syncKeyStorageOld = initSyncKeyStorage(oldPassword).await()
                 val brainKeyContext = BrainKeyContext.Builder()
-                    .setAccessTokenProvider(tokenProvider)
-                    .setPythiaClient(VirgilPythiaClient(VIRGIL_BASE_URL))
-                    .setPythiaCrypto(VirgilPythiaCrypto())
-                    .build()
+                        .setAccessTokenProvider(tokenProvider)
+                        .setPythiaClient(VirgilPythiaClient(VIRGIL_BASE_URL))
+                        .setPythiaCrypto(VirgilPythiaCrypto())
+                        .build()
 
                 Thread.sleep(THROTTLE_TIMEOUT) // To avoid next request been throttled
 
@@ -300,9 +301,10 @@ class EThree
             (if (isNull) {
                 listOf(loadCurrentPublicKey() as VirgilPublicKey)
             } else {
-                publicKeys?.asSequence()?.filterIsInstance<VirgilPublicKey>()?.toMutableList()?.apply {
-                    add(loadCurrentPublicKey() as VirgilPublicKey)
-                }
+                publicKeys?.asSequence()?.filterIsInstance<VirgilPublicKey>()?.toMutableList()
+                        ?.apply {
+                            add(loadCurrentPublicKey() as VirgilPublicKey)
+                        }
             })
         }.let { keys ->
             virgilCrypto.signThenEncrypt(data, loadCurrentPrivateKey() as VirgilPrivateKey, keys)
@@ -347,9 +349,10 @@ class EThree
             (if (isNull) {
                 listOf(loadCurrentPublicKey() as VirgilPublicKey)
             } else {
-                publicKeys?.asSequence()?.filterIsInstance<VirgilPublicKey>()?.toMutableList()?.apply {
-                    add(loadCurrentPublicKey() as VirgilPublicKey)
-                }
+                publicKeys?.asSequence()?.filterIsInstance<VirgilPublicKey>()?.toMutableList()
+                        ?.apply {
+                            add(loadCurrentPublicKey() as VirgilPublicKey)
+                        }
             })
         }.let { keys ->
             virgilCrypto.decryptThenVerify(
@@ -377,15 +380,15 @@ class EThree
 
                 if (identities.isEmpty()) throw EmptyArgumentException("identities")
                 identities.groupingBy { it }
-                    .eachCount()
-                    .filter { it.value > 1 }
-                    .run {
-                        if (this.isNotEmpty())
-                            throw PublicKeyDuplicateException(
-                                "Duplicates are not allowed. " +
-                                "Duplicated identities:\n${this}"
-                            )
-                    }
+                        .eachCount()
+                        .filter { it.value > 1 }
+                        .run {
+                            if (this.isNotEmpty())
+                                throw PublicKeyDuplicateException(
+                                    "Duplicates are not allowed. " +
+                                    "Duplicated identities:\n${this}"
+                                )
+                        }
 
                 identities.map {
                     searchCardsAsync(it) to it
@@ -433,12 +436,14 @@ class EThree
                         if (this.exists(currentIdentity() + KEYKNOX_KEY_POSTFIX)) {
                             this.retrieve(currentIdentity() + KEYKNOX_KEY_POSTFIX)
                                     .run {
-                                        keyStorage.store(JsonKeyEntry(currentIdentity(), this.value).apply {
+                                        keyStorage.store(JsonKeyEntry(currentIdentity(),
+                                                                      this.value).apply {
                                             meta = mapOf(LOCAL_KEY_IS_PUBLISHED to false.toString())
                                         })
                                         virgilCrypto.importPrivateKey(this.value).run {
                                             publishCardThenUpdateLocalKey(this,
-                                                                          virgilCrypto.extractPublicKey(this as VirgilPrivateKey))
+                                                                          virgilCrypto.extractPublicKey(
+                                                                              this as VirgilPrivateKey))
                                         }
                                     }
                         } else {
@@ -451,7 +456,8 @@ class EThree
                                     }.apply {
                                         meta = mapOf(LOCAL_KEY_IS_PUBLISHED to false.toString())
                                     })
-                                    publishCardThenUpdateLocalKey(this.second.privateKey, this.second.publicKey)
+                                    publishCardThenUpdateLocalKey(this.second.privateKey,
+                                                                  this.second.publicKey)
                                 }
                             }
                         }
@@ -470,16 +476,16 @@ class EThree
      * Loads and returns current user's [PrivateKey]. Current user's identity is taken from [tokenProvider].
      */
     private fun loadCurrentPrivateKey(): PrivateKey =
-        keyStorage.load(currentIdentity()).let {
-            virgilCrypto.importPrivateKey(it.value)
-        }
+            keyStorage.load(currentIdentity()).let {
+                virgilCrypto.importPrivateKey(it.value)
+            }
 
     /**
      * Loads and returns current user's [PublicKey] that is extracted from current user's [PrivateKey].
      * Current user's identity is taken from [tokenProvider].
      */
     private fun loadCurrentPublicKey(): PublicKey =
-        virgilCrypto.extractPublicKey(loadCurrentPrivateKey() as VirgilPrivateKey)
+            virgilCrypto.extractPublicKey(loadCurrentPrivateKey() as VirgilPrivateKey)
 
     /**
      * Publishes provided [publicKey] to the Virgil Cards Service and updates local current user's [PrivateKey]
@@ -488,11 +494,11 @@ class EThree
     private suspend fun publishCardThenUpdateLocalKey(privateKey: PrivateKey, publicKey: PublicKey) {
         publishCardAsync(privateKey, publicKey).await()
         keyStorage.load(currentIdentity())
-            .apply {
-                meta[LOCAL_KEY_IS_PUBLISHED] = true.toString()
-            }.run {
-                keyStorage.update(this)
-            }
+                .apply {
+                    meta[LOCAL_KEY_IS_PUBLISHED] = true.toString()
+                }.run {
+                    keyStorage.update(this)
+                }
     }
 
     /**
@@ -522,14 +528,14 @@ class EThree
                     if (this.exists(currentIdentity() + KEYKNOX_KEY_POSTFIX)) {
                         val keyEntry = this.retrieve(currentIdentity() + KEYKNOX_KEY_POSTFIX)
 
-                    keyStorage.store(JsonKeyEntry(currentIdentity(), keyEntry.value).apply {
-                        meta = mapOf(LOCAL_KEY_IS_PUBLISHED to true.toString())
-                    })
-                } else {
-                    throw RestoreKeyException("There is no key backup with identity: ${currentIdentity()}")
+                        keyStorage.store(JsonKeyEntry(currentIdentity(), keyEntry.value).apply {
+                            meta = mapOf(LOCAL_KEY_IS_PUBLISHED to true.toString())
+                        })
+                    } else {
+                        throw RestoreKeyException("There is no key backup with identity: ${currentIdentity()}")
+                    }
                 }
             }
-        }
 
     /**
      * Initializes [SyncKeyStorage] with default settings, [tokenProvider] and provided [password] after that returns
@@ -544,22 +550,22 @@ class EThree
                         .build()
                 val keyPair = BrainKey(brainKeyContext).generateKeyPair(password)
 
-            val syncKeyStorage = SyncKeyStorage(
-                currentIdentity(), keyStorage, CloudKeyStorage(
-                    KeyknoxManager(
-                        tokenProvider,
-                        KeyknoxClient(URL(VIRGIL_BASE_URL)),
-                        listOf(keyPair.publicKey),
-                        keyPair.privateKey,
-                        KeyknoxCrypto()
+                val syncKeyStorage = SyncKeyStorage(
+                    currentIdentity(), keyStorage, CloudKeyStorage(
+                        KeyknoxManager(
+                            tokenProvider,
+                            KeyknoxClient(URL(VIRGIL_BASE_URL)),
+                            listOf(keyPair.publicKey),
+                            keyPair.privateKey,
+                            KeyknoxCrypto()
+                        )
                     )
                 )
-            )
 
-            syncKeyStorage.sync()
+                syncKeyStorage.sync()
 
-            syncKeyStorage
-        }
+                syncKeyStorage
+            }
 
     /**
      * Extracts current user's *Identity* from Json Web Token received from [tokenProvider].

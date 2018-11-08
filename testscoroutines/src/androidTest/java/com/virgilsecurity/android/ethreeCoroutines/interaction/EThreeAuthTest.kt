@@ -31,9 +31,16 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.ethree.kotlin.interaction
+package com.virgilsecurity.android.ethreeCoroutines.interaction
 
-import com.virgilsecurity.ethree.utils.TestUtils
+import com.virgilsecurity.android.ethreecoroutines.interaction.EThree
+import com.virgilsecurity.android.ethreeCoroutines.extension.awaitResult
+import com.virgilsecurity.android.ethreeCoroutines.model.onError
+import com.virgilsecurity.android.ethreeCoroutines.utils.TestConfig
+import com.virgilsecurity.android.ethreeCoroutines.utils.TestConfig.Companion.KEYKNOX_KEY_POSTFIX
+import com.virgilsecurity.android.ethreeCoroutines.utils.TestConfig.Companion.LOCAL_KEY_IS_PUBLISHED
+import com.virgilsecurity.android.ethreeCoroutines.utils.TestConfig.Companion.virgilBaseUrl
+import com.virgilsecurity.android.ethreeCoroutines.utils.TestUtils
 import com.virgilsecurity.keyknox.KeyknoxManager
 import com.virgilsecurity.keyknox.client.KeyknoxClient
 import com.virgilsecurity.keyknox.cloud.CloudKeyStorage
@@ -59,16 +66,12 @@ import com.virgilsecurity.sdk.storage.DefaultKeyStorage
 import com.virgilsecurity.sdk.storage.JsonKeyEntry
 import com.virgilsecurity.sdk.storage.KeyStorage
 import com.virgilsecurity.sdk.utils.Tuple
+import kotlinx.coroutines.runBlocking
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import utils.TestConfig
-import utils.TestConfig.Companion.KEYKNOX_KEY_POSTFIX
-import utils.TestConfig.Companion.LOCAL_KEY_IS_PUBLISHED
-import utils.TestConfig.Companion.virgilBaseUrl
 import java.net.URL
 import java.util.*
-import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 /**
@@ -108,45 +111,21 @@ class EThreeAuthTest {
 
     private fun initEThree(identity: String): EThree {
         var eThree: EThree? = null
-        val waiter = CountDownLatch(1)
 
-        EThree.initialize(TestConfig.context, object : EThree.OnGetTokenCallback {
-            override fun onGetToken(): String {
-                return jwtGenerator.generateToken(identity).stringRepresentation()
-            }
-        }, object : EThree.OnResultListener<EThree> {
-            override fun onSuccess(result: EThree) {
-                eThree = result
-                waiter.countDown()
-            }
-
-            override fun onError(throwable: Throwable) {
-                fail(throwable.message)
-            }
-
-        })
-
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        runBlocking {
+            eThree = EThree.initialize(
+                TestConfig.context) {
+                jwtGenerator.generateToken(identity).stringRepresentation()
+            }.await()
+        }
 
         return eThree!!
     }
 
     private fun bootstrapEThree(eThree: EThree): EThree {
-        val waiter = CountDownLatch(1)
-
-        eThree.bootstrap(object : EThree.OnCompleteListener {
-
-            override fun onSuccess() {
-                // Good, go on
-                waiter.countDown()
-            }
-
-            override fun onError(throwable: Throwable) {
-                fail(throwable.message)
-            }
-        })
-
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        runBlocking {
+            eThree.bootstrap().await()
+        }
 
         return eThree
     }
@@ -158,21 +137,9 @@ class EThreeAuthTest {
     }
 
     private fun bootstrapEThree(eThree: EThree, password: String): EThree {
-        val waiter = CountDownLatch(1)
-
-        eThree.bootstrap(object : EThree.OnCompleteListener {
-
-            override fun onSuccess() {
-                // Good, go on
-                waiter.countDown()
-            }
-
-            override fun onError(throwable: Throwable) {
-                fail(throwable.message)
-            }
-        }, password)
-
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        runBlocking {
+            eThree.bootstrap(password).await()
+        }
 
         return eThree
     }
@@ -190,15 +157,15 @@ class EThreeAuthTest {
 
         val syncKeyStorage =
                 SyncKeyStorage(
-                    identity, keyStorage, CloudKeyStorage(
+                        identity, keyStorage, CloudKeyStorage(
                         KeyknoxManager(
-                            tokenProvider,
-                            KeyknoxClient(URL(virgilBaseUrl)),
-                            listOf(keyPair.publicKey),
-                            keyPair.privateKey,
-                            KeyknoxCrypto()
+                                tokenProvider,
+                                KeyknoxClient(URL(virgilBaseUrl)),
+                                listOf(keyPair.publicKey),
+                                keyPair.privateKey,
+                                KeyknoxCrypto()
                         )
-                    )
+                )
                 )
 
         syncKeyStorage.sync()
@@ -209,10 +176,10 @@ class EThreeAuthTest {
     private fun initCardManager(identity: String): CardManager {
         val cardCrypto = VirgilCardCrypto()
         return CardManager(
-            cardCrypto,
-            GeneratorJwtProvider(jwtGenerator, identity),
-            VirgilCardVerifier(cardCrypto, false, false),
-            CardClient(TestConfig.virgilBaseUrl + TestConfig.VIRGIL_CARDS_SERVICE_PATH)
+                cardCrypto,
+                GeneratorJwtProvider(jwtGenerator, identity),
+                VirgilCardVerifier(cardCrypto, false, false),
+                CardClient(TestConfig.virgilBaseUrl + TestConfig.VIRGIL_CARDS_SERVICE_PATH)
         )
     }
 
@@ -299,19 +266,11 @@ class EThreeAuthTest {
 
         var bootstrapFailed = false
         val eThreeForFail = initEThree(identity)
-        val waiter = CountDownLatch(1)
-        eThreeForFail.bootstrap(object : EThree.OnCompleteListener {
 
-            override fun onSuccess() {
-                fail("Illegal State")
-            }
+        runBlocking {
+            eThreeForFail.bootstrap().awaitResult().onError { bootstrapFailed = true }
+        }
 
-            override fun onError(throwable: Throwable) {
-                bootstrapFailed = true
-                waiter.countDown()
-            }
-        })
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
         assertTrue(bootstrapFailed)
     }
 
