@@ -31,20 +31,41 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.android.virgilsecurity.testscoroutines;
-
-import org.junit.Test;
-
-import static org.junit.Assert.*;
+package com.android.virgilsecurity.common.exceptions
 
 /**
- * Example local unit test, which will execute on the development machine (host).
- *
- * @see <a href="http://d.android.com/tools/testing">Testing documentation</a>
+ * Created by:
+ * Danylo Oliinyk
+ * on
+ * 10/23/18
+ * at Virgil Security
  */
-public class ExampleUnitTest {
-    @Test
-    public void addition_isCorrect() {
-        assertEquals(4, 2 + 2);
-    }
-}
+class BackupKeyException @JvmOverloads constructor(
+    override val message: String? = null, throwable: Throwable? = null
+) : RuntimeException(message, throwable)
+
+class InitException @JvmOverloads constructor(
+    override val message: String? = null, throwable: Throwable? = null
+) : RuntimeException(message, throwable)
+
+class RestoreKeyException @JvmOverloads constructor(
+    override val message: String? = null, throwable: Throwable? = null
+) : RuntimeException(message, throwable)
+
+class WrongPasswordException @JvmOverloads constructor(
+    override val message: String? = null, throwable: Throwable? = null
+) : RuntimeException(message, throwable)
+
+class NotBootstrappedException @JvmOverloads constructor(
+    override val message: String? = null, throwable: Throwable? = null
+) : RuntimeException(message, throwable)
+
+class PublicKeyNotFoundException @JvmOverloads constructor(
+    val identity: String,
+    override val message: String? = null,
+    throwable: Throwable? = null
+) : RuntimeException(message, throwable)
+
+class PublicKeyDuplicateException @JvmOverloads constructor(
+    override val message: String? = null, throwable: Throwable? = null
+) : RuntimeException(message, throwable)

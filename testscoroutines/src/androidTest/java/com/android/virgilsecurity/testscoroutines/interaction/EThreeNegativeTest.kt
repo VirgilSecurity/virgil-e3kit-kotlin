@@ -33,9 +33,9 @@
 
 package com.android.virgilsecurity.testscoroutines.interaction
 
-import com.android.virgilsecurity.common.NotBootstrappedException
-import com.android.virgilsecurity.common.PublicKeyDuplicateException
-import com.android.virgilsecurity.common.PublicKeyNotFoundException
+import com.android.virgilsecurity.common.exceptions.NotBootstrappedException
+import com.android.virgilsecurity.common.exceptions.PublicKeyDuplicateException
+import com.android.virgilsecurity.common.exceptions.PublicKeyNotFoundException
 import com.android.virgilsecurity.ethreecoroutines.interaction.EThree
 import com.android.virgilsecurity.testscoroutines.extension.awaitResult
 import com.android.virgilsecurity.testscoroutines.model.onError
@@ -46,7 +46,6 @@ import com.virgilsecurity.sdk.jwt.JwtGenerator
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
 import com.virgilsecurity.sdk.storage.KeyStorage
 import kotlinx.coroutines.runBlocking
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test

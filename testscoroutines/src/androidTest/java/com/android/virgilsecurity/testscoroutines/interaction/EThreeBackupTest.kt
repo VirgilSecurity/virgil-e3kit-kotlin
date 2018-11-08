@@ -33,8 +33,8 @@
 
 package com.android.virgilsecurity.testscoroutines.interaction
 
-import com.android.virgilsecurity.common.BackupKeyException
-import com.android.virgilsecurity.common.WrongPasswordException
+import com.android.virgilsecurity.common.exceptions.BackupKeyException
+import com.android.virgilsecurity.common.exceptions.WrongPasswordException
 import com.android.virgilsecurity.ethreecoroutines.interaction.EThree
 import com.android.virgilsecurity.testscoroutines.extension.awaitResult
 import com.android.virgilsecurity.testscoroutines.model.onError
@@ -46,7 +46,6 @@ import com.virgilsecurity.keyknox.KeyknoxManager
 import com.virgilsecurity.keyknox.client.KeyknoxClient
 import com.virgilsecurity.keyknox.cloud.CloudKeyStorage
 import com.virgilsecurity.keyknox.crypto.KeyknoxCrypto
-import com.virgilsecurity.keyknox.exception.DecryptionFailedException
 import com.virgilsecurity.keyknox.storage.SyncKeyStorage
 import com.virgilsecurity.pythia.brainkey.BrainKey
 import com.virgilsecurity.pythia.brainkey.BrainKeyContext
