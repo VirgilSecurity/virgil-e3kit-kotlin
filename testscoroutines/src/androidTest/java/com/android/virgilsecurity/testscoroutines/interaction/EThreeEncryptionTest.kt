@@ -33,7 +33,7 @@
 
 package com.android.virgilsecurity.testscoroutines.interaction
 
-import com.android.virgilsecurity.common.NotBootstrappedException
+import com.android.virgilsecurity.common.exceptions.NotBootstrappedException
 import com.android.virgilsecurity.ethreecoroutines.interaction.EThree
 import com.android.virgilsecurity.testscoroutines.extension.awaitResult
 import com.android.virgilsecurity.testscoroutines.model.onError

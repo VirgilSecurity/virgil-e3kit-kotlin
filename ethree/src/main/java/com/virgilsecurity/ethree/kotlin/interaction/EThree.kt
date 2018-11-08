@@ -34,7 +34,7 @@
 package com.virgilsecurity.ethree.kotlin.interaction
 
 import android.content.Context
-import com.android.virgilsecurity.common.*
+import com.android.virgilsecurity.common.exceptions.*
 import com.virgilsecurity.keyknox.KeyknoxManager
 import com.virgilsecurity.keyknox.client.KeyknoxClient
 import com.virgilsecurity.keyknox.cloud.CloudKeyStorage
@@ -138,7 +138,8 @@ class EThree
                             }
                 } catch (throwable: Throwable) {
                     if (throwable is DecryptionFailedException)
-                        onCompleteListener.onError(WrongPasswordException("Specified password is not valid."))
+                        onCompleteListener.onError(WrongPasswordException(
+                            "Specified password is not valid."))
                     else
                         onCompleteListener.onError(throwable)
                 }
@@ -190,7 +191,7 @@ class EThree
                     onCompleteListener.onError(
                         BackupKeyException(
                             "Key with identity ${currentIdentity()} " +
-                                    "already backuped."
+                            "already backuped."
                         )
                     )
                 else
@@ -216,7 +217,8 @@ class EThree
                 onCompleteListener.onSuccess()
             } catch (throwable: Throwable) {
                 if (throwable is DecryptionFailedException)
-                    onCompleteListener.onError(WrongPasswordException("Specified password is not valid."))
+                    onCompleteListener.onError(WrongPasswordException(
+                        "Specified password is not valid."))
                 else
                     onCompleteListener.onError(throwable)
             }
@@ -381,7 +383,7 @@ class EThree
                         if (this.isNotEmpty())
                             throw PublicKeyDuplicateException(
                                 "Duplicates are not allowed. " +
-                                        "Duplicated identities:\n${this}"
+                                "Duplicated identities:\n${this}"
                             )
                     }
 
@@ -393,7 +395,8 @@ class EThree
                     if (it.first.isNotEmpty())
                         it.first.last().publicKey
                     else
-                        throw PublicKeyNotFoundException(it.second)
+                        throw PublicKeyNotFoundException(
+                            it.second)
                 }.run {
                     onResultListener.onSuccess(this)
                 }
@@ -412,7 +415,7 @@ class EThree
         else
             throw InitException(
                 "Private key is not found while Card exists. " +
-                        "Try to restore your private key using bootstrap with password."
+                "Try to restore your private key using bootstrap with password."
             )
     }
 
@@ -564,7 +567,8 @@ class EThree
     private fun currentIdentity() = tokenProvider.getToken(NO_CONTEXT).identity
 
     private fun checkIfBootstrappedOrThrow() {
-        if (!keyStorage.exists(currentIdentity())) throw NotBootstrappedException("You have to call bootstrap() first.")
+        if (!keyStorage.exists(currentIdentity())) throw NotBootstrappedException(
+            "You have to call bootstrap() first.")
     }
 
     /**

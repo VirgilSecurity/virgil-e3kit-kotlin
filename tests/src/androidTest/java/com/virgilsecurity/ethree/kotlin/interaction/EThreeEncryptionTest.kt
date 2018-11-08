@@ -33,7 +33,7 @@
 
 package com.virgilsecurity.ethree.kotlin.interaction
 
-import com.android.virgilsecurity.common.NotBootstrappedException
+import com.android.virgilsecurity.common.exceptions.NotBootstrappedException
 import com.virgilsecurity.ethree.utils.TestUtils
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.model.RawSignedModel

@@ -34,7 +34,7 @@
 package com.android.virgilsecurity.ethreecoroutines.interaction
 
 import android.content.Context
-import com.android.virgilsecurity.common.*
+import com.android.virgilsecurity.common.exceptions.*
 import com.android.virgilsecurity.ethreecoroutines.extensions.asyncWithCatch
 import com.virgilsecurity.keyknox.KeyknoxManager
 import com.virgilsecurity.keyknox.client.KeyknoxClient
@@ -131,7 +131,8 @@ class EThree
                     },
                     {
                         if (it is DecryptionFailedException)
-                            throw WrongPasswordException("Specified password is not valid.")
+                            throw WrongPasswordException(
+                                "Specified password is not valid.")
                         else
                             throw it
                     })
@@ -182,7 +183,7 @@ class EThree
             {
                 if (it is KeychainEntryAlreadyExistsWhileStoringException)
                     throw BackupKeyException("Key with identity ${currentIdentity()} " +
-                                                     "already backed up.")
+                                                                                          "already backed up.")
                 else
                     throw it
             })
@@ -362,7 +363,7 @@ class EThree
         identities.groupingBy { it }.eachCount().filter { it.value > 1 }.run {
             if (this.isNotEmpty())
                 throw PublicKeyDuplicateException("Duplicates are not allowed. " +
-                                                          "Duplicated identities:\n${this}")
+                                                                                               "Duplicated identities:\n${this}")
         }
 
         identities.map {
@@ -385,8 +386,8 @@ class EThree
             restoreKeyFromKeyknox(password)
         else
             throw InitException(
-                    "Private key is not found while Card exists. " +
-                            "Try to restore your private key using bootstrap with password."
+                "Private key is not found while Card exists. " +
+                "Try to restore your private key using bootstrap with password."
             )
     }
 
@@ -523,7 +524,8 @@ class EThree
     private fun currentIdentity() = tokenProvider.getToken(NO_CONTEXT).identity
 
     private fun checkIfBootstrappedOrThrow() {
-        if (!keyStorage.exists(currentIdentity())) throw NotBootstrappedException("You have to call bootstrap() first.")
+        if (!keyStorage.exists(currentIdentity())) throw NotBootstrappedException(
+            "You have to call bootstrap() first.")
     }
 
     companion object {
