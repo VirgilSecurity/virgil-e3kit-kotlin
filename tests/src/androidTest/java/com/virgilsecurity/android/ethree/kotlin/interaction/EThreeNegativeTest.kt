@@ -31,23 +31,23 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.ethree.kotlin.interaction
+package com.virgilsecurity.android.ethree.kotlin.interaction
 
-import com.android.virgilsecurity.common.exceptions.NotBootstrappedException
-import com.android.virgilsecurity.common.exceptions.PublicKeyDuplicateException
-import com.android.virgilsecurity.common.exceptions.PublicKeyNotFoundException
-import com.virgilsecurity.ethree.utils.TestUtils
+import com.virgilsecurity.android.common.exceptions.NotBootstrappedException
+import com.virgilsecurity.android.common.exceptions.PublicKeyDuplicateException
+import com.virgilsecurity.android.common.exceptions.PublicKeyNotFoundException
 import com.virgilsecurity.sdk.common.TimeSpan
 import com.virgilsecurity.sdk.crypto.PublicKey
 import com.virgilsecurity.sdk.crypto.VirgilAccessTokenSigner
 import com.virgilsecurity.sdk.jwt.JwtGenerator
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
 import com.virgilsecurity.sdk.storage.KeyStorage
+import com.virgilsecurity.android.ethree.utils.TestUtils
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
-import utils.TestConfig
+import com.virgilsecurity.android.ethree.utils.TestConfig
 import java.util.*
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit

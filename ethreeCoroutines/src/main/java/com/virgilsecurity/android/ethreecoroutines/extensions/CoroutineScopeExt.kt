@@ -31,41 +31,37 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.android.virgilsecurity.common.exceptions
+package com.virgilsecurity.android.ethreecoroutines.extensions
+
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
 
 /**
- * Created by:
- * Danylo Oliinyk
- * on
- * 10/23/18
- * at Virgil Security
+ * . _  _
+ * .| || | _
+ * -| || || |   Created by:
+ * .| || || |-  Danylo Oliinyk
+ * ..\_  || |   on
+ * ....|  _/    11/2/18
+ * ...-| | \    at Virgil Security
+ * ....|_|-
  */
-class BackupKeyException @JvmOverloads constructor(
-    override val message: String? = null, throwable: Throwable? = null
-) : RuntimeException(message, throwable)
 
-class InitException @JvmOverloads constructor(
-    override val message: String? = null, throwable: Throwable? = null
-) : RuntimeException(message, throwable)
+/**
+ * CoroutineScopeExt
+ */
 
-class RestoreKeyException @JvmOverloads constructor(
-    override val message: String? = null, throwable: Throwable? = null
-) : RuntimeException(message, throwable)
-
-class WrongPasswordException @JvmOverloads constructor(
-    override val message: String? = null, throwable: Throwable? = null
-) : RuntimeException(message, throwable)
-
-class NotBootstrappedException @JvmOverloads constructor(
-    override val message: String? = null, throwable: Throwable? = null
-) : RuntimeException(message, throwable)
-
-class PublicKeyNotFoundException @JvmOverloads constructor(
-    val identity: String,
-    override val message: String? = null,
-    throwable: Throwable? = null
-) : RuntimeException(message, throwable)
-
-class PublicKeyDuplicateException @JvmOverloads constructor(
-    override val message: String? = null, throwable: Throwable? = null
-) : RuntimeException(message, throwable)
+fun <T : Any> CoroutineScope.asyncWithCatch(
+        block: suspend CoroutineScope.() -> T,
+        catch: (suspend (Throwable) -> Nothing)? = null
+): Deferred<T> = async {
+    try {
+        block()
+    } catch (throwable: Throwable) {
+        if (catch != null)
+            catch(throwable)
+        else
+            throw throwable
+    }
+}

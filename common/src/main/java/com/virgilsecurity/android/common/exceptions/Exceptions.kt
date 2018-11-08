@@ -31,34 +31,41 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package utils
+package com.virgilsecurity.android.common.exceptions
 
-import android.support.test.InstrumentationRegistry
-import com.virgilsecurity.ethree.BuildConfig
-import com.virgilsecurity.sdk.crypto.VirgilCrypto
-import com.virgilsecurity.sdk.crypto.VirgilPrivateKey
-import com.virgilsecurity.sdk.crypto.VirgilPublicKey
-import com.virgilsecurity.sdk.utils.ConvertionUtils
+/**
+ * Created by:
+ * Danylo Oliinyk
+ * on
+ * 10/23/18
+ * at Virgil Security
+ */
+class BackupKeyException @JvmOverloads constructor(
+    override val message: String? = null, throwable: Throwable? = null
+) : RuntimeException(message, throwable)
 
-class TestConfig {
-    companion object {
-        val virgilCrypto = VirgilCrypto(false)
-        val appId = BuildConfig.APP_ID
-        val apiKey: VirgilPrivateKey by lazy {
-            this.virgilCrypto.importPrivateKey(ConvertionUtils.base64ToBytes(BuildConfig.API_PRIVATE_KEY))
-        }
-        val apiPublicKey: VirgilPublicKey by lazy {
-            this.virgilCrypto.importPublicKey(ConvertionUtils.base64ToBytes(BuildConfig.API_PUBLIC_KEY))
-        }
-        val apiPublicKeyId = BuildConfig.API_PUBLIC_KEY_ID
+class InitException @JvmOverloads constructor(
+    override val message: String? = null, throwable: Throwable? = null
+) : RuntimeException(message, throwable)
 
-        val virgilBaseUrl = BuildConfig.VIRGIL_BASE_URL
-        const val VIRGIL_CARDS_SERVICE_PATH = "/card/v5/"
-        const val LOCAL_KEY_IS_PUBLISHED = "LOCAL_KEY_IS_PUBLISHED"
-        const val KEYKNOX_KEY_POSTFIX = "_keyknox"
+class RestoreKeyException @JvmOverloads constructor(
+    override val message: String? = null, throwable: Throwable? = null
+) : RuntimeException(message, throwable)
 
-        val context = InstrumentationRegistry.getTargetContext()
-        val DIRECTORY_PATH = InstrumentationRegistry.getTargetContext().filesDir.absolutePath
-        val KEYSTORE_NAME = "virgil.keystore"
-    }
-}
+class WrongPasswordException @JvmOverloads constructor(
+    override val message: String? = null, throwable: Throwable? = null
+) : RuntimeException(message, throwable)
+
+class NotBootstrappedException @JvmOverloads constructor(
+    override val message: String? = null, throwable: Throwable? = null
+) : RuntimeException(message, throwable)
+
+class PublicKeyNotFoundException @JvmOverloads constructor(
+    val identity: String,
+    override val message: String? = null,
+    throwable: Throwable? = null
+) : RuntimeException(message, throwable)
+
+class PublicKeyDuplicateException @JvmOverloads constructor(
+    override val message: String? = null, throwable: Throwable? = null
+) : RuntimeException(message, throwable)
