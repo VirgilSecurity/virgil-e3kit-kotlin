@@ -210,8 +210,8 @@ class EThreeNegativeTest {
     fun lookup_fail_without_bootstrap() {
         var failed = false
         val waiter = CountDownLatch(1)
-        eThree.lookupPublicKeys(listOf(""), object : EThree.OnResultListener<List<PublicKey>> {
-            override fun onSuccess(result: List<PublicKey>) {
+        eThree.lookupPublicKeys(listOf(""), object : EThree.OnResultListener<Map<String, PublicKey>> {
+            override fun onSuccess(result: Map<String, PublicKey>) {
                 fail("Not Bootstrapped")
             }
 
@@ -231,8 +231,8 @@ class EThreeNegativeTest {
         var failed = false
         val waiter = CountDownLatch(1)
         eThree.lookupPublicKeys(listOf(identity, WRONG_IDENTITY),
-                                object : EThree.OnResultListener<List<PublicKey>> {
-                                    override fun onSuccess(result: List<PublicKey>) {
+                                object : EThree.OnResultListener<Map<String, PublicKey>> {
+                                    override fun onSuccess(result: Map<String, PublicKey>) {
                                         fail("Illegal State")
                                     }
 
@@ -277,8 +277,8 @@ class EThreeNegativeTest {
         eThree.lookupPublicKeys(listOf(identity, identity, identity,
                                        WRONG_IDENTITY, WRONG_IDENTITY,
                                        WRONG_IDENTITY + identity),
-                                object : EThree.OnResultListener<List<PublicKey>> {
-                                    override fun onSuccess(result: List<PublicKey>) {
+                                object : EThree.OnResultListener<Map<String, PublicKey>> {
+                                    override fun onSuccess(result: Map<String, PublicKey>) {
                                         fail("Illegal State")
                                     }
 

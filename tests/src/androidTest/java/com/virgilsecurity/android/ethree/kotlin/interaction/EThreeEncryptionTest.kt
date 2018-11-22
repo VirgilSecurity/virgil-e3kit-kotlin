@@ -66,7 +66,6 @@ import java.util.concurrent.TimeUnit
 class EThreeEncryptionTest {
 
     private val identity = UUID.randomUUID().toString()
-    private val password = UUID.randomUUID().toString()
 
     private lateinit var eThree: EThree
     private lateinit var jwtGenerator: JwtGenerator
@@ -161,10 +160,10 @@ class EThreeEncryptionTest {
                                                                           cardManagerOne).right)
 
         eThree.lookupPublicKeys(listOf(identityOne),
-                                object : EThree.OnResultListener<List<PublicKey>> {
-                                    override fun onSuccess(result: List<PublicKey>) {
+                                object : EThree.OnResultListener<Map<String, PublicKey>> {
+                                    override fun onSuccess(result: Map<String, PublicKey>) {
                                         assertTrue(result.isNotEmpty() && result.size == 1)
-                                        assertEquals(publishedCardOne.publicKey, result[0])
+                                        assertEquals(publishedCardOne.publicKey, result[identityOne])
                                     }
 
                                     override fun onError(throwable: Throwable) {
@@ -176,7 +175,7 @@ class EThreeEncryptionTest {
     // STE-Encrypt-1
     @Test
     fun lookup_multiply_users() {
-        var foundCards = 0
+        var foundCards = false
 
         // Card one
         val identityOne = UUID.randomUUID().toString()
@@ -195,21 +194,17 @@ class EThreeEncryptionTest {
                                                                               cardManagerThree).right)
 
         eThree.lookupPublicKeys(listOf(identityOne, identityTwo, identityThree),
-                                object : EThree.OnResultListener<List<PublicKey>> {
+                                object : EThree.OnResultListener<Map<String, PublicKey>> {
 
-                                    override fun onSuccess(result: List<PublicKey>) {
+                                    override fun onSuccess(result: Map<String, PublicKey>) {
                                         assertTrue(result.isNotEmpty() && result.size == 3)
-                                        for (key in result) {
-                                            result.find {
-                                                (it == publishedCardOne.publicKey
-                                                 || it == publishedCardTwo.publicKey
-                                                 || it == publishedCardThree.publicKey)
-                                            }.run {
-                                                foundCards++
+                                            if (result[identityOne] == publishedCardOne.publicKey
+                                                 && result[identityTwo] == publishedCardTwo.publicKey
+                                                 && result[identityThree] == publishedCardThree.publicKey) {
+                                                foundCards= true
                                             }
-                                        }
 
-                                        assertTrue(foundCards == 3)
+                                        assertTrue(foundCards)
                                     }
 
                                     override fun onError(throwable: Throwable) {
@@ -221,8 +216,8 @@ class EThreeEncryptionTest {
     //STE-Encrypt-2
     @Test
     fun lookup_zero_users() {
-        eThree.lookupPublicKeys(listOf(), object : EThree.OnResultListener<List<PublicKey>> {
-            override fun onSuccess(result: List<PublicKey>) {
+        eThree.lookupPublicKeys(listOf(), object : EThree.OnResultListener<Map<String, PublicKey>> {
+            override fun onSuccess(result: Map<String, PublicKey>) {
                 fail("Illegal State")
             }
 
@@ -241,9 +236,9 @@ class EThreeEncryptionTest {
 
         val waiter = CountDownLatch(1)
         eThree.lookupPublicKeys(listOf(identity, identityTwo),
-                                object : EThree.OnResultListener<List<PublicKey>> {
-                                    override fun onSuccess(result: List<PublicKey>) {
-                                        eThreeKeys.addAll(result)
+                                object : EThree.OnResultListener<Map<String, PublicKey>> {
+                                    override fun onSuccess(result: Map<String, PublicKey>) {
+                                        eThreeKeys.addAll(result.values.toList())
                                         waiter.countDown()
                                     }
 
@@ -273,9 +268,9 @@ class EThreeEncryptionTest {
 
         val waiter = CountDownLatch(1)
         eThree.lookupPublicKeys(listOf(identity, identityTwo),
-                                object : EThree.OnResultListener<List<PublicKey>> {
-                                    override fun onSuccess(result: List<PublicKey>) {
-                                        eThreeKeys.addAll(result)
+                                object : EThree.OnResultListener<Map<String, PublicKey>> {
+                                    override fun onSuccess(result: Map<String, PublicKey>) {
+                                        eThreeKeys.addAll(result.values.toList())
                                         waiter.countDown()
                                     }
 
@@ -291,14 +286,13 @@ class EThreeEncryptionTest {
         val wrongPublicKey = TestConfig.virgilCrypto.generateKeys().publicKey
         var failedWithWrongKey = false
         try {
-            eThreeTwo.decrypt(encryptedForOne, listOf(wrongPublicKey))
+            eThreeTwo.decrypt(encryptedForOne, wrongPublicKey)
         } catch (throwable: Throwable) {
             failedWithWrongKey = true
         }
         assertTrue(failedWithWrongKey)
 
-        val decryptedByTwo = eThreeTwo.decrypt(encryptedForOne,
-                                               listOf(wrongPublicKey, eThreeKeys[0]))
+        val decryptedByTwo = eThreeTwo.decrypt(encryptedForOne, eThreeKeys[0])
 
         assertEquals(RAW_TEXT, decryptedByTwo)
     }
@@ -307,40 +301,6 @@ class EThreeEncryptionTest {
     @Test(expected = EmptyArgumentException::class)
     fun encrypt_for_zero_users() {
         eThree.encrypt(RAW_TEXT, listOf())
-    }
-
-    // STE-Encrypt-5
-    @Test
-    fun decrypt_for_zero_users() {
-        val identityTwo = UUID.randomUUID().toString()
-        initAndBootstrapEThree(identityTwo)
-
-        var eThreeKey: PublicKey? = null
-
-        val waiter = CountDownLatch(1)
-        eThree.lookupPublicKeys(listOf(identityTwo),
-                                object : EThree.OnResultListener<List<PublicKey>> {
-                                    override fun onSuccess(result: List<PublicKey>) {
-                                        eThreeKey = result.last()
-                                        waiter.countDown()
-                                    }
-
-                                    override fun onError(throwable: Throwable) {
-                                        fail(throwable.message)
-                                    }
-                                })
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
-
-        assertNotNull(eThreeKey)
-        val encryptedForOne = eThree.encrypt(RAW_TEXT, listOf(eThreeKey!!))
-
-        var failedDecrypt = false
-        try {
-            eThree.decrypt(encryptedForOne, listOf())
-        } catch (e: EmptyArgumentException) {
-            failedDecrypt = true
-        }
-        assertTrue(failedDecrypt)
     }
 
     // STE-Encrypt-6
@@ -361,7 +321,7 @@ class EThreeEncryptionTest {
 
         var failedDecrypt = false
         try {
-            eThree.decrypt(encryptedWithoutSign, listOf(keyPair.publicKey))
+            eThree.decrypt(encryptedWithoutSign, keyPair.publicKey)
         } catch (e: Exception) {
             failedDecrypt = true
         }
@@ -385,7 +345,7 @@ class EThreeEncryptionTest {
 
         var failedDecrypt = false
         try {
-            eThreeTwo.decrypt(RAW_TEXT, listOf(anyKeypair.publicKey))
+            eThreeTwo.decrypt(RAW_TEXT, anyKeypair.publicKey)
         } catch (e: NotBootstrappedException) {
             failedDecrypt = true
         }

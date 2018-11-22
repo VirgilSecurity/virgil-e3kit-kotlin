@@ -304,15 +304,14 @@ class EThree
      *
      * Can be called only after [bootstrap] otherwise [NotBootstrappedException] exception will be thrown
      */
-    @JvmOverloads fun decrypt(base64String: String, publicKeys: List<PublicKey>? = null): String {
+    @JvmOverloads fun decrypt(base64String: String, sendersKey: PublicKey? = null): String {
         checkIfBootstrappedOrThrow()
 
         if (base64String.isBlank()) throw EmptyArgumentException("data")
-        if (publicKeys?.isEmpty() == true) throw EmptyArgumentException("publicKeys")
-        if (publicKeys?.contains(loadCurrentPublicKey()) == true)
-            throw IllegalArgumentException("You should not include your own public key.")
+        if (sendersKey == loadCurrentPublicKey())
+            throw IllegalArgumentException("You should not provide your own public key.")
 
-        return String(decrypt(ConvertionUtils.base64ToBytes(base64String), publicKeys))
+        return String(decrypt(ConvertionUtils.base64ToBytes(base64String), sendersKey))
     }
 
     /**
@@ -322,22 +321,20 @@ class EThree
      *
      * Can be called only after [bootstrap] otherwise [NotBootstrappedException] exception will be thrown
      */
-    @JvmOverloads fun decrypt(data: ByteArray, publicKeys: List<PublicKey>? = null): ByteArray {
+    @JvmOverloads fun decrypt(data: ByteArray, sendersKey: PublicKey? = null): ByteArray {
         checkIfBootstrappedOrThrow()
 
         if (data.isEmpty()) throw EmptyArgumentException("data")
-        if (publicKeys?.isEmpty() == true) throw EmptyArgumentException("publicKeys")
-        if (publicKeys?.contains(loadCurrentPublicKey()) == true)
-            throw IllegalArgumentException("You should not include your own public key.")
+        if (sendersKey == loadCurrentPublicKey())
+            throw IllegalArgumentException("You should not provide your own public key.")
 
-        return (publicKeys == null).let { isNull ->
+        return (sendersKey == null).let { isNull ->
             (if (isNull) {
                 listOf(loadCurrentPublicKey() as VirgilPublicKey)
             } else {
-                publicKeys?.asSequence()?.filterIsInstance<VirgilPublicKey>()?.toMutableList()
-                        ?.apply {
-                            add(loadCurrentPublicKey() as VirgilPublicKey)
-                        }
+                mutableListOf(sendersKey as VirgilPublicKey).apply {
+                    add(loadCurrentPublicKey() as VirgilPublicKey)
+                }
             })
         }.let { keys ->
             virgilCrypto.decryptThenVerify(
@@ -357,26 +354,29 @@ class EThree
      *
      * Can be called only after [bootstrap] otherwise [NotBootstrappedException] exception will be returned
      */
-    fun lookupPublicKeys(identities: List<String>): Deferred<List<PublicKey>> = GlobalScope.async {
-        checkIfBootstrappedOrThrow()
-
+    fun lookupPublicKeys(identities: List<String>): Deferred<Map<String, PublicKey>> = GlobalScope.async {
         if (identities.isEmpty()) throw EmptyArgumentException("identities")
-        identities.groupingBy { it }.eachCount().filter { it.value > 1 }.run {
-            if (this.isNotEmpty())
-                throw PublicKeyDuplicateException("Duplicates are not allowed. " +
-                                                  "Duplicated identities:\n${this}")
-        }
+        identities.groupingBy { it }
+                .eachCount()
+                .filter { it.value > 1 }
+                .run {
+                    if (this.isNotEmpty())
+                        throw PublicKeyDuplicateException(
+                            "Duplicates are not allowed. " +
+                            "Duplicated identities:\n${this}"
+                        )
+                }
 
         identities.map {
             cardManager.searchCards(it) to it
         }.map {
-            it.first to it.second
+            it.second to it.first
         }.map {
-            if (it.first.isNotEmpty())
-                it.first.last().publicKey
+            if (it.second.isNotEmpty())
+                it.first to it.second.last().publicKey
             else
-                throw PublicKeyNotFoundException(it.second)
-        }
+                throw PublicKeyNotFoundException(it.first)
+        }.toMap()
     }
 
     /**
