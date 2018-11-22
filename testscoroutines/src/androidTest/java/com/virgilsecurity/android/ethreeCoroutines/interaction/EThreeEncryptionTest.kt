@@ -33,11 +33,11 @@
 
 package com.virgilsecurity.android.ethreeCoroutines.interaction
 
-import com.virgilsecurity.android.ethreecoroutines.interaction.EThree
 import com.virgilsecurity.android.common.exceptions.NotBootstrappedException
 import com.virgilsecurity.android.ethreeCoroutines.extension.awaitResult
 import com.virgilsecurity.android.ethreeCoroutines.model.onError
 import com.virgilsecurity.android.ethreeCoroutines.utils.TestConfig
+import com.virgilsecurity.android.ethreecoroutines.interaction.EThree
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.model.RawSignedModel
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
@@ -52,7 +52,8 @@ import com.virgilsecurity.sdk.storage.JsonKeyEntry
 import com.virgilsecurity.sdk.storage.KeyStorage
 import com.virgilsecurity.sdk.utils.Tuple
 import kotlinx.coroutines.runBlocking
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.util.*
@@ -140,14 +141,14 @@ class EThreeEncryptionTest {
         runBlocking {
             val keys = eThree.lookupPublicKeys(listOf(identityOne)).await()
             assertTrue(keys.isNotEmpty() && keys.size == 1)
-            assertEquals(publishedCardOne.publicKey, keys[0])
+            assertEquals(publishedCardOne.publicKey, keys[identityOne])
         }
     }
 
     // STE-Encrypt-1
     @Test
     fun lookup_multiply_users() {
-        var foundCards = 0
+        var foundCards = false
 
         // Card one
         val identityOne = UUID.randomUUID().toString()
@@ -168,17 +169,13 @@ class EThreeEncryptionTest {
         runBlocking {
             val keys = eThree.lookupPublicKeys(listOf(identityOne, identityTwo, identityThree)).await()
             assertTrue(keys.isNotEmpty() && keys.size == 3)
-            for (key in keys) {
-                keys.find {
-                    (it == publishedCardOne.publicKey
-                     || it == publishedCardTwo.publicKey
-                     || it == publishedCardThree.publicKey)
-                }.run {
-                    foundCards++
-                }
+            if (keys[identityOne] == publishedCardOne.publicKey
+                && keys[identityTwo] == publishedCardTwo.publicKey
+                && keys[identityThree] == publishedCardThree.publicKey) {
+                foundCards= true
             }
 
-            assertTrue(foundCards == 3)
+            assertTrue(foundCards)
         }
     }
 
@@ -197,7 +194,7 @@ class EThreeEncryptionTest {
         val identityTwo = UUID.randomUUID().toString()
         initAndBootstrapEThree(identityTwo)
 
-        var eThreeKeys = listOf<PublicKey>()
+        var eThreeKeys = mapOf<String, PublicKey>()
 
         runBlocking {
             eThreeKeys = eThree.lookupPublicKeys(listOf(identity, identityTwo)).await()
@@ -206,7 +203,7 @@ class EThreeEncryptionTest {
 
         var failedEncrypt = false
         try {
-            eThree.encrypt(RAW_TEXT, eThreeKeys)
+            eThree.encrypt(RAW_TEXT, eThreeKeys.values.toList())
         } catch (e: IllegalArgumentException) {
             failedEncrypt = true
         }
@@ -219,25 +216,24 @@ class EThreeEncryptionTest {
         val identityTwo = UUID.randomUUID().toString()
         val eThreeTwo = initAndBootstrapEThree(identityTwo)
 
-        var eThreeKeys = listOf<PublicKey>()
+        var eThreeKeys = mapOf<String, PublicKey>()
 
         runBlocking {
             eThreeKeys = eThree.lookupPublicKeys(listOf(identity, identityTwo)).await()
             assertTrue(eThreeKeys.size == 2)
         }
-        val encryptedForOne = eThree.encrypt(RAW_TEXT, listOf(eThreeKeys[1]))
+        val encryptedForOne = eThree.encrypt(RAW_TEXT, listOf(eThreeKeys[identityTwo]!!))
 
         val wrongPublicKey = TestConfig.virgilCrypto.generateKeys().publicKey
         var failedWithWrongKey = false
         try {
-            eThreeTwo.decrypt(encryptedForOne, listOf(wrongPublicKey))
+            eThreeTwo.decrypt(encryptedForOne, wrongPublicKey)
         } catch (throwable: Throwable) {
             failedWithWrongKey = true
         }
         assertTrue(failedWithWrongKey)
 
-        val decryptedByTwo = eThreeTwo.decrypt(encryptedForOne,
-                                               listOf(wrongPublicKey, eThreeKeys[0]))
+        val decryptedByTwo = eThreeTwo.decrypt(encryptedForOne, eThreeKeys[identity])
 
         assertEquals(RAW_TEXT, decryptedByTwo)
     }
@@ -246,30 +242,6 @@ class EThreeEncryptionTest {
     @Test(expected = EmptyArgumentException::class)
     fun encrypt_for_zero_users() {
         eThree.encrypt(RAW_TEXT, listOf())
-    }
-
-    // STE-Encrypt-5
-    @Test
-    fun decrypt_for_zero_users() {
-        val identityTwo = UUID.randomUUID().toString()
-        initAndBootstrapEThree(identityTwo)
-
-        var eThreeKey: PublicKey? = null
-
-        runBlocking {
-            eThreeKey = eThree.lookupPublicKeys(listOf(identityTwo)).await().last()
-        }
-
-        assertNotNull(eThreeKey)
-        val encryptedForOne = eThree.encrypt(RAW_TEXT, listOf(eThreeKey!!))
-
-        var failedDecrypt = false
-        try {
-            eThree.decrypt(encryptedForOne, listOf())
-        } catch (e: EmptyArgumentException) {
-            failedDecrypt = true
-        }
-        assertTrue(failedDecrypt)
     }
 
     // STE-Encrypt-6
@@ -291,7 +263,7 @@ class EThreeEncryptionTest {
 
         var failedDecrypt = false
         try {
-            eThree.decrypt(encryptedWithoutSign, listOf(keyPair.publicKey))
+            eThree.decrypt(encryptedWithoutSign, keyPair.publicKey)
         } catch (e: Exception) {
             failedDecrypt = true
         }
@@ -315,7 +287,7 @@ class EThreeEncryptionTest {
 
         var failedDecrypt = false
         try {
-            eThreeTwo.decrypt(RAW_TEXT, listOf(anyKeypair.publicKey))
+            eThreeTwo.decrypt(RAW_TEXT, anyKeypair.publicKey)
         } catch (e: NotBootstrappedException) {
             failedDecrypt = true
         }

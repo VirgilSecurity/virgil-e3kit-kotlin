@@ -319,15 +319,14 @@ class EThree
      *
      * Can be called only after [bootstrap] otherwise [NotBootstrappedException] exception will be thrown
      */
-    fun decrypt(base64String: String, publicKeys: List<PublicKey>? = null): String {
+    @JvmOverloads fun decrypt(base64String: String, sendersKey: PublicKey? = null): String {
         checkIfBootstrappedOrThrow()
 
         if (base64String.isBlank()) throw EmptyArgumentException("data")
-        if (publicKeys?.isEmpty() == true) throw EmptyArgumentException("publicKeys")
-        if (publicKeys?.contains(loadCurrentPublicKey()) == true)
-            throw IllegalArgumentException("You should not include your own public key.")
+        if (sendersKey == loadCurrentPublicKey())
+            throw IllegalArgumentException("You should not provide your own public key.")
 
-        return String(decrypt(ConvertionUtils.base64ToBytes(base64String), publicKeys))
+        return String(decrypt(ConvertionUtils.base64ToBytes(base64String), sendersKey))
     }
 
     /**
@@ -337,22 +336,20 @@ class EThree
      *
      * Can be called only after [bootstrap] otherwise [NotBootstrappedException] exception will be thrown
      */
-    fun decrypt(data: ByteArray, publicKeys: List<PublicKey>? = null): ByteArray {
+    @JvmOverloads fun decrypt(data: ByteArray, sendersKey: PublicKey? = null): ByteArray {
         checkIfBootstrappedOrThrow()
 
         if (data.isEmpty()) throw EmptyArgumentException("data")
-        if (publicKeys?.isEmpty() == true) throw EmptyArgumentException("publicKeys")
-        if (publicKeys?.contains(loadCurrentPublicKey()) == true)
-            throw IllegalArgumentException("You should not include your own public key.")
+        if (sendersKey == loadCurrentPublicKey())
+            throw IllegalArgumentException("You should not provide your own public key.")
 
-        return (publicKeys == null).let { isNull ->
+        return (sendersKey == null).let { isNull ->
             (if (isNull) {
                 listOf(loadCurrentPublicKey() as VirgilPublicKey)
             } else {
-                publicKeys?.asSequence()?.filterIsInstance<VirgilPublicKey>()?.toMutableList()
-                        ?.apply {
-                            add(loadCurrentPublicKey() as VirgilPublicKey)
-                        }
+                mutableListOf(sendersKey as VirgilPublicKey).apply {
+                    add(loadCurrentPublicKey() as VirgilPublicKey)
+                }
             })
         }.let { keys ->
             virgilCrypto.decryptThenVerify(
@@ -373,7 +370,7 @@ class EThree
      * Can be called only after [bootstrap] otherwise [NotBootstrappedException] exception will be returned
      */
     fun lookupPublicKeys(identities: List<String>,
-                         onResultListener: OnResultListener<List<PublicKey>>) {
+                         onResultListener: OnResultListener<Map<String, PublicKey>>) {
         GlobalScope.launch {
             try {
                 checkIfBootstrappedOrThrow()
@@ -393,14 +390,13 @@ class EThree
                 identities.map {
                     searchCardsAsync(it) to it
                 }.map {
-                    it.first.await() to it.second
+                    it.second to it.first.await()
                 }.map {
-                    if (it.first.isNotEmpty())
-                        it.first.last().publicKey
+                    if (it.second.isNotEmpty())
+                        it.first to it.second.last().publicKey
                     else
-                        throw PublicKeyNotFoundException(
-                            it.second)
-                }.run {
+                        throw PublicKeyNotFoundException(it.first)
+                }.toMap().run {
                     onResultListener.onSuccess(this)
                 }
             } catch (throwable: Throwable) {
