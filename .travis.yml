@@ -2,15 +2,10 @@ language: android
 sudo: required
 jdk: oraclejdk8
 
-# Exclude branches
-branches:
-  except:
-  - dev
-  - v0.1
-
 # Include branches
 branches:
   only:
+  - dev
   - master
 
 before_cache:
