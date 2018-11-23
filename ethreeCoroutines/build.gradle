@@ -9,7 +9,7 @@ apply plugin: 'maven'
 apply plugin: 'org.jetbrains.dokka'
 
 group 'com.virgilsecurity'
-version '0.2.0'
+version '0.1.1'
 
 dependencies {
     // Inner dependencies
@@ -53,12 +53,12 @@ def authentication_password = hasProperty('authentication_password') ? authentic
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            artifactId = 'ethree-kotlin'
+            artifactId = 'ethree-kotlin-coroutines'
             from components.java
             artifact sourcesJar
             artifact javadocJar
             pom {
-                name = 'Virgil E3Kit Java/Kotlin SDK'
+                name = 'Virgil E3Kit Kotlin Coroutines SDK'
                 description = 'Virgil Security provides an SDK which symplifies work with Virgil services and presents easy to use API for adding security to any application. In a few simple steps you can setup user encryption with multidevice support.'
                 url = 'https://www.virgilsecurity.com/'
                 licenses {
@@ -73,12 +73,6 @@ publishing {
                         name = 'Danylo Oliinyk'
                         email = 'doliinyk@virgilsecurity.com'
                         organizationUrl = 'https://github.com/BuddahLD'
-                    }
-                    developer {
-                        id = 'andrii-iakovenko'
-                        name = 'Andrii Iakovenko'
-                        email = 'andrii-iakovenko@gmail.com'
-                        organizationUrl = 'https://github.com/andrii-iakovenko'
                     }
                 }
                 scm {

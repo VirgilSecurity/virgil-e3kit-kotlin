@@ -35,20 +35,23 @@ android {
 
 dependencies {
     implementation project(':common')
-    implementation project(':ethree')
+    implementation project(':ethreeCoroutines')
 
-    implementation"org.jetbrains.kotlin:kotlin-stdlib-jdk7:${versions.kotlin}"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$versions.kotlin"
     implementation 'com.android.support:appcompat-v7:28.0.0'
 
     // Virgil
-    implementation "com.virgilsecurity.sdk:crypto-android:${versions.virgilSdk}@aar"
+    implementation "com.virgilsecurity.sdk:crypto-android:$versions.virgilSdk@aar"
     implementation "com.virgilsecurity.sdk:sdk:$versions.virgilSdk"
-    implementation ("com.virgilsecurity:pythia:$versions.pythia") {
+    implementation("com.virgilsecurity:pythia:$versions.pythia") {
         exclude group: 'com.virgilsecurity.sdk', module: 'crypto'
     }
-    implementation ("com.virgilsecurity:keyknox:$versions.keyknox") {
+    implementation("com.virgilsecurity:keyknox:$versions.keyknox") {
         exclude group: 'com.virgilsecurity.sdk', module: 'crypto'
     }
+
+    // Coroutines
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$versions.coroutines"
 
     // Tests
     testImplementation 'junit:junit:4.12'
