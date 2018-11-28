@@ -134,7 +134,7 @@ class EThreeAuthTest {
     private fun bootstrapEThree(eThree: EThree): EThree {
         val waiter = CountDownLatch(1)
 
-        eThree.bootstrap(object : EThree.OnCompleteListener {
+        eThree.register(object : EThree.OnCompleteListener {
 
             override fun onSuccess() {
                 // Good, go on
@@ -160,7 +160,7 @@ class EThreeAuthTest {
     private fun bootstrapEThree(eThree: EThree, password: String): EThree {
         val waiter = CountDownLatch(1)
 
-        eThree.bootstrap(object : EThree.OnCompleteListener {
+        eThree.register(object : EThree.OnCompleteListener {
 
             override fun onSuccess() {
                 // Good, go on
@@ -300,7 +300,7 @@ class EThreeAuthTest {
         var bootstrapFailed = false
         val eThreeForFail = initEThree(identity)
         val waiter = CountDownLatch(1)
-        eThreeForFail.bootstrap(object : EThree.OnCompleteListener {
+        eThreeForFail.register(object : EThree.OnCompleteListener {
 
             override fun onSuccess() {
                 fail("Illegal State")

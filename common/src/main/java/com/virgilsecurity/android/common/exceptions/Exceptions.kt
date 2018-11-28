@@ -34,11 +34,18 @@
 package com.virgilsecurity.android.common.exceptions
 
 /**
- * Created by:
- * Danylo Oliinyk
- * on
- * 10/23/18
- * at Virgil Security
+ * . _  _
+ * .| || | _
+ * -| || || |   Created by:
+ * .| || || |-  Danylo Oliinyk
+ * ..\_  || |   on
+ * ....|  _/    10/23/18
+ * ...-| | \    at Virgil Security
+ * ....|_|-
+ */
+
+/**
+ * Exceptions
  */
 class BackupKeyException @JvmOverloads constructor(
     override val message: String? = null, throwable: Throwable? = null
@@ -56,7 +63,7 @@ class WrongPasswordException @JvmOverloads constructor(
     override val message: String? = null, throwable: Throwable? = null
 ) : RuntimeException(message, throwable)
 
-class NotBootstrappedException @JvmOverloads constructor(
+class PrivateKeyNotFoundException @JvmOverloads constructor(
     override val message: String? = null, throwable: Throwable? = null
 ) : RuntimeException(message, throwable)
 
@@ -67,5 +74,13 @@ class PublicKeyNotFoundException @JvmOverloads constructor(
 ) : RuntimeException(message, throwable)
 
 class PublicKeyDuplicateException @JvmOverloads constructor(
+    override val message: String? = null, throwable: Throwable? = null
+) : RuntimeException(message, throwable)
+
+class CardNotFoundException @JvmOverloads constructor(
+    override val message: String? = null, throwable: Throwable? = null
+) : RuntimeException(message, throwable)
+
+class RegistrationException @JvmOverloads constructor(
     override val message: String? = null, throwable: Throwable? = null
 ) : RuntimeException(message, throwable)

@@ -156,7 +156,7 @@ public class EThreeTestPositive {
         final int[] result = new int[1];
 
         final CountDownLatch lock = new CountDownLatch(1);
-        eThree.bootstrap(new EThree.OnCompleteListener() {
+        eThree.register(new EThree.OnCompleteListener() {
 
             @Override
             public void onSuccess() {
