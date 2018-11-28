@@ -131,7 +131,7 @@ class EThreeBackupTest {
     private fun bootstrapEThree(eThree: EThree): EThree {
         val waiter = CountDownLatch(1)
 
-        eThree.bootstrap(object : EThree.OnCompleteListener {
+        eThree.register(object : EThree.OnCompleteListener {
 
             override fun onSuccess() {
                 // Good, go on
@@ -157,7 +157,7 @@ class EThreeBackupTest {
     private fun bootstrapEThree(eThree: EThree, password: String): EThree {
         val waiter = CountDownLatch(1)
 
-        eThree.bootstrap(object : EThree.OnCompleteListener {
+        eThree.register(object : EThree.OnCompleteListener {
 
             override fun onSuccess() {
                 // Good, go on
@@ -253,7 +253,7 @@ class EThreeBackupTest {
         eThreeWithPass.cleanup()
         val waiterTwo = CountDownLatch(1)
         var failedWithOldPassword = false
-        eThreeWithPass.bootstrap(object : EThree.OnCompleteListener {
+        eThreeWithPass.register(object : EThree.OnCompleteListener {
 
             override fun onSuccess() {
                 fail("Illegal State")
@@ -273,7 +273,7 @@ class EThreeBackupTest {
 
         val waiterThree = CountDownLatch(1)
         var successWithNewPassword = false
-        eThreeWithPass.bootstrap(object : EThree.OnCompleteListener {
+        eThreeWithPass.register(object : EThree.OnCompleteListener {
 
             override fun onSuccess() {
                 successWithNewPassword = true
@@ -354,7 +354,7 @@ class EThreeBackupTest {
 
         val waiterTwo = CountDownLatch(1)
         var successfullyBootstrapped = false
-        eThree.bootstrap(object : EThree.OnCompleteListener {
+        eThree.register(object : EThree.OnCompleteListener {
             override fun onSuccess() {
                 successfullyBootstrapped = true
                 waiterTwo.countDown()

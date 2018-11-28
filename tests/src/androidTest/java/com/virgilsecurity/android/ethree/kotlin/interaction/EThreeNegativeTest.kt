@@ -110,7 +110,7 @@ class EThreeNegativeTest {
     private fun bootstrapEThree(eThree: EThree): EThree {
         val waiter = CountDownLatch(1)
 
-        eThree.bootstrap(object : EThree.OnCompleteListener {
+        eThree.register(object : EThree.OnCompleteListener {
 
             override fun onSuccess() {
                 // Good, go on
