@@ -34,7 +34,6 @@
 package com.virgilsecurity.android.ethree.kotlin.interaction
 
 import android.content.Context
-import com.sun.tools.corba.se.idl.InterfaceState.Private
 import com.virgilsecurity.android.common.exceptions.*
 import com.virgilsecurity.keyknox.KeyknoxManager
 import com.virgilsecurity.keyknox.client.KeyknoxClient
@@ -84,7 +83,7 @@ import java.net.URL
 class EThree
 /**
  * @constructor Initializing [CardManager] with provided in [EThree.initialize] callback
- * [getTokenCallback] using [CachingJwtProvider] also initializing [DefaultKeyStorage] with
+ * [onGetTokenCallback] using [CachingJwtProvider] also initializing [DefaultKeyStorage] with
  * default settings.
  */ private constructor(context: Context, private val tokenProvider: AccessTokenProvider) {
 
@@ -109,12 +108,17 @@ class EThree
      * @throws RegistrationException
      * @throws CryptoException
      */
-    fun register(onCompleteListener: OnCompleteListener) {
+    @Synchronized fun register(onCompleteListener: OnCompleteListener) {
         GlobalScope.launch {
             try {
                 if (cardManager.searchCards(currentIdentity()).isNotEmpty())
                     throw RegistrationException("Card with identity " +
                                                 "${currentIdentity()} already exists")
+
+                if (keyStorage.exists(currentIdentity()))
+                    throw RestoreKeyException("You already have a Private Key on this device" +
+                                              "for identity: ${currentIdentity()}. Please, use" +
+                                              "\'cleanup()\' function first.")
 
                 virgilCrypto.generateKeys().run {
                     cardManager.publishCard(this.privateKey,
@@ -122,6 +126,7 @@ class EThree
                                             currentIdentity())
 
                     keyStorage.store(JsonKeyEntry(currentIdentity(), this.privateKey.rawKey))
+
                     onCompleteListener.onSuccess()
                 }
             } catch (throwable: Throwable) {
@@ -150,6 +155,12 @@ class EThree
     }
 
     /**
+     * Checks whether the private key is present in the local storage of current device.
+     * Returns *true* if the key is present in the local key storage otherwise *false*.
+     */
+    fun hasLocalPrivateKey() = keyStorage.exists(currentIdentity())
+
+    /**
      * Encrypts the user's private key using the user's [password] and backs up the encrypted
      * private key to Virgil's cloud. This enables users to log in from other devices and have
      * access to their private key to decrypt data.
@@ -168,6 +179,9 @@ class EThree
         GlobalScope.launch {
             try {
                 checkPrivateKeyOrThrow()
+
+                if (password.isBlank())
+                    throw IllegalArgumentException("\'password\' should not be empty")
 
                 initSyncKeyStorage(password).await()
                         .run {
@@ -209,6 +223,9 @@ class EThree
         GlobalScope.launch {
             try {
                 checkPrivateKeyOrThrow()
+
+                if (password.isBlank())
+                    throw IllegalArgumentException("\'password\' should not be empty")
 
                 initSyncKeyStorage(password).await()
                         .delete(currentIdentity() + KEYKNOX_KEY_POSTFIX)
@@ -253,8 +270,13 @@ class EThree
             }
 
     /**
-     * Publishes new public key for current identity and deprecating old public key.
-     * all data that was encrypted earlier will become undecryptable
+     * Generates new key pair, publishes new public key for current identity and deprecating old
+     * public key, saves private key to the local storage. All data that was encrypted earlier
+     * will become undecryptable.
+     *
+     * @throws RestoreKeyException
+     * @throws CardNotFoundException
+     * @throws CryptoException
      */
     fun rotatePrivateKey(onCompleteListener: OnCompleteListener) {
         GlobalScope.launch {
@@ -275,8 +297,6 @@ class EThree
                                                               currentIdentity(),
                                                               this.first.identifier)
                     cardManager.publishCard(rawCard)
-//                    if (keyStorage.exists(currentIdentity()))
-//                        keyStorage.delete(currentIdentity())
 
                     keyStorage.store(JsonKeyEntry(currentIdentity(), this.second.privateKey.rawKey))
 
@@ -289,11 +309,12 @@ class EThree
     }
 
     /**
-     * Changes the password on a backed-up private key.
+     * Changes the password of the private key backup.
      *
-     * Pulls user's private key from the Keyknox cloud storage, decrypts it with *Private key* that is generated based
-     * on provided [oldPassword] after that encrypts user's *Private key* using *Public key* that is generated based
-     * on provided [newPassword] and pushes encrypted user's *Private key* to the Keyknox cloud storage.
+     * Pulls user's private key from the Virgil's cloud storage, decrypts it with *Private key*
+     * that is generated based on provided [oldPassword] after that encrypts user's *Private key*
+     * using *Public key* that is generated based on provided [newPassword] and pushes encrypted
+     * user's *Private key* to the Virgil's cloud storage.
      *
      * Can be called only if private key is on the device otherwise [PrivateKeyNotFoundException]
      * exception will be thrown.
@@ -307,6 +328,10 @@ class EThree
             try {
                 checkPrivateKeyOrThrow()
 
+                if (oldPassword.isBlank())
+                    throw IllegalArgumentException("\'oldPassword\' should not be empty")
+                if (newPassword.isBlank())
+                    throw IllegalArgumentException("\'newPassword\' should not be empty")
                 if (newPassword == oldPassword)
                     throw IllegalArgumentException("\'newPassword\' can't be the same as the old one")
 
@@ -331,13 +356,14 @@ class EThree
     /**
      * Encrypts text messages for a group of users.
      *
-     * Encrypts provided [text] using [publicKeys] list of recipients and returns encrypted message converted to
-     * *base64* [String].
+     * Encrypts provided [text] using [publicKeys] list of recipients and returns encrypted
+     * message converted to *base64* [String].
      *
      * Can be called only if private key is on the device otherwise [PrivateKeyNotFoundException]
      * exception will be thrown.
      *
      * @throws PrivateKeyNotFoundException
+     * @throws CryptoException
      */
     @JvmOverloads fun encrypt(text: String, publicKeys: List<PublicKey>? = null): String {
         checkPrivateKeyOrThrow()
@@ -353,12 +379,14 @@ class EThree
     /**
      * Encrypts messages/other data for a group of users.
      *
-     * Encrypts provided [data] using [publicKeys] list of recipients and returns encrypted data as [ByteArray].
+     * Encrypts provided [data] using [publicKeys] list of recipients and returns encrypted
+     * data as [ByteArray].
      *
      * Can be called only if private key is on the device otherwise [PrivateKeyNotFoundException]
      * exception will be thrown.
      *
      * @throws PrivateKeyNotFoundException
+     * @throws CryptoException
      */
     @JvmOverloads fun encrypt(data: ByteArray, publicKeys: List<PublicKey>? = null): ByteArray {
         checkPrivateKeyOrThrow()
@@ -385,13 +413,14 @@ class EThree
     /**
      * Decrypts encrypted text that is in base64 [String] format.
      *
-     * Decrypts provided [base64String] (that was previously encrypted with [encrypt] function) using current user's
-     * private key.
+     * Decrypts provided [base64String] (that was previously encrypted with [encrypt] function)
+     * using current user's private key.
      *
      * Can be called only if private key is on the device otherwise [PrivateKeyNotFoundException]
      * exception will be thrown.
      *
      * @throws PrivateKeyNotFoundException
+     * @throws CryptoException
      */
     @JvmOverloads fun decrypt(base64String: String, sendersKey: PublicKey? = null): String {
         checkPrivateKeyOrThrow()
@@ -406,12 +435,14 @@ class EThree
     /**
      * Decrypts encrypted data.
      *
-     * Decrypts provided [data] using current user's private key and returns decrypted data in [ByteArray].
+     * Decrypts provided [data] using current user's private key and returns decrypted data
+     * in [ByteArray].
      *
      * Can be called only if private key is on the device otherwise [PrivateKeyNotFoundException]
      * exception will be thrown.
      *
      * @throws PrivateKeyNotFoundException
+     * @throws CryptoException
      */
     @JvmOverloads fun decrypt(data: ByteArray, sendersKey: PublicKey? = null): ByteArray {
         checkPrivateKeyOrThrow()
@@ -440,21 +471,21 @@ class EThree
     /**
      * Retrieves user public keys from the cloud for encryption/verification operations.
      *
-     * Searches for public keys with specified [identities] and returns list of [PublicKey] in [onResultListener]
-     * callback or [Throwable] if something went wrong. [PublicKeyNotFoundException] will be thrown for the first
-     * not found public key.
+     * Searches for public keys with specified [identities] and returns list of [PublicKey] in
+     * [onResultListener] callback or [Throwable] if something went wrong.
+     *
+     * [PublicKeyNotFoundException] will be thrown for the first not found public key.
      *
      * Can be called only if private key is on the device otherwise [PrivateKeyNotFoundException]
      * exception will be thrown.
      *
      * @throws PrivateKeyNotFoundException
+     * @throws PublicKeyDuplicateException
      */
     fun lookupPublicKeys(identities: List<String>,
                          onResultListener: OnResultListener<Map<String, PublicKey>>) {
         GlobalScope.launch {
             try {
-                checkPrivateKeyOrThrow()
-
                 if (identities.isEmpty()) throw EmptyArgumentException("identities")
                 identities.groupingBy { it }
                         .eachCount()
@@ -468,9 +499,9 @@ class EThree
                         }
 
                 identities.map {
-                    searchCardsAsync(it) to it
+                    cardManager.searchCards(it) to it
                 }.map {
-                    it.second to it.first.await()
+                    it.second to it.first
                 }.map {
                     if (it.second.isNotEmpty())
                         it.first to it.second.last().publicKey
@@ -486,7 +517,8 @@ class EThree
     }
 
     /**
-     * Loads and returns current user's [PrivateKey]. Current user's identity is taken from [tokenProvider].
+     * Loads and returns current user's [PrivateKey]. Current user's identity is taken
+     * from [tokenProvider].
      */
     private fun loadCurrentPrivateKey(): PrivateKey =
             keyStorage.load(currentIdentity()).let {
@@ -494,23 +526,15 @@ class EThree
             }
 
     /**
-     * Loads and returns current user's [PublicKey] that is extracted from current user's [PrivateKey].
-     * Current user's identity is taken from [tokenProvider].
+     * Loads and returns current user's [PublicKey] that is extracted from current
+     * user's [PrivateKey]. Current user's identity is taken from [tokenProvider].
      */
     private fun loadCurrentPublicKey(): PublicKey =
             virgilCrypto.extractPublicKey(loadCurrentPrivateKey() as VirgilPrivateKey)
 
     /**
-     * Asynchronously searches for [Card] with provided [identity].
-     */
-    private fun searchCardsAsync(identity: String): Deferred<List<Card>> =
-            GlobalScope.async {
-                cardManager.searchCards(identity)
-            }
-
-    /**
-     * Initializes [SyncKeyStorage] with default settings, [tokenProvider] and provided [password] after that returns
-     * initialized [SyncKeyStorage] object.
+     * Initializes [SyncKeyStorage] with default settings, [tokenProvider] and provided
+     * [password] after that returns initialized [SyncKeyStorage] object.
      */
     private fun initSyncKeyStorage(password: String): Deferred<SyncKeyStorage> =
             GlobalScope.async {
@@ -543,6 +567,10 @@ class EThree
      */
     private fun currentIdentity() = tokenProvider.getToken(NO_CONTEXT).identity
 
+    /**
+     * Checks if private key for current identity is present in local key storage or throws an
+     * [PrivateKeyNotFoundException] exception.
+     */
     private fun checkPrivateKeyOrThrow() {
         if (!keyStorage.exists(currentIdentity())) throw PrivateKeyNotFoundException(
             "You have to get private key first. Use \'register\' " +
@@ -550,7 +578,8 @@ class EThree
     }
 
     /**
-     * Interface that is intended to signal if some asynchronous process is completed successfully or not.
+     * Interface that is intended to signal if some asynchronous process is completed successfully
+     * or not.
      */
     interface OnCompleteListener {
 
@@ -560,7 +589,8 @@ class EThree
         fun onSuccess()
 
         /**
-         * This method will be called if asynchronous process is failed and provide [throwable] cause.
+         * This method will be called if asynchronous process is failed and provide [throwable]
+         * cause.
          */
         fun onError(throwable: Throwable)
     }
@@ -571,34 +601,37 @@ class EThree
     interface OnGetTokenCallback {
 
         /**
-         * This method should return valid Json Web Token [String] representation with identity (in it)
-         * of the user which will use this class.
+         * This method should return valid Json Web Token [String] representation with identity
+         * (in it) of the user which will use this class.
          */
         fun onGetToken(): String
     }
 
     /**
-     * Interface that is intended to return *<T>* type result if some asynchronous process is completed successfully,
-     * otherwise error will be returned.
+     * Interface that is intended to return *<T>* type result if some asynchronous process is
+     * completed successfully, otherwise error will be returned.
      */
     interface OnResultListener<T> {
 
         /**
-         * This method will be called if asynchronous process is completed successfully and provide *<T>* type [result].
+         * This method will be called if asynchronous process is completed successfully and
+         * provide *<T>* type [result].
          */
         fun onSuccess(result: T)
 
         /**
-         * This method will be called if asynchronous process is failed and provide [throwable] cause.
+         * This method will be called if asynchronous process is failed and provide [throwable]
+         * cause.
          */
         fun onError(throwable: Throwable)
     }
 
     companion object {
         /**
-         * Current method allows you to initialize EThree helper class. To do this you should provide
-         * [onGetTokenCallback] that must return Json Web Token string representation with identity of the user which
-         * will use this class. In [onResultListener] you will receive instance of [EThree] class or an [Throwable]
+         * Current method allows you to initialize EThree helper class. To do this you
+         * should provide [onGetTokenCallback] that must return Json Web Token string
+         * representation with identity of the user which will use this class.
+         * In [onResultListener] you will receive instance of [EThree] class or an [Throwable]
          * if something went wrong.
          */
         @JvmStatic fun initialize(context: Context,
