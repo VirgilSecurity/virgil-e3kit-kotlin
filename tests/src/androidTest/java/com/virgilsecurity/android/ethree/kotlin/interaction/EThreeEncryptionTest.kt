@@ -33,7 +33,9 @@
 
 package com.virgilsecurity.android.ethree.kotlin.interaction
 
-import com.virgilsecurity.android.common.exceptions.NotBootstrappedException
+import com.virgilsecurity.android.common.exceptions.PrivateKeyNotFoundException
+import com.virgilsecurity.android.ethree.utils.TestConfig
+import com.virgilsecurity.android.ethree.utils.TestUtils
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.model.RawSignedModel
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
@@ -47,11 +49,9 @@ import com.virgilsecurity.sdk.storage.DefaultKeyStorage
 import com.virgilsecurity.sdk.storage.JsonKeyEntry
 import com.virgilsecurity.sdk.storage.KeyStorage
 import com.virgilsecurity.sdk.utils.Tuple
-import com.virgilsecurity.android.ethree.utils.TestUtils
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import com.virgilsecurity.android.ethree.utils.TestConfig
 import java.util.*
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -338,7 +338,7 @@ class EThreeEncryptionTest {
         var failedEncrypt = false
         try {
             eThreeTwo.encrypt(RAW_TEXT, listOf(anyKeypair.publicKey))
-        } catch (e: NotBootstrappedException) {
+        } catch (e: PrivateKeyNotFoundException) {
             failedEncrypt = true
         }
         assertTrue(failedEncrypt)
@@ -346,7 +346,7 @@ class EThreeEncryptionTest {
         var failedDecrypt = false
         try {
             eThreeTwo.decrypt(RAW_TEXT, anyKeypair.publicKey)
-        } catch (e: NotBootstrappedException) {
+        } catch (e: PrivateKeyNotFoundException) {
             failedDecrypt = true
         }
         assertTrue(failedDecrypt)

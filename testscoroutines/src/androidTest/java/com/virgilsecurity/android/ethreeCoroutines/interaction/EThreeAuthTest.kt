@@ -33,14 +33,10 @@
 
 package com.virgilsecurity.android.ethreeCoroutines.interaction
 
-import com.virgilsecurity.android.ethreecoroutines.interaction.EThree
-import com.virgilsecurity.android.ethreeCoroutines.extension.awaitResult
-import com.virgilsecurity.android.ethreeCoroutines.model.onError
 import com.virgilsecurity.android.ethreeCoroutines.utils.TestConfig
-import com.virgilsecurity.android.ethreeCoroutines.utils.TestConfig.Companion.KEYKNOX_KEY_POSTFIX
-import com.virgilsecurity.android.ethreeCoroutines.utils.TestConfig.Companion.LOCAL_KEY_IS_PUBLISHED
 import com.virgilsecurity.android.ethreeCoroutines.utils.TestConfig.Companion.virgilBaseUrl
 import com.virgilsecurity.android.ethreeCoroutines.utils.TestUtils
+import com.virgilsecurity.android.ethreecoroutines.interaction.EThree
 import com.virgilsecurity.keyknox.KeyknoxManager
 import com.virgilsecurity.keyknox.client.KeyknoxClient
 import com.virgilsecurity.keyknox.cloud.CloudKeyStorage
@@ -63,11 +59,11 @@ import com.virgilsecurity.sdk.jwt.JwtGenerator
 import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
 import com.virgilsecurity.sdk.jwt.accessProviders.GeneratorJwtProvider
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
-import com.virgilsecurity.sdk.storage.JsonKeyEntry
 import com.virgilsecurity.sdk.storage.KeyStorage
 import com.virgilsecurity.sdk.utils.Tuple
 import kotlinx.coroutines.runBlocking
-import org.junit.Assert.*
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.net.URL
@@ -124,21 +120,7 @@ class EThreeAuthTest {
 
     private fun bootstrapEThree(eThree: EThree): EThree {
         runBlocking {
-            eThree.bootstrap().await()
-        }
-
-        return eThree
-    }
-
-    private fun initAndBootstrapEThreeWithPass(identity: String, password: String): EThree {
-        val eThree = initEThree(identity)
-        bootstrapEThree(eThree, password)
-        return eThree
-    }
-
-    private fun bootstrapEThree(eThree: EThree, password: String): EThree {
-        runBlocking {
-            eThree.bootstrap(password).await()
+            eThree.register().await()
         }
 
         return eThree
@@ -200,121 +182,121 @@ class EThreeAuthTest {
     }
 
     // STE-Auth-2
-    @Test
-    fun init_and_bootstrap_with_password() {
-        val identity = UUID.randomUUID().toString()
-        val password = UUID.randomUUID().toString()
-
-        initAndBootstrapEThreeWithPass(identity, password)
-        assertTrue(keyStorage.exists(identity))
-
-        TestUtils.pause()
-
-        assertTrue(initSyncKeyStorage(identity, password).exists(identity + KEYKNOX_KEY_POSTFIX))
-
-        val card = initCardManager(identity).searchCards(identity)
-        assertNotNull(card)
-    }
-
-    // STE-Auth-3
-    @Test
-    fun delete_local_key_and_bootstrap_with_password() {
-        val identity = UUID.randomUUID().toString()
-        val password = UUID.randomUUID().toString()
-
-        val eThreeWithPass = initAndBootstrapEThreeWithPass(identity, password)
-
-        TestUtils.pause()
-
-        assertTrue(keyStorage.exists(identity))
-        assertTrue(initSyncKeyStorage(identity, password).exists(identity + KEYKNOX_KEY_POSTFIX))
-
-        val card = initCardManager(identity).searchCards(identity)
-        assertNotNull(card)
-
-        eThreeWithPass.cleanup()
-        assertFalse(keyStorage.exists(identity))
-
-        TestUtils.pause()
-
-        initAndBootstrapEThreeWithPass(identity, password)
-        assertTrue(keyStorage.exists(identity))
-
-        val cardIsPublished = keyStorage.load(identity).meta[LOCAL_KEY_IS_PUBLISHED]
-        assertNotNull(cardIsPublished)
-        assertTrue(cardIsPublished!!.toBoolean())
-    }
-
-    // STE-Auth-4
-    @Test
-    fun delete_local_key_and_bootstrap() {
-        val identity = UUID.randomUUID().toString()
-        val password = UUID.randomUUID().toString()
-
-        val eThreeWithPass = initAndBootstrapEThreeWithPass(identity, password)
-        assertTrue(keyStorage.exists(identity))
-
-        TestUtils.pause()
-
-        assertTrue(initSyncKeyStorage(identity, password).exists(identity + KEYKNOX_KEY_POSTFIX))
-
-        val card = initCardManager(identity).searchCards(identity)
-        assertNotNull(card)
-
-        eThreeWithPass.cleanup()
-        assertFalse(keyStorage.exists(identity))
-
-        var bootstrapFailed = false
-        val eThreeForFail = initEThree(identity)
-
-        runBlocking {
-            eThreeForFail.bootstrap().awaitResult().onError { bootstrapFailed = true }
-        }
-
-        assertTrue(bootstrapFailed)
-    }
-
-    // STE-Auth-5
-    @Test
-    fun bootstrap_with_is_published_false() {
-        val identityTwo = UUID.randomUUID().toString()
-        val keyPair = TestConfig.virgilCrypto.generateKeys()
-        keyStorage.store(JsonKeyEntry(identityTwo, keyPair.privateKey.rawKey).apply {
-            meta = mapOf(LOCAL_KEY_IS_PUBLISHED to false.toString())
-        })
-
-        val cardIsPublishedBefore = keyStorage.load(identityTwo).meta[LOCAL_KEY_IS_PUBLISHED]
-        assertNotNull(cardIsPublishedBefore)
-        assertFalse(cardIsPublishedBefore!!.toBoolean())
-
-        initAndBootstrapEThree(identityTwo)
-
-        val cardIsPublishedAfter = keyStorage.load(identityTwo).meta[LOCAL_KEY_IS_PUBLISHED]
-        assertNotNull(cardIsPublishedAfter)
-        assertTrue(cardIsPublishedAfter!!.toBoolean())
-    }
-
-    // STE-Auth-6
-    @Test
-    fun restore_key_with_bootstrap_with_password() {
-        val identityTwo = UUID.randomUUID().toString()
-        val passwordTwo = UUID.randomUUID().toString()
-        val keyPair = TestConfig.virgilCrypto.generateKeys()
-
-        val syncKeyStorage = initSyncKeyStorage(identityTwo, passwordTwo)
-        syncKeyStorage.store(listOf(JsonKeyEntry(identityTwo + KEYKNOX_KEY_POSTFIX,
-                                                 keyPair.privateKey.rawKey)))
-        assertTrue(syncKeyStorage.exists(identityTwo + KEYKNOX_KEY_POSTFIX))
-        assertFalse(keyStorage.exists(identityTwo))
-
-        TestUtils.pause()
-
-        initAndBootstrapEThreeWithPass(identityTwo, passwordTwo)
-        val cardIsPublished = keyStorage.load(identityTwo).meta[LOCAL_KEY_IS_PUBLISHED]
-        assertNotNull(cardIsPublished)
-        assertTrue(cardIsPublished!!.toBoolean())
-
-        val card = initCardManager(identityTwo).searchCards(identityTwo)
-        assertNotNull(card)
-    }
+//    @Test
+//    fun init_and_bootstrap_with_password() {
+//        val identity = UUID.randomUUID().toString()
+//        val password = UUID.randomUUID().toString()
+//
+//        initAndBootstrapEThreeWithPass(identity, password)
+//        assertTrue(keyStorage.exists(identity))
+//
+//        TestUtils.pause()
+//
+//        assertTrue(initSyncKeyStorage(identity, password).exists(identity + KEYKNOX_KEY_POSTFIX))
+//
+//        val card = initCardManager(identity).searchCards(identity)
+//        assertNotNull(card)
+//    }
+//
+//    // STE-Auth-3
+//    @Test
+//    fun delete_local_key_and_bootstrap_with_password() {
+//        val identity = UUID.randomUUID().toString()
+//        val password = UUID.randomUUID().toString()
+//
+//        val eThreeWithPass = initAndBootstrapEThreeWithPass(identity, password)
+//
+//        TestUtils.pause()
+//
+//        assertTrue(keyStorage.exists(identity))
+//        assertTrue(initSyncKeyStorage(identity, password).exists(identity + KEYKNOX_KEY_POSTFIX))
+//
+//        val card = initCardManager(identity).searchCards(identity)
+//        assertNotNull(card)
+//
+//        eThreeWithPass.cleanup()
+//        assertFalse(keyStorage.exists(identity))
+//
+//        TestUtils.pause()
+//
+//        initAndBootstrapEThreeWithPass(identity, password)
+//        assertTrue(keyStorage.exists(identity))
+//
+//        val cardIsPublished = keyStorage.load(identity).meta[LOCAL_KEY_IS_PUBLISHED]
+//        assertNotNull(cardIsPublished)
+//        assertTrue(cardIsPublished!!.toBoolean())
+//    }
+//
+//    // STE-Auth-4
+//    @Test
+//    fun delete_local_key_and_bootstrap() {
+//        val identity = UUID.randomUUID().toString()
+//        val password = UUID.randomUUID().toString()
+//
+//        val eThreeWithPass = initAndBootstrapEThreeWithPass(identity, password)
+//        assertTrue(keyStorage.exists(identity))
+//
+//        TestUtils.pause()
+//
+//        assertTrue(initSyncKeyStorage(identity, password).exists(identity + KEYKNOX_KEY_POSTFIX))
+//
+//        val card = initCardManager(identity).searchCards(identity)
+//        assertNotNull(card)
+//
+//        eThreeWithPass.cleanup()
+//        assertFalse(keyStorage.exists(identity))
+//
+//        var bootstrapFailed = false
+//        val eThreeForFail = initEThree(identity)
+//
+//        runBlocking {
+//            eThreeForFail.register().awaitResult().onError { bootstrapFailed = true }
+//        }
+//
+//        assertTrue(bootstrapFailed)
+//    }
+//
+//    // STE-Auth-5
+//    @Test
+//    fun bootstrap_with_is_published_false() {
+//        val identityTwo = UUID.randomUUID().toString()
+//        val keyPair = TestConfig.virgilCrypto.generateKeys()
+//        keyStorage.store(JsonKeyEntry(identityTwo, keyPair.privateKey.rawKey).apply {
+//            meta = mapOf(LOCAL_KEY_IS_PUBLISHED to false.toString())
+//        })
+//
+//        val cardIsPublishedBefore = keyStorage.load(identityTwo).meta[LOCAL_KEY_IS_PUBLISHED]
+//        assertNotNull(cardIsPublishedBefore)
+//        assertFalse(cardIsPublishedBefore!!.toBoolean())
+//
+//        initAndBootstrapEThree(identityTwo)
+//
+//        val cardIsPublishedAfter = keyStorage.load(identityTwo).meta[LOCAL_KEY_IS_PUBLISHED]
+//        assertNotNull(cardIsPublishedAfter)
+//        assertTrue(cardIsPublishedAfter!!.toBoolean())
+//    }
+//
+//    // STE-Auth-6
+//    @Test
+//    fun restore_key_with_bootstrap_with_password() {
+//        val identityTwo = UUID.randomUUID().toString()
+//        val passwordTwo = UUID.randomUUID().toString()
+//        val keyPair = TestConfig.virgilCrypto.generateKeys()
+//
+//        val syncKeyStorage = initSyncKeyStorage(identityTwo, passwordTwo)
+//        syncKeyStorage.store(listOf(JsonKeyEntry(identityTwo + KEYKNOX_KEY_POSTFIX,
+//                                                 keyPair.privateKey.rawKey)))
+//        assertTrue(syncKeyStorage.exists(identityTwo + KEYKNOX_KEY_POSTFIX))
+//        assertFalse(keyStorage.exists(identityTwo))
+//
+//        TestUtils.pause()
+//
+//        initAndBootstrapEThreeWithPass(identityTwo, passwordTwo)
+//        val cardIsPublished = keyStorage.load(identityTwo).meta[LOCAL_KEY_IS_PUBLISHED]
+//        assertNotNull(cardIsPublished)
+//        assertTrue(cardIsPublished!!.toBoolean())
+//
+//        val card = initCardManager(identityTwo).searchCards(identityTwo)
+//        assertNotNull(card)
+//    }
 }
