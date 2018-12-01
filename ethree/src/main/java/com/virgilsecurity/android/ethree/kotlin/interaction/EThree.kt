@@ -46,7 +46,6 @@ import com.virgilsecurity.pythia.brainkey.BrainKey
 import com.virgilsecurity.pythia.brainkey.BrainKeyContext
 import com.virgilsecurity.pythia.client.VirgilPythiaClient
 import com.virgilsecurity.pythia.crypto.VirgilPythiaCrypto
-import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
 import com.virgilsecurity.sdk.client.CardClient
@@ -116,9 +115,9 @@ class EThree
                                                 "${currentIdentity()} already exists")
 
                 if (keyStorage.exists(currentIdentity()))
-                    throw RestoreKeyException("You already have a Private Key on this device" +
-                                              "for identity: ${currentIdentity()}. Please, use" +
-                                              "\'cleanup()\' function first.")
+                    throw PrivateKeyExistsException("You already have a Private Key on this device" +
+                                                    "for identity: ${currentIdentity()}. Please, use" +
+                                                    "\'cleanup()\' function first.")
 
                 virgilCrypto.generateKeys().run {
                     cardManager.publishCard(this.privateKey,
@@ -245,14 +244,16 @@ class EThree
      * is generated based on provided [password] and saves it to the current private keys
      * local storage.
      *
+     * @throws PrivateKeyExistsException
      * @throws RestoreKeyException
      */
-    fun restorePrivateKey(password: String, onCompleteListener: OnCompleteListener) =
-            GlobalScope.launch {
+    fun restorePrivateKey(password: String, onCompleteListener: OnCompleteListener) {
+        GlobalScope.launch {
+            try {
                 if (keyStorage.exists(currentIdentity()))
-                    throw RestoreKeyException("You already have a Private Key on this device" +
-                                              "for identity: ${currentIdentity()}. Please, use" +
-                                              "\'cleanup()\' function first.")
+                    throw PrivateKeyExistsException("You already have a Private Key on this device" +
+                                                    "for identity: ${currentIdentity()}. Please, use" +
+                                                    "\'cleanup()\' function first.")
 
                 initSyncKeyStorage(password).await().run {
                     if (this.exists(currentIdentity() + KEYKNOX_KEY_POSTFIX)) {
@@ -261,20 +262,26 @@ class EThree
                         keyStorage.store(JsonKeyEntry(currentIdentity(), keyEntry.value))
                         onCompleteListener.onSuccess()
                     } else {
-                        onCompleteListener.onError(
-                            RestoreKeyException("There is no key backup with " +
-                                                "identity: ${currentIdentity()}")
-                        )
+                        throw RestoreKeyException("There is no key backup with " +
+                                                  "identity: ${currentIdentity()}")
                     }
                 }
+            } catch (throwable: Throwable) {
+                if (throwable is DecryptionFailedException)
+                    onCompleteListener.onError(WrongPasswordException(
+                        "Specified password is not valid."))
+                else
+                    onCompleteListener.onError(throwable)
             }
+        }
+    }
 
     /**
      * Generates new key pair, publishes new public key for current identity and deprecating old
      * public key, saves private key to the local storage. All data that was encrypted earlier
      * will become undecryptable.
      *
-     * @throws RestoreKeyException
+     * @throws PrivateKeyExistsException
      * @throws CardNotFoundException
      * @throws CryptoException
      */
@@ -282,9 +289,9 @@ class EThree
         GlobalScope.launch {
             try {
                 if (keyStorage.exists(currentIdentity()))
-                    throw RestoreKeyException("You already have a Private Key on this device" +
-                                              "for identity: ${currentIdentity()}. Please, use" +
-                                              "\'cleanup()\' function first.")
+                    throw PrivateKeyExistsException("You already have a Private Key on this device" +
+                                                    "for identity: ${currentIdentity()}. Please, use" +
+                                                    "\'cleanup()\' function first.")
 
                 val cards = cardManager.searchCards(currentIdentity())
                 if (cards.isEmpty())

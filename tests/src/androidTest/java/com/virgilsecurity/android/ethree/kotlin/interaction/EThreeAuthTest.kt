@@ -33,10 +33,12 @@
 
 package com.virgilsecurity.android.ethree.kotlin.interaction
 
+import com.virgilsecurity.android.common.exceptions.CardNotFoundException
+import com.virgilsecurity.android.common.exceptions.PrivateKeyExistsException
+import com.virgilsecurity.android.common.exceptions.RegistrationException
 import com.virgilsecurity.android.ethree.utils.TestConfig
-import com.virgilsecurity.android.ethree.utils.TestConfig.Companion.KEYKNOX_KEY_POSTFIX
-import com.virgilsecurity.android.ethree.utils.TestConfig.Companion.LOCAL_KEY_IS_PUBLISHED
 import com.virgilsecurity.android.ethree.utils.TestConfig.Companion.virgilBaseUrl
+import com.virgilsecurity.android.ethree.utils.TestConfig.Companion.virgilCrypto
 import com.virgilsecurity.android.ethree.utils.TestUtils
 import com.virgilsecurity.keyknox.KeyknoxManager
 import com.virgilsecurity.keyknox.client.KeyknoxClient
@@ -63,6 +65,8 @@ import com.virgilsecurity.sdk.storage.DefaultKeyStorage
 import com.virgilsecurity.sdk.storage.JsonKeyEntry
 import com.virgilsecurity.sdk.storage.KeyStorage
 import com.virgilsecurity.sdk.utils.Tuple
+import org.hamcrest.core.IsEqual.equalTo
+import org.hamcrest.core.IsNot.not
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
@@ -100,7 +104,7 @@ class EThreeAuthTest {
         keyStorage = DefaultKeyStorage(TestConfig.DIRECTORY_PATH, TestConfig.KEYSTORE_NAME)
     }
 
-    private fun initAndBootstrapEThree(identity: String): EThree {
+    private fun initAndRegisterEThree(identity: String): EThree {
         val eThree = initEThree(identity)
         registerEThree(eThree)
         return eThree
@@ -196,167 +200,124 @@ class EThreeAuthTest {
         }
     }
 
-    // STE-Auth-1
-    @Test
-    fun init_and_register() {
-        initAndBootstrapEThree(identity)
+    // STE-Auth-8
+    @Test fun delete_local_key() {
+        val keys = VirgilCrypto().generateKeys()
+        keyStorage.store(JsonKeyEntry(identity, keys.privateKey.rawKey))
+        assertTrue(keyStorage.exists(identity))
+        initEThree(identity).cleanup()
+        assertFalse(keyStorage.exists(identity))
+    }
+
+    // STE-Auth-9
+    @Test fun init_and_register() {
+        initAndRegisterEThree(identity)
         assertTrue(keyStorage.exists(identity))
 
         val card = initCardManager(identity).searchCards(identity)
         assertNotNull(card)
     }
 
-    // STE-Auth-2
-    @Test
-    fun init_and_register_with_password() {
-        val identity = UUID.randomUUID().toString()
-        val password = UUID.randomUUID().toString()
-
-        val eThree = initAndBootstrapEThree(identity)
+    // STE-Auth-10
+    @Test fun register_existing_identity() {
+        val cardManager = initCardManager(identity)
+        cardManager.publishCard(generateRawCard(identity, cardManager).right)
+        val eThree = initEThree(identity)
 
         val waiter = CountDownLatch(1)
-        eThree.backupPrivateKey(password, onCompleteListener = object : EThree.OnCompleteListener {
+        eThree.register(object : EThree.OnCompleteListener {
             override fun onSuccess() {
-                waiter.countDown()
+                fail("Illegal state")
             }
 
             override fun onError(throwable: Throwable) {
-                // TODO Implement body or it will be empty ):
+                waiter.countDown()
+                assertTrue(throwable is RegistrationException)
             }
-
         })
         waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
-        assertTrue(keyStorage.exists(identity))
-
-        TestUtils.pause()
-
-        assertTrue(initSyncKeyStorage(identity, password).exists(identity + KEYKNOX_KEY_POSTFIX))
-
-        val card = initCardManager(identity).searchCards(identity)
-        assertNotNull(card)
     }
 
-    // STE-Auth-3
-    @Test
-    fun delete_local_key_and_register_with_password() {
-        val identity = UUID.randomUUID().toString()
-        val password = UUID.randomUUID().toString()
-
-        val eThreeWithPass = initAndBootstrapEThree(identity)
+    // STE-Auth-11
+    @Test fun register_with_existing_private_key() {
+        keyStorage.store(JsonKeyEntry(identity, virgilCrypto.generateKeys().privateKey.rawKey))
+        val eThree = initEThree(identity)
 
         val waiter = CountDownLatch(1)
-        eThreeWithPass.backupPrivateKey(password,
-                                        onCompleteListener = object : EThree.OnCompleteListener {
-                                            override fun onSuccess() {
-                                                waiter.countDown()
-                                            }
+        eThree.register(object : EThree.OnCompleteListener {
+            override fun onSuccess() {
+                fail("Illegal state")
+            }
 
-                                            override fun onError(throwable: Throwable) {
-                                                // TODO Implement body or it will be empty ):
-                                            }
-
-                                        })
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
-
-        TestUtils.pause()
-
-        assertTrue(keyStorage.exists(identity))
-        assertTrue(initSyncKeyStorage(identity, password).exists(identity + KEYKNOX_KEY_POSTFIX))
-
-        val card = initCardManager(identity).searchCards(identity)
-        assertNotNull(card)
-
-        eThreeWithPass.cleanup()
-        assertFalse(keyStorage.exists(identity))
-
-        TestUtils.pause()
-
-        initAndBootstrapEThree(identity)
-        assertTrue(keyStorage.exists(identity))
-
-        val cardIsPublished = keyStorage.load(identity).meta[LOCAL_KEY_IS_PUBLISHED]
-        assertNotNull(cardIsPublished)
-        assertTrue(cardIsPublished!!.toBoolean())
-    }
-
-    // STE-Auth-4
-//    @Test
-//    fun delete_local_key_and_register() {
-//        val identity = UUID.randomUUID().toString()
-//        val password = UUID.randomUUID().toString()
-//
-//        val eThreeWithPass = initAndBootstrapEThreeWithPass(identity, password)
-//        assertTrue(keyStorage.exists(identity))
-//
-//        TestUtils.pause()
-//
-//        assertTrue(initSyncKeyStorage(identity, password).exists(identity + KEYKNOX_KEY_POSTFIX))
-//
-//        val card = initCardManager(identity).searchCards(identity)
-//        assertNotNull(card)
-//
-//        eThreeWithPass.cleanup()
-//        assertFalse(keyStorage.exists(identity))
-//
-//        var bootstrapFailed = false
-//        val eThreeForFail = initEThree(identity)
-//        val waiter = CountDownLatch(1)
-//        eThreeForFail.register(object : EThree.OnCompleteListener {
-//
-//            override fun onSuccess() {
-//                fail("Illegal State")
-//            }
-//
-//            override fun onError(throwable: Throwable) {
-//                bootstrapFailed = true
-//                waiter.countDown()
-//            }
-//        })
-//        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
-//        assertTrue(bootstrapFailed)
-//    }
-
-    // STE-Auth-5
-    @Test
-    fun register_with_is_published_false() {
-        val identityTwo = UUID.randomUUID().toString()
-        val keyPair = TestConfig.virgilCrypto.generateKeys()
-        keyStorage.store(JsonKeyEntry(identityTwo, keyPair.privateKey.rawKey).apply {
-            meta = mapOf(LOCAL_KEY_IS_PUBLISHED to false.toString())
+            override fun onError(throwable: Throwable) {
+                waiter.countDown()
+                assertTrue(throwable is PrivateKeyExistsException)
+            }
         })
-
-        val cardIsPublishedBefore = keyStorage.load(identityTwo).meta[LOCAL_KEY_IS_PUBLISHED]
-        assertNotNull(cardIsPublishedBefore)
-        assertFalse(cardIsPublishedBefore!!.toBoolean())
-
-        initAndBootstrapEThree(identityTwo)
-
-        val cardIsPublishedAfter = keyStorage.load(identityTwo).meta[LOCAL_KEY_IS_PUBLISHED]
-        assertNotNull(cardIsPublishedAfter)
-        assertTrue(cardIsPublishedAfter!!.toBoolean())
+        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
     }
 
-    // STE-Auth-6
-//    @Test
-//    fun restore_key_with_register_with_password() {
-//        val identityTwo = UUID.randomUUID().toString()
-//        val passwordTwo = UUID.randomUUID().toString()
-//        val keyPair = TestConfig.virgilCrypto.generateKeys()
-//
-//        val syncKeyStorage = initSyncKeyStorage(identityTwo, passwordTwo)
-//        syncKeyStorage.store(listOf(JsonKeyEntry(identityTwo + KEYKNOX_KEY_POSTFIX,
-//                                                 keyPair.privateKey.rawKey)))
-//        assertTrue(syncKeyStorage.exists(identityTwo + KEYKNOX_KEY_POSTFIX))
-//        assertFalse(keyStorage.exists(identityTwo))
-//
-//        TestUtils.pause()
-//
-//        initAndBootstrapEThreeWithPass(identityTwo, passwordTwo)
-//        val cardIsPublished = keyStorage.load(identityTwo).meta[LOCAL_KEY_IS_PUBLISHED]
-//        assertNotNull(cardIsPublished)
-//        assertTrue(cardIsPublished!!.toBoolean())
-//
-//        val card = initCardManager(identityTwo).searchCards(identityTwo)
-//        assertNotNull(card)
-//    }
+    // STE-Auth-12
+    @Test fun rotate_without_published_card() {
+        val eThree = initEThree(identity)
+
+        val waiter = CountDownLatch(1)
+        eThree.rotatePrivateKey(object : EThree.OnCompleteListener {
+            override fun onSuccess() {
+                fail("Illegal state")
+            }
+
+            override fun onError(throwable: Throwable) {
+                waiter.countDown()
+                assertTrue(throwable is CardNotFoundException)
+            }
+        })
+        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+    }
+
+    // STE-Auth-13
+    @Test fun rotate_with_local_key_present() {
+        val eThree = initAndRegisterEThree(identity)
+
+        assertTrue(initCardManager(identity).searchCards(identity).isNotEmpty())
+
+        val waiterTwo = CountDownLatch(1)
+        eThree.rotatePrivateKey(object : EThree.OnCompleteListener {
+            override fun onSuccess() {
+                fail("Illegal state")
+            }
+
+            override fun onError(throwable: Throwable) {
+                waiterTwo.countDown()
+                assertTrue(throwable is PrivateKeyExistsException)
+            }
+        })
+        waiterTwo.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+    }
+
+    // STE-Auth-14
+    @Test fun rotate_keys() {
+        val cardManager = initCardManager(identity)
+        val publishPair = generateRawCard(identity, cardManager)
+        cardManager.publishCard(publishPair.right)
+        val eThree = initEThree(identity)
+
+        val waiterTwo = CountDownLatch(1)
+        eThree.rotatePrivateKey(object : EThree.OnCompleteListener {
+            override fun onSuccess() {
+                waiterTwo.countDown()
+            }
+
+            override fun onError(throwable: Throwable) {
+                fail(throwable.message)
+            }
+        })
+        waiterTwo.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+
+        assertTrue(cardManager.searchCards(identity).last().previousCardId != null)
+
+        val newKey = keyStorage.load(identity)
+        assertThat(publishPair.left.privateKey.rawKey,
+                   not(equalTo(VirgilCrypto().importPrivateKey(newKey.value).rawKey)))
+    }
 }

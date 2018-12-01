@@ -51,10 +51,6 @@ class BackupKeyException @JvmOverloads constructor(
     override val message: String? = null, throwable: Throwable? = null
 ) : RuntimeException(message, throwable)
 
-class InitException @JvmOverloads constructor(
-    override val message: String? = null, throwable: Throwable? = null
-) : RuntimeException(message, throwable)
-
 class RestoreKeyException @JvmOverloads constructor(
     override val message: String? = null, throwable: Throwable? = null
 ) : RuntimeException(message, throwable)
@@ -82,5 +78,9 @@ class CardNotFoundException @JvmOverloads constructor(
 ) : RuntimeException(message, throwable)
 
 class RegistrationException @JvmOverloads constructor(
+    override val message: String? = null, throwable: Throwable? = null
+) : RuntimeException(message, throwable)
+
+class PrivateKeyExistsException @JvmOverloads constructor(
     override val message: String? = null, throwable: Throwable? = null
 ) : RuntimeException(message, throwable)

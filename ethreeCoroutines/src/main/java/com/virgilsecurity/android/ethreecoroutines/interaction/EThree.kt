@@ -243,15 +243,15 @@ class EThree
      * public key, saves private key to the local storage. All data that was encrypted earlier
      * will become undecryptable.
      *
-     * @throws RestoreKeyException
+     * @throws PrivateKeyExistsException
      * @throws CardNotFoundException
      * @throws CryptoException
      */
     fun rotatePrivateKey(): Deferred<Unit> = GlobalScope.async {
         if (keyStorage.exists(currentIdentity()))
-            throw RestoreKeyException("You already have a Private Key on this device" +
-                                      "for identity: ${currentIdentity()}. Please, use" +
-                                      "\'cleanup()\' function first.")
+            throw PrivateKeyExistsException("You already have a Private Key on this device" +
+                                            "for identity: ${currentIdentity()}. Please, use" +
+                                            "\'cleanup()\' function first.")
 
         val cards = cardManager.searchCards(currentIdentity())
         if (cards.isEmpty())
