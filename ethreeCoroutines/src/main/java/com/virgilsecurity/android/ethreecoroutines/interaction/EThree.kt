@@ -34,8 +34,8 @@
 package com.virgilsecurity.android.ethreecoroutines.interaction
 
 import android.content.Context
-import com.virgilsecurity.android.ethreecoroutines.extensions.asyncWithCatch
 import com.virgilsecurity.android.common.exceptions.*
+import com.virgilsecurity.android.ethreecoroutines.extensions.asyncWithCatch
 import com.virgilsecurity.keyknox.KeyknoxManager
 import com.virgilsecurity.keyknox.client.KeyknoxClient
 import com.virgilsecurity.keyknox.cloud.CloudKeyStorage
@@ -47,10 +47,9 @@ import com.virgilsecurity.pythia.brainkey.BrainKey
 import com.virgilsecurity.pythia.brainkey.BrainKeyContext
 import com.virgilsecurity.pythia.client.VirgilPythiaClient
 import com.virgilsecurity.pythia.crypto.VirgilPythiaCrypto
-import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
-import com.virgilsecurity.sdk.client.CardClient
+import com.virgilsecurity.sdk.client.VirgilCardClient
 import com.virgilsecurity.sdk.crypto.*
 import com.virgilsecurity.sdk.exception.EmptyArgumentException
 import com.virgilsecurity.sdk.jwt.Jwt
@@ -63,7 +62,6 @@ import com.virgilsecurity.sdk.utils.ConvertionUtils
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
 import java.net.URL
 
 /**
@@ -94,7 +92,7 @@ class EThree
             CardManager(cardCrypto,
                         tokenProvider,
                         VirgilCardVerifier(cardCrypto, false, false),
-                        CardClient(VIRGIL_BASE_URL + VIRGIL_CARDS_SERVICE_PATH))
+                        VirgilCardClient(VIRGIL_BASE_URL + VIRGIL_CARDS_SERVICE_PATH))
         }
         keyStorage = DefaultKeyStorage(context.filesDir.absolutePath, KEYSTORE_NAME)
     }

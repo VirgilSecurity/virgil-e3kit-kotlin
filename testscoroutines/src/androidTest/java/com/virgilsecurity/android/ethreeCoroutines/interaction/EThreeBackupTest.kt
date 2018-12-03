@@ -33,15 +33,10 @@
 
 package com.virgilsecurity.android.ethreeCoroutines.interaction
 
-import com.virgilsecurity.android.ethreecoroutines.interaction.EThree
-import com.virgilsecurity.android.common.exceptions.BackupKeyException
-import com.virgilsecurity.android.common.exceptions.WrongPasswordException
-import com.virgilsecurity.android.ethreeCoroutines.extension.awaitResult
-import com.virgilsecurity.android.ethreeCoroutines.model.onError
-import com.virgilsecurity.android.ethreeCoroutines.model.onSuccess
 import com.virgilsecurity.android.ethreeCoroutines.utils.TestConfig
 import com.virgilsecurity.android.ethreeCoroutines.utils.TestConfig.Companion.virgilBaseUrl
 import com.virgilsecurity.android.ethreeCoroutines.utils.TestUtils
+import com.virgilsecurity.android.ethreecoroutines.interaction.EThree
 import com.virgilsecurity.keyknox.KeyknoxManager
 import com.virgilsecurity.keyknox.client.KeyknoxClient
 import com.virgilsecurity.keyknox.cloud.CloudKeyStorage
@@ -54,7 +49,7 @@ import com.virgilsecurity.pythia.crypto.VirgilPythiaCrypto
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.model.RawSignedModel
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
-import com.virgilsecurity.sdk.client.CardClient
+import com.virgilsecurity.sdk.client.VirgilCardClient
 import com.virgilsecurity.sdk.common.TimeSpan
 import com.virgilsecurity.sdk.crypto.VirgilAccessTokenSigner
 import com.virgilsecurity.sdk.crypto.VirgilCardCrypto
@@ -67,11 +62,8 @@ import com.virgilsecurity.sdk.storage.DefaultKeyStorage
 import com.virgilsecurity.sdk.storage.KeyStorage
 import com.virgilsecurity.sdk.utils.Tuple
 import kotlinx.coroutines.runBlocking
-import org.junit.Assert.*
 import org.junit.Before
-import org.junit.Test
 import java.net.URL
-import java.util.*
 import java.util.concurrent.TimeUnit
 
 /**
@@ -163,7 +155,7 @@ class EThreeBackupTest {
             cardCrypto,
             GeneratorJwtProvider(jwtGenerator, identity),
             VirgilCardVerifier(cardCrypto, false, false),
-            CardClient(TestConfig.virgilBaseUrl + TestConfig.VIRGIL_CARDS_SERVICE_PATH)
+            VirgilCardClient(virgilBaseUrl + TestConfig.VIRGIL_CARDS_SERVICE_PATH)
         )
     }
 

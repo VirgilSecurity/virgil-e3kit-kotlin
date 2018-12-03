@@ -41,7 +41,7 @@ import com.virgilsecurity.android.ethree.utils.TestUtils;
 import com.virgilsecurity.sdk.cards.CardManager;
 import com.virgilsecurity.sdk.cards.model.RawSignedModel;
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier;
-import com.virgilsecurity.sdk.client.CardClient;
+import com.virgilsecurity.sdk.client.VirgilCardClient;
 import com.virgilsecurity.sdk.common.TimeSpan;
 import com.virgilsecurity.sdk.crypto.VirgilAccessTokenSigner;
 import com.virgilsecurity.sdk.crypto.VirgilCardCrypto;
@@ -128,7 +128,7 @@ public class EThreeTestPositive {
         return new CardManager(cardCrypto,
                                new GeneratorJwtProvider(jwtGenerator, identity),
                                new VirgilCardVerifier(cardCrypto, false, false),
-                               new CardClient(TestConfig.Companion.getVirgilBaseUrl()
+                               new VirgilCardClient(TestConfig.Companion.getVirgilBaseUrl()
                                                       + TestConfig.VIRGIL_CARDS_SERVICE_PATH));
     }
 
