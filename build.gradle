@@ -1,7 +1,7 @@
 buildscript {
     ext.versions = [
             // Virgil
-            virgilSdk : '5.0.4',
+            virgilSdk : '5.0.5',
             pythia : '0.2.0',
             keyknox : '0.1.1',
 
