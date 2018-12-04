@@ -228,7 +228,7 @@ class EThree
             if (this.exists(currentIdentity() + KEYKNOX_KEY_POSTFIX)) {
                 val keyEntry = this.retrieve(currentIdentity() + KEYKNOX_KEY_POSTFIX)
 
-                keyStorage.store(JsonKeyEntry(currentIdentity(), keyEntry.value))
+                keyStorage.store(JsonKeyEntry(currentIdentity(), keyEntry.data))
             } else {
                 throw RestoreKeyException("There is no key backup with " +
                                           "identity: ${currentIdentity()}")
@@ -478,22 +478,20 @@ class EThree
      * Initializes [SyncKeyStorage] with default settings, [tokenProvider] and provided [password] after that returns
      * initialized [SyncKeyStorage] object.
      */
-    private fun initSyncKeyStorage(password: String): SyncKeyStorage =
+    private fun initSyncKeyStorage(password: String): CloudKeyStorage =
             BrainKeyContext.Builder()
                     .setAccessTokenProvider(tokenProvider)
                     .setPythiaClient(VirgilPythiaClient(VIRGIL_BASE_URL))
                     .setPythiaCrypto(VirgilPythiaCrypto())
                     .build().let {
                         BrainKey(it).generateKeyPair(password).let { keyPair ->
-                            SyncKeyStorage(currentIdentity(),
-                                           keyStorage,
-                                           CloudKeyStorage(KeyknoxManager(
-                                               tokenProvider,
-                                               KeyknoxClient(URL(VIRGIL_BASE_URL)),
-                                               listOf(keyPair.publicKey),
-                                               keyPair.privateKey,
-                                               KeyknoxCrypto()))).also { syncKeyStorage ->
-                                syncKeyStorage.sync()
+                            CloudKeyStorage(KeyknoxManager(
+                                tokenProvider,
+                                KeyknoxClient(URL(VIRGIL_BASE_URL)),
+                                listOf(keyPair.publicKey),
+                                keyPair.privateKey,
+                                KeyknoxCrypto())).also { cloudKeyStorage ->
+                                cloudKeyStorage.retrieveAll()
                             }
                         }
                     }
