@@ -41,7 +41,7 @@ import com.virgilsecurity.android.ethree.utils.TestUtils;
 import com.virgilsecurity.sdk.cards.CardManager;
 import com.virgilsecurity.sdk.cards.model.RawSignedModel;
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier;
-import com.virgilsecurity.sdk.client.CardClient;
+import com.virgilsecurity.sdk.client.VirgilCardClient;
 import com.virgilsecurity.sdk.common.TimeSpan;
 import com.virgilsecurity.sdk.crypto.VirgilAccessTokenSigner;
 import com.virgilsecurity.sdk.crypto.VirgilCardCrypto;
@@ -80,7 +80,6 @@ public class EThreeTestPositive {
     private static final int SUCCESS = 1;
 
     private String identity = UUID.randomUUID().toString();
-    private String password = UUID.randomUUID().toString();
     private String tokenString;
     private EThree eThree;
 
@@ -92,10 +91,10 @@ public class EThreeTestPositive {
     @Before
     public void setup() throws InterruptedException {
         jwtGenerator = new JwtGenerator(TestConfig.Companion.getAppId(),
-                TestConfig.Companion.getApiKey(),
-                TestConfig.Companion.getApiPublicKeyId(),
-                TimeSpan.fromTime(600, TimeUnit.SECONDS),
-                new VirgilAccessTokenSigner(TestConfig.Companion.getVirgilCrypto()));
+                                        TestConfig.Companion.getApiKey(),
+                                        TestConfig.Companion.getApiPublicKeyId(),
+                                        TimeSpan.fromTime(600, TimeUnit.SECONDS),
+                                        new VirgilAccessTokenSigner(TestConfig.Companion.getVirgilCrypto()));
 
         try {
             tokenString = jwtGenerator.generateToken(identity).stringRepresentation();
@@ -127,10 +126,10 @@ public class EThreeTestPositive {
     private CardManager initCardManager(String identity) {
         VirgilCardCrypto cardCrypto = new VirgilCardCrypto();
         return new CardManager(cardCrypto,
-                new GeneratorJwtProvider(jwtGenerator, identity),
-                new VirgilCardVerifier(cardCrypto, false, false),
-                new CardClient(TestConfig.Companion.getVirgilBaseUrl()
-                        + TestConfig.VIRGIL_CARDS_SERVICE_PATH));
+                               new GeneratorJwtProvider(jwtGenerator, identity),
+                               new VirgilCardVerifier(cardCrypto, false, false),
+                               new VirgilCardClient(TestConfig.Companion.getVirgilBaseUrl()
+                                                      + TestConfig.VIRGIL_CARDS_SERVICE_PATH));
     }
 
     private PrivateKeyStorage initPrivateKeyStorage() {
@@ -142,21 +141,20 @@ public class EThreeTestPositive {
         try {
             VirgilKeyPair keyPair = virgilCrypto.generateKeys();
             return new Tuple<>(keyPair,
-                    cardManager.generateRawCard(keyPair.getPrivateKey(),
-                            keyPair.getPublicKey(),
-                            identity));
+                               cardManager.generateRawCard(keyPair.getPrivateKey(),
+                                                           keyPair.getPublicKey(),
+                                                           identity));
         } catch (CryptoException e) {
             e.printStackTrace();
             return null;
         }
     }
 
-    @Test
-    public void bootstrap() throws InterruptedException {
+    @Test public void register() throws InterruptedException {
         final int[] result = new int[1];
 
         final CountDownLatch lock = new CountDownLatch(1);
-        eThree.bootstrap(new EThree.OnCompleteListener() {
+        eThree.register(new EThree.OnCompleteListener() {
 
             @Override
             public void onSuccess() {

@@ -33,21 +33,21 @@
 
 package com.virgilsecurity.android.ethree.kotlin.interaction
 
-import com.virgilsecurity.android.common.exceptions.NotBootstrappedException
+import com.virgilsecurity.android.common.exceptions.PrivateKeyNotFoundException
 import com.virgilsecurity.android.common.exceptions.PublicKeyDuplicateException
 import com.virgilsecurity.android.common.exceptions.PublicKeyNotFoundException
+import com.virgilsecurity.android.ethree.utils.TestConfig
+import com.virgilsecurity.android.ethree.utils.TestUtils
 import com.virgilsecurity.sdk.common.TimeSpan
 import com.virgilsecurity.sdk.crypto.PublicKey
 import com.virgilsecurity.sdk.crypto.VirgilAccessTokenSigner
 import com.virgilsecurity.sdk.jwt.JwtGenerator
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
 import com.virgilsecurity.sdk.storage.KeyStorage
-import com.virgilsecurity.android.ethree.utils.TestUtils
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
-import com.virgilsecurity.android.ethree.utils.TestConfig
 import java.util.*
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -110,7 +110,7 @@ class EThreeNegativeTest {
     private fun bootstrapEThree(eThree: EThree): EThree {
         val waiter = CountDownLatch(1)
 
-        eThree.bootstrap(object : EThree.OnCompleteListener {
+        eThree.register(object : EThree.OnCompleteListener {
 
             override fun onSuccess() {
                 // Good, go on
@@ -127,7 +127,7 @@ class EThreeNegativeTest {
         return eThree
     }
 
-    @Test(expected = NotBootstrappedException::class)
+    @Test(expected = PrivateKeyNotFoundException::class)
     fun cleanup_fail_without_bootstrap() {
         eThree.cleanup()
     }
@@ -186,22 +186,22 @@ class EThreeNegativeTest {
         assertTrue(failed)
     }
 
-    @Test(expected = NotBootstrappedException::class)
+    @Test(expected = PrivateKeyNotFoundException::class)
     fun encrypt_text_fail_without_bootstrap() {
         eThree.encrypt("")
     }
 
-    @Test(expected = NotBootstrappedException::class)
+    @Test(expected = PrivateKeyNotFoundException::class)
     fun encrypt_data_fail_without_bootstrap() {
         eThree.encrypt(ByteArray(0))
     }
 
-    @Test(expected = NotBootstrappedException::class)
+    @Test(expected = PrivateKeyNotFoundException::class)
     fun decrypt_text_fail_without_bootstrap() {
         eThree.decrypt("")
     }
 
-    @Test(expected = NotBootstrappedException::class)
+    @Test(expected = PrivateKeyNotFoundException::class)
     fun decrypt_data_fail_without_bootstrap() {
         eThree.decrypt(ByteArray(0))
     }
