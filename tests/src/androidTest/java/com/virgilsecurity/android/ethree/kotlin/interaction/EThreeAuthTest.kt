@@ -231,8 +231,8 @@ class EThreeAuthTest {
             }
 
             override fun onError(throwable: Throwable) {
-                waiter.countDown()
                 assertTrue(throwable is RegistrationException)
+                waiter.countDown()
             }
         })
         waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
@@ -250,8 +250,8 @@ class EThreeAuthTest {
             }
 
             override fun onError(throwable: Throwable) {
-                waiter.countDown()
                 assertTrue(throwable is PrivateKeyExistsException)
+                waiter.countDown()
             }
         })
         waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
@@ -268,8 +268,8 @@ class EThreeAuthTest {
             }
 
             override fun onError(throwable: Throwable) {
-                waiter.countDown()
                 assertTrue(throwable is CardNotFoundException)
+                waiter.countDown()
             }
         })
         waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
@@ -288,8 +288,8 @@ class EThreeAuthTest {
             }
 
             override fun onError(throwable: Throwable) {
-                waiterTwo.countDown()
                 assertTrue(throwable is PrivateKeyExistsException)
+                waiterTwo.countDown()
             }
         })
         waiterTwo.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)

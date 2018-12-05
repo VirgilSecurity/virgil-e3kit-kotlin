@@ -33,6 +33,7 @@
 
 package com.virgilsecurity.android.ethree.kotlin.interaction
 
+import com.virgilsecurity.android.common.exceptions.PrivateKeyNotFoundException
 import com.virgilsecurity.android.ethree.utils.TestConfig
 import com.virgilsecurity.android.ethree.utils.TestUtils
 import com.virgilsecurity.sdk.cards.CardManager
@@ -312,40 +313,48 @@ class EThreeEncryptionTest {
     }
 
     // STE-6
-//    @Test fun encrypt_decrypt_without_register() {
-//        var eThreeTwo: EThree? = null
-//
-//        val waiter = CountDownLatch(1)
-//
-//        EThree.initialize(TestConfig.context, object : EThree.OnGetTokenCallback {
-//            override fun onGetToken(): String {
-//                return jwtGenerator.generateToken(identity).stringRepresentation()
-//            }
-//        }, object : EThree.OnResultListener<EThree> {
-//            override fun onSuccess(result: EThree) {
-//                eThreeTwo = result
-//                waiter.countDown()
-//            }
-//
-//            override fun onError(throwable: Throwable) {
-//                fail(throwable.message)
-//            }
-//
-//        })
-//
-//        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
-//
-//        val keys = TestConfig.virgilCrypto.generateKeys()
-//
-//        var encryptedText: String? = null
-//        assertThrows(PrivateKeyNotFoundException::class.java) {
-//            encryptedText = eThreeTwo!!.encrypt(RAW_TEXT, listOf(keys.publicKey))
-//        }
-//
-//        assertThrows(PrivateKeyNotFoundException::class.java) {
-//            eThreeTwo!!.decrypt(encryptedText!!, keys.publicKey)
-//        }
-//    }
+    @Test fun encrypt_decrypt_without_register() {
+        var eThreeTwo: EThree? = null
+        val identity = UUID.randomUUID().toString()
+
+        val waiter = CountDownLatch(1)
+        EThree.initialize(TestConfig.context, object : EThree.OnGetTokenCallback {
+            override fun onGetToken(): String {
+                return jwtGenerator.generateToken(identity).stringRepresentation()
+            }
+        }, object : EThree.OnResultListener<EThree> {
+            override fun onSuccess(result: EThree) {
+                eThreeTwo = result
+                waiter.countDown()
+            }
+
+            override fun onError(throwable: Throwable) {
+                fail(throwable.message)
+            }
+
+        })
+
+
+        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+
+        val keys = TestConfig.virgilCrypto.generateKeys()
+
+        var failedToEncrypt = false
+        try {
+            eThreeTwo!!.encrypt(RAW_TEXT, listOf(keys.publicKey))
+        } catch (exception: PrivateKeyNotFoundException) {
+            failedToEncrypt = true
+        }
+        assertTrue(failedToEncrypt)
+
+        var failedToDecrypt = false
+        try {
+            eThreeTwo!!.decrypt("fakeEncryptedText", keys.publicKey)
+        } catch (exception: PrivateKeyNotFoundException) {
+            failedToDecrypt = true
+        }
+        assertTrue(failedToDecrypt)
+    }
 
     @Test fun encrypt_decrypt_without_register_for_owner() {
         var eThreeTwo: EThree? = null
