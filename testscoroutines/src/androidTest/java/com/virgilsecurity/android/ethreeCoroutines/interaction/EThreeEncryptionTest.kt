@@ -33,7 +33,7 @@
 
 package com.virgilsecurity.android.ethreeCoroutines.interaction
 
-import com.virgilsecurity.android.common.exceptions.NotBootstrappedException
+import com.virgilsecurity.android.common.exceptions.PrivateKeyNotFoundException
 import com.virgilsecurity.android.ethreeCoroutines.extension.awaitResult
 import com.virgilsecurity.android.ethreeCoroutines.model.onError
 import com.virgilsecurity.android.ethreeCoroutines.utils.TestConfig
@@ -41,7 +41,7 @@ import com.virgilsecurity.android.ethreecoroutines.interaction.EThree
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.model.RawSignedModel
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
-import com.virgilsecurity.sdk.client.CardClient
+import com.virgilsecurity.sdk.client.VirgilCardClient
 import com.virgilsecurity.sdk.common.TimeSpan
 import com.virgilsecurity.sdk.crypto.*
 import com.virgilsecurity.sdk.exception.EmptyArgumentException
@@ -109,7 +109,7 @@ class EThreeEncryptionTest {
 
     private fun bootstrapEThree(eThree: EThree): EThree {
         runBlocking {
-            eThree.bootstrap().await()
+            eThree.register().await()
         }
 
         return eThree
@@ -121,7 +121,7 @@ class EThreeEncryptionTest {
             cardCrypto,
             GeneratorJwtProvider(jwtGenerator, identity),
             VirgilCardVerifier(cardCrypto, false, false),
-            CardClient(TestConfig.virgilBaseUrl + TestConfig.VIRGIL_CARDS_SERVICE_PATH)
+            VirgilCardClient(TestConfig.virgilBaseUrl + TestConfig.VIRGIL_CARDS_SERVICE_PATH)
         )
     }
 
@@ -280,7 +280,7 @@ class EThreeEncryptionTest {
         var failedEncrypt = false
         try {
             eThreeTwo.encrypt(RAW_TEXT, listOf(anyKeypair.publicKey))
-        } catch (e: NotBootstrappedException) {
+        } catch (e: PrivateKeyNotFoundException) {
             failedEncrypt = true
         }
         assertTrue(failedEncrypt)
@@ -288,7 +288,7 @@ class EThreeEncryptionTest {
         var failedDecrypt = false
         try {
             eThreeTwo.decrypt(RAW_TEXT, anyKeypair.publicKey)
-        } catch (e: NotBootstrappedException) {
+        } catch (e: PrivateKeyNotFoundException) {
             failedDecrypt = true
         }
         assertTrue(failedDecrypt)

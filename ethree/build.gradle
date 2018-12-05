@@ -9,7 +9,7 @@ apply plugin: 'maven'
 apply plugin: 'org.jetbrains.dokka'
 
 group 'com.virgilsecurity'
-version '0.2.0'
+version '0.3.0'
 
 dependencies {
     // Inner dependencies
@@ -24,6 +24,7 @@ dependencies {
     }
     implementation ("com.virgilsecurity:keyknox:$versions.keyknox") {
         exclude group: 'com.virgilsecurity.sdk', module: 'crypto'
+        exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
     }
 
     // Kotlin
