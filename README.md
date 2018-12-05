@@ -31,10 +31,10 @@ repositories {
 Set up dependencies in your `build.gradle`:
 
 ```
-dependencies {
-    implementation 'com.virgilsecurity:ethree-kotlin:0.1.0-alpha'
-}
+    implementation "com.virgilsecurity:ethree-kotlin:<latest-version>"
 ```
+
+The **\<latest-version>** of the SDK can be found in the [Maven Central Repository](https://mvnrepository.com/artifact/com.virgilsecurity/ethree-kotlin)  or in the header of current readme.
 
 #### Bootstrap User
 Use the following lines of code to authenticate a user.
