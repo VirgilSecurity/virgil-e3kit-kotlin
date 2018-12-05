@@ -31,9 +31,7 @@ repositories {
 Set up dependencies in your `build.gradle`:
 
 ```
-dependencies {
     implementation 'com.virgilsecurity:ethree-kotlin:<latest-version>'
-}
 ```
 
 The **\<latest-version>** of the SDK can be found in the [Maven Central Repository](https://mvnrepository.com/artifact/com.virgilsecurity/ethree-kotlin)  or in the header of current readme.
@@ -43,17 +41,20 @@ Use the following lines of code to authenticate a user.
 
 ```kotlin
 
-// initialize E3Kit
-EThree.initialize(context, tokenCallback, object : EThree.OnResultListener<EThree> {
-                  override fun onSuccess(result: EThree) {
-                      // done
-                  }
+// Listener for E3Kit initialization
+val initializeListener =
+    object : EThree.OnResultListener<EThree> {
+        override fun onSuccess(result: EThree) {
+            // Init done!
+        }
 
-                  override fun onError(throwable: Throwable) {
-                      // error handling
-                  }
-              }
-}
+        override fun onError(throwable: Throwable) {
+            // Error handling
+        }
+    }
+
+// initialize E3Kit
+EThree.initialize(context, tokenCallback, initializeListener)
 ```
 
 #### Encrypt & decrypt
@@ -61,45 +62,58 @@ EThree.initialize(context, tokenCallback, object : EThree.OnResultListener<EThre
 Virgil E3Kit lets you use a user's Private key and his or her Public Keys to sign, then encrypt text.
 
 ```kotlin
-// prepare a message
-val messageToEncrypt = "Hello, Bob!"
-var eThree: EThree? = null
+
+val eThree: EThree? = null
 
 // Listener for keys lookup
-val lookupKeysListener = object : EThree.OnResultListener<List<PublicKey>> {
-            override fun onSuccess(keys: List<PublicKey>) {
-                val encryptedMessage = eThree!!.encrypt(messageToEncrypt, keys)
-            }
+val lookupKeysListener =
+    object : EThree.OnResultListener<Map<String, PublicKey>> {
+        override fun onSuccess(result: Map<String, PublicKey>) {
+            val text = "I was text but become byte array"
+            val data = text.toByteArray()
 
-            override fun onError(throwable: Throwable) {
-                // Error handling
-            }
+            // Encrypt data using user public keys
+            val encryptedData = eThree.encrypt(data, result.values.toList())
+
+            // Encrypt message using user public keys
+            val encryptedText = eThree.encrypt(text, result.values.toList())
         }
 
-// Listener for bootstrap
-val bootstrapListener = object : EThree.OnCompleteListener {
-            override fun onSuccess() {
-                eThree!!.lookupPublicKeys(listOf("Alice", "Bob"), lookupKeysListener)
-            }
-
-            override fun onError(throwable: Throwable) {
-                // Error handling
-            }
+        override fun onError(throwable: Throwable) {
+            // Error handling
         }
+    }
+
+// Listener for register
+val registerListener =
+    object : EThree.OnCompleteListener {
+        override fun onSuccess() {
+            // User private key loaded!
+            // Now we need public keys and we ready for end-to-end encrypt.
+            eThree!!.lookupPublicKeys(listOf("AliceUUID", "BobUUID"), lookupKeysListener)
+        }
+
+        override fun onError(throwable: Throwable) {
+            // Error handling
+        }
+    }
 
 // Listener for E3Kit initialization
-val initListener = object : EThree.OnResultListener<EThree> {
-            override fun onSuccess(result: EThree) {
-                eThree = result
-                eThree!!.bootstrap(bootstrapListener)
-            }
-
-            override fun onError(throwable: Throwable) {
-                // Error handling
-            }
+val initializeListener =
+    object : EThree.OnResultListener<EThree> {
+        override fun onSuccess(result: EThree) {
+            // Init done!
+            eThree = result
+            eThree!!.register(registerListener)
         }
 
-EThree.initialize(context, tokenCallback, initListener)
+        override fun onError(throwable: Throwable) {
+            // Error handling
+        }
+    }
+
+// initialize E3Kit
+EThree.initialize(context, tokenCallback, initializeListener)
 ```
 
 ## License

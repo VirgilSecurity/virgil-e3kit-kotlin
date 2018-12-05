@@ -49,6 +49,7 @@ task clean(type: Delete) {
     delete rootProject.buildDir
 }
 
+// Default value is ALL
 enum ArtifactType {
     ALL,
     STANDARD,
@@ -67,7 +68,7 @@ static String getArtifactType(Project project) {
     else if (project.hasProperty('ARTIFACT_TYPE')) {
         return project.findProperty('ARTIFACT_TYPE')
     } else {
-        return "No artifact type is provided. Please, use -DARTIFACT_TYPE property."
+        return ArtifactType.ALL
     }
 }
 
@@ -81,11 +82,11 @@ task installEthree() {
     }
 
     if (artifactType == ArtifactType.STANDARD) {
-        dependsOn ':ethree:install'
+        dependsOn ':common:install', ':ethree:install'
     } else if (artifactType == ArtifactType.COROUTINES) {
-        dependsOn ':ethreeCoroutines:install'
+        dependsOn ':common:install', ':ethreeCoroutines:install'
     } else if (artifactType == ArtifactType.ALL) {
-        dependsOn ':ethree:install', ':ethreeCoroutines:install'
+        dependsOn ':common:install', ':ethree:install', ':ethreeCoroutines:install'
     } else {
         throw new IllegalArgumentException("Please, choose one of artifacts type: " + ArtifactType.values())
     }
@@ -101,11 +102,11 @@ task publishEthree() {
     }
 
     if (artifactType == ArtifactType.STANDARD) {
-        dependsOn ':ethree:publish'
+        dependsOn ':common:publish', ':ethree:publish'
     } else if (artifactType == ArtifactType.COROUTINES) {
-        dependsOn ':ethreeCoroutines:publish'
+        dependsOn ':common:publish', ':ethreeCoroutines:publish'
     } else if (artifactType == ArtifactType.ALL) {
-        dependsOn ':ethree:publish', ':ethreeCoroutines:publish'
+        dependsOn ':common:publish', ':ethree:publish', ':ethreeCoroutines:publish'
     } else {
         throw new IllegalArgumentException("Please, choose one of artifacts type: " + ArtifactType.values())
     }
