@@ -38,69 +38,6 @@ dependencies {
 
 The **\<latest-version>** of the SDK can be found in the [Maven Central Repository](https://mvnrepository.com/artifact/com.virgilsecurity/ethree-kotlin)  or in the header of current readme.
 
-#### Bootstrap User
-Use the following lines of code to authenticate a user.
-
-```kotlin
-
-// initialize E3Kit
-EThree.initialize(context, tokenCallback, object : EThree.OnResultListener<EThree> {
-                  override fun onSuccess(result: EThree) {
-                      // done
-                  }
-
-                  override fun onError(throwable: Throwable) {
-                      // error handling
-                  }
-              }
-}
-```
-
-#### Encrypt & decrypt
-
-Virgil E3Kit lets you use a user's Private key and his or her Public Keys to sign, then encrypt text.
-
-```kotlin
-// prepare a message
-val messageToEncrypt = "Hello, Bob!"
-var eThree: EThree? = null
-
-// Listener for keys lookup
-val lookupKeysListener = object : EThree.OnResultListener<List<PublicKey>> {
-            override fun onSuccess(keys: List<PublicKey>) {
-                val encryptedMessage = eThree!!.encrypt(messageToEncrypt, keys)
-            }
-
-            override fun onError(throwable: Throwable) {
-                // Error handling
-            }
-        }
-
-// Listener for bootstrap
-val bootstrapListener = object : EThree.OnCompleteListener {
-            override fun onSuccess() {
-                eThree!!.lookupPublicKeys(listOf("Alice", "Bob"), lookupKeysListener)
-            }
-
-            override fun onError(throwable: Throwable) {
-                // Error handling
-            }
-        }
-
-// Listener for E3Kit initialization
-val initListener = object : EThree.OnResultListener<EThree> {
-            override fun onSuccess(result: EThree) {
-                eThree = result
-                eThree!!.bootstrap(bootstrapListener)
-            }
-
-            override fun onError(throwable: Throwable) {
-                // Error handling
-            }
-        }
-
-EThree.initialize(context, tokenCallback, initListener)
-```
 
 ## License
 
