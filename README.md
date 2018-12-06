@@ -36,7 +36,7 @@ Set up dependencies in your `build.gradle`:
 
 The **\<latest-version>** of the SDK can be found in the [Maven Central Repository](https://mvnrepository.com/artifact/com.virgilsecurity/ethree-kotlin)  or in the header of current readme.
 
-#### Bootstrap User
+#### Register User
 Use the following lines of code to authenticate a user.
 
 ```kotlin
