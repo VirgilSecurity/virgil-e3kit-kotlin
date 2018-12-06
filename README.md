@@ -36,7 +36,7 @@ Set up dependencies in your `build.gradle`:
 
 The **\<latest-version>** of the SDK can be found in the [Maven Central Repository](https://mvnrepository.com/artifact/com.virgilsecurity/ethree-kotlin)  or in the header of current readme.
 
-#### Bootstrap User
+#### Register User
 Use the following lines of code to authenticate a user.
 
 ```kotlin
@@ -69,7 +69,7 @@ val eThree: EThree? = null
 val lookupKeysListener =
     object : EThree.OnResultListener<Map<String, PublicKey>> {
         override fun onSuccess(result: Map<String, PublicKey>) {
-            val text = "I was text but become byte array"
+            val text = "I was a text, but become a byte array"
             val data = text.toByteArray()
 
             // Encrypt data using user public keys
