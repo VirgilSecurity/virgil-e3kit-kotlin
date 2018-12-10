@@ -36,6 +36,20 @@ Set up dependencies in your `build.gradle`:
 
 The **\<latest-version>** of the SDK can be found in the [Maven Central Repository](https://mvnrepository.com/artifact/com.virgilsecurity/ethree-kotlin)  or in the header of current readme.
 
+#### As well
+
+For Kotlin (and coroutines) lovers we got special package that returns *Deferred* instead of using callbacks.
+It's not intended to use with java.
+To use it add next in your `build.gradle`:
+
+```
+    implementation 'com.virgilsecurity:ethree-kotlin-coroutines:<latest-coroutines-version>'
+```
+
+The **\<latest-coroutines-version>** of the SDK can be found in the [Maven Central Repository](https://mvnrepository.com/artifact/com.virgilsecurity/ethree-kotlin-coroutines)  or in the [Release](https://github.com/VirgilSecurity/e3kit-kotlin/releases) page of current repository.
+
+Samples of usage you can find in [Tests](https://github.com/VirgilSecurity/e3kit-kotlin/tree/master/testscoroutines/src/androidTest/java/com/virgilsecurity/android/ethreeCoroutines/interaction).
+
 #### Register User
 Use the following lines of code to authenticate a user.
 
