@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.com/VirgilSecurity/e3kit-kotlin.svg?branch=master)](https://travis-ci.com/VirgilSecurity/e3kit-kotlin)
 [![Maven Central (Standard package)](https://maven-badges.herokuapp.com/maven-central/com.virgilsecurity/ethree-kotlin/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.virgilsecurity/ethree-kotlin)
-[![Maven Central (Coroutines package)](https://maven-badges.herokuapp.com/maven-central/com.virgilsecurity/ethree-kotlin/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.virgilsecurity/ethree-kotlin-coroutines)
+[![Maven Central (Coroutines package)](https://maven-badges.herokuapp.com/maven-central/com.virgilsecurity/ethree-kotlin-coroutines/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.virgilsecurity/ethree-kotlin-coroutines)
 [![GitHub license](https://img.shields.io/badge/license-BSD%203--Clause-blue.svg)](https://github.com/VirgilSecurity/virgil/blob/master/LICENSE)
 
 [Introduction](#introduction) | [SDK Features](#sdk-features) | [Install E3Kit Package](#install-e3kit-package) | [License](#license) | [Support](#support)
