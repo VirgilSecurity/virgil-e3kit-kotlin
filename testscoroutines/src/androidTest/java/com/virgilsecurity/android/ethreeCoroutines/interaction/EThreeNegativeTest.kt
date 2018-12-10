@@ -68,8 +68,7 @@ class EThreeNegativeTest {
     private val password = UUID.randomUUID().toString()
 
 
-    @Before
-    fun setup() {
+    @Before fun setup() {
         jwtGenerator = JwtGenerator(
             TestConfig.appId,
             TestConfig.apiKey,
@@ -108,8 +107,7 @@ class EThreeNegativeTest {
         eThree.cleanup()
     }
 
-    @Test
-    fun backup_fail_without_bootstrap() {
+    @Test fun backup_fail_without_bootstrap() {
         var failed = false
         runBlocking {
             eThree.backupPrivateKey(password).awaitResult().onError {
@@ -120,8 +118,7 @@ class EThreeNegativeTest {
         assertTrue(failed)
     }
 
-    @Test
-    fun reset_key_fail_without_bootstrap() {
+    @Test fun reset_key_fail_without_bootstrap() {
         var failed = false
         runBlocking {
             eThree.resetPrivateKeyBackup(password).awaitResult().onError {
@@ -132,8 +129,7 @@ class EThreeNegativeTest {
         assertTrue(failed)
     }
 
-    @Test
-    fun change_pass_fail_without_bootstrap() {
+    @Test fun change_pass_fail_without_bootstrap() {
         var failed = false
         runBlocking {
             eThree.changePassword(password, password + password).awaitResult().onError {
@@ -164,8 +160,7 @@ class EThreeNegativeTest {
         eThree.decrypt(ByteArray(0))
     }
 
-    @Test
-    fun lookup_fail_without_bootstrap() {
+    @Test fun lookup_fail_without_bootstrap() {
         var failed = false
         runBlocking {
             eThree.lookupPublicKeys(listOf("")).awaitResult().onError {
@@ -175,8 +170,7 @@ class EThreeNegativeTest {
         assertTrue(failed)
     }
 
-    @Test
-    fun lookup_fail_wrong_identity() {
+    @Test fun lookup_fail_wrong_identity() {
         bootstrapEThree(eThree)
 
         var failed = false
@@ -190,8 +184,7 @@ class EThreeNegativeTest {
         assertTrue(failed)
     }
 
-    @Test
-    fun init_ethree_with_empty_token() {
+    @Test fun init_ethree_with_empty_token() {
         var failed = false
         runBlocking {
             EThree.initialize(TestConfig.context) { "" }.awaitResult().onError {
@@ -201,8 +194,7 @@ class EThreeNegativeTest {
         assertTrue(failed)
     }
 
-    @Test
-    fun lookup_with_duplicate_identities() {
+    @Test fun lookup_with_duplicate_identities() {
         var failed = false
         bootstrapEThree(eThree)
 
@@ -218,8 +210,7 @@ class EThreeNegativeTest {
         assertTrue(failed)
     }
 
-    @Test
-    fun change_pass_with_same_new() {
+    @Test fun change_pass_with_same_new() {
         var failed = false
         bootstrapEThree(eThree)
         runBlocking {
