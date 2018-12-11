@@ -3,11 +3,7 @@
 [![Build Status](https://travis-ci.com/VirgilSecurity/e3kit-kotlin.svg?branch=master)](https://travis-ci.com/VirgilSecurity/e3kit-kotlin)
 [![GitHub license](https://img.shields.io/badge/license-BSD%203--Clause-blue.svg)](https://github.com/VirgilSecurity/virgil/blob/master/LICENSE)
 
-Standard &nbsp;&nbsp;&nbsp; [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.virgilsecurity/ethree-kotlin/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.virgilsecurity/ethree-kotlin)
-
-Coroutines &nbsp;[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.virgilsecurity/ethree-kotlin-coroutines/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.virgilsecurity/ethree-kotlin-coroutines)
-
-[Introduction](#introduction) | [SDK Features](#sdk-features) | [Install E3Kit Package](#install-e3kit-package) | [License](#license) | [Support](#support)
+[Introduction](#introduction) | [SDK Features](#sdk-features) | [Install E3Kit SDK](#install-e3kit-sdk) | [Usage](#usage) | [License](#license) | [Support](#support)
 
 ## Introduction
 
@@ -17,52 +13,29 @@ Coroutines &nbsp;[![Maven Central](https://maven-badges.herokuapp.com/maven-cent
 - multidevice support
 - manage users' Public Keys
 
-## Install E3Kit Package
+## Install E3Kit SDK
 
-#### Gradle
+You can install E3Kit SDK using [Gradle](https://gradle.org/). Please, choose package that suits best for your needs:
 
-[Gradle](https://gradle.org/) is an open-source build automation system that builds upon the concepts of Apache Ant and Apache Maven and introduces a Groovy-based domain-specific language (DSL) instead of the XML form used by Apache Maven for declaring the project configuration.
+| Package | Description |
+|----------|---------|
+| [`E3Kit`](./ethree) | Standard package for Java/Kotlin with methods responses in `callbacks` |
+| [`E3Kit Coroutines`](./ethreeCoroutines) | [Coroutines](https://github.com/Kotlin/kotlinx.coroutines) package with methods responses in [`Deferred`](https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-deferred/) |
 
-To integrate E3Kit SDK into your Android project using Gradle, add jcenter() repository if missing:
-
-```
-repositories {
-    jcenter()
-}
-```
-
-Set up dependencies in your `build.gradle`:
-
-```
-    implementation 'com.virgilsecurity:ethree-kotlin:<latest-version>'
-```
-
-The **\<latest-version>** of the SDK can be found in the [Maven Central Repository](https://mvnrepository.com/artifact/com.virgilsecurity/ethree-kotlin)  or in the header of current readme.
-
-#### As well
-
-For Kotlin (and coroutines) fans we released a special package that returns *Deferred* instead of using callbacks.
-It's not intended to use with java.
-To use it add next in your `build.gradle`:
-
-```
-    implementation 'com.virgilsecurity:ethree-kotlin-coroutines:<latest-coroutines-version>'
-```
-
-The **\<latest-coroutines-version>** of the SDK can be found in the [Maven Central Repository](https://mvnrepository.com/artifact/com.virgilsecurity/ethree-kotlin-coroutines)  or in the header of current readme.
-
-Samples of usage you can find in [Tests](https://github.com/VirgilSecurity/e3kit-kotlin/tree/master/testscoroutines/src/androidTest/java/com/virgilsecurity/android/ethreeCoroutines/interaction).
+## Usage
 
 #### Register User
 Use the following lines of code to authenticate a user.
 
 ```kotlin
+var eThree: EThree? = null
 
 // Listener for E3Kit initialization
 val initializeListener =
     object : EThree.OnResultListener<EThree> {
         override fun onSuccess(result: EThree) {
             // Init done!
+            eThree = result
         }
 
         override fun onError(throwable: Throwable) {
@@ -71,7 +44,7 @@ val initializeListener =
     }
 
 // initialize E3Kit
-EThree.initialize(context, tokenCallback, initializeListener)
+EThree.initialize(context, virgilTokenCallback, initializeListener)
 ```
 
 #### Encrypt & decrypt
@@ -79,8 +52,25 @@ EThree.initialize(context, tokenCallback, initializeListener)
 Virgil E3Kit lets you use a user's Private key and his or her Public Keys to sign, then encrypt text.
 
 ```kotlin
+var eThree: EThree? = null
+var encryptedData: ByteArray? = null
+var encryptedText: String? = null           
 
-val eThree: EThree? = null
+// Listener for keys lookup Two
+val lookupKeysListenerTwo =
+    object : EThree.OnResultListener<Map<String, PublicKey>> {
+        override fun onSuccess(result: Map<String, PublicKey>) {
+            // Decrypt data using senders public key (In this example it's E3Kit current user)
+            val decryptedData = eThree.decrypt(encryptedData!!, result[identityInToken])
+            
+            // Decrypt data using senders public key (In this example it's E3Kit current user)
+            val decryptedText = eThree.decrypt(encryptedText!!, result[identityInToken])
+        }
+
+        override fun onError(throwable: Throwable) {
+            // Error handling
+        }
+    }
 
 // Listener for keys lookup
 val lookupKeysListener =
@@ -90,10 +80,13 @@ val lookupKeysListener =
             val data = text.toByteArray()
 
             // Encrypt data using user public keys
-            val encryptedData = eThree.encrypt(data, result.values.toList())
+            encryptedData = eThree.encrypt(data, result.values.toList())
 
             // Encrypt message using user public keys
-            val encryptedText = eThree.encrypt(text, result.values.toList())
+            encryptedText = eThree.encrypt(text, result.values.toList())
+            
+            // E3Kit using identity that specified in Jwt provided with *virgilTokenCallback*
+            eThree!!.lookupPublicKeys(listOf(identityInToken), lookupKeysListenerTwo)
         }
 
         override fun onError(throwable: Throwable) {
@@ -130,7 +123,7 @@ val initializeListener =
     }
 
 // initialize E3Kit
-EThree.initialize(context, tokenCallback, initializeListener)
+EThree.initialize(context, virgilTokenCallback, initializeListener)
 ```
 
 ## License
