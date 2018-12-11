@@ -33,7 +33,10 @@
 
 package com.virgilsecurity.android.ethreeCoroutines.interaction
 
-import com.virgilsecurity.android.common.exceptions.*
+import com.virgilsecurity.android.common.exceptions.BackupKeyException
+import com.virgilsecurity.android.common.exceptions.PrivateKeyNotFoundException
+import com.virgilsecurity.android.common.exceptions.RestoreKeyException
+import com.virgilsecurity.android.common.exceptions.WrongPasswordException
 import com.virgilsecurity.android.ethreeCoroutines.extension.awaitResult
 import com.virgilsecurity.android.ethreeCoroutines.model.onError
 import com.virgilsecurity.android.ethreeCoroutines.model.onSuccess
@@ -72,7 +75,6 @@ import org.junit.Before
 import org.junit.Test
 import java.net.URL
 import java.util.*
-import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 /**

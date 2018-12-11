@@ -38,7 +38,6 @@ import com.virgilsecurity.android.ethreeCoroutines.extension.awaitResult
 import com.virgilsecurity.android.ethreeCoroutines.model.onError
 import com.virgilsecurity.android.ethreeCoroutines.model.onSuccess
 import com.virgilsecurity.android.ethreeCoroutines.utils.TestConfig
-import com.virgilsecurity.android.ethreeCoroutines.utils.TestUtils
 import com.virgilsecurity.android.ethreecoroutines.interaction.EThree
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.model.RawSignedModel
@@ -54,12 +53,10 @@ import com.virgilsecurity.sdk.storage.JsonKeyEntry
 import com.virgilsecurity.sdk.storage.KeyStorage
 import com.virgilsecurity.sdk.utils.Tuple
 import kotlinx.coroutines.runBlocking
-import org.junit.Assert
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import java.util.*
-import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
 /**
