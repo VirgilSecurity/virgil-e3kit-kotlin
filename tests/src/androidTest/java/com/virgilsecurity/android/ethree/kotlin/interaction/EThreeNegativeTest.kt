@@ -68,8 +68,7 @@ class EThreeNegativeTest {
     private val password = UUID.randomUUID().toString()
 
 
-    @Before
-    fun setup() {
+    @Before fun setup() {
         jwtGenerator = JwtGenerator(
             TestConfig.appId,
             TestConfig.apiKey,
@@ -132,8 +131,7 @@ class EThreeNegativeTest {
         eThree.cleanup()
     }
 
-    @Test
-    fun backup_fail_without_bootstrap() {
+    @Test fun backup_fail_without_bootstrap() {
         var failed = false
         val waiter = CountDownLatch(1)
         eThree.backupPrivateKey(password, object : EThree.OnCompleteListener {
@@ -150,8 +148,7 @@ class EThreeNegativeTest {
         assertTrue(failed)
     }
 
-    @Test
-    fun reset_key_fail_without_bootstrap() {
+    @Test fun reset_key_fail_without_bootstrap() {
         var failed = false
         val waiter = CountDownLatch(1)
         eThree.resetPrivateKeyBackup(password, object : EThree.OnCompleteListener {
@@ -168,8 +165,7 @@ class EThreeNegativeTest {
         assertTrue(failed)
     }
 
-    @Test
-    fun change_pass_fail_without_bootstrap() {
+    @Test fun change_pass_fail_without_bootstrap() {
         var failed = false
         val waiter = CountDownLatch(1)
         eThree.changePassword(password, password + password, object : EThree.OnCompleteListener {
@@ -206,8 +202,7 @@ class EThreeNegativeTest {
         eThree.decrypt(ByteArray(0))
     }
 
-    @Test
-    fun lookup_fail_without_bootstrap() {
+    @Test fun lookup_fail_without_bootstrap() {
         var failed = false
         val waiter = CountDownLatch(1)
         eThree.lookupPublicKeys(listOf(""), object : EThree.OnResultListener<Map<String, PublicKey>> {
@@ -224,8 +219,7 @@ class EThreeNegativeTest {
         assertTrue(failed)
     }
 
-    @Test
-    fun lookup_fail_wrong_identity() {
+    @Test fun lookup_fail_wrong_identity() {
         bootstrapEThree(eThree)
 
         var failed = false
@@ -247,8 +241,7 @@ class EThreeNegativeTest {
         assertTrue(failed)
     }
 
-    @Test
-    fun init_ethree_with_empty_token() {
+    @Test fun init_ethree_with_empty_token() {
         var failed = false
         val waiter = CountDownLatch(1)
         EThree.initialize(TestConfig.context, object : EThree.OnGetTokenCallback {
@@ -269,8 +262,7 @@ class EThreeNegativeTest {
         assertTrue(failed)
     }
 
-    @Test
-    fun lookup_with_duplicate_identities() {
+    @Test fun lookup_with_duplicate_identities() {
         var failed = false
         val waiter = CountDownLatch(1)
         bootstrapEThree(eThree)
@@ -293,8 +285,7 @@ class EThreeNegativeTest {
         assertTrue(failed)
     }
 
-    @Test
-    fun change_pass_with_same_new() {
+    @Test fun change_pass_with_same_new() {
         var failed = false
         val waiter = CountDownLatch(1)
         bootstrapEThree(eThree)

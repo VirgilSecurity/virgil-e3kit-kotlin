@@ -40,26 +40,13 @@ import com.virgilsecurity.android.ethree.utils.TestConfig
 import com.virgilsecurity.android.ethree.utils.TestConfig.Companion.virgilBaseUrl
 import com.virgilsecurity.android.ethree.utils.TestConfig.Companion.virgilCrypto
 import com.virgilsecurity.android.ethree.utils.TestUtils
-import com.virgilsecurity.keyknox.KeyknoxManager
-import com.virgilsecurity.keyknox.client.KeyknoxClient
-import com.virgilsecurity.keyknox.cloud.CloudKeyStorage
-import com.virgilsecurity.keyknox.crypto.KeyknoxCrypto
-import com.virgilsecurity.keyknox.storage.SyncKeyStorage
-import com.virgilsecurity.pythia.brainkey.BrainKey
-import com.virgilsecurity.pythia.brainkey.BrainKeyContext
-import com.virgilsecurity.pythia.client.VirgilPythiaClient
-import com.virgilsecurity.pythia.crypto.VirgilPythiaCrypto
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.model.RawSignedModel
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
 import com.virgilsecurity.sdk.client.VirgilCardClient
 import com.virgilsecurity.sdk.common.TimeSpan
-import com.virgilsecurity.sdk.crypto.VirgilAccessTokenSigner
-import com.virgilsecurity.sdk.crypto.VirgilCardCrypto
-import com.virgilsecurity.sdk.crypto.VirgilCrypto
-import com.virgilsecurity.sdk.crypto.VirgilKeyPair
+import com.virgilsecurity.sdk.crypto.*
 import com.virgilsecurity.sdk.jwt.JwtGenerator
-import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
 import com.virgilsecurity.sdk.jwt.accessProviders.GeneratorJwtProvider
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
 import com.virgilsecurity.sdk.storage.JsonKeyEntry
@@ -70,7 +57,6 @@ import org.hamcrest.core.IsNot.not
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import java.net.URL
 import java.util.*
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -89,8 +75,7 @@ class EThreeAuthTest {
     private lateinit var jwtGenerator: JwtGenerator
     private lateinit var keyStorage: KeyStorage
 
-    @Before
-    fun setup() {
+    @Before fun setup() {
         TestUtils.pause()
 
         jwtGenerator = JwtGenerator(
@@ -153,35 +138,6 @@ class EThreeAuthTest {
         waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
 
         return eThree
-    }
-
-    private fun initSyncKeyStorage(identity: String, passwordBrainKey: String): SyncKeyStorage {
-        val tokenProvider = CachingJwtProvider(CachingJwtProvider.RenewJwtCallback {
-            jwtGenerator.generateToken(identity)
-        })
-        val brainKeyContext = BrainKeyContext.Builder()
-                .setAccessTokenProvider(tokenProvider)
-                .setPythiaClient(VirgilPythiaClient(virgilBaseUrl))
-                .setPythiaCrypto(VirgilPythiaCrypto())
-                .build()
-        val keyPair = BrainKey(brainKeyContext).generateKeyPair(passwordBrainKey)
-
-        val syncKeyStorage =
-                SyncKeyStorage(
-                    identity, keyStorage, CloudKeyStorage(
-                        KeyknoxManager(
-                            tokenProvider,
-                            KeyknoxClient(URL(virgilBaseUrl)),
-                            listOf(keyPair.publicKey),
-                            keyPair.privateKey,
-                            KeyknoxCrypto()
-                        )
-                    )
-                )
-
-        syncKeyStorage.sync()
-
-        return syncKeyStorage
     }
 
     private fun initCardManager(identity: String): CardManager {
@@ -319,5 +275,61 @@ class EThreeAuthTest {
         val newKey = keyStorage.load(identity)
         assertThat(publishPair.left.privateKey.rawKey,
                    not(equalTo(VirgilCrypto().importPrivateKey(newKey.value).rawKey)))
+    }
+
+    @Test fun rotate_when_multiply_cards_available() {
+        val cardManager = initCardManager(identity)
+        val publishPair = generateRawCard(identity, cardManager)
+        val publishPairTwo = generateRawCard(identity, cardManager)
+        cardManager.publishCard(publishPair.right)
+        cardManager.publishCard(publishPairTwo.right)
+        val eThree = initEThree(identity)
+
+        var rotateFailed = false
+        val waiterTwo = CountDownLatch(1)
+        eThree.rotatePrivateKey(object : EThree.OnCompleteListener {
+            override fun onSuccess() {
+                fail("Illegal state")
+            }
+
+            override fun onError(throwable: Throwable) {
+                if (throwable is IllegalStateException)
+                    rotateFailed = true
+
+                waiterTwo.countDown()
+            }
+        })
+        waiterTwo.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+
+        assertTrue(rotateFailed)
+    }
+
+    @Test fun lookup_when_multiply_cards_available() {
+        val cardManager = initCardManager(identity)
+        val publishPair = generateRawCard(identity, cardManager)
+        val publishPairTwo = generateRawCard(identity, cardManager)
+        cardManager.publishCard(publishPair.right)
+        cardManager.publishCard(publishPairTwo.right)
+        val eThree = initEThree(identity)
+
+        var rotateFailed = false
+        val waiterTwo = CountDownLatch(1)
+        eThree.lookupPublicKeys(listOf(identity),
+                                object : EThree.OnResultListener<Map<String, PublicKey>> {
+                                    override fun onSuccess(result: Map<String, PublicKey>) {
+                                        fail("Illegal state")
+                                    }
+
+                                    override fun onError(throwable: Throwable) {
+                                        if (throwable is IllegalStateException)
+                                            rotateFailed = true
+
+                                        waiterTwo.countDown()
+                                    }
+
+                                })
+        waiterTwo.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+
+        assertTrue(rotateFailed)
     }
 }
