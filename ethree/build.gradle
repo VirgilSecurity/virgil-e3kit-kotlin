@@ -9,7 +9,7 @@ apply plugin: 'maven'
 apply plugin: 'org.jetbrains.dokka'
 
 group 'com.virgilsecurity'
-version '0.3.01'
+version '0.3.1'
 
 dependencies {
     // Inner dependencies

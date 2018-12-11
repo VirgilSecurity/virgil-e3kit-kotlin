@@ -33,7 +33,10 @@
 
 package com.virgilsecurity.android.ethree.kotlin.interaction
 
-import com.virgilsecurity.android.common.exceptions.*
+import com.virgilsecurity.android.common.exceptions.BackupKeyException
+import com.virgilsecurity.android.common.exceptions.PrivateKeyNotFoundException
+import com.virgilsecurity.android.common.exceptions.RestoreKeyException
+import com.virgilsecurity.android.common.exceptions.WrongPasswordException
 import com.virgilsecurity.android.ethree.utils.TestConfig
 import com.virgilsecurity.android.ethree.utils.TestConfig.Companion.virgilBaseUrl
 import com.virgilsecurity.android.ethree.utils.TestUtils

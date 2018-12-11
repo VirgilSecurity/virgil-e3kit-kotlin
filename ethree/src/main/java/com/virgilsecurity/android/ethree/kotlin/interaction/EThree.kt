@@ -41,7 +41,6 @@ import com.virgilsecurity.keyknox.cloud.CloudKeyStorage
 import com.virgilsecurity.keyknox.crypto.KeyknoxCrypto
 import com.virgilsecurity.keyknox.exception.DecryptionFailedException
 import com.virgilsecurity.keyknox.exception.EntryAlreadyExistsException
-import com.virgilsecurity.keyknox.exception.KeychainEntryAlreadyExistsWhileStoringException
 import com.virgilsecurity.keyknox.storage.SyncKeyStorage
 import com.virgilsecurity.pythia.brainkey.BrainKey
 import com.virgilsecurity.pythia.brainkey.BrainKeyContext
@@ -63,7 +62,6 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import java.lang.IllegalStateException
 import java.net.URL
 
 /**
@@ -194,14 +192,10 @@ class EThree
                             }
                         }
             } catch (throwable: Throwable) {
-                if (throwable is EntryAlreadyExistsException
-                )
-                    onCompleteListener.onError(
-                        BackupKeyException(
-                            "Key with identity ${currentIdentity()} " +
-                            "already backuped."
-                        )
-                    )
+                if (throwable is EntryAlreadyExistsException)
+                    onCompleteListener.onError(BackupKeyException("Key with identity " +
+                                                                  "${currentIdentity()} " +
+                                                                  "already backuped."))
                 else
                     onCompleteListener.onError(throwable)
             }
