@@ -393,8 +393,7 @@ class EThreeEncryptionTest {
         assertEquals(RAW_TEXT, decryptedText)
     }
 
-    @Test
-    fun init_without_local_key_and_create_after() {
+    @Test fun init_without_local_key_and_create_after() {
         val identityTwo = UUID.randomUUID().toString()
         val eThreeTwo = initEThree(identityTwo)
 

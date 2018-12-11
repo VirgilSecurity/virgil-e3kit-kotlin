@@ -41,7 +41,7 @@ import com.virgilsecurity.keyknox.client.KeyknoxClient
 import com.virgilsecurity.keyknox.cloud.CloudKeyStorage
 import com.virgilsecurity.keyknox.crypto.KeyknoxCrypto
 import com.virgilsecurity.keyknox.exception.DecryptionFailedException
-import com.virgilsecurity.keyknox.exception.KeychainEntryAlreadyExistsWhileStoringException
+import com.virgilsecurity.keyknox.exception.EntryAlreadyExistsException
 import com.virgilsecurity.keyknox.storage.SyncKeyStorage
 import com.virgilsecurity.pythia.brainkey.BrainKey
 import com.virgilsecurity.pythia.brainkey.BrainKeyContext
@@ -65,11 +65,14 @@ import kotlinx.coroutines.async
 import java.net.URL
 
 /**
- * Created by:
- * Danylo Oliinyk
- * on
- * 10/8/18
- * at Virgil Security
+ * . _  _
+ * .| || | _
+ * -| || || |   Created by:
+ * .| || || |-  Danylo Oliinyk
+ * ..\_  || |   on
+ * ....|  _/    10/8/18
+ * ...-| | \    at Virgil Security
+ * ....|_|-
  */
 
 /**
@@ -104,16 +107,16 @@ class EThree
      * @throws RegistrationException
      * @throws CryptoException
      */
-    fun register(): Deferred<Unit> =
+    @Synchronized fun register(): Deferred<Unit> =
             GlobalScope.async {
                 if (cardManager.searchCards(currentIdentity()).isNotEmpty())
                     throw RegistrationException("Card with identity " +
                                                 "${currentIdentity()} already exists")
 
                 if (keyStorage.exists(currentIdentity()))
-                    throw RestoreKeyException("You already have a Private Key on this device" +
-                                              "for identity: ${currentIdentity()}. Please, use" +
-                                              "\'cleanup()\' function first.")
+                    throw PrivateKeyExistsException("You already have a Private Key on this " +
+                                                    "device for identity: ${currentIdentity()}. " +
+                                                    "Please, use \'cleanup()\' function first.")
 
                 virgilCrypto.generateKeys().run {
                     cardManager.publishCard(this.privateKey,
@@ -175,9 +178,9 @@ class EThree
                     }
         },
         {
-            if (it is KeychainEntryAlreadyExistsWhileStoringException)
+            if (it is EntryAlreadyExistsException)
                 throw BackupKeyException("Key with identity ${currentIdentity()} " +
-                                         "already backed up.")
+                                         "already backuped.")
             else
                 throw it
         })
@@ -216,25 +219,34 @@ class EThree
      * is generated based on provided [password] and saves it to the current private keys
      * local storage.
      *
+     * @throws WrongPasswordException
      * @throws RestoreKeyException
      */
-    fun restorePrivateKey(password: String): Deferred<Unit> = GlobalScope.async {
-        if (keyStorage.exists(currentIdentity()))
-            throw RestoreKeyException("You already have a Private Key on this device" +
-                                      "for identity: ${currentIdentity()}. Please, use" +
-                                      "\'cleanup()\' function first.")
+    fun restorePrivateKey(password: String): Deferred<Unit> = GlobalScope.asyncWithCatch(
+        {
+            if (keyStorage.exists(currentIdentity()))
+                throw RestoreKeyException("You already have a Private Key on this device" +
+                                          "for identity: ${currentIdentity()}. Please, use" +
+                                          "\'cleanup()\' function first.")
 
-        initSyncKeyStorage(password).run {
-            if (this.exists(currentIdentity() + KEYKNOX_KEY_POSTFIX)) {
-                val keyEntry = this.retrieve(currentIdentity() + KEYKNOX_KEY_POSTFIX)
+            initSyncKeyStorage(password).run {
+                if (this.exists(currentIdentity() + KEYKNOX_KEY_POSTFIX)) {
+                    val keyEntry =
+                            this.retrieve(currentIdentity() + KEYKNOX_KEY_POSTFIX)
 
-                keyStorage.store(JsonKeyEntry(currentIdentity(), keyEntry.data))
-            } else {
-                throw RestoreKeyException("There is no key backup with " +
-                                          "identity: ${currentIdentity()}")
+                    keyStorage.store(JsonKeyEntry(currentIdentity(), keyEntry.data))
+                } else {
+                    throw RestoreKeyException("There is no key backup with " +
+                                              "identity: ${currentIdentity()}")
+                }
             }
-        }
-    }
+        },
+        {
+            if (it is DecryptionFailedException)
+                throw WrongPasswordException("Specified password is not valid.")
+            else
+                throw it
+        })
 
     /**
      * Generates new key pair, publishes new public key for current identity and deprecating old
@@ -255,8 +267,13 @@ class EThree
         if (cards.isEmpty())
             throw CardNotFoundException("No cards was found " +
                                         "with identity: ${currentIdentity()}")
+        if (cards.size > 1)
+            throw IllegalStateException("${cards.size} cards was found " +
+                                        "with identity: ${currentIdentity()}. How? (: " +
+                                        "Should be <= 1. Please, contact developers if " +
+                                        "it was not an intended behaviour.")
 
-        (cards.last() to virgilCrypto.generateKeys()).run {
+        (cards.first() to virgilCrypto.generateKeys()).run {
             val rawCard = cardManager.generateRawCard(this.second.privateKey,
                                                       this.second.publicKey,
                                                       currentIdentity(),
@@ -339,7 +356,7 @@ class EThree
      * @throws PrivateKeyNotFoundException
      * @throws CryptoException
      */
-    @JvmOverloads fun encrypt(data: ByteArray, publicKeys: List<PublicKey>? = null): ByteArray {
+    fun encrypt(data: ByteArray, publicKeys: List<PublicKey>? = null): ByteArray {
         checkPrivateKeyOrThrow()
 
         if (data.isEmpty()) throw EmptyArgumentException("data")
@@ -373,7 +390,7 @@ class EThree
      * @throws PrivateKeyNotFoundException
      * @throws CryptoException
      */
-    @JvmOverloads fun decrypt(base64String: String, sendersKey: PublicKey? = null): String {
+    fun decrypt(base64String: String, sendersKey: PublicKey? = null): String {
         checkPrivateKeyOrThrow()
 
         if (base64String.isBlank()) throw EmptyArgumentException("data")
@@ -395,7 +412,7 @@ class EThree
      * @throws PrivateKeyNotFoundException
      * @throws CryptoException
      */
-    @JvmOverloads fun decrypt(data: ByteArray, sendersKey: PublicKey? = null): ByteArray {
+    fun decrypt(data: ByteArray, sendersKey: PublicKey? = null): ByteArray {
         checkPrivateKeyOrThrow()
 
         if (data.isEmpty()) throw EmptyArgumentException("data")
@@ -433,30 +450,38 @@ class EThree
      * @throws PrivateKeyNotFoundException
      * @throws PublicKeyDuplicateException
      */
-    fun lookupPublicKeys(identities: List<String>): Deferred<Map<String, PublicKey>> = GlobalScope.async {
-        if (identities.isEmpty()) throw EmptyArgumentException("identities")
-        identities.groupingBy { it }
-                .eachCount()
-                .filter { it.value > 1 }
-                .run {
-                    if (this.isNotEmpty())
-                        throw PublicKeyDuplicateException(
-                            "Duplicates are not allowed. " +
-                            "Duplicated identities:\n${this}"
-                        )
-                }
+    fun lookupPublicKeys(identities: List<String>): Deferred<Map<String, PublicKey>> =
+            GlobalScope.async {
+                if (identities.isEmpty()) throw EmptyArgumentException("identities")
 
-        identities.map {
-            cardManager.searchCards(it) to it
-        }.map {
-            it.second to it.first
-        }.map {
-            if (it.second.isNotEmpty())
-                it.first to it.second.last().publicKey
-            else
-                throw PublicKeyNotFoundException(it.first)
-        }.toMap()
-    }
+                identities.groupingBy { it }
+                        .eachCount()
+                        .filter { it.value > 1 }
+                        .run {
+                            if (this.isNotEmpty())
+                                throw PublicKeyDuplicateException("Duplicates are not allowed. " +
+                                                                  "Duplicated identities:\n${this}")
+                        }
+
+                identities.map {
+                    cardManager.searchCards(it) to it
+                }.map {
+                    if (it.first.size > 1)
+                        throw IllegalStateException("${it.first.size} cards was found  with " +
+                                                    "identity: ${currentIdentity()}. How? (: " +
+                                                    "Should be <= 1. Please, contact developers " +
+                                                    "if it was not an intended behaviour.")
+                    else
+                        it
+                }.map {
+                    it.second to it.first
+                }.map {
+                    if (it.second.isNotEmpty())
+                        it.first to it.second.first().publicKey
+                    else
+                        throw PublicKeyNotFoundException(it.first)
+                }.toMap()
+            }
 
     /**
      * Loads and returns current user's [PrivateKey]. Current user's identity is taken
@@ -475,8 +500,8 @@ class EThree
             virgilCrypto.extractPublicKey(loadCurrentPrivateKey() as VirgilPrivateKey)
 
     /**
-     * Initializes [SyncKeyStorage] with default settings, [tokenProvider] and provided [password] after that returns
-     * initialized [SyncKeyStorage] object.
+     * Initializes [SyncKeyStorage] with default settings, [tokenProvider] and provided [password]
+     * after that returns initialized [SyncKeyStorage] object.
      */
     private fun initSyncKeyStorage(password: String): CloudKeyStorage =
             BrainKeyContext.Builder()
@@ -491,7 +516,7 @@ class EThree
                                 listOf(keyPair.publicKey),
                                 keyPair.privateKey,
                                 KeyknoxCrypto())).also { cloudKeyStorage ->
-                                cloudKeyStorage.retrieveAll()
+                                cloudKeyStorage.retrieveCloudEntries()
                             }
                         }
                     }
@@ -506,8 +531,9 @@ class EThree
      * [PrivateKeyNotFoundException] exception.
      */
     private fun checkPrivateKeyOrThrow() {
-        if (!keyStorage.exists(currentIdentity())) throw PrivateKeyNotFoundException(
-            "You have to call register() first.")
+        if (!keyStorage.exists(currentIdentity()))
+            throw PrivateKeyNotFoundException("You have to get private key first. Use " +
+                                              "\'register\' or \'restorePrivateKey\' functions.")
     }
 
     companion object {

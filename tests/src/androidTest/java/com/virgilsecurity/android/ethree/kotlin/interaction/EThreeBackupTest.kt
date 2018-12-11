@@ -34,8 +34,8 @@
 package com.virgilsecurity.android.ethree.kotlin.interaction
 
 import com.virgilsecurity.android.common.exceptions.BackupKeyException
-import com.virgilsecurity.android.common.exceptions.PrivateKeyExistsException
 import com.virgilsecurity.android.common.exceptions.PrivateKeyNotFoundException
+import com.virgilsecurity.android.common.exceptions.RestoreKeyException
 import com.virgilsecurity.android.common.exceptions.WrongPasswordException
 import com.virgilsecurity.android.ethree.utils.TestConfig
 import com.virgilsecurity.android.ethree.utils.TestConfig.Companion.virgilBaseUrl
@@ -330,7 +330,7 @@ class EThreeBackupTest {
             }
 
             override fun onError(throwable: Throwable) {
-                if (throwable is PrivateKeyExistsException)
+                if (throwable is RestoreKeyException)
                     failedToRestore = true
 
                 waiterThree.countDown()
@@ -493,8 +493,7 @@ class EThreeBackupTest {
         assertFalse(syncKeyStorage.exists(identity + TestConfig.KEYKNOX_KEY_POSTFIX))
     }
 
-    @Test
-    fun reset_backed_key_wrong_pass() {
+    @Test fun reset_backed_key_wrong_pass() {
         val identity = UUID.randomUUID().toString()
         val password = UUID.randomUUID().toString()
         val eThreeWithPass = initAndRegisterEThree(identity)
