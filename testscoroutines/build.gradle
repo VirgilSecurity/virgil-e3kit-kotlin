@@ -34,8 +34,8 @@ android {
 }
 
 dependencies {
-    implementation project(':common')
-    implementation project(':ethreeCoroutines')
+    implementation project(':ethree-common')
+    implementation project(':ethree-kotlin-coroutines')
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$versions.kotlin"
     implementation 'com.android.support:appcompat-v7:28.0.0'

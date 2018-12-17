@@ -1,1 +1,1 @@
-include ':tests', ':ethree', ':ethreeCoroutines', ':common', ':testscoroutines'
+include ':tests', ':ethree-kotlin', ':ethree-kotlin-coroutines', ':ethree-common', ':testscoroutines'

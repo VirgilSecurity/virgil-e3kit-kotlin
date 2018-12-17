@@ -450,7 +450,7 @@ class EThree
      * @throws PrivateKeyNotFoundException
      * @throws PublicKeyDuplicateException
      */
-    fun lookupPublicKeys(identities: List<String>): Deferred<Map<String, PublicKey>> =
+    fun lookupPublicKeys(identities: List<String>): Deferred<Map<String, PublicKey>> = // TODO check arrayOf and [] with collections to not write listof()
             GlobalScope.async {
                 if (identities.isEmpty()) throw EmptyArgumentException("identities")
 
