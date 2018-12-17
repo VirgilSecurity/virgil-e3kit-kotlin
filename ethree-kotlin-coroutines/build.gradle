@@ -9,11 +9,11 @@ apply plugin: 'maven'
 apply plugin: 'org.jetbrains.dokka'
 
 group 'com.virgilsecurity'
-version '0.2.0'
+version '0.2.1'
 
 dependencies {
     // Inner dependencies
-    implementation project(':common')
+    implementation project(':ethree-common')
 
     // Virgil
     compileOnly "com.virgilsecurity.sdk:crypto:$versions.virgilSdk"
