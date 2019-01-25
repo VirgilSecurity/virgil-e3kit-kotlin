@@ -1,10 +1,10 @@
-### E3Kit Android Java Sample
+## E3Kit Android Java Sample
 
-## Prerequisites 
+### Prerequisites 
   - Android Studio 3.2.1+
   - [Sample Backend for Java](https://github.com/VirgilSecurity/sample-backend-java) running on localhost:3000.
   
-## How to start
+### How to start
 Don't forget to setup [Sample Backend for Java](https://github.com/VirgilSecurity/sample-backend-java) first. It is a mandatory part of this sample. After this do next few steps:
 
 ```
