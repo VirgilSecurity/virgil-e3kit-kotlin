@@ -52,4 +52,4 @@ val decryptedData = eThree.decrypt(encryptedData, sendersKeys[identityInToken])
 val decryptedText = eThree.decrypt(encryptedText, sendersKeys[identityInToken])
 ```
 
-You can checkout [Tests](https://github.com/VirgilSecurity/e3kit-kotlin/tree/master/testscoroutines/src/androidTest/java/com/virgilsecurity/android/ethreeCoroutines/interaction) to find out more of usage examples.
+You can checkout [Tests](https://github.com/VirgilSecurity/virgil-e3kit-kotlin/tree/master/testscoroutines/src/androidTest/java/com/virgilsecurity/android/ethreeCoroutines/interaction) to find out more of usage examples.
