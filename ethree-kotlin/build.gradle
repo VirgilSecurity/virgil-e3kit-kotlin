@@ -98,7 +98,7 @@ publishing {
                 licenses {
                     license {
                         name = 'Virgil Security, Inc. license'
-                        url = 'https://github.com/VirgilSecurity/e3kit-kotlin/blob/master/LICENSE.txt'
+                        url = 'https://github.com/VirgilSecurity/virgil-e3kit-kotlin/blob/master/LICENSE.txt'
                     }
                 }
                 developers {
@@ -116,9 +116,9 @@ publishing {
                     }
                 }
                 scm {
-                    connection = 'scm:git:https://github.com/VirgilSecurity/e3kit-kotlin.git'
-                    developerConnection = 'scm:git:git@github.com:VirgilSecurity/e3kit-kotlin.git'
-                    url = 'https://github.com/VirgilSecurity/e3kit-kotlin'
+                    connection = 'scm:git:https://github.com/VirgilSecurity/virgil-e3kit-kotlin.git'
+                    developerConnection = 'scm:git:git@github.com:VirgilSecurity/virgil-e3kit-kotlin.git'
+                    url = 'https://github.com/VirgilSecurity/virgil-e3kit-kotlin'
                 }
             }
         }

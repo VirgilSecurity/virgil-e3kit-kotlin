@@ -10,7 +10,7 @@ buildscript {
             coroutines : '1.0.1',
 
             // Gradle
-            gardle     : '3.2.1',
+            gardle     : '3.3.0',
 
             // Android
             android    : '4.1.1.4',
