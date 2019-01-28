@@ -124,4 +124,4 @@ val initializeListener =
 EThree.initialize(context, virgilTokenCallback, initializeListener)
 ```
 
-You can checkout [Tests](https://github.com/VirgilSecurity/e3kit-kotlin/tree/master/tests/src/androidTest/java/com/virgilsecurity/android/ethree/kotlin/interaction) to find out more of usage examples.
+You can checkout [Tests](https://github.com/VirgilSecurity/virgil-e3kit-kotlin/tree/master/tests/src/androidTest/java/com/virgilsecurity/android/ethree/kotlin/interaction) to find out more of usage examples.
