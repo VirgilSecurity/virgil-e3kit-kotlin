@@ -1,4 +1,4 @@
-## E3Kit Android Java Sample
+## E3Kit Android Kotlin Sample
 
 ### Prerequisites 
   - Android Studio 3.2.1+
