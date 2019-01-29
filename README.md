@@ -19,8 +19,8 @@ You can install E3Kit SDK using [Gradle](https://gradle.org/). Please, choose pa
 
 | Package | Description |
 |----------|---------|
-| [`E3Kit`](./ethree) | Standard package for Java/Kotlin with methods responses in `callbacks` |
-| [`E3Kit Coroutines`](./ethreeCoroutines) | [Coroutines](https://github.com/Kotlin/kotlinx.coroutines) package with methods responses in [`Deferred`](https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-deferred/) |
+| [`E3Kit`](./ethree-kotlin) | Standard package for Java/Kotlin with methods responses in `callbacks` |
+| [`E3Kit Coroutines`](./ethree-kotlin-coroutines) | [Coroutines](https://github.com/Kotlin/kotlinx.coroutines) package with methods responses in [`Deferred`](https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-deferred/) |
 
 ## Usage
 
