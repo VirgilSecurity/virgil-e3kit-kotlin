@@ -10,7 +10,7 @@ buildscript {
             coroutines : '1.0.1',
 
             // Gradle
-            gardle     : '3.2.1',
+            gardle     : '3.3.0',
 
             // Android
             android    : '4.1.1.4',
@@ -82,11 +82,11 @@ task installEthree() {
     }
 
     if (artifactType == ArtifactType.STANDARD) {
-        dependsOn ':common:install', ':ethree:install'
+        dependsOn ':ethree-common:install', ':ethree-kotlin:install'
     } else if (artifactType == ArtifactType.COROUTINES) {
-        dependsOn ':common:install', ':ethreeCoroutines:install'
+        dependsOn ':ethree-common:install', ':ethree-kotlin-coroutines:install'
     } else if (artifactType == ArtifactType.ALL) {
-        dependsOn ':common:install', ':ethree:install', ':ethreeCoroutines:install'
+        dependsOn ':ethree-common:install', ':ethree-kotlin:install', ':ethree-kotlin-coroutines:install'
     } else {
         throw new IllegalArgumentException("Please, choose one of artifacts type: " + ArtifactType.values())
     }
@@ -102,11 +102,11 @@ task publishEthree() {
     }
 
     if (artifactType == ArtifactType.STANDARD) {
-        dependsOn ':common:publish', ':ethree:publish'
+        dependsOn ':ethree-common:publish', ':ethree-kotlin:publish'
     } else if (artifactType == ArtifactType.COROUTINES) {
-        dependsOn ':common:publish', ':ethreeCoroutines:publish'
+        dependsOn ':ethree-common:publish', ':ethree-kotlin-coroutines:publish'
     } else if (artifactType == ArtifactType.ALL) {
-        dependsOn ':common:publish', ':ethree:publish', ':ethreeCoroutines:publish'
+        dependsOn ':ethree-common:publish', ':ethree-kotlin:publish', ':ethree-kotlin-coroutines:publish'
     } else {
         throw new IllegalArgumentException("Please, choose one of artifacts type: " + ArtifactType.values())
     }
