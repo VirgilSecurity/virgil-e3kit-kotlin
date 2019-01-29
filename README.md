@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.com/VirgilSecurity/virgil-e3kit-kotlin.svg?branch=master)](https://travis-ci.com/VirgilSecurity/virgil-e3kit-kotlin)
 [![GitHub license](https://img.shields.io/badge/license-BSD%203--Clause-blue.svg)](https://github.com/VirgilSecurity/virgil/blob/master/LICENSE)
 
-[Introduction](#introduction) | [SDK Features](#sdk-features) | [Install E3Kit SDK](#install-e3kit-sdk) | [Usage](#usage) | [License](#license) | [Support](#support)
+[Introduction](#introduction) | [SDK Features](#sdk-features) | [Install E3Kit SDK](#install-e3kit-sdk) | [Usage](#usage) | [Samples](#samples) | [License](#license) | [Support](#support)
 
 ## Introduction
 
@@ -125,6 +125,18 @@ val initializeListener =
 // initialize E3Kit
 EThree.initialize(context, virgilTokenCallback, initializeListener)
 ```
+
+## Samples
+
+You can find out samples for Java and Kotlin (for Kotlin-Coroutines module as well) here:
+
+| Sample type |
+|----------|
+| [`Android Java`](./samples/android-java) |
+| [`Android Kotlin`](./samples/android-kotlin) |
+| [`Android Kotlin Coroutines`](./samples/android-kotlin-coroutines) |
+
+You can run any of them on an emulator to check out example of how E3Kit works.
 
 ## License
 
