@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">EThreeSampleKotlinFirebase</string>
+    <string name="encrypted_text">Encrypted data will be here soon.</string>
+</resources>
