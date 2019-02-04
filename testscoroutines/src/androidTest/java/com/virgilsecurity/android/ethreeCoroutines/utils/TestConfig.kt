@@ -56,8 +56,6 @@ class TestConfig {
 
         val virgilBaseUrl = BuildConfig.VIRGIL_BASE_URL
         const val VIRGIL_CARDS_SERVICE_PATH = "/card/v5/"
-        const val LOCAL_KEY_IS_PUBLISHED = "LOCAL_KEY_IS_PUBLISHED"
-        const val KEYKNOX_KEY_POSTFIX = "_keyknox"
 
         val context = InstrumentationRegistry.getTargetContext()
         val DIRECTORY_PATH = InstrumentationRegistry.getTargetContext().filesDir.absolutePath
