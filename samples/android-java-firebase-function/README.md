@@ -17,6 +17,6 @@ Don't forget to deploy [Firebase function](https://github.com/VirgilSecurity/vir
 
 After these steps you will be able to hit the `Run` button in Android Studio and get the sample to work.
 
-If all works well - you will get Base64 string representation of encoded text on the screen.
+If all works well - you will get Base64 string representation of encoded text on the screen and text "Success. Sample finished it's work.".
 
 Current demo is supposed to be ran in an emulator (or real device) with firebase function successfully deployed and running.

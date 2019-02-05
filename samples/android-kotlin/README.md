@@ -17,6 +17,6 @@ Don't forget to setup [Sample Backend for Java](https://github.com/VirgilSecurit
   
 After these steps you will be able to hit the `Run` button in Android Studio and get the sample to work.
 
-If all works well - you will get Base64 string representation of encoded text on the screen.
+If all works well - you will get Base64 string representation of encoded text on the screen and text "Success. Sample finished it's work.".
 
 Current demo is supposed to run in an emulator while server should be running the localhost:3000 address (10.0.2.2:3000 from the emulator).
