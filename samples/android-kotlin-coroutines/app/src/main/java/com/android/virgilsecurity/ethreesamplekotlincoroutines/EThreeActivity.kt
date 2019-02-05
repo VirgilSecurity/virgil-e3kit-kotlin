@@ -94,7 +94,8 @@ class EThreeActivity : AppCompatActivity() {
             // encrypt method encrypts provided text and converts it to Base64 String format.
             val encryptedText = eThreeUserTwo.encrypt(text, keysResult.values.toList())
 
-            runOnUiThread { tvText.text = encryptedText }
+            runOnUiThread { tvText.text = "Success. Sample finished it's work.\n" +
+                                          "\n" + encryptedText }
 
             // encrypts provided text and returns encrypted byte array.
             val encryptedData = eThreeUserTwo.encrypt(data, keysResult.values.toList())

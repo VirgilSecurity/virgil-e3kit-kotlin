@@ -169,7 +169,7 @@ public class EThreeActivity extends AppCompatActivity {
 
                     runOnUiThread(new Runnable() {
                         @Override public void run() {
-                            tvText.setText(encryptedText);
+                            tvText.setText("Success. Sample finished it's work.\n\n" + encryptedText);
                         }
                     });
 
