@@ -52,6 +52,7 @@ task clean(type: Delete) {
 // Default value is ALL
 enum ArtifactType {
     ALL,
+    ALL_WITHOUT_COMMON,
     STANDARD,
     COROUTINES
 }
@@ -87,6 +88,8 @@ task installEthree() {
         dependsOn ':ethree-common:install', ':ethree-kotlin-coroutines:install'
     } else if (artifactType == ArtifactType.ALL) {
         dependsOn ':ethree-common:install', ':ethree-kotlin:install', ':ethree-kotlin-coroutines:install'
+    } else if (artifactType == ArtifactType.ALL_WITHOUT_COMMON) {
+        dependsOn ':ethree-kotlin:install', ':ethree-kotlin-coroutines:install'
     } else {
         throw new IllegalArgumentException("Please, choose one of artifacts type: " + ArtifactType.values())
     }
@@ -107,6 +110,8 @@ task publishEthree() {
         dependsOn ':ethree-common:publish', ':ethree-kotlin-coroutines:publish'
     } else if (artifactType == ArtifactType.ALL) {
         dependsOn ':ethree-common:publish', ':ethree-kotlin:publish', ':ethree-kotlin-coroutines:publish'
+    } else if (artifactType == ArtifactType.ALL_WITHOUT_COMMON) {
+        dependsOn ':ethree-kotlin:publish', ':ethree-kotlin-coroutines:publish'
     } else {
         throw new IllegalArgumentException("Please, choose one of artifacts type: " + ArtifactType.values())
     }
