@@ -205,8 +205,8 @@ class EThreeBackupTest {
         TestUtils.pause()
 
         val syncKeyStorage = initSyncKeyStorage(identity, password)
-        Assert.assertTrue(syncKeyStorage.exists(identity + TestConfig.KEYKNOX_KEY_POSTFIX))
-        val retrievedKey = syncKeyStorage.retrieve(identity + TestConfig.KEYKNOX_KEY_POSTFIX)
+        Assert.assertTrue(syncKeyStorage.exists(identity))
+        val retrievedKey = syncKeyStorage.retrieve(identity)
         assertEquals(TestConfig.virgilCrypto.importPrivateKey(keyStorage.load(identity).value),
                      TestConfig.virgilCrypto.importPrivateKey(retrievedKey.value))
 
@@ -244,8 +244,8 @@ class EThreeBackupTest {
         TestUtils.pause()
 
         val syncKeyStorage = initSyncKeyStorage(identity, password)
-        Assert.assertTrue(syncKeyStorage.exists(identity + TestConfig.KEYKNOX_KEY_POSTFIX))
-        val retrievedKey = syncKeyStorage.retrieve(identity + TestConfig.KEYKNOX_KEY_POSTFIX)
+        Assert.assertTrue(syncKeyStorage.exists(identity))
+        val retrievedKey = syncKeyStorage.retrieve(identity)
         assertEquals(TestConfig.virgilCrypto.importPrivateKey(keyStorage.load(identity).value),
                      TestConfig.virgilCrypto.importPrivateKey(retrievedKey.value))
 
@@ -323,7 +323,7 @@ class EThreeBackupTest {
         TestUtils.pause()
 
         val syncKeyStorage = initSyncKeyStorage(identity, password)
-        Assert.assertFalse(syncKeyStorage.exists(identity + TestConfig.KEYKNOX_KEY_POSTFIX))
+        Assert.assertFalse(syncKeyStorage.exists(identity))
     }
 
     // STE-18_2
@@ -349,7 +349,7 @@ class EThreeBackupTest {
         TestUtils.pause()
 
         val syncKeyStorage = initSyncKeyStorage(identity, password)
-        Assert.assertFalse(syncKeyStorage.exists(identity + TestConfig.KEYKNOX_KEY_POSTFIX))
+        Assert.assertFalse(syncKeyStorage.exists(identity))
     }
 
     @Test
