@@ -135,6 +135,8 @@ You can find out samples for Java and Kotlin (for Kotlin-Coroutines module as we
 | [`Android Java`](./samples/android-java) |
 | [`Android Kotlin`](./samples/android-kotlin) |
 | [`Android Kotlin Coroutines`](./samples/android-kotlin-coroutines) |
+| [`Android Java Firebase`](./samples/android-java-firebase-function) |
+| [`Android Kotlin Firebase`](./samples/android-kotlin-firebase-function) |
 
 You can run any of them on an emulator to check out example of how E3Kit works.
 
