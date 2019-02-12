@@ -7,10 +7,12 @@
 
 ## Introduction
 
-<a href="https://developer.virgilsecurity.com/docs"><img width="230px" src="https://cdn.virgilsecurity.com/assets/images/github/logos/virgil-logo-red.png" align="left" hspace="10" vspace="6"></a> [Virgil Security](https://virgilsecurity.com) provides an SDK which simplifies work with Virgil services and presents easy to use API for adding security to any application. In a few simple steps you can setup user encryption with multidevice support.
+<a href="https://developer.virgilsecurity.com/docs"><img width="230px" src="https://cdn.virgilsecurity.com/assets/images/github/logos/virgil-logo-red.png" align="left" hspace="10" vspace="6"></a> [Virgil Security](https://virgilsecurity.com) provides the E3Kit SDK which simplifies work with Virgil services and presents an easy-to-use API for adding a security layer to any application. E3Kit interacts with Virgil Cards Service, Keyknox Service and Pythia Service.
+Virgil E3kit allows you to setup user encryption with multidevice support in just a few simple steps.
 
 ## SDK Features
-- multidevice support
+- multi-device support
+- group chats
 - manage users' Public Keys
 
 ## Install E3Kit SDK
@@ -21,6 +23,20 @@ You can install E3Kit SDK using [Gradle](https://gradle.org/). Please, choose pa
 |----------|---------|
 | [`E3Kit`](./ethree-kotlin) | Standard package for Java/Kotlin with methods responses in `callbacks` |
 | [`E3Kit Coroutines`](./ethree-kotlin-coroutines) | [Coroutines](https://github.com/Kotlin/kotlinx.coroutines) package with methods responses in [`Deferred`](https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-deferred/) |
+
+## Samples
+
+You can find the code samples for Java and Kotlin (for Kotlin-Coroutines module as well) here:
+
+| Sample type | 
+|----------| 
+| [`Android Java`](./samples/android-java) | 
+| [`Android Kotlin`](./samples/android-kotlin) | 
+| [`Android Kotlin Coroutines`](./samples/android-kotlin-coroutines) | 
+| [`Android Java Firebase`](./samples/android-java-firebase-function) | 
+| [`Android Kotlin Firebase`](./samples/android-kotlin-firebase-function) | 
+
+You can run any of them on an emulator to check out the example of how to initialize the SDK, register users and encrypt messages using the E3Kit.
 
 ## Usage
 
@@ -125,20 +141,6 @@ val initializeListener =
 // initialize E3Kit
 EThree.initialize(context, virgilTokenCallback, initializeListener)
 ```
-
-## Samples
-
-You can find out samples for Java and Kotlin (for Kotlin-Coroutines module as well) here:
-
-| Sample type |
-|----------|
-| [`Android Java`](./samples/android-java) |
-| [`Android Kotlin`](./samples/android-kotlin) |
-| [`Android Kotlin Coroutines`](./samples/android-kotlin-coroutines) |
-| [`Android Java Firebase`](./samples/android-java-firebase-function) |
-| [`Android Kotlin Firebase`](./samples/android-kotlin-firebase-function) |
-
-You can run any of them on an emulator to check out example of how E3Kit works.
 
 ## License
 
