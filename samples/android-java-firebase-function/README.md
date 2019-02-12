@@ -9,8 +9,6 @@ Don't forget to deploy [Firebase function](https://github.com/VirgilSecurity/vir
 
 ```
   - git clone https://github.com/VirgilSecurity/virgil-e3kit-kotlin
-  - cd virgil-e3kit-kotlin
-  - git checkout dev
   - Open Android Studio -> File -> Open
   - Locate the recently cloned directory 'virgil-e3kit-kotlin' then go to 'samples/android-java-firebase-function' and click 'open'
 ```

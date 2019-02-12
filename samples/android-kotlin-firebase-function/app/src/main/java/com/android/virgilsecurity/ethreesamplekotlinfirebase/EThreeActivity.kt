@@ -105,9 +105,9 @@ class EThreeActivity : AppCompatActivity() {
             // encrypts provided text and returns encrypted byte array.
             val encryptedData = eThreeUserTwo.encrypt(data, ArrayList(result.values))
 
-            println("encryptedText: \n$encryptedText")
+            Log.d("EThreeTag", "encryptedText: \n$encryptedText")
             // You can convert byte[] to Base64 String to easily transfer it to the server, or to print, etc.
-            println("encryptedData: \n" + ConvertionUtils.toBase64String(encryptedData))
+            Log.d("EThreeTag", "encryptedData: \n" + ConvertionUtils.toBase64String(encryptedData))
 
             // Next you can lookup second user's public key via lookupPublicKeys by the first user and decrypt
             // encrypted for her data. (You have to lookup public key for decrypt to verify that the data
@@ -172,7 +172,6 @@ class EThreeActivity : AppCompatActivity() {
             }
 
             override fun onError(throwable: Throwable?) {
-                throwable!!.printStackTrace()
                 runOnUiThread { Toast.makeText(this@EThreeActivity, throwable.message, Toast.LENGTH_SHORT).show() }
             }
         })
@@ -197,7 +196,6 @@ class EThreeActivity : AppCompatActivity() {
             }
 
             override fun onError(throwable: Throwable?) {
-                throwable!!.printStackTrace()
                 runOnUiThread { Toast.makeText(this@EThreeActivity, throwable.message, Toast.LENGTH_SHORT).show() }
             }
         })
@@ -271,7 +269,6 @@ class EThreeActivity : AppCompatActivity() {
                 throw RuntimeException("Some connection error")
             }
         } catch (exception: IOException) {
-            exception.printStackTrace()
             throw RuntimeException("Some connection error")
         } catch (e: JSONException) {
             throw RuntimeException("Parsing virgil jwt json error")

@@ -100,9 +100,9 @@ class EThreeActivity : AppCompatActivity() {
             // encrypts provided text and returns encrypted byte array.
             val encryptedData = eThreeUserTwo.encrypt(data, keysResult.values.toList())
 
-            println("encryptedText: \n$encryptedText")
+            Log.d("EThreeTag", "encryptedText: \n$encryptedText")
             // You can convert byte[] to Base64 String to easily transfer it to the server, or to print, etc.
-            println("encryptedData: \n" + ConvertionUtils.toBase64String(encryptedData))
+            Log.d("EThreeTag", "encryptedData: \n" + ConvertionUtils.toBase64String(encryptedData))
 
             // Next you can lookup second user's public key via lookupPublicKeys by the first user and decrypt
             // encrypted for her data. (You have to lookup public key for decrypt to verify that the data
