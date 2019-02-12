@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2018, Virgil Security, Inc.
+ * Copyright (c) 2015-2019, Virgil Security, Inc.
  *
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  *
@@ -151,16 +151,16 @@ public class EThreeActivity extends AppCompatActivity {
 
                     EThreeActivity.this.runOnUiThread(new Runnable() {
                         @Override public void run() {
-                            tvText.setText(encryptedText);
+                            tvText.setText("Success. Sample finished it's work.\n\n" + encryptedText);
                         }
                     });
 
                     // encrypts provided text and returns encrypted byte array.
                     byte[] encryptedData = eThreeUserTwo.encrypt(data, new ArrayList<>(result.values()));
 
-                    System.out.println("encryptedText: \n" + encryptedText);
+                    Log.d("EThreeTag", "encryptedText: \n" + encryptedText);
                     // You can convert byte[] to Base64 String to easily transfer it to the server, or to print, etc.
-                    System.out.println("encryptedData: \n" + ConvertionUtils.toBase64String(encryptedData));
+                    Log.d("EThreeTag", "encryptedData: \n" + ConvertionUtils.toBase64String(encryptedData));
 
                     // Next you can lookup second user's public key via lookupPublicKeys by the first user and decrypt
                     // encrypted for her data. (You have to lookup public key for decrypt to verify that the data
@@ -227,7 +227,11 @@ public class EThreeActivity extends AppCompatActivity {
                     JSONObject object = new JSONObject(value);
                     authTokenUserOne = (String) object.get("authToken");
                 } catch (JSONException e) {
-                    e.printStackTrace();
+                    runOnUiThread(new Runnable() {
+                        @Override public void run() {
+                            Toast.makeText(EThreeActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
                 }
 
                 // After you successfully authenticated your user - you have to initialize EThree SDK.
@@ -240,7 +244,6 @@ public class EThreeActivity extends AppCompatActivity {
             }
 
             @Override public void onError(final Throwable throwable) {
-                throwable.printStackTrace();
                 runOnUiThread(new Runnable() {
                     @Override public void run() {
                         Toast.makeText(EThreeActivity.this, throwable.getMessage(), Toast.LENGTH_SHORT).show();
@@ -263,7 +266,11 @@ public class EThreeActivity extends AppCompatActivity {
                     JSONObject object = new JSONObject(value);
                     authTokenUserTwo = (String) object.get("authToken");
                 } catch (JSONException e) {
-                    e.printStackTrace();
+                    runOnUiThread(new Runnable() {
+                        @Override public void run() {
+                            Toast.makeText(EThreeActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
                 }
 
                 EThree.initialize(EThreeActivity.this,
@@ -272,7 +279,6 @@ public class EThreeActivity extends AppCompatActivity {
             }
 
             @Override public void onError(final Throwable throwable) {
-                throwable.printStackTrace();
                 runOnUiThread(new Runnable() {
                     @Override public void run() {
                         Toast.makeText(EThreeActivity.this, throwable.getMessage(), Toast.LENGTH_SHORT).show();
@@ -328,7 +334,6 @@ public class EThreeActivity extends AppCompatActivity {
                 onResultListener.onError(new Throwable("Some connection error"));
             }
         } catch (JSONException | IOException exception) {
-            exception.printStackTrace();
             onResultListener.onError(exception);
         }
     }
@@ -368,7 +373,6 @@ public class EThreeActivity extends AppCompatActivity {
                 throw new RuntimeException("Some connection error");
             }
         } catch (IOException exception) {
-            exception.printStackTrace();
             throw new RuntimeException("Some connection error");
         } catch (JSONException e) {
             throw new RuntimeException("Parsing virgil jwt json error");

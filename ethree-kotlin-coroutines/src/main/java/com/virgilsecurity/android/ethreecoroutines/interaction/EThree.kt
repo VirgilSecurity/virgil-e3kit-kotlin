@@ -171,7 +171,7 @@ class EThree
             initSyncKeyStorage(password)
                     .run {
                         (this to keyStorage.load(currentIdentity())).run {
-                            this.first.store(currentIdentity() + KEYKNOX_KEY_POSTFIX,
+                            this.first.store(currentIdentity(),
                                              this.second.value,
                                              this.second.meta).let { Unit }
                         }
@@ -205,7 +205,7 @@ class EThree
             if (password.isBlank())
                 throw IllegalArgumentException("\'password\' should not be empty")
 
-            initSyncKeyStorage(password).delete(currentIdentity() + KEYKNOX_KEY_POSTFIX)
+            initSyncKeyStorage(password).delete(currentIdentity())
         },
         {
             if (it is DecryptionFailedException)
@@ -230,9 +230,9 @@ class EThree
                                           "\'cleanup()\' function first.")
 
             initSyncKeyStorage(password).run {
-                if (this.exists(currentIdentity() + KEYKNOX_KEY_POSTFIX)) {
+                if (this.exists(currentIdentity())) {
                     val keyEntry =
-                            this.retrieve(currentIdentity() + KEYKNOX_KEY_POSTFIX)
+                            this.retrieve(currentIdentity())
 
                     keyStorage.store(JsonKeyEntry(currentIdentity(), keyEntry.data))
                 } else {
@@ -562,7 +562,6 @@ class EThree
         private const val VIRGIL_BASE_URL = "https://api.virgilsecurity.com"
         private const val VIRGIL_CARDS_SERVICE_PATH = "/card/v5/"
 
-        private const val KEYKNOX_KEY_POSTFIX = "_keyknox"
         private const val THROTTLE_TIMEOUT = 2 * 1000L // 2 seconds
         private const val KEYSTORE_NAME = "virgil.keystore"
         private val NO_CONTEXT = null
