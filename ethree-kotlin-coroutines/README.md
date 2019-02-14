@@ -3,6 +3,8 @@
 
 ## Installation of E3Kit Coroutines
 
+> Android API 21+ is required.
+
 For Kotlin (and coroutines) fans we released a special package that returns [`Deferred`](https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-deferred/) instead of using callbacks.
 It's not intended to use with java.
 To use it add next in your `build.gradle`:
