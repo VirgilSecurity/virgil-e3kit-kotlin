@@ -3,6 +3,8 @@
 
 ## Installation of E3Kit
 
+> Android API 21+ is required.
+
 To integrate E3Kit SDK into your Android project using Gradle, add jcenter() repository if missing:
 
 ```
