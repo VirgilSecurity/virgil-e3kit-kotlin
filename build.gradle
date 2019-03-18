@@ -1,7 +1,7 @@
 buildscript {
     ext.versions = [
             // Virgil
-            virgilSdk  : '5.0.5',
+            virgilSdk  : '5.0.9',
             pythia     : '0.2.0',
             keyknox    : '0.1.1',
 
@@ -10,7 +10,7 @@ buildscript {
             coroutines : '1.0.1',
 
             // Gradle
-            gardle     : '3.3.1',
+            gardle     : '3.3.2',
 
             // Android
             android    : '4.1.1.4',

@@ -34,6 +34,7 @@
 package com.virgilsecurity.android.ethreecoroutines.interaction
 
 import android.content.Context
+import com.virgilsecurity.android.common.data.local.KeyManagerLocal
 import com.virgilsecurity.android.common.exceptions.*
 import com.virgilsecurity.android.ethreecoroutines.extensions.asyncWithCatch
 import com.virgilsecurity.keyknox.KeyknoxManager
@@ -56,8 +57,6 @@ import com.virgilsecurity.sdk.jwt.Jwt
 import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
 import com.virgilsecurity.sdk.jwt.contract.AccessTokenProvider
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
-import com.virgilsecurity.sdk.storage.JsonKeyEntry
-import com.virgilsecurity.sdk.storage.KeyStorage
 import com.virgilsecurity.sdk.utils.ConvertionUtils
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
@@ -88,7 +87,7 @@ class EThree
 
     private val virgilCrypto = VirgilCrypto()
     private val cardManager: CardManager
-    private val keyStorage: KeyStorage
+    private val localKeyStorage: KeyManagerLocal
 
     init {
         cardManager = VirgilCardCrypto().let { cardCrypto ->
@@ -97,7 +96,7 @@ class EThree
                         VirgilCardVerifier(cardCrypto, false, false),
                         VirgilCardClient(VIRGIL_BASE_URL + VIRGIL_CARDS_SERVICE_PATH))
         }
-        keyStorage = DefaultKeyStorage(context.filesDir.absolutePath, KEYSTORE_NAME)
+        localKeyStorage = KeyManagerLocal(tokenProvider.getToken(NO_CONTEXT).identity, context)
     }
 
     /**
@@ -113,7 +112,7 @@ class EThree
                     throw RegistrationException("Card with identity " +
                                                 "${currentIdentity()} already exists")
 
-                if (keyStorage.exists(currentIdentity()))
+                if (localKeyStorage.exists())
                     throw PrivateKeyExistsException("You already have a Private Key on this " +
                                                     "device for identity: ${currentIdentity()}. " +
                                                     "Please, use \'cleanup()\' function first.")
@@ -123,7 +122,7 @@ class EThree
                                             this.publicKey,
                                             currentIdentity())
 
-                    keyStorage.store(JsonKeyEntry(currentIdentity(), this.privateKey.rawKey))
+                    localKeyStorage.store(this.privateKey.rawKey)
                 }
             }
 
@@ -143,7 +142,7 @@ class EThree
     fun cleanup() {
         checkPrivateKeyOrThrow()
 
-        keyStorage.delete(currentIdentity())
+        localKeyStorage.delete()
     }
 
     /**
@@ -170,7 +169,7 @@ class EThree
 
             initSyncKeyStorage(password)
                     .run {
-                        (this to keyStorage.load(currentIdentity())).run {
+                        (this to localKeyStorage.load()).run {
                             this.first.store(currentIdentity(),
                                              this.second.value,
                                              this.second.meta).let { Unit }
@@ -224,7 +223,7 @@ class EThree
      */
     fun restorePrivateKey(password: String): Deferred<Unit> = GlobalScope.asyncWithCatch(
         {
-            if (keyStorage.exists(currentIdentity()))
+            if (localKeyStorage.exists())
                 throw RestoreKeyException("You already have a Private Key on this device" +
                                           "for identity: ${currentIdentity()}. Please, use" +
                                           "\'cleanup()\' function first.")
@@ -234,7 +233,7 @@ class EThree
                     val keyEntry =
                             this.retrieve(currentIdentity())
 
-                    keyStorage.store(JsonKeyEntry(currentIdentity(), keyEntry.data))
+                    localKeyStorage.store(keyEntry.data)
                 } else {
                     throw RestoreKeyException("There is no key backup with " +
                                               "identity: ${currentIdentity()}")
@@ -258,7 +257,7 @@ class EThree
      * @throws CryptoException
      */
     fun rotatePrivateKey(): Deferred<Unit> = GlobalScope.async {
-        if (keyStorage.exists(currentIdentity()))
+        if (localKeyStorage.exists())
             throw PrivateKeyExistsException("You already have a Private Key on this device" +
                                             "for identity: ${currentIdentity()}. Please, use" +
                                             "\'cleanup()\' function first.")
@@ -280,7 +279,7 @@ class EThree
                                                       this.first.identifier)
             cardManager.publishCard(rawCard)
 
-            keyStorage.store(JsonKeyEntry(currentIdentity(), this.second.privateKey.rawKey))
+            localKeyStorage.store(this.second.privateKey.rawKey)
         }
     }
 
@@ -488,7 +487,7 @@ class EThree
      * from [tokenProvider].
      */
     private fun loadCurrentPrivateKey(): PrivateKey =
-            keyStorage.load(currentIdentity()).let {
+            localKeyStorage.load().let {
                 virgilCrypto.importPrivateKey(it.value)
             }
 
@@ -531,7 +530,7 @@ class EThree
      * [PrivateKeyNotFoundException] exception.
      */
     private fun checkPrivateKeyOrThrow() {
-        if (!keyStorage.exists(currentIdentity()))
+        if (!localKeyStorage.exists())
             throw PrivateKeyNotFoundException("You have to get private key first. Use " +
                                               "\'register\' or \'restorePrivateKey\' functions.")
     }
@@ -563,7 +562,6 @@ class EThree
         private const val VIRGIL_CARDS_SERVICE_PATH = "/card/v5/"
 
         private const val THROTTLE_TIMEOUT = 2 * 1000L // 2 seconds
-        private const val KEYSTORE_NAME = "virgil.keystore"
         private val NO_CONTEXT = null
     }
 }
