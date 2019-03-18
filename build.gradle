@@ -2,7 +2,7 @@ buildscript {
     ext.versions = [
             // Virgil
             virgilSdk  : '5.0.9',
-            pythia     : '0.2.0',
+            pythia     : '0.2.1',
             keyknox    : '0.1.1',
 
             // Kotlin
