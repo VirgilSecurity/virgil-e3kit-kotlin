@@ -35,15 +35,11 @@ package com.virgilsecurity.android.ethreecoroutines.interaction
 
 import android.content.Context
 import com.virgilsecurity.android.common.data.local.KeyManagerLocal
+import com.virgilsecurity.android.common.data.remote.KeyManagerCloud
 import com.virgilsecurity.android.common.exceptions.*
 import com.virgilsecurity.android.ethreecoroutines.extensions.asyncWithCatch
-import com.virgilsecurity.keyknox.KeyknoxManager
-import com.virgilsecurity.keyknox.client.KeyknoxClient
-import com.virgilsecurity.keyknox.cloud.CloudKeyStorage
-import com.virgilsecurity.keyknox.crypto.KeyknoxCrypto
 import com.virgilsecurity.keyknox.exception.DecryptionFailedException
 import com.virgilsecurity.keyknox.exception.EntryAlreadyExistsException
-import com.virgilsecurity.keyknox.storage.SyncKeyStorage
 import com.virgilsecurity.pythia.brainkey.BrainKey
 import com.virgilsecurity.pythia.brainkey.BrainKeyContext
 import com.virgilsecurity.pythia.client.VirgilPythiaClient
@@ -61,7 +57,6 @@ import com.virgilsecurity.sdk.utils.ConvertionUtils
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.async
-import java.net.URL
 
 /**
  * . _  _
@@ -88,6 +83,7 @@ class EThree
     private val virgilCrypto = VirgilCrypto()
     private val cardManager: CardManager
     private val localKeyStorage: KeyManagerLocal
+    private val keyManagerCloud: KeyManagerCloud
 
     init {
         cardManager = VirgilCardCrypto().let { cardCrypto ->
@@ -97,6 +93,7 @@ class EThree
                         VirgilCardClient(VIRGIL_BASE_URL + VIRGIL_CARDS_SERVICE_PATH))
         }
         localKeyStorage = KeyManagerLocal(tokenProvider.getToken(NO_CONTEXT).identity, context)
+        keyManagerCloud = KeyManagerCloud(currentIdentity(), tokenProvider)
     }
 
     /**
@@ -167,14 +164,12 @@ class EThree
             if (password.isBlank())
                 throw IllegalArgumentException("\'password\' should not be empty")
 
-            initSyncKeyStorage(password)
-                    .run {
-                        (this to localKeyStorage.load()).run {
-                            this.first.store(currentIdentity(),
-                                             this.second.value,
-                                             this.second.meta).let { Unit }
-                        }
-                    }
+            with(localKeyStorage.load()) {
+                keyManagerCloud.store(password,
+                                      this.value,
+                                      this.meta)
+                        .let { Unit }
+            }
         },
         {
             if (it is EntryAlreadyExistsException)
@@ -197,14 +192,18 @@ class EThree
      * @throws PrivateKeyNotFoundException
      * @throws WrongPasswordException
      */
-    fun resetPrivateKeyBackup(password: String): Deferred<Unit> = GlobalScope.asyncWithCatch(
+    fun resetPrivateKeyBackup(password: String? = null): Deferred<Unit> = GlobalScope.asyncWithCatch(
         {
             checkPrivateKeyOrThrow()
 
-            if (password.isBlank())
-                throw IllegalArgumentException("\'password\' should not be empty")
+            if (password == null) {
+                keyManagerCloud.deleteAll()
+            } else {
+                if (password.isBlank())
+                    throw IllegalArgumentException("\'password\' should not be empty")
 
-            initSyncKeyStorage(password).delete(currentIdentity())
+                keyManagerCloud.delete(password)
+            }
         },
         {
             if (it is DecryptionFailedException)
@@ -228,16 +227,16 @@ class EThree
                                           "for identity: ${currentIdentity()}. Please, use" +
                                           "\'cleanup()\' function first.")
 
-            initSyncKeyStorage(password).run {
-                if (this.exists(currentIdentity())) {
-                    val keyEntry =
-                            this.retrieve(currentIdentity())
+            if (keyManagerCloud.exists(password)) {
 
-                    localKeyStorage.store(keyEntry.data)
-                } else {
-                    throw RestoreKeyException("There is no key backup with " +
-                                              "identity: ${currentIdentity()}")
-                }
+                Thread.sleep(THROTTLE_TIMEOUT) // To avoid next request been throttled
+
+                val keyEntry = keyManagerCloud.retrieve(password)
+
+                localKeyStorage.store(keyEntry.data)
+            } else {
+                throw RestoreKeyException("There is no key backup with " +
+                                          "identity: ${currentIdentity()}")
             }
         },
         {
@@ -307,17 +306,17 @@ class EThree
         if (newPassword == oldPassword)
             throw IllegalArgumentException("\'newPassword\' can't be the same as the old one")
 
-        val syncKeyStorageOld = initSyncKeyStorage(oldPassword)
         val brainKeyContext = BrainKeyContext.Builder()
                 .setAccessTokenProvider(tokenProvider)
                 .setPythiaClient(VirgilPythiaClient(VIRGIL_BASE_URL))
                 .setPythiaCrypto(VirgilPythiaCrypto())
                 .build()
 
+        val keyPair = BrainKey(brainKeyContext).generateKeyPair(newPassword)
+
         Thread.sleep(THROTTLE_TIMEOUT) // To avoid next request been throttled
 
-        val keyPair = BrainKey(brainKeyContext).generateKeyPair(newPassword)
-        syncKeyStorageOld.updateRecipients(listOf(keyPair.publicKey), keyPair.privateKey)
+        keyManagerCloud.updateRecipients(oldPassword, listOf(keyPair.publicKey), keyPair.privateKey)
     }
 
     /**
@@ -497,28 +496,6 @@ class EThree
      */
     private fun loadCurrentPublicKey(): PublicKey =
             virgilCrypto.extractPublicKey(loadCurrentPrivateKey() as VirgilPrivateKey)
-
-    /**
-     * Initializes [SyncKeyStorage] with default settings, [tokenProvider] and provided [password]
-     * after that returns initialized [SyncKeyStorage] object.
-     */
-    private fun initSyncKeyStorage(password: String): CloudKeyStorage =
-            BrainKeyContext.Builder()
-                    .setAccessTokenProvider(tokenProvider)
-                    .setPythiaClient(VirgilPythiaClient(VIRGIL_BASE_URL))
-                    .setPythiaCrypto(VirgilPythiaCrypto())
-                    .build().let {
-                        BrainKey(it).generateKeyPair(password).let { keyPair ->
-                            CloudKeyStorage(KeyknoxManager(
-                                tokenProvider,
-                                KeyknoxClient(URL(VIRGIL_BASE_URL)),
-                                listOf(keyPair.publicKey),
-                                keyPair.privateKey,
-                                KeyknoxCrypto())).also { cloudKeyStorage ->
-                                cloudKeyStorage.retrieveCloudEntries()
-                            }
-                        }
-                    }
 
     /**
      * Extracts current user's *Identity* from Json Web Token received from [tokenProvider].
