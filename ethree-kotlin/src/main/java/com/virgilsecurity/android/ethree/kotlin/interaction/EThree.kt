@@ -34,15 +34,14 @@
 package com.virgilsecurity.android.ethree.kotlin.interaction
 
 import android.content.Context
+import com.virgilsecurity.android.common.data.Const.NO_CONTEXT
+import com.virgilsecurity.android.common.data.Const.VIRGIL_BASE_URL
+import com.virgilsecurity.android.common.data.Const.VIRGIL_CARDS_SERVICE_PATH
 import com.virgilsecurity.android.common.data.local.KeyManagerLocal
+import com.virgilsecurity.android.common.data.remote.KeyManagerCloud
 import com.virgilsecurity.android.common.exceptions.*
-import com.virgilsecurity.keyknox.KeyknoxManager
-import com.virgilsecurity.keyknox.client.KeyknoxClient
-import com.virgilsecurity.keyknox.cloud.CloudKeyStorage
-import com.virgilsecurity.keyknox.crypto.KeyknoxCrypto
 import com.virgilsecurity.keyknox.exception.DecryptionFailedException
 import com.virgilsecurity.keyknox.exception.EntryAlreadyExistsException
-import com.virgilsecurity.keyknox.storage.SyncKeyStorage
 import com.virgilsecurity.pythia.brainkey.BrainKey
 import com.virgilsecurity.pythia.brainkey.BrainKeyContext
 import com.virgilsecurity.pythia.client.VirgilPythiaClient
@@ -57,11 +56,8 @@ import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
 import com.virgilsecurity.sdk.jwt.contract.AccessTokenProvider
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
 import com.virgilsecurity.sdk.utils.ConvertionUtils
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import java.net.URL
 
 /**
  * . _  _
@@ -87,7 +83,8 @@ class EThree
 
     private val virgilCrypto = VirgilCrypto()
     private val cardManager: CardManager
-    private val localKeyStorage: KeyManagerLocal
+    private val keyManagerLocal: KeyManagerLocal
+    private val keyManagerCloud: KeyManagerCloud
 
     init {
         cardManager = VirgilCardCrypto().let { cardCrypto ->
@@ -96,7 +93,8 @@ class EThree
                         VirgilCardVerifier(cardCrypto, false, false),
                         VirgilCardClient(VIRGIL_BASE_URL + VIRGIL_CARDS_SERVICE_PATH))
         }
-        localKeyStorage = KeyManagerLocal(tokenProvider.getToken(NO_CONTEXT).identity, context)
+        keyManagerLocal = KeyManagerLocal(tokenProvider.getToken(NO_CONTEXT).identity, context)
+        keyManagerCloud = KeyManagerCloud(currentIdentity(), tokenProvider)
     }
 
     /**
@@ -113,14 +111,14 @@ class EThree
                     throw RegistrationException("Card with identity " +
                                                 "${currentIdentity()} already exists")
 
-                if (localKeyStorage.exists())
+                if (keyManagerLocal.exists())
                     throw PrivateKeyExistsException("You already have a Private Key on this device" +
                                                     "for identity: ${currentIdentity()}. Please, use" +
                                                     "\'cleanup()\' function first.")
 
                 virgilCrypto.generateKeys().run {
                     cardManager.publishCard(this.privateKey, this.publicKey, currentIdentity())
-                    localKeyStorage.store(this.privateKey.rawKey)
+                    keyManagerLocal.store(this.privateKey.rawKey)
                     onCompleteListener.onSuccess()
                 }
             } catch (throwable: Throwable) {
@@ -145,14 +143,14 @@ class EThree
     fun cleanup() {
         checkPrivateKeyOrThrow()
 
-        localKeyStorage.delete()
+        keyManagerLocal.delete()
     }
 
     /**
      * Checks whether the private key is present in the local storage of current device.
      * Returns *true* if the key is present in the local key storage otherwise *false*.
      */
-    fun hasLocalPrivateKey() = localKeyStorage.exists()
+    fun hasLocalPrivateKey() = keyManagerLocal.exists()
 
     /**
      * Encrypts the user's private key using the user's [password] and backs up the encrypted
@@ -177,15 +175,10 @@ class EThree
                 if (password.isBlank())
                     throw IllegalArgumentException("\'password\' should not be empty")
 
-                initSyncKeyStorage(password).await()
-                        .run {
-                            (this to localKeyStorage.load()).run {
-                                this.first.store(currentIdentity(),
-                                                 this.second.value,
-                                                 this.second.meta)
-                                onCompleteListener.onSuccess()
-                            }
-                        }
+                with(keyManagerLocal.load()) {
+                    keyManagerCloud.store(password, this.value, this.meta)
+                    onCompleteListener.onSuccess()
+                }
             } catch (throwable: Throwable) {
                 if (throwable is EntryAlreadyExistsException)
                     onCompleteListener.onError(BackupKeyException("Key with identity " +
@@ -210,16 +203,20 @@ class EThree
      * @throws PrivateKeyNotFoundException
      * @throws WrongPasswordException
      */
-    fun resetPrivateKeyBackup(password: String, onCompleteListener: OnCompleteListener) {
+    fun resetPrivateKeyBackup(password: String? = null, onCompleteListener: OnCompleteListener) {
         GlobalScope.launch {
             try {
                 checkPrivateKeyOrThrow()
 
-                if (password.isBlank())
-                    throw IllegalArgumentException("\'password\' should not be empty")
+                if (password == null) {
+                    keyManagerCloud.deleteAll()
+                } else {
+                    if (password.isBlank())
+                        throw IllegalArgumentException("\'password\' should not be empty")
 
-                initSyncKeyStorage(password).await()
-                        .delete(currentIdentity())
+                    keyManagerCloud.delete(password)
+                }
+
                 onCompleteListener.onSuccess()
             } catch (throwable: Throwable) {
                 if (throwable is DecryptionFailedException)
@@ -242,21 +239,20 @@ class EThree
     fun restorePrivateKey(password: String, onCompleteListener: OnCompleteListener) {
         GlobalScope.launch {
             try {
-                if (localKeyStorage.exists())
+                if (keyManagerLocal.exists())
                     throw RestoreKeyException("You already have a Private Key on this device" +
                                               "for identity: ${currentIdentity()}. Please, use" +
                                               "\'cleanup()\' function first.")
 
-                initSyncKeyStorage(password).await().run {
-                    if (this.exists(currentIdentity())) {
-                        val keyEntry = this.retrieve(currentIdentity())
+                if (keyManagerCloud.exists(password)) {
+                    Thread.sleep(THROTTLE_TIMEOUT) // To avoid next request been throttled
 
-                        localKeyStorage.store(keyEntry.data)
-                        onCompleteListener.onSuccess()
-                    } else {
-                        throw RestoreKeyException("There is no key backup with " +
-                                                  "identity: ${currentIdentity()}")
-                    }
+                    val keyEntry = keyManagerCloud.retrieve(password)
+                    keyManagerLocal.store(keyEntry.data)
+                    onCompleteListener.onSuccess()
+                } else {
+                    throw RestoreKeyException("There is no key backup with " +
+                                              "identity: ${currentIdentity()}")
                 }
             } catch (throwable: Throwable) {
                 if (throwable is DecryptionFailedException)
@@ -280,7 +276,7 @@ class EThree
     fun rotatePrivateKey(onCompleteListener: OnCompleteListener) {
         GlobalScope.launch {
             try {
-                if (localKeyStorage.exists())
+                if (keyManagerLocal.exists())
                     throw PrivateKeyExistsException("You already have a Private Key on this device" +
                                                     "for identity: ${currentIdentity()}. Please, use" +
                                                     "\'cleanup()\' function first.")
@@ -302,7 +298,7 @@ class EThree
                                                               this.first.identifier)
                     cardManager.publishCard(rawCard)
 
-                    localKeyStorage.store(this.second.privateKey.rawKey)
+                    keyManagerLocal.store(this.second.privateKey.rawKey)
 
                     onCompleteListener.onSuccess()
                 }
@@ -339,17 +335,19 @@ class EThree
                 if (newPassword == oldPassword)
                     throw IllegalArgumentException("\'newPassword\' can't be the same as the old one")
 
-                val syncKeyStorageOld = initSyncKeyStorage(oldPassword).await()
                 val brainKeyContext = BrainKeyContext.Builder()
                         .setAccessTokenProvider(tokenProvider)
                         .setPythiaClient(VirgilPythiaClient(VIRGIL_BASE_URL))
                         .setPythiaCrypto(VirgilPythiaCrypto())
                         .build()
 
+                val keyPair = BrainKey(brainKeyContext).generateKeyPair(newPassword)
+
                 Thread.sleep(THROTTLE_TIMEOUT) // To avoid next request been throttled
 
-                val keyPair = BrainKey(brainKeyContext).generateKeyPair(newPassword)
-                syncKeyStorageOld.updateRecipients(listOf(keyPair.publicKey), keyPair.privateKey)
+                keyManagerCloud.updateRecipients(oldPassword,
+                                                 listOf(keyPair.publicKey),
+                                                 keyPair.privateKey)
                 onCompleteListener.onSuccess()
             } catch (throwable: Throwable) {
                 onCompleteListener.onError(throwable)
@@ -533,7 +531,7 @@ class EThree
      * from [tokenProvider].
      */
     private fun loadCurrentPrivateKey(): PrivateKey =
-            localKeyStorage.load().let {
+            keyManagerLocal.load().let {
                 virgilCrypto.importPrivateKey(it.value)
             }
 
@@ -545,30 +543,6 @@ class EThree
             virgilCrypto.extractPublicKey(loadCurrentPrivateKey() as VirgilPrivateKey)
 
     /**
-     * Initializes [SyncKeyStorage] with default settings, [tokenProvider] and provided
-     * [password] after that returns initialized [SyncKeyStorage] object.
-     */
-    private fun initSyncKeyStorage(password: String): Deferred<CloudKeyStorage> =
-            GlobalScope.async {
-                BrainKeyContext.Builder()
-                        .setAccessTokenProvider(tokenProvider)
-                        .setPythiaClient(VirgilPythiaClient(VIRGIL_BASE_URL))
-                        .setPythiaCrypto(VirgilPythiaCrypto())
-                        .build().let {
-                            BrainKey(it).generateKeyPair(password).let { keyPair ->
-                                CloudKeyStorage(KeyknoxManager(
-                                    tokenProvider,
-                                    KeyknoxClient(URL(VIRGIL_BASE_URL)),
-                                    listOf(keyPair.publicKey),
-                                    keyPair.privateKey,
-                                    KeyknoxCrypto())).also { cloudKeyStorage ->
-                                    cloudKeyStorage.retrieveCloudEntries()
-                                }
-                            }
-                        }
-            }
-
-    /**
      * Extracts current user's *Identity* from Json Web Token received from [tokenProvider].
      */
     private fun currentIdentity() = tokenProvider.getToken(NO_CONTEXT).identity
@@ -578,7 +552,7 @@ class EThree
      * [PrivateKeyNotFoundException] exception.
      */
     private fun checkPrivateKeyOrThrow() {
-        if (!localKeyStorage.exists()) throw PrivateKeyNotFoundException(
+        if (!keyManagerLocal.exists()) throw PrivateKeyNotFoundException(
             "You have to get private key first. Use \'register\' " +
             "or \'restorePrivateKey\' functions.")
     }
@@ -656,11 +630,7 @@ class EThree
             }
         }
 
-        private const val VIRGIL_BASE_URL = "https://api.virgilsecurity.com"
-        private const val VIRGIL_CARDS_SERVICE_PATH = "/card/v5/"
-
         //        private const val KEYKNOX_KEY_POSTFIX = "_keyknox"
         private const val THROTTLE_TIMEOUT = 2 * 1000L // 2 seconds
-        private val NO_CONTEXT = null
     }
 }

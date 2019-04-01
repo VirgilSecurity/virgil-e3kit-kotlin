@@ -47,8 +47,6 @@ android {
         applicationId "com.virgilsecurity.ethree"
         minSdkVersion 21
         targetSdkVersion 28
-        versionCode 1
-        versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -58,10 +56,6 @@ android {
             it.buildConfigField "String", "API_PUBLIC_KEY", "$API_PUBLIC_KEY"
             it.buildConfigField "String", "API_PUBLIC_KEY_ID", "$API_PUBLIC_KEY_ID"
             it.buildConfigField "String", "VIRGIL_BASE_URL", "$VIRGIL_BASE_URL"
-        }
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
 }
