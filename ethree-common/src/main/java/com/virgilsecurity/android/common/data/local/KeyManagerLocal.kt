@@ -31,15 +31,30 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.ethree.utils
+package com.virgilsecurity.android.common.data.local
 
-class TestUtils {
+import android.content.Context
+import com.virgilsecurity.sdk.storage.DefaultKeyStorage
+import com.virgilsecurity.sdk.storage.JsonKeyEntry
+import com.virgilsecurity.sdk.storage.KeyEntry
+import com.virgilsecurity.sdk.storage.KeyStorage
+
+/**
+ * KeyManagerLocal
+ */
+class KeyManagerLocal(val identity: String, context: Context) {
+
+    private val keyStorage: KeyStorage = DefaultKeyStorage(context.filesDir.absolutePath, KEYSTORE_NAME)
+
+    fun exists() = keyStorage.exists(identity)
+
+    fun store(privateKey: ByteArray) = keyStorage.store(JsonKeyEntry(identity, privateKey))
+
+    fun load(): KeyEntry = keyStorage.load(identity)
+
+    fun delete() = keyStorage.delete(identity)
 
     companion object {
-        const val THROTTLE_TIMEOUT = 2 * 1000L // 2 seconds
-
-        fun pause() {
-            Thread.sleep(THROTTLE_TIMEOUT)
-        }
+        private const val KEYSTORE_NAME = "virgil.keystore"
     }
 }

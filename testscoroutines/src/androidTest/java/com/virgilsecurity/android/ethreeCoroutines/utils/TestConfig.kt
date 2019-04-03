@@ -34,7 +34,7 @@
 package com.virgilsecurity.android.ethreeCoroutines.utils
 
 import android.support.test.InstrumentationRegistry
-import com.virgilsecurity.android.ethreeCoroutines.BuildConfig
+import com.virgilsecurity.ethree.test.BuildConfig
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilPrivateKey
 import com.virgilsecurity.sdk.crypto.VirgilPublicKey

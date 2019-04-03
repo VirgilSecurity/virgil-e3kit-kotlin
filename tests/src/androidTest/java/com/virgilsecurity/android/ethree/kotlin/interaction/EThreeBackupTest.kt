@@ -493,6 +493,49 @@ class EThreeBackupTest {
         assertFalse(syncKeyStorage.exists(identity))
     }
 
+    // Reset without password
+    @Test fun reset_key_backup_after_backup_no_password() {
+        val identity = UUID.randomUUID().toString()
+        val password = UUID.randomUUID().toString()
+        val eThreeWithPass = initAndRegisterEThree(identity)
+
+        TestUtils.pause()
+
+        val waiter = CountDownLatch(1)
+        eThreeWithPass.backupPrivateKey(password, object : EThree.OnCompleteListener {
+            override fun onSuccess() {
+                waiter.countDown()
+            }
+
+            override fun onError(throwable: Throwable) {
+                fail(throwable.message)
+            }
+        })
+        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+
+        TestUtils.pause()
+
+        val waiterTwo = CountDownLatch(1)
+        var successfulKeyReset = false
+        eThreeWithPass.resetPrivateKeyBackup(onCompleteListener = object : EThree.OnCompleteListener {
+            override fun onSuccess() {
+                successfulKeyReset = true
+                waiterTwo.countDown()
+            }
+
+            override fun onError(throwable: Throwable) {
+                fail(throwable.message)
+            }
+        })
+        waiterTwo.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        assertTrue(successfulKeyReset)
+
+        TestUtils.pause()
+
+        val syncKeyStorage = initSyncKeyStorage(identity, password)
+        assertFalse(syncKeyStorage.exists(identity))
+    }
+
     @Test fun reset_backed_key_wrong_pass() {
         val identity = UUID.randomUUID().toString()
         val password = UUID.randomUUID().toString()

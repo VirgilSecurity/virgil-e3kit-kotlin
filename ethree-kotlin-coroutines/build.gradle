@@ -32,17 +32,30 @@
  */
 
 plugins {
-    id 'java-library'
-    id 'maven-publish'
     id 'signing'
 }
 
-apply plugin: 'kotlin'
-apply plugin: 'maven'
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+
+apply plugin: 'maven-publish'
+apply plugin: 'digital.wup.android-maven-publish'
 apply plugin: 'org.jetbrains.dokka'
 
+android {
+    compileSdkVersion 28
+    buildToolsVersion "28.0.3"
+
+    defaultConfig {
+        minSdkVersion 21
+        targetSdkVersion 28
+        consumerProguardFiles 'proguard-rules.txt'
+    }
+}
+
 group 'com.virgilsecurity'
-version '0.2.2'
+version '0.2.4'
 
 dependencies {
     // Inner dependencies
@@ -72,7 +85,7 @@ sourceCompatibility = "8"
 targetCompatibility = "8"
 
 task sourcesJar(type: Jar) {
-    from(sourceSets["main"].allSource)
+    from android.sourceSets.main.java.srcDirs
     classifier = 'sources'
 }
 
@@ -88,9 +101,10 @@ publishing {
     publications {
         mavenJava(MavenPublication) {
             artifactId = 'ethree-kotlin-coroutines'
-            from components.java
-            artifact sourcesJar
             artifact javadocJar
+            artifact sourcesJar
+            from components.android
+
             pom {
                 name = 'Virgil E3Kit Kotlin Coroutines SDK'
                 description = 'Virgil Security provides an SDK which symplifies work with Virgil services and presents easy to use API for adding security to any application. In a few simple steps you can setup user encryption with multidevice support.'

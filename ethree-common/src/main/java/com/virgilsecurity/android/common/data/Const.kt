@@ -31,15 +31,15 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.ethree.utils
+package com.virgilsecurity.android.common.data
 
-class TestUtils {
+/**
+ * Const
+ */
+object Const {
 
-    companion object {
-        const val THROTTLE_TIMEOUT = 2 * 1000L // 2 seconds
+    const val VIRGIL_BASE_URL = "https://api.virgilsecurity.com"
+    const val VIRGIL_CARDS_SERVICE_PATH = "/card/v5/"
 
-        fun pause() {
-            Thread.sleep(THROTTLE_TIMEOUT)
-        }
-    }
+    val NO_CONTEXT = null
 }
