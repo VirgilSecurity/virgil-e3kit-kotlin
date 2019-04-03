@@ -352,6 +352,32 @@ class EThreeBackupTest {
         Assert.assertFalse(syncKeyStorage.exists(identity))
     }
 
+    // Reset without password
+    @Test fun reset_key_backup_after_backup_no_password() {
+        val identity = UUID.randomUUID().toString()
+        val password = UUID.randomUUID().toString()
+        val eThreeWithPass = initAndRegisterEThree(identity)
+
+        TestUtils.pause()
+
+        runBlocking {
+            eThreeWithPass.backupPrivateKey(password).awaitResult().onError { fail(it.message) }
+        }
+
+        TestUtils.pause()
+
+        runBlocking {
+            eThreeWithPass.resetPrivateKeyBackup()
+                    .awaitResult()
+                    .onError { fail(it.message) }
+        }
+
+        TestUtils.pause()
+
+        val syncKeyStorage = initSyncKeyStorage(identity, password)
+        Assert.assertFalse(syncKeyStorage.exists(identity))
+    }
+
     @Test
     fun reset_backed_key_wrong_pass() {
         val identity = UUID.randomUUID().toString()
