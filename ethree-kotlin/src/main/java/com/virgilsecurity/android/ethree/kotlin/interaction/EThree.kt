@@ -203,7 +203,7 @@ class EThree
      * @throws PrivateKeyNotFoundException
      * @throws WrongPasswordException
      */
-    fun resetPrivateKeyBackup(password: String? = null, onCompleteListener: OnCompleteListener) {
+    @JvmOverloads fun resetPrivateKeyBackup(password: String? = null, onCompleteListener: OnCompleteListener) {
         GlobalScope.launch {
             try {
                 checkPrivateKeyOrThrow()
