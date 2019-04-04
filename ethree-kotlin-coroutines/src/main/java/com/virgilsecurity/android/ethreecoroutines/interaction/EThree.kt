@@ -82,7 +82,7 @@ class EThree
 
     private val virgilCrypto = VirgilCrypto()
     private val cardManager: CardManager
-    private val localKeyStorage: KeyManagerLocal
+    private val keyManagerLocal: KeyManagerLocal
     private val keyManagerCloud: KeyManagerCloud
 
     init {
@@ -92,7 +92,7 @@ class EThree
                         VirgilCardVerifier(cardCrypto, false, false),
                         VirgilCardClient(VIRGIL_BASE_URL + VIRGIL_CARDS_SERVICE_PATH))
         }
-        localKeyStorage = KeyManagerLocal(tokenProvider.getToken(NO_CONTEXT).identity, context)
+        keyManagerLocal = KeyManagerLocal(tokenProvider.getToken(NO_CONTEXT).identity, context)
         keyManagerCloud = KeyManagerCloud(currentIdentity(), tokenProvider)
     }
 
@@ -109,7 +109,7 @@ class EThree
                     throw RegistrationException("Card with identity " +
                                                 "${currentIdentity()} already exists")
 
-                if (localKeyStorage.exists())
+                if (keyManagerLocal.exists())
                     throw PrivateKeyExistsException("You already have a Private Key on this " +
                                                     "device for identity: ${currentIdentity()}. " +
                                                     "Please, use \'cleanup()\' function first.")
@@ -119,7 +119,7 @@ class EThree
                                             this.publicKey,
                                             currentIdentity())
 
-                    localKeyStorage.store(this.privateKey.rawKey)
+                    keyManagerLocal.store(this.privateKey.rawKey)
                 }
             }
 
@@ -139,8 +139,14 @@ class EThree
     fun cleanup() {
         checkPrivateKeyOrThrow()
 
-        localKeyStorage.delete()
+        keyManagerLocal.delete()
     }
+
+    /**
+     * Checks whether the private key is present in the local storage of current device.
+     * Returns *true* if the key is present in the local key storage otherwise *false*.
+     */
+    fun hasLocalPrivateKey() = keyManagerLocal.exists()
 
     /**
      * Encrypts the user's private key using the user's [password] and backs up the encrypted
@@ -164,7 +170,7 @@ class EThree
             if (password.isBlank())
                 throw IllegalArgumentException("\'password\' should not be empty")
 
-            with(localKeyStorage.load()) {
+            with(keyManagerLocal.load()) {
                 keyManagerCloud.store(password,
                                       this.value,
                                       this.meta)
@@ -222,7 +228,7 @@ class EThree
      */
     fun restorePrivateKey(password: String): Deferred<Unit> = GlobalScope.asyncWithCatch(
         {
-            if (localKeyStorage.exists())
+            if (keyManagerLocal.exists())
                 throw RestoreKeyException("You already have a Private Key on this device" +
                                           "for identity: ${currentIdentity()}. Please, use" +
                                           "\'cleanup()\' function first.")
@@ -233,7 +239,7 @@ class EThree
 
                 val keyEntry = keyManagerCloud.retrieve(password)
 
-                localKeyStorage.store(keyEntry.data)
+                keyManagerLocal.store(keyEntry.data)
             } else {
                 throw RestoreKeyException("There is no key backup with " +
                                           "identity: ${currentIdentity()}")
@@ -256,7 +262,7 @@ class EThree
      * @throws CryptoException
      */
     fun rotatePrivateKey(): Deferred<Unit> = GlobalScope.async {
-        if (localKeyStorage.exists())
+        if (keyManagerLocal.exists())
             throw PrivateKeyExistsException("You already have a Private Key on this device" +
                                             "for identity: ${currentIdentity()}. Please, use" +
                                             "\'cleanup()\' function first.")
@@ -278,7 +284,7 @@ class EThree
                                                       this.first.identifier)
             cardManager.publishCard(rawCard)
 
-            localKeyStorage.store(this.second.privateKey.rawKey)
+            keyManagerLocal.store(this.second.privateKey.rawKey)
         }
     }
 
@@ -486,7 +492,7 @@ class EThree
      * from [tokenProvider].
      */
     private fun loadCurrentPrivateKey(): PrivateKey =
-            localKeyStorage.load().let {
+            keyManagerLocal.load().let {
                 virgilCrypto.importPrivateKey(it.value)
             }
 
@@ -507,7 +513,7 @@ class EThree
      * [PrivateKeyNotFoundException] exception.
      */
     private fun checkPrivateKeyOrThrow() {
-        if (!localKeyStorage.exists())
+        if (!keyManagerLocal.exists())
             throw PrivateKeyNotFoundException("You have to get private key first. Use " +
                                               "\'register\' or \'restorePrivateKey\' functions.")
     }
