@@ -112,6 +112,10 @@ if [[ "$TRAVIS_REPO_SLUG" == "VirgilSecurity/virgil-e3kit-kotlin" ]] && [[ "$TRA
   get_version "ethree-kotlin/build.gradle" versionEthree
   get_version "ethree-kotlin-coroutines/build.gradle" versionEthreeCoroutines
 
+  git config --global user.email "travis@travis-ci.org"
+  git config --global user.name "travis-ci"
+  git clone --quiet --branch=gh-pages https://${GH_TOKEN}@github.com/VirgilSecurity/virgil-e3kit-kotlin gh-pages > /dev/null
+
   # Remove old docs
   rm ./index.html
   rm -rf ./${versionCommon}
@@ -126,10 +130,6 @@ if [[ "$TRAVIS_REPO_SLUG" == "VirgilSecurity/virgil-e3kit-kotlin" ]] && [[ "$TRA
   # Create main index page for all modules
   versions=(${versionCommon} ${versionEthree} ${versionEthreeCoroutines})
   generate_index_page ${versions[*]}
-
-  git config --global user.email "travis@travis-ci.org"
-  git config --global user.name "travis-ci"
-  git clone --quiet --branch=gh-pages https://${GH_TOKEN}@github.com/VirgilSecurity/virgil-e3kit-kotlin gh-pages > /dev/null
 
   # Clear old docs from index
   git rm ./index.html
