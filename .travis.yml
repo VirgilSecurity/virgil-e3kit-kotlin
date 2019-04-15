@@ -25,6 +25,7 @@ env:
  - ANDROID_EMULATOR_API=24
  - ADB_INSTALL_TIMEOUT=5 # minutes
  - ANDROID_ABI=default/armeabi-v7a
+ - secure: NC8K3/iSruYL3ooDqGJsC2zm89/IIQr0Gvf4kFv2USD22hYuGM1OH+bBfONs5SDQhIB53ZwCXAw+4vYMkiCPSa0gPCkdiznDUOeuj/kvYgIL9KdfM3PbOtsMcCUP+w3WEu8MGi+hrz4ym8W2Y6YU4bXIgRsKClPzRMI9ckPQTTmcAYlJYBzIy69YPPxl/wN/4mC5b5L53HG/hpQqGwOZZPC1P8FXgaIkx1mGQoBlQun723tcYw13F9Ej9lIQemQiU5R6LI/nxS0jSQUemOuMUxZGEcE/hYGWkdC95tQyrHQe4t/kPYzjG4ApDwlaP8ETNGFYbdYM3F8FnVgjZmSd/494nzybuqtGLJrGRo4uB4Vv+T2/fvFyUl/PXgLndx6Dw5AaNe2Bajf6uuwfWzPTUgzi/gVkCW354Kz0teUkjSL6vmOp8UvtBgALD8mkTE4RU8ty0dvYBC+DryYwk+0+3swk93LoOSXpO+X7rkmKS5CUFDS8XXR9bU6424hPUKV/biBbUi+dAm5p5i8G0pzy2d6ck0XIsSi4lsUUu9Ov+CETKTkJ5rkwe+uVBTB6KOeId2S5Avvrju7oAp0F9FUFE5ePXJkEchREZVw/t6KUPB7rCdyKtsVC6r7PYSTWTU0SSScDKK8kNcZJEsKp9ldEW3JwUJwXUkuI6DQN0xzkyq0=
 
 android:
  components:
@@ -65,3 +66,6 @@ before_script:
 
 script:
 - "./gradlew clean build connectedCheck -PdisablePreDex --stacktrace"
+
+after_success:
+  .ci/push-javadoc-to-gh-pages.sh
