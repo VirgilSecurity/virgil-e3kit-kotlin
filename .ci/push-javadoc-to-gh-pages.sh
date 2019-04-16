@@ -77,17 +77,17 @@ generate_index_page() {
       <h2 style="color:#110B91B1;">User modules</h2>
       <hr/>
       <h3>E3Kit</h3>
-      <ul><li><a href="${2}/ethree-kotlin/index.html">${2}</a></li></ul>
+      <ul><li><a href="content/ethree-kotlin/${2}/index.html">${2}</a></li></ul>
 
       <h3>E3Kit Coroutines</h3>
-      <ul><li><a href="${3}/ethree-kotlin-coroutines/index.html">${3}</a></li></ul>
+      <ul><li><a href="content/ethree-kotlin-coroutines/${3}/index.html">${3}</a></li></ul>
 
       <p>&nbsp;</p>
       <h2 style="color:#110B91B1;">Internal modules</h2>
       <hr/>
 
       <h3>E3Kit Common</h3>
-      <ul><li><a href="${1}/ethree-common/index.html">${1}</a></li></ul>
+      <ul><li><a href="content/ethree-common/${1}/index.html">${1}</a></li></ul>
     </div>
 
     <p>&nbsp;</p>
@@ -112,30 +112,34 @@ if [[ "$TRAVIS_REPO_SLUG" == "VirgilSecurity/virgil-e3kit-kotlin" ]] && [[ "$TRA
   get_version "ethree-kotlin/build.gradle" versionEthree
   get_version "ethree-kotlin-coroutines/build.gradle" versionEthreeCoroutines
 
+  # Create each module docs temporary folder
+  cp -R ethree-common/build/javadoc/ $HOME/javadoc-latest/${versionCommon}/
+  cp -R ethree-kotlin/build/javadoc/ $HOME/javadoc-latest/${versionEthree}/
+  cp -R ethree-kotlin-coroutines/build/javadoc/ $HOME/javadoc-latest/${versionEthreeCoroutines}/
+
+  # Get last gh-pages docs
+  cd $HOME
   git config --global user.email "travis@travis-ci.org"
   git config --global user.name "travis-ci"
   git clone --quiet --branch=gh-pages https://${GH_TOKEN}@github.com/VirgilSecurity/virgil-e3kit-kotlin gh-pages > /dev/null
 
   # Remove old docs
-  rm ./index.html
-  rm -rf ./${versionCommon}
-  rm -rf ./${versionEthree}
-  rm -rf ./${versionEthreeCoroutines}
-
-  # Create each module docs folder
-  cp -R ethree-common/build/javadoc/ ./${versionCommon}/
-  cp -R ethree-kotlin/build/javadoc/ ./${versionEthree}/
-  cp -R ethree-kotlin-coroutines/build/javadoc/ ./${versionEthreeCoroutines}/
+  git rm gh-pages/index.html
+  git rm -rf gh-pages/content
+  cd gh-pages
 
   # Create main index page for all modules
   versions=(${versionCommon} ${versionEthree} ${versionEthreeCoroutines})
   generate_index_page ${versions[*]}
 
-  # Clear old docs from index
-  git rm ./index.html
-  git rm -rf ./${versionCommon}
-  git rm -rf ./${versionEthree}
-  git rm -rf ./${versionEthreeCoroutines}
+  # Move each module docs to actual folder
+  mkdir content
+  mkdir content/ethree-common/
+  mkdir content/ethree-kotlin/
+  mkdir content/ethree-kotlin-coroutines/
+  mv -R $HOME/javadoc-latest/${versionCommon} content/ethree-common/
+  mv -R $HOME/javadoc-latest/${versionEthree} content/ethree-kotlin/
+  mv -R $HOME/javadoc-latest/${versionEthreeCoroutines} content/ethree-kotlin-coroutines/
 
   # Add new docs to index and commit
   git add -f .
