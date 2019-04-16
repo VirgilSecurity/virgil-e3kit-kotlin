@@ -35,6 +35,7 @@ package com.android.virgilsecurity.ethreesamplejava;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -226,7 +227,7 @@ public class EThreeActivity extends AppCompatActivity {
                 try {
                     JSONObject object = new JSONObject(value);
                     authTokenUserOne = (String) object.get("authToken");
-                } catch (JSONException e) {
+                } catch (final JSONException e) {
                     runOnUiThread(new Runnable() {
                         @Override public void run() {
                             Toast.makeText(EThreeActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -265,7 +266,7 @@ public class EThreeActivity extends AppCompatActivity {
                 try {
                     JSONObject object = new JSONObject(value);
                     authTokenUserTwo = (String) object.get("authToken");
-                } catch (JSONException e) {
+                } catch (final JSONException e) {
                     runOnUiThread(new Runnable() {
                         @Override public void run() {
                             Toast.makeText(EThreeActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -351,8 +352,6 @@ public class EThreeActivity extends AppCompatActivity {
             URL object = new URL(url);
 
             HttpURLConnection con = (HttpURLConnection) object.openConnection();
-            con.setDoOutput(true);
-            con.setDoInput(true);
             con.setRequestProperty("Accept", "application/json");
             con.setRequestProperty("Authorization", "Bearer " + authToken);
             con.setRequestMethod("GET");
