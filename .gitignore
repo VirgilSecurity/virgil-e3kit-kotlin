@@ -158,6 +158,10 @@ __dummy.html
 # IntelliJ
 /out/
 /gen
+ethree-kotlin/ethree-kotlin.iml
+ethree-kotlin-coroutines/ethree-kotlin-coroutines.iml
+tests/tests.iml
+testscoroutines/testscoroutines.iml
 
 # mpeltonen/sbt-idea plugin
 .idea_modules/
