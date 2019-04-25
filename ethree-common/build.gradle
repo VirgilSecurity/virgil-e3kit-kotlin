@@ -42,7 +42,7 @@ apply plugin: 'maven'
 apply plugin: 'org.jetbrains.dokka'
 
 group 'com.virgilsecurity'
-version '0.3.2'
+version '0.3.3'
 
 dependencies {
     // Kotlin
@@ -51,7 +51,7 @@ dependencies {
 
     // Virgil
     compileOnly "com.virgilsecurity.sdk:crypto:$versions.virgilSdk"
-    implementation "com.virgilsecurity.sdk:sdk:$versions.virgilSdk"
+    api "com.virgilsecurity.sdk:sdk:$versions.virgilSdk"
     implementation "com.virgilsecurity.sdk:crypto-android:$versions.virgilSdk"
     implementation("com.virgilsecurity:pythia:$versions.pythia") {
         exclude group: 'com.virgilsecurity.sdk', module: 'crypto'

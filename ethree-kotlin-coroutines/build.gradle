@@ -55,7 +55,7 @@ android {
 }
 
 group 'com.virgilsecurity'
-version '0.2.5'
+version '0.2.6'
 
 dependencies {
     // Inner dependencies
@@ -64,7 +64,7 @@ dependencies {
     // Virgil
     compileOnly "com.virgilsecurity.sdk:crypto:$versions.virgilSdk"
     implementation "com.virgilsecurity.sdk:crypto-android:$versions.virgilSdk@aar"
-    implementation "com.virgilsecurity.sdk:sdk:$versions.virgilSdk"
+    api "com.virgilsecurity.sdk:sdk:$versions.virgilSdk"
     implementation ("com.virgilsecurity:pythia:$versions.pythia") {
         exclude group: 'com.virgilsecurity.sdk', module: 'crypto'
     }
