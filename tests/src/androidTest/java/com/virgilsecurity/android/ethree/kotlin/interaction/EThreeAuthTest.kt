@@ -150,16 +150,17 @@ class EThreeAuthTest {
         )
     }
 
-    private fun generateRawCard(identity: String, cardManager: CardManager): Tuple<VirgilKeyPair, RawSignedModel> {
-        return VirgilCrypto().generateKeys().let {
+    private fun generateRawCard(identity: String,
+                                cardManager: CardManager): Tuple<VirgilKeyPair, RawSignedModel> {
+        return VirgilCrypto().generateKeyPair().let {
             Tuple(it, cardManager.generateRawCard(it.privateKey, it.publicKey, identity))
         }
     }
 
     // STE-Auth-8
     @Test fun delete_local_key() {
-        val keys = VirgilCrypto().generateKeys()
-        keyStorage.store(JsonKeyEntry(identity, keys.privateKey.rawKey))
+        val keys = VirgilCrypto().generateKeyPair()
+        keyStorage.store(JsonKeyEntry(identity, keys.privateKey.privateKey.exportPrivateKey()))
         assertTrue(keyStorage.exists(identity))
         initEThree(identity).cleanup()
         assertFalse(keyStorage.exists(identity))
@@ -196,7 +197,8 @@ class EThreeAuthTest {
 
     // STE-Auth-11
     @Test fun register_with_existing_private_key() {
-        keyStorage.store(JsonKeyEntry(identity, virgilCrypto.generateKeys().privateKey.rawKey))
+        keyStorage.store(JsonKeyEntry(identity,
+                                      virgilCrypto.generateKeyPair().privateKey.privateKey.exportPrivateKey()))
         val eThree = initEThree(identity)
 
         val waiter = CountDownLatch(1)
@@ -273,8 +275,8 @@ class EThreeAuthTest {
         assertTrue(cardManager.searchCards(identity).last().previousCardId != null)
 
         val newKey = keyStorage.load(identity)
-        assertThat(publishPair.left.privateKey.rawKey,
-                   not(equalTo(VirgilCrypto().importPrivateKey(newKey.value).rawKey)))
+        assertThat(publishPair.left.privateKey.privateKey.exportPrivateKey(),
+                   not(equalTo(VirgilCrypto().importPrivateKey(newKey.value).privateKey.privateKey.exportPrivateKey())))
     }
 
     @Test fun rotate_when_multiply_cards_available() {
