@@ -114,12 +114,12 @@ class EThree
                                                     "device for identity: ${currentIdentity()}. " +
                                                     "Please, use \'cleanup()\' function first.")
 
-                virgilCrypto.generateKeys().run {
+                virgilCrypto.generateKeyPair().run {
                     cardManager.publishCard(this.privateKey,
                                             this.publicKey,
                                             currentIdentity())
 
-                    keyManagerLocal.store(this.privateKey.rawKey)
+                    keyManagerLocal.store(this.privateKey.privateKey.exportPrivateKey())
                 }
             }
 
@@ -277,14 +277,14 @@ class EThree
                                         "Should be <= 1. Please, contact developers if " +
                                         "it was not an intended behaviour.")
 
-        (cards.first() to virgilCrypto.generateKeys()).run {
+        (cards.first() to virgilCrypto.generateKeyPair()).run {
             val rawCard = cardManager.generateRawCard(this.second.privateKey,
                                                       this.second.publicKey,
                                                       currentIdentity(),
                                                       this.first.identifier)
             cardManager.publishCard(rawCard)
 
-            keyManagerLocal.store(this.second.privateKey.rawKey)
+            keyManagerLocal.store(this.second.privateKey.privateKey.exportPrivateKey())
         }
     }
 
@@ -493,7 +493,7 @@ class EThree
      */
     private fun loadCurrentPrivateKey(): PrivateKey =
             keyManagerLocal.load().let {
-                virgilCrypto.importPrivateKey(it.value)
+                virgilCrypto.importPrivateKey(it.value).privateKey
             }
 
     /**
