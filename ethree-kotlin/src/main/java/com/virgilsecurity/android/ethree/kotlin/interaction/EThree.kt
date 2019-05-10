@@ -34,6 +34,7 @@
 package com.virgilsecurity.android.ethree.kotlin.interaction
 
 import android.content.Context
+import android.util.Log
 import com.virgilsecurity.android.common.data.Const.NO_CONTEXT
 import com.virgilsecurity.android.common.data.Const.VIRGIL_BASE_URL
 import com.virgilsecurity.android.common.data.Const.VIRGIL_CARDS_SERVICE_PATH
@@ -49,7 +50,10 @@ import com.virgilsecurity.pythia.crypto.VirgilPythiaCrypto
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
 import com.virgilsecurity.sdk.client.VirgilCardClient
-import com.virgilsecurity.sdk.crypto.*
+import com.virgilsecurity.sdk.crypto.VirgilCardCrypto
+import com.virgilsecurity.sdk.crypto.VirgilCrypto
+import com.virgilsecurity.sdk.crypto.VirgilPrivateKey
+import com.virgilsecurity.sdk.crypto.VirgilPublicKey
 import com.virgilsecurity.sdk.exception.EmptyArgumentException
 import com.virgilsecurity.sdk.jwt.Jwt
 import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
@@ -118,7 +122,7 @@ class EThree
 
                 virgilCrypto.generateKeyPair().run {
                     cardManager.publishCard(this.privateKey, this.publicKey, currentIdentity())
-                    keyManagerLocal.store(this.privateKey.privateKey.exportPrivateKey())
+                    keyManagerLocal.store(virgilCrypto.exportPrivateKey(this.privateKey))
                     onCompleteListener.onSuccess()
                 }
             } catch (throwable: Throwable) {
@@ -203,7 +207,8 @@ class EThree
      * @throws PrivateKeyNotFoundException
      * @throws WrongPasswordException
      */
-    @JvmOverloads fun resetPrivateKeyBackup(password: String? = null, onCompleteListener: OnCompleteListener) {
+    @JvmOverloads fun resetPrivateKeyBackup(password: String? = null,
+                                            onCompleteListener: OnCompleteListener) {
         GlobalScope.launch {
             try {
                 checkPrivateKeyOrThrow()
@@ -367,7 +372,7 @@ class EThree
      * @throws PrivateKeyNotFoundException
      * @throws CryptoException
      */
-    @JvmOverloads fun encrypt(text: String, publicKeys: List<PublicKey>? = null): String {
+    @JvmOverloads fun encrypt(text: String, publicKeys: List<VirgilPublicKey>? = null): String {
         checkPrivateKeyOrThrow()
 
         if (text.isBlank()) throw EmptyArgumentException("data")
@@ -390,7 +395,8 @@ class EThree
      * @throws PrivateKeyNotFoundException
      * @throws CryptoException
      */
-    @JvmOverloads fun encrypt(data: ByteArray, publicKeys: List<PublicKey>? = null): ByteArray {
+    @JvmOverloads fun encrypt(data: ByteArray,
+                              publicKeys: List<VirgilPublicKey>? = null): ByteArray {
         checkPrivateKeyOrThrow()
 
         if (data.isEmpty()) throw EmptyArgumentException("data")
@@ -400,15 +406,15 @@ class EThree
 
         return (publicKeys == null).let { isNull ->
             (if (isNull) {
-                listOf(loadCurrentPublicKey() as VirgilPublicKey)
+                listOf(loadCurrentPublicKey())
             } else {
                 publicKeys?.asSequence()?.filterIsInstance<VirgilPublicKey>()?.toMutableList()
                         ?.apply {
-                            add(loadCurrentPublicKey() as VirgilPublicKey)
+                            add(loadCurrentPublicKey())
                         }
             })
         }.let { keys ->
-            virgilCrypto.signThenEncrypt(data, loadCurrentPrivateKey() as VirgilPrivateKey, keys)
+            virgilCrypto.signThenEncrypt(data, loadCurrentPrivateKey(), keys)
         }
     }
 
@@ -424,7 +430,7 @@ class EThree
      * @throws PrivateKeyNotFoundException
      * @throws CryptoException
      */
-    @JvmOverloads fun decrypt(base64String: String, sendersKey: PublicKey? = null): String {
+    @JvmOverloads fun decrypt(base64String: String, sendersKey: VirgilPublicKey? = null): String {
         checkPrivateKeyOrThrow()
 
         if (base64String.isBlank()) throw EmptyArgumentException("data")
@@ -446,7 +452,7 @@ class EThree
      * @throws PrivateKeyNotFoundException
      * @throws CryptoException
      */
-    @JvmOverloads fun decrypt(data: ByteArray, sendersKey: PublicKey? = null): ByteArray {
+    @JvmOverloads fun decrypt(data: ByteArray, sendersKey: VirgilPublicKey? = null): ByteArray {
         checkPrivateKeyOrThrow()
 
         if (data.isEmpty()) throw EmptyArgumentException("data")
@@ -455,10 +461,10 @@ class EThree
 
         return (sendersKey == null).let { isNull ->
             (if (isNull) {
-                listOf(loadCurrentPublicKey() as VirgilPublicKey)
+                listOf(loadCurrentPublicKey())
             } else {
                 mutableListOf(sendersKey as VirgilPublicKey).apply {
-                    add(loadCurrentPublicKey() as VirgilPublicKey)
+                    add(loadCurrentPublicKey())
                 }
             })
         }.let { keys ->
@@ -485,7 +491,7 @@ class EThree
      * @throws PublicKeyDuplicateException
      */
     fun lookupPublicKeys(identities: List<String>,
-                         onResultListener: OnResultListener<Map<String, PublicKey>>) {
+                         onResultListener: OnResultListener<Map<String, VirgilPublicKey>>) {
         GlobalScope.launch {
             try {
                 if (identities.isEmpty()) throw EmptyArgumentException("identities")
@@ -514,7 +520,7 @@ class EThree
                     it.second to it.first
                 }.map {
                     if (it.second.isNotEmpty())
-                        it.first to it.second.first().publicKey
+                        it.first to it.second.first().publicKey as VirgilPublicKey
                     else
                         throw PublicKeyNotFoundException(it.first)
                 }.toMap().run {
@@ -530,7 +536,7 @@ class EThree
      * Loads and returns current user's [PrivateKey]. Current user's identity is taken
      * from [tokenProvider].
      */
-    private fun loadCurrentPrivateKey(): PrivateKey =
+    private fun loadCurrentPrivateKey(): VirgilPrivateKey =
             keyManagerLocal.load().let {
                 virgilCrypto.importPrivateKey(it.value).privateKey
             }
@@ -539,8 +545,8 @@ class EThree
      * Loads and returns current user's [PublicKey] that is extracted from current
      * user's [PrivateKey]. Current user's identity is taken from [tokenProvider].
      */
-    private fun loadCurrentPublicKey(): PublicKey =
-            virgilCrypto.extractPublicKey(loadCurrentPrivateKey() as VirgilPrivateKey)
+    private fun loadCurrentPublicKey(): VirgilPublicKey =
+            virgilCrypto.extractPublicKey(loadCurrentPrivateKey())
 
     /**
      * Extracts current user's *Identity* from Json Web Token received from [tokenProvider].

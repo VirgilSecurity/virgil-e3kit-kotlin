@@ -541,7 +541,6 @@ class EThreeBackupTest {
         val identity = UUID.randomUUID().toString()
         val password = UUID.randomUUID().toString()
         val eThreeWithPass = initAndRegisterEThree(identity)
-
         TestUtils.pause()
 
         val waiter = CountDownLatch(1)

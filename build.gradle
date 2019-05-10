@@ -34,27 +34,28 @@
 buildscript {
     ext.versions = [
             // Virgil
-            virgilSdk  : '6.0.0-alpha-SNAPSHOT',
-            pythia     : '0.2.1',
-            keyknox    : '0.1.1',
+            virgilSdk   : '5.1.0-SNAPSHOT',
+            virgilCrypto: '0.7.0-SNAPSHOT',
+            pythia      : '0.2.2-SNAPSHOT',
+            keyknox     : '0.1.3-SNAPSHOT',
 
             // Kotlin
-            kotlin     : '1.3.21',
-            coroutines : '1.0.1',
+            kotlin      : '1.3.21',
+            coroutines  : '1.0.1',
 
             // Gradle
-            gardle     : '3.3.2',
+            gardle      : '3.3.2',
 
             // Android
-            android    : '4.1.1.4',
+            android     : '4.1.1.4',
 
             // Docs
-            dokka      : '0.9.17',
+            dokka       : '0.9.17',
 
             // Tests
-            junit      : '4.12',
-            testsRunner: '1.0.2',
-            espresso   : '3.0.2',
+            junit       : '4.12',
+            testsRunner : '1.0.2',
+            espresso    : '3.0.2',
     ]
     repositories {
         google()

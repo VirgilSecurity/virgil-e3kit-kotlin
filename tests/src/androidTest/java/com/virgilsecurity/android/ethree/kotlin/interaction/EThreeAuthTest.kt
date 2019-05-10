@@ -274,9 +274,9 @@ class EThreeAuthTest {
 
         assertTrue(cardManager.searchCards(identity).last().previousCardId != null)
 
-        val newKey = keyStorage.load(identity)
-        assertThat(publishPair.left.privateKey.privateKey.exportPrivateKey(),
-                   not(equalTo(VirgilCrypto().importPrivateKey(newKey.value).privateKey.privateKey.exportPrivateKey())))
+        val newKeyData = keyStorage.load(identity).value
+        val oldKeyData = publishPair.left.privateKey.privateKey.exportPrivateKey()
+        assertThat(oldKeyData, not(equalTo(newKeyData)))
     }
 
     @Test fun rotate_when_multiply_cards_available() {
@@ -317,8 +317,8 @@ class EThreeAuthTest {
         var rotateFailed = false
         val waiterTwo = CountDownLatch(1)
         eThree.lookupPublicKeys(listOf(identity),
-                                object : EThree.OnResultListener<Map<String, PublicKey>> {
-                                    override fun onSuccess(result: Map<String, PublicKey>) {
+                                object : EThree.OnResultListener<Map<String, VirgilPublicKey>> {
+                                    override fun onSuccess(result: Map<String, VirgilPublicKey>) {
                                         fail("Illegal state")
                                     }
 
