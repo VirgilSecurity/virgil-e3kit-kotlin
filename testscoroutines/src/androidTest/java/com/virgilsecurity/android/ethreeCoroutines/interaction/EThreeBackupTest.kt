@@ -170,7 +170,7 @@ class EThreeBackupTest {
     }
 
     private fun generateRawCard(identity: String, cardManager: CardManager): Tuple<VirgilKeyPair, RawSignedModel> {
-        return VirgilCrypto().generateKeys().let {
+        return VirgilCrypto().generateKeyPair().let {
             Tuple(it, cardManager.generateRawCard(it.privateKey, it.publicKey, identity))
         }
     }
