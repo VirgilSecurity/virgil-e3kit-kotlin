@@ -122,7 +122,7 @@ class EThree
                                             this.publicKey,
                                             currentIdentity())
 
-                    keyManagerLocal.store(this.privateKey.privateKey.exportPrivateKey())
+                    keyManagerLocal.store(virgilCrypto.exportPrivateKey(this.privateKey))
                 }
             }
 
@@ -373,15 +373,15 @@ class EThree
 
         return (publicKeys == null).let { isNull ->
             (if (isNull) {
-                listOf(loadCurrentPublicKey() as VirgilPublicKey)
+                listOf(loadCurrentPublicKey())
             } else {
                 publicKeys?.asSequence()?.filterIsInstance<VirgilPublicKey>()?.toMutableList()
                         ?.apply {
-                            add(loadCurrentPublicKey() as VirgilPublicKey)
+                            add(loadCurrentPublicKey())
                         }
             })
         }.let { keys ->
-            virgilCrypto.signThenEncrypt(data, loadCurrentPrivateKey() as VirgilPrivateKey, keys)
+            virgilCrypto.signThenEncrypt(data, loadCurrentPrivateKey(), keys)
         }
     }
 
@@ -428,16 +428,16 @@ class EThree
 
         return (sendersKey == null).let { isNull ->
             (if (isNull) {
-                listOf(loadCurrentPublicKey() as VirgilPublicKey)
+                listOf(loadCurrentPublicKey())
             } else {
                 mutableListOf(sendersKey as VirgilPublicKey).apply {
-                    add(loadCurrentPublicKey() as VirgilPublicKey)
+                    add(loadCurrentPublicKey())
                 }
             })
         }.let { keys ->
             virgilCrypto.decryptThenVerify(
                 data,
-                loadCurrentPrivateKey() as VirgilPrivateKey,
+                loadCurrentPrivateKey(),
                 keys
             )
         }

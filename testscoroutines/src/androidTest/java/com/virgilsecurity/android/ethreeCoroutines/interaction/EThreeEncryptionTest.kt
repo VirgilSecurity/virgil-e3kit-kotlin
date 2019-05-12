@@ -321,7 +321,7 @@ class EThreeEncryptionTest {
 
         val anyKeypair = TestConfig.virgilCrypto.generateKeyPair()
         keyStorage.store(JsonKeyEntry(identityTwo,
-                                      anyKeypair.privateKey.privateKey.exportPrivateKey()))
+                                      VirgilCrypto().exportPrivateKey(anyKeypair.privateKey)))
 
         val encrypted = eThreeTwo.encrypt(RAW_TEXT)
         val decrypted = eThreeTwo.decrypt(encrypted)
