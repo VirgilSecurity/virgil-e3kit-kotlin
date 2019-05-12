@@ -226,12 +226,9 @@ class EThreeAuthTest {
 
         assertTrue(cardManager.searchCards(identity).last().previousCardId != null)
 
-        val newKey = keyStorage.load(identity)
-        assertThat(publishPair.left.privateKey.privateKey.exportPrivateKey(),
-                   IsNot.not(IsEqual.equalTo(VirgilCrypto().importPrivateKey(newKey.value)
-                                                     .privateKey
-                                                     .privateKey
-                                                     .exportPrivateKey())))
+        val newKeyData = keyStorage.load(identity).value
+        val oldKeyData = publishPair.left.privateKey.privateKey.exportPrivateKey()
+        assertThat(oldKeyData, IsNot.not(IsEqual.equalTo(newKeyData)))
     }
 
     @Test fun rotate_when_multiply_cards_available() {

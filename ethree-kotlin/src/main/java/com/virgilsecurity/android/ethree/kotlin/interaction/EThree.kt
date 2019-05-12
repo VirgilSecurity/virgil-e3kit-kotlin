@@ -34,7 +34,6 @@
 package com.virgilsecurity.android.ethree.kotlin.interaction
 
 import android.content.Context
-import android.util.Log
 import com.virgilsecurity.android.common.data.Const.NO_CONTEXT
 import com.virgilsecurity.android.common.data.Const.VIRGIL_BASE_URL
 import com.virgilsecurity.android.common.data.Const.VIRGIL_CARDS_SERVICE_PATH
@@ -470,7 +469,7 @@ class EThree
         }.let { keys ->
             virgilCrypto.decryptThenVerify(
                 data,
-                loadCurrentPrivateKey() as VirgilPrivateKey,
+                loadCurrentPrivateKey(),
                 keys
             )
         }

@@ -66,6 +66,7 @@ import com.virgilsecurity.sdk.storage.KeyStorage
 import com.virgilsecurity.sdk.utils.Tuple
 import org.junit.Assert.*
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 import java.net.URL
 import java.util.*
