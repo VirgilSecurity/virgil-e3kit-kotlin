@@ -62,7 +62,7 @@ android {
 
 dependencies {
     // Internal
-    testImplementation project(':ethree-kotlin')
+    implementation project(':ethree-kotlin')
 
     // Kotlin
     androidTestImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$versions.kotlin"
