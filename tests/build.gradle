@@ -82,7 +82,7 @@ dependencies {
     }
 
     // Tests core
-    androidTestImplementation "junit:junit:$versions.junit"
+    testImplementation "junit:junit:$versions.junit"
     androidTestImplementation "com.android.support.test:runner:$versions.testsRunner"
     androidTestImplementation "com.android.support.test.espresso:espresso-core:$versions.espresso"
 }
