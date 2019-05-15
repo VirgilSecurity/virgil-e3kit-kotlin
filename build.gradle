@@ -34,10 +34,10 @@
 buildscript {
     ext.versions = [
             // Virgil
-            virgilSdk   : '5.1.0-alpha-SNAPSHOT',
-            virgilCrypto: '0.7.0-SNAPSHOT',
-            pythia      : '0.3.0-alpha-SNAPSHOT',
-            keyknox     : '0.2.0-alpha-SNAPSHOT',
+            virgilSdk   : '5.1.0',
+            virgilCrypto: '0.7.0',
+            pythia      : '0.3.0',
+            keyknox     : '0.2.0',
 
             // Kotlin
             kotlin      : '1.3.31',

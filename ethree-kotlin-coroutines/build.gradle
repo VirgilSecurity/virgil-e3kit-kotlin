@@ -55,7 +55,7 @@ android {
 }
 
 group 'com.virgilsecurity'
-version '0.3.0-alpha-SNAPSHOT'
+version '0.4.0'
 
 dependencies {
     // Inner dependencies
