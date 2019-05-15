@@ -42,7 +42,7 @@ apply plugin: 'maven'
 apply plugin: 'org.jetbrains.dokka'
 
 group 'com.virgilsecurity'
-version '0.4.0-alpha-SNAPSHOT'
+version '0.4.0'
 
 dependencies {
     // Kotlin
