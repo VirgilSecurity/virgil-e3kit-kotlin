@@ -134,16 +134,17 @@ class EThreeAuthTest {
         )
     }
 
-    private fun generateRawCard(identity: String, cardManager: CardManager): Tuple<VirgilKeyPair, RawSignedModel> {
-        return VirgilCrypto().generateKeys().let {
+    private fun generateRawCard(identity: String,
+                                cardManager: CardManager): Tuple<VirgilKeyPair, RawSignedModel> {
+        return VirgilCrypto().generateKeyPair().let {
             Tuple(it, cardManager.generateRawCard(it.privateKey, it.publicKey, identity))
         }
     }
 
     // STE-Auth-8
     @Test fun delete_local_key() {
-        val keys = VirgilCrypto().generateKeys()
-        keyStorage.store(JsonKeyEntry(identity, keys.privateKey.rawKey))
+        val keys = VirgilCrypto().generateKeyPair()
+        keyStorage.store(JsonKeyEntry(identity, keys.privateKey.privateKey.exportPrivateKey()))
         assertTrue(keyStorage.exists(identity))
         initEThree(identity).cleanup()
         Assert.assertFalse(keyStorage.exists(identity))
@@ -171,7 +172,11 @@ class EThreeAuthTest {
 
     // STE-Auth-11
     @Test fun register_with_existing_private_key() {
-        keyStorage.store(JsonKeyEntry(identity, virgilCrypto.generateKeys().privateKey.rawKey))
+        keyStorage.store(JsonKeyEntry(identity,
+                                      virgilCrypto.generateKeyPair()
+                                              .privateKey
+                                              .privateKey
+                                              .exportPrivateKey()))
         val eThree = initEThree(identity)
 
         runBlocking {
@@ -221,9 +226,9 @@ class EThreeAuthTest {
 
         assertTrue(cardManager.searchCards(identity).last().previousCardId != null)
 
-        val newKey = keyStorage.load(identity)
-        Assert.assertThat(publishPair.left.privateKey.rawKey,
-                          IsNot.not(IsEqual.equalTo(VirgilCrypto().importPrivateKey(newKey.value).rawKey)))
+        val newKeyData = keyStorage.load(identity).value
+        val oldKeyData = publishPair.left.privateKey.privateKey.exportPrivateKey()
+        assertThat(oldKeyData, IsNot.not(IsEqual.equalTo(newKeyData)))
     }
 
     @Test fun rotate_when_multiply_cards_available() {

@@ -42,20 +42,24 @@ apply plugin: 'maven'
 apply plugin: 'org.jetbrains.dokka'
 
 group 'com.virgilsecurity'
-version '0.3.2'
+version '0.4.0'
 
 dependencies {
     // Kotlin
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:$versions.kotlin"
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$versions.coroutines"
+    compileOnly "org.jetbrains.kotlin:kotlin-stdlib:$versions.kotlin"
+    compileOnly "org.jetbrains.kotlinx:kotlinx-coroutines-core:$versions.coroutines"
 
     // Virgil
-    compileOnly "com.virgilsecurity.sdk:crypto:$versions.virgilSdk"
-    implementation "com.virgilsecurity.sdk:sdk:$versions.virgilSdk"
+    api "com.virgilsecurity.sdk:sdk:$versions.virgilSdk"
     implementation "com.virgilsecurity.sdk:crypto-android:$versions.virgilSdk"
+
     implementation("com.virgilsecurity:pythia:$versions.pythia") {
         exclude group: 'com.virgilsecurity.sdk', module: 'crypto'
+        exclude group: 'com.virgilsecurity.crypto', module: 'common'
+        exclude group: 'com.virgilsecurity.crypto', module: 'foundation'
+        exclude group: 'com.virgilsecurity.crypto', module: 'pythia'
     }
+    implementation "com.virgilsecurity.crypto:pythia-android:$versions.virgilCrypto"
     implementation("com.virgilsecurity:keyknox:$versions.keyknox") {
         exclude group: 'com.virgilsecurity.sdk', module: 'crypto'
         exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'

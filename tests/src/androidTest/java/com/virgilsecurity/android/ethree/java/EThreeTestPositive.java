@@ -139,7 +139,7 @@ public class EThreeTestPositive {
     private Tuple<VirgilKeyPair, RawSignedModel> generateRawCard(String identity, CardManager cardManager) {
         VirgilCrypto virgilCrypto = new VirgilCrypto();
         try {
-            VirgilKeyPair keyPair = virgilCrypto.generateKeys();
+            VirgilKeyPair keyPair = virgilCrypto.generateKeyPair();
             return new Tuple<>(keyPair,
                                cardManager.generateRawCard(keyPair.getPrivateKey(),
                                                            keyPair.getPublicKey(),

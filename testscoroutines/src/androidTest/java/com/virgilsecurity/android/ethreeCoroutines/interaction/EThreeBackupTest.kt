@@ -170,7 +170,7 @@ class EThreeBackupTest {
     }
 
     private fun generateRawCard(identity: String, cardManager: CardManager): Tuple<VirgilKeyPair, RawSignedModel> {
-        return VirgilCrypto().generateKeys().let {
+        return VirgilCrypto().generateKeyPair().let {
             Tuple(it, cardManager.generateRawCard(it.privateKey, it.publicKey, identity))
         }
     }
@@ -205,7 +205,7 @@ class EThreeBackupTest {
         TestUtils.pause()
 
         val syncKeyStorage = initSyncKeyStorage(identity, password)
-        Assert.assertTrue(syncKeyStorage.exists(identity))
+        assertTrue(syncKeyStorage.exists(identity))
         val retrievedKey = syncKeyStorage.retrieve(identity)
         assertEquals(TestConfig.virgilCrypto.importPrivateKey(keyStorage.load(identity).value),
                      TestConfig.virgilCrypto.importPrivateKey(retrievedKey.value))
@@ -244,7 +244,7 @@ class EThreeBackupTest {
         TestUtils.pause()
 
         val syncKeyStorage = initSyncKeyStorage(identity, password)
-        Assert.assertTrue(syncKeyStorage.exists(identity))
+        assertTrue(syncKeyStorage.exists(identity))
         val retrievedKey = syncKeyStorage.retrieve(identity)
         assertEquals(TestConfig.virgilCrypto.importPrivateKey(keyStorage.load(identity).value),
                      TestConfig.virgilCrypto.importPrivateKey(retrievedKey.value))
@@ -302,7 +302,7 @@ class EThreeBackupTest {
                     .onSuccess { successWithNewPassword = true }
                     .onError { fail(it.message) }
         }
-        Assert.assertTrue(successWithNewPassword)
+        assertTrue(successWithNewPassword)
     }
 
     // STE-18_1

@@ -66,6 +66,7 @@ import com.virgilsecurity.sdk.storage.KeyStorage
 import com.virgilsecurity.sdk.utils.Tuple
 import org.junit.Assert.*
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 import java.net.URL
 import java.util.*
@@ -189,8 +190,9 @@ class EThreeBackupTest {
         )
     }
 
-    private fun generateRawCard(identity: String, cardManager: CardManager): Tuple<VirgilKeyPair, RawSignedModel> {
-        return VirgilCrypto().generateKeys().let {
+    private fun generateRawCard(identity: String,
+                                cardManager: CardManager): Tuple<VirgilKeyPair, RawSignedModel> {
+        return VirgilCrypto().generateKeyPair().let {
             Tuple(it, cardManager.generateRawCard(it.privateKey, it.publicKey, identity))
         }
     }
@@ -540,7 +542,6 @@ class EThreeBackupTest {
         val identity = UUID.randomUUID().toString()
         val password = UUID.randomUUID().toString()
         val eThreeWithPass = initAndRegisterEThree(identity)
-
         TestUtils.pause()
 
         val waiter = CountDownLatch(1)

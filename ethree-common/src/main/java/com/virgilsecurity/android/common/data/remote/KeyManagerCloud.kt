@@ -43,8 +43,8 @@ import com.virgilsecurity.pythia.brainkey.BrainKey
 import com.virgilsecurity.pythia.brainkey.BrainKeyContext
 import com.virgilsecurity.pythia.client.VirgilPythiaClient
 import com.virgilsecurity.pythia.crypto.VirgilPythiaCrypto
-import com.virgilsecurity.sdk.crypto.PrivateKey
-import com.virgilsecurity.sdk.crypto.PublicKey
+import com.virgilsecurity.sdk.crypto.VirgilPrivateKey
+import com.virgilsecurity.sdk.crypto.VirgilPublicKey
 import com.virgilsecurity.sdk.jwt.contract.AccessTokenProvider
 import java.net.URL
 import kotlin.coroutines.resume
@@ -81,8 +81,8 @@ class KeyManagerCloud(
             }
 
     suspend fun updateRecipients(password: String,
-                                 publicKeys: List<PublicKey>,
-                                 privateKey: PrivateKey) =
+                                 publicKeys: List<VirgilPublicKey>,
+                                 privateKey: VirgilPrivateKey) =
             initCloudKeyStorage(password).updateRecipients(publicKeys, privateKey)
 
     /**

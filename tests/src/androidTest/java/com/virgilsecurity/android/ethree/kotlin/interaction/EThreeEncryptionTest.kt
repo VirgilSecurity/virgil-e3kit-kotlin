@@ -145,8 +145,9 @@ class EThreeEncryptionTest {
         )
     }
 
-    private fun generateRawCard(identity: String, cardManager: CardManager): Tuple<VirgilKeyPair, RawSignedModel> {
-        return VirgilCrypto().generateKeys().let {
+    private fun generateRawCard(identity: String,
+                                cardManager: CardManager): Tuple<VirgilKeyPair, RawSignedModel> {
+        return VirgilCrypto().generateKeyPair().let {
             Tuple(it, cardManager.generateRawCard(it.privateKey, it.publicKey, identity))
         }
     }
@@ -158,10 +159,11 @@ class EThreeEncryptionTest {
                                                                           cardManagerOne).right)
 
         eThree.lookupPublicKeys(listOf(identityOne),
-                                object : EThree.OnResultListener<Map<String, PublicKey>> {
-                                    override fun onSuccess(result: Map<String, PublicKey>) {
+                                object : EThree.OnResultListener<Map<String, VirgilPublicKey>> {
+                                    override fun onSuccess(result: Map<String, VirgilPublicKey>) {
                                         assertTrue(result.isNotEmpty() && result.size == 1)
-                                        assertEquals(publishedCardOne.publicKey, result[identityOne])
+                                        assertEquals(publishedCardOne.publicKey,
+                                                     result[identityOne])
                                     }
 
                                     override fun onError(throwable: Throwable) {
@@ -191,15 +193,15 @@ class EThreeEncryptionTest {
                                                                               cardManagerThree).right)
 
         eThree.lookupPublicKeys(listOf(identityOne, identityTwo, identityThree),
-                                object : EThree.OnResultListener<Map<String, PublicKey>> {
+                                object : EThree.OnResultListener<Map<String, VirgilPublicKey>> {
 
-                                    override fun onSuccess(result: Map<String, PublicKey>) {
+                                    override fun onSuccess(result: Map<String, VirgilPublicKey>) {
                                         assertTrue(result.isNotEmpty() && result.size == 3)
-                                            if (result[identityOne] == publishedCardOne.publicKey
-                                                 && result[identityTwo] == publishedCardTwo.publicKey
-                                                 && result[identityThree] == publishedCardThree.publicKey) {
-                                                foundCards= true
-                                            }
+                                        if (result[identityOne] == publishedCardOne.publicKey
+                                            && result[identityTwo] == publishedCardTwo.publicKey
+                                            && result[identityThree] == publishedCardThree.publicKey) {
+                                            foundCards = true
+                                        }
 
                                         assertTrue(foundCards)
                                     }
@@ -212,8 +214,8 @@ class EThreeEncryptionTest {
 
     //STE-2
     @Test fun lookup_zero_users() {
-        eThree.lookupPublicKeys(listOf(), object : EThree.OnResultListener<Map<String, PublicKey>> {
-            override fun onSuccess(result: Map<String, PublicKey>) {
+        eThree.lookupPublicKeys(listOf(), object : EThree.OnResultListener<Map<String, VirgilPublicKey>> {
+            override fun onSuccess(result: Map<String, VirgilPublicKey>) {
                 fail("Illegal State")
             }
 
@@ -227,12 +229,12 @@ class EThreeEncryptionTest {
         val identityTwo = UUID.randomUUID().toString()
         initAndRegisterEThree(identityTwo)
 
-        val eThreeKeys = mutableListOf<PublicKey>()
+        val eThreeKeys = mutableListOf<VirgilPublicKey>()
 
         val waiter = CountDownLatch(1)
         eThree.lookupPublicKeys(listOf(identity, identityTwo),
-                                object : EThree.OnResultListener<Map<String, PublicKey>> {
-                                    override fun onSuccess(result: Map<String, PublicKey>) {
+                                object : EThree.OnResultListener<Map<String, VirgilPublicKey>> {
+                                    override fun onSuccess(result: Map<String, VirgilPublicKey>) {
                                         eThreeKeys.addAll(result.values.toList())
                                         waiter.countDown()
                                     }
@@ -258,12 +260,12 @@ class EThreeEncryptionTest {
         val identityTwo = UUID.randomUUID().toString()
         val eThreeTwo = initAndRegisterEThree(identityTwo)
 
-        val eThreeKeys = mutableListOf<PublicKey>()
+        val eThreeKeys = mutableListOf<VirgilPublicKey>()
 
         val waiter = CountDownLatch(1)
         eThree.lookupPublicKeys(listOf(identity, identityTwo),
-                                object : EThree.OnResultListener<Map<String, PublicKey>> {
-                                    override fun onSuccess(result: Map<String, PublicKey>) {
+                                object : EThree.OnResultListener<Map<String, VirgilPublicKey>> {
+                                    override fun onSuccess(result: Map<String, VirgilPublicKey>) {
                                         eThreeKeys.addAll(result.values.toList())
                                         waiter.countDown()
                                     }
@@ -277,7 +279,7 @@ class EThreeEncryptionTest {
         assertTrue(eThreeKeys.size == 2)
         val encryptedForOne = eThree.encrypt(RAW_TEXT, listOf(eThreeKeys[1]))
 
-        val wrongPublicKey = TestConfig.virgilCrypto.generateKeys().publicKey
+        val wrongPublicKey = TestConfig.virgilCrypto.generateKeyPair().publicKey
         var failedWithWrongKey = false
         try {
             eThreeTwo.decrypt(encryptedForOne, wrongPublicKey)
@@ -299,7 +301,7 @@ class EThreeEncryptionTest {
 
     // STE-5
     @Test fun encrypt_without_sign() {
-        val keyPair = TestConfig.virgilCrypto.generateKeys()
+        val keyPair = TestConfig.virgilCrypto.generateKeyPair()
         val encryptedWithoutSign = TestConfig.virgilCrypto.encrypt(RAW_TEXT.toByteArray(),
                                                                    keyPair.publicKey)
 
@@ -337,7 +339,7 @@ class EThreeEncryptionTest {
 
         waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
 
-        val keys = TestConfig.virgilCrypto.generateKeys()
+        val keys = TestConfig.virgilCrypto.generateKeyPair()
 
         var failedToEncrypt = false
         try {
@@ -397,8 +399,9 @@ class EThreeEncryptionTest {
         val identityTwo = UUID.randomUUID().toString()
         val eThreeTwo = initEThree(identityTwo)
 
-        val anyKeypair = TestConfig.virgilCrypto.generateKeys()
-        keyStorage.store(JsonKeyEntry(identityTwo, anyKeypair.privateKey.rawKey))
+        val anyKeypair = TestConfig.virgilCrypto.generateKeyPair()
+        keyStorage.store(JsonKeyEntry(identityTwo,
+                                      VirgilCrypto().exportPrivateKey(anyKeypair.privateKey)))
 
         val encrypted = eThreeTwo.encrypt(RAW_TEXT)
         val decrypted = eThreeTwo.decrypt(encrypted)
