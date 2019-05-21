@@ -46,6 +46,7 @@ class TestConfig {
         val appId = BuildConfig.APP_ID
         val apiKey: VirgilPrivateKey by lazy {
             virgilCrypto.importPrivateKey(ConvertionUtils.base64ToBytes(BuildConfig.API_PRIVATE_KEY))
+                    .privateKey
         }
         val apiPublicKey: VirgilPublicKey by lazy {
             virgilCrypto.importPublicKey(ConvertionUtils.base64ToBytes(BuildConfig.API_PUBLIC_KEY))

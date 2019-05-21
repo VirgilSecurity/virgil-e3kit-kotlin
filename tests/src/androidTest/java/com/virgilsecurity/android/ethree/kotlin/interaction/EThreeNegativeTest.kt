@@ -41,6 +41,7 @@ import com.virgilsecurity.android.ethree.utils.TestUtils
 import com.virgilsecurity.sdk.common.TimeSpan
 import com.virgilsecurity.sdk.crypto.PublicKey
 import com.virgilsecurity.sdk.crypto.VirgilAccessTokenSigner
+import com.virgilsecurity.sdk.crypto.VirgilPublicKey
 import com.virgilsecurity.sdk.jwt.JwtGenerator
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
 import com.virgilsecurity.sdk.storage.KeyStorage
@@ -205,8 +206,8 @@ class EThreeNegativeTest {
     @Test fun lookup_fail_without_bootstrap() {
         var failed = false
         val waiter = CountDownLatch(1)
-        eThree.lookupPublicKeys(listOf(""), object : EThree.OnResultListener<Map<String, PublicKey>> {
-            override fun onSuccess(result: Map<String, PublicKey>) {
+        eThree.lookupPublicKeys(listOf(""), object : EThree.OnResultListener<Map<String, VirgilPublicKey>> {
+            override fun onSuccess(result: Map<String, VirgilPublicKey>) {
                 fail("Not Bootstrapped")
             }
 
@@ -225,8 +226,8 @@ class EThreeNegativeTest {
         var failed = false
         val waiter = CountDownLatch(1)
         eThree.lookupPublicKeys(listOf(identity, WRONG_IDENTITY),
-                                object : EThree.OnResultListener<Map<String, PublicKey>> {
-                                    override fun onSuccess(result: Map<String, PublicKey>) {
+                                object : EThree.OnResultListener<Map<String, VirgilPublicKey>> {
+                                    override fun onSuccess(result: Map<String, VirgilPublicKey>) {
                                         fail("Illegal State")
                                     }
 
@@ -269,8 +270,8 @@ class EThreeNegativeTest {
         eThree.lookupPublicKeys(listOf(identity, identity, identity,
                                        WRONG_IDENTITY, WRONG_IDENTITY,
                                        WRONG_IDENTITY + identity),
-                                object : EThree.OnResultListener<Map<String, PublicKey>> {
-                                    override fun onSuccess(result: Map<String, PublicKey>) {
+                                object : EThree.OnResultListener<Map<String, VirgilPublicKey>> {
+                                    override fun onSuccess(result: Map<String, VirgilPublicKey>) {
                                         fail("Illegal State")
                                     }
 
