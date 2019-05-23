@@ -38,12 +38,12 @@ import com.virgilsecurity.android.common.data.Const.NO_CONTEXT
 import com.virgilsecurity.android.common.data.Const.VIRGIL_BASE_URL
 import com.virgilsecurity.android.common.data.Const.VIRGIL_CARDS_SERVICE_PATH
 import com.virgilsecurity.android.common.data.local.KeyManagerLocal
+import com.virgilsecurity.android.common.data.model.LookupResult
 import com.virgilsecurity.android.common.data.remote.KeyManagerCloud
 import com.virgilsecurity.android.common.exceptions.*
 import com.virgilsecurity.android.ethree.kotlin.callback.OnCompleteListener
 import com.virgilsecurity.android.ethree.kotlin.callback.OnGetTokenCallback
 import com.virgilsecurity.android.ethree.kotlin.callback.OnResultListener
-import com.virgilsecurity.android.ethree.kotlin.extension.publicKeys
 import com.virgilsecurity.keyknox.exception.DecryptionFailedException
 import com.virgilsecurity.keyknox.exception.EntryAlreadyExistsException
 import com.virgilsecurity.pythia.brainkey.BrainKey
@@ -67,8 +67,6 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.io.InputStream
 import java.io.OutputStream
-
-typealias LookupResult = Map<String, VirgilPublicKey>
 
 /**
  * [EThree] class simplifies work with Virgil Services to easily implement End to End Encrypted
@@ -373,7 +371,7 @@ class EThree
 
         if (text.isBlank()) throw EmptyArgumentException("text")
         if (lookupResult?.isEmpty() == true) throw EmptyArgumentException("publicKeys")
-        if (lookupResult?.publicKeys()?.contains(loadCurrentPublicKey()) == true)
+        if (lookupResult?.values?.contains(loadCurrentPublicKey()) == true)
             throw IllegalArgumentException("You should not include your own public key.")
 
         return signThenEncryptData(text.toByteArray(), lookupResult).let {
@@ -398,7 +396,7 @@ class EThree
 
         if (data.isEmpty()) throw EmptyArgumentException("data")
         if (lookupResult?.isEmpty() == true) throw EmptyArgumentException("publicKeys")
-        if (lookupResult?.publicKeys()?.contains(loadCurrentPublicKey()) == true)
+        if (lookupResult?.values?.contains(loadCurrentPublicKey()) == true)
             throw IllegalArgumentException("You should not include your own public key.")
 
         return signThenEncryptData(data, lookupResult)
@@ -422,10 +420,10 @@ class EThree
         checkPrivateKeyOrThrow()
 
         if (inputStream.available() == 0) throw EmptyArgumentException("inputStream")
-        if (lookupResult?.publicKeys()?.contains(loadCurrentPublicKey()) == true)
+        if (lookupResult?.values?.contains(loadCurrentPublicKey()) == true)
             throw IllegalArgumentException("You should not include your own public key.")
 
-        (lookupResult?.publicKeys()?.toMutableList()?.apply { add(loadCurrentPublicKey()) }
+        (lookupResult?.values?.toMutableList()?.apply { add(loadCurrentPublicKey()) }
          ?: listOf(loadCurrentPublicKey())).run {
             virgilCrypto.encrypt(inputStream, outputStream, this)
         }
@@ -441,7 +439,7 @@ class EThree
      */
     private fun signThenEncryptData(data: ByteArray,
                                     lookupResult: LookupResult? = null): ByteArray =
-            (lookupResult?.publicKeys()?.toMutableList()?.apply { add(loadCurrentPublicKey()) }
+            (lookupResult?.values?.toMutableList()?.apply { add(loadCurrentPublicKey()) }
              ?: listOf(loadCurrentPublicKey())).run {
                 virgilCrypto.signThenEncrypt(data, loadCurrentPrivateKey(), this)
             }
@@ -538,7 +536,7 @@ class EThree
             }
 
     /**
-     * Retrieves user public keys from the cloud for encryption/verification operations.
+     * Retrieves user public key from the cloud for encryption/verification operations.
      *
      * Searches for public key with specified [identity] and returns map of [String] ->
      * [PublicKey] in [onResultListener] callback or [Throwable] if something went wrong.
