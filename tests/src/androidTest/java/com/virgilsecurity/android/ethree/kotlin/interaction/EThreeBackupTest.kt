@@ -37,6 +37,9 @@ import com.virgilsecurity.android.common.exceptions.BackupKeyException
 import com.virgilsecurity.android.common.exceptions.PrivateKeyNotFoundException
 import com.virgilsecurity.android.common.exceptions.RestoreKeyException
 import com.virgilsecurity.android.common.exceptions.WrongPasswordException
+import com.virgilsecurity.android.ethree.kotlin.callback.OnCompleteListener
+import com.virgilsecurity.android.ethree.kotlin.callback.OnGetTokenCallback
+import com.virgilsecurity.android.ethree.kotlin.callback.OnResultListener
 import com.virgilsecurity.android.ethree.utils.TestConfig
 import com.virgilsecurity.android.ethree.utils.TestConfig.Companion.virgilBaseUrl
 import com.virgilsecurity.android.ethree.utils.TestUtils
@@ -66,7 +69,6 @@ import com.virgilsecurity.sdk.storage.KeyStorage
 import com.virgilsecurity.sdk.utils.Tuple
 import org.junit.Assert.*
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Test
 import java.net.URL
 import java.util.*
@@ -110,11 +112,11 @@ class EThreeBackupTest {
         var eThree: EThree? = null
         val waiter = CountDownLatch(1)
 
-        EThree.initialize(TestConfig.context, object : EThree.OnGetTokenCallback {
+        EThree.initialize(TestConfig.context, object : OnGetTokenCallback {
             override fun onGetToken(): String {
                 return jwtGenerator.generateToken(identity).stringRepresentation()
             }
-        }, object : EThree.OnResultListener<EThree> {
+        }, object : OnResultListener<EThree> {
             override fun onSuccess(result: EThree) {
                 eThree = result
                 waiter.countDown()
@@ -134,7 +136,7 @@ class EThreeBackupTest {
     private fun registerEThree(eThree: EThree): EThree {
         val waiter = CountDownLatch(1)
 
-        eThree.register(object : EThree.OnCompleteListener {
+        eThree.register(object : OnCompleteListener {
 
             override fun onSuccess() {
                 // Good, go on
@@ -206,7 +208,7 @@ class EThreeBackupTest {
 
         val waiter = CountDownLatch(1)
         var failedToBackup = false
-        eThree.backupPrivateKey(password, object : EThree.OnCompleteListener {
+        eThree.backupPrivateKey(password, object : OnCompleteListener {
             override fun onSuccess() {
                 fail("Illegal State")
             }
@@ -232,7 +234,7 @@ class EThreeBackupTest {
 
         val waiter = CountDownLatch(1)
         var successfullyBackuped = false
-        eThree.backupPrivateKey(password, object : EThree.OnCompleteListener {
+        eThree.backupPrivateKey(password, object : OnCompleteListener {
             override fun onSuccess() {
                 successfullyBackuped = true
                 waiter.countDown()
@@ -257,7 +259,7 @@ class EThreeBackupTest {
 
         val waiterTwo = CountDownLatch(1)
         var failedToBackup = false
-        eThree.backupPrivateKey(password, object : EThree.OnCompleteListener {
+        eThree.backupPrivateKey(password, object : OnCompleteListener {
             override fun onSuccess() {
                 fail("Illegal State")
             }
@@ -283,7 +285,7 @@ class EThreeBackupTest {
         TestUtils.pause()
 
         val waiter = CountDownLatch(1)
-        eThreeWithPass.backupPrivateKey(password, object : EThree.OnCompleteListener {
+        eThreeWithPass.backupPrivateKey(password, object : OnCompleteListener {
             override fun onSuccess() {
                 waiter.countDown()
             }
@@ -299,7 +301,7 @@ class EThreeBackupTest {
         eThreeWithPass.cleanup()
         val waiterTwo = CountDownLatch(1)
         var restoreSuccessful = false
-        eThreeWithPass.restorePrivateKey(password, object : EThree.OnCompleteListener {
+        eThreeWithPass.restorePrivateKey(password, object : OnCompleteListener {
 
             override fun onSuccess() {
                 restoreSuccessful = true
@@ -325,7 +327,7 @@ class EThreeBackupTest {
 
         val waiterThree = CountDownLatch(1)
         var failedToRestore = false
-        eThreeWithPass.restorePrivateKey(password, object : EThree.OnCompleteListener {
+        eThreeWithPass.restorePrivateKey(password, object : OnCompleteListener {
 
             override fun onSuccess() {
                 fail("Illegal state")
@@ -353,7 +355,7 @@ class EThreeBackupTest {
         TestUtils.pause()
 
         val waiter = CountDownLatch(1)
-        eThreeWithPass.backupPrivateKey(password, object : EThree.OnCompleteListener {
+        eThreeWithPass.backupPrivateKey(password, object : OnCompleteListener {
             override fun onSuccess() {
                 waiter.countDown()
             }
@@ -368,7 +370,7 @@ class EThreeBackupTest {
 
         val waiterOne = CountDownLatch(1)
         var passwordChanged = false
-        eThreeWithPass.changePassword(password, passwordNew, object : EThree.OnCompleteListener {
+        eThreeWithPass.changePassword(password, passwordNew, object : OnCompleteListener {
             override fun onSuccess() {
                 passwordChanged = true
                 waiterOne.countDown()
@@ -386,7 +388,7 @@ class EThreeBackupTest {
         eThreeWithPass.cleanup()
         val waiterTwo = CountDownLatch(1)
         var failedWithOldPassword = false
-        eThreeWithPass.restorePrivateKey(password, object : EThree.OnCompleteListener {
+        eThreeWithPass.restorePrivateKey(password, object : OnCompleteListener {
 
             override fun onSuccess() {
                 fail("Illegal State")
@@ -406,7 +408,7 @@ class EThreeBackupTest {
 
         val waiterThree = CountDownLatch(1)
         var successWithNewPassword = false
-        eThreeWithPass.restorePrivateKey(passwordNew, object : EThree.OnCompleteListener {
+        eThreeWithPass.restorePrivateKey(passwordNew, object : OnCompleteListener {
 
             override fun onSuccess() {
                 successWithNewPassword = true
@@ -431,7 +433,7 @@ class EThreeBackupTest {
 
         val waiter = CountDownLatch(1)
         var failedToReset = false
-        eThreeWithPass.resetPrivateKeyBackup(password, object : EThree.OnCompleteListener {
+        eThreeWithPass.resetPrivateKeyBackup(password, object : OnCompleteListener {
             override fun onSuccess() {
                 fail("Illegal state")
             }
@@ -461,7 +463,7 @@ class EThreeBackupTest {
         TestUtils.pause()
 
         val waiter = CountDownLatch(1)
-        eThreeWithPass.backupPrivateKey(password, object : EThree.OnCompleteListener {
+        eThreeWithPass.backupPrivateKey(password, object : OnCompleteListener {
             override fun onSuccess() {
                 waiter.countDown()
             }
@@ -476,7 +478,7 @@ class EThreeBackupTest {
 
         val waiterTwo = CountDownLatch(1)
         var successfulKeyReset = false
-        eThreeWithPass.resetPrivateKeyBackup(password, object : EThree.OnCompleteListener {
+        eThreeWithPass.resetPrivateKeyBackup(password, object : OnCompleteListener {
             override fun onSuccess() {
                 successfulKeyReset = true
                 waiterTwo.countDown()
@@ -504,7 +506,7 @@ class EThreeBackupTest {
         TestUtils.pause()
 
         val waiter = CountDownLatch(1)
-        eThreeWithPass.backupPrivateKey(password, object : EThree.OnCompleteListener {
+        eThreeWithPass.backupPrivateKey(password, object : OnCompleteListener {
             override fun onSuccess() {
                 waiter.countDown()
             }
@@ -519,7 +521,7 @@ class EThreeBackupTest {
 
         val waiterTwo = CountDownLatch(1)
         var successfulKeyReset = false
-        eThreeWithPass.resetPrivateKeyBackup(onCompleteListener = object : EThree.OnCompleteListener {
+        eThreeWithPass.resetPrivateKeyBackup(onCompleteListener = object : OnCompleteListener {
             override fun onSuccess() {
                 successfulKeyReset = true
                 waiterTwo.countDown()
@@ -545,7 +547,7 @@ class EThreeBackupTest {
         TestUtils.pause()
 
         val waiter = CountDownLatch(1)
-        eThreeWithPass.backupPrivateKey(password, object : EThree.OnCompleteListener {
+        eThreeWithPass.backupPrivateKey(password, object : OnCompleteListener {
             override fun onSuccess() {
                 waiter.countDown()
             }
@@ -560,7 +562,7 @@ class EThreeBackupTest {
 
         val waiterTwo = CountDownLatch(1)
         var failedKeyReset = false
-        eThreeWithPass.resetPrivateKeyBackup(WRONG_PASSWORD, object : EThree.OnCompleteListener {
+        eThreeWithPass.resetPrivateKeyBackup(WRONG_PASSWORD, object : OnCompleteListener {
             override fun onSuccess() {
                 fail("Illegal state")
             }

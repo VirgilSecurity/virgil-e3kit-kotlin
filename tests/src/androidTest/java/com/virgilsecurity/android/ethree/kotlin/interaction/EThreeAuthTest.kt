@@ -36,6 +36,9 @@ package com.virgilsecurity.android.ethree.kotlin.interaction
 import com.virgilsecurity.android.common.exceptions.CardNotFoundException
 import com.virgilsecurity.android.common.exceptions.PrivateKeyExistsException
 import com.virgilsecurity.android.common.exceptions.RegistrationException
+import com.virgilsecurity.android.ethree.kotlin.callback.OnCompleteListener
+import com.virgilsecurity.android.ethree.kotlin.callback.OnGetTokenCallback
+import com.virgilsecurity.android.ethree.kotlin.callback.OnResultListener
 import com.virgilsecurity.android.ethree.utils.TestConfig
 import com.virgilsecurity.android.ethree.utils.TestConfig.Companion.virgilBaseUrl
 import com.virgilsecurity.android.ethree.utils.TestConfig.Companion.virgilCrypto
@@ -99,11 +102,11 @@ class EThreeAuthTest {
         var eThree: EThree? = null
         val waiter = CountDownLatch(1)
 
-        EThree.initialize(TestConfig.context, object : EThree.OnGetTokenCallback {
+        EThree.initialize(TestConfig.context, object : OnGetTokenCallback {
             override fun onGetToken(): String {
                 return jwtGenerator.generateToken(identity).stringRepresentation()
             }
-        }, object : EThree.OnResultListener<EThree> {
+        }, object : OnResultListener<EThree> {
             override fun onSuccess(result: EThree) {
                 eThree = result
                 waiter.countDown()
@@ -123,7 +126,7 @@ class EThreeAuthTest {
     private fun registerEThree(eThree: EThree): EThree {
         val waiter = CountDownLatch(1)
 
-        eThree.register(object : EThree.OnCompleteListener {
+        eThree.register(object : OnCompleteListener {
 
             override fun onSuccess() {
                 // Good, go on
@@ -182,7 +185,7 @@ class EThreeAuthTest {
         val eThree = initEThree(identity)
 
         val waiter = CountDownLatch(1)
-        eThree.register(object : EThree.OnCompleteListener {
+        eThree.register(object : OnCompleteListener {
             override fun onSuccess() {
                 fail("Illegal state")
             }
@@ -202,7 +205,7 @@ class EThreeAuthTest {
         val eThree = initEThree(identity)
 
         val waiter = CountDownLatch(1)
-        eThree.register(object : EThree.OnCompleteListener {
+        eThree.register(object : OnCompleteListener {
             override fun onSuccess() {
                 fail("Illegal state")
             }
@@ -220,7 +223,7 @@ class EThreeAuthTest {
         val eThree = initEThree(identity)
 
         val waiter = CountDownLatch(1)
-        eThree.rotatePrivateKey(object : EThree.OnCompleteListener {
+        eThree.rotatePrivateKey(object : OnCompleteListener {
             override fun onSuccess() {
                 fail("Illegal state")
             }
@@ -240,7 +243,7 @@ class EThreeAuthTest {
         assertTrue(initCardManager(identity).searchCards(identity).isNotEmpty())
 
         val waiterTwo = CountDownLatch(1)
-        eThree.rotatePrivateKey(object : EThree.OnCompleteListener {
+        eThree.rotatePrivateKey(object : OnCompleteListener {
             override fun onSuccess() {
                 fail("Illegal state")
             }
@@ -261,7 +264,7 @@ class EThreeAuthTest {
         val eThree = initEThree(identity)
 
         val waiterTwo = CountDownLatch(1)
-        eThree.rotatePrivateKey(object : EThree.OnCompleteListener {
+        eThree.rotatePrivateKey(object : OnCompleteListener {
             override fun onSuccess() {
                 waiterTwo.countDown()
             }
@@ -289,7 +292,7 @@ class EThreeAuthTest {
 
         var rotateFailed = false
         val waiterTwo = CountDownLatch(1)
-        eThree.rotatePrivateKey(object : EThree.OnCompleteListener {
+        eThree.rotatePrivateKey(object : OnCompleteListener {
             override fun onSuccess() {
                 fail("Illegal state")
             }
@@ -317,7 +320,7 @@ class EThreeAuthTest {
         var rotateFailed = false
         val waiterTwo = CountDownLatch(1)
         eThree.lookupPublicKeys(listOf(identity),
-                                object : EThree.OnResultListener<Map<String, VirgilPublicKey>> {
+                                object : OnResultListener<Map<String, VirgilPublicKey>> {
                                     override fun onSuccess(result: Map<String, VirgilPublicKey>) {
                                         fail("Illegal state")
                                     }
