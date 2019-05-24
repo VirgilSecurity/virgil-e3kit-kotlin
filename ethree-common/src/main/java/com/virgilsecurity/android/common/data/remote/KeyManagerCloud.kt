@@ -36,6 +36,7 @@ package com.virgilsecurity.android.common.data.remote
 import com.virgilsecurity.android.common.data.Const
 import com.virgilsecurity.android.common.data.Const.VIRGIL_BASE_URL
 import com.virgilsecurity.keyknox.KeyknoxManager
+import com.virgilsecurity.keyknox.client.HttpClient
 import com.virgilsecurity.keyknox.client.KeyknoxClient
 import com.virgilsecurity.keyknox.cloud.CloudKeyStorage
 import com.virgilsecurity.keyknox.crypto.KeyknoxCrypto
@@ -55,13 +56,18 @@ import kotlin.coroutines.suspendCoroutine
  */
 class KeyManagerCloud(
         private val identity: String,
-        private val tokenProvider: AccessTokenProvider
+        private val tokenProvider: AccessTokenProvider,
+        ethreeVersion: String
 ) {
 
-    private val keyknoxClient: KeyknoxClient = KeyknoxClient(URL(VIRGIL_BASE_URL))
+    private val keyknoxClient: KeyknoxClient =
+            KeyknoxClient(URL(VIRGIL_BASE_URL), HttpClient(Const.ETHREE_NAME, ethreeVersion))
     private val brainKeyContext: BrainKeyContext = BrainKeyContext.Builder()
             .setAccessTokenProvider(tokenProvider)
-            .setPythiaClient(VirgilPythiaClient(VIRGIL_BASE_URL))
+            .setPythiaClient(VirgilPythiaClient(VIRGIL_BASE_URL,
+                                                Const.ETHREE_NAME,
+                                                Const.ETHREE_NAME,
+                                                ethreeVersion))
             .setPythiaCrypto(VirgilPythiaCrypto())
             .build()
 
