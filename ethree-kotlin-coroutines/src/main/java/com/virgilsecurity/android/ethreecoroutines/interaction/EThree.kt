@@ -37,6 +37,7 @@ import android.content.Context
 import com.virgilsecurity.android.common.data.local.KeyManagerLocal
 import com.virgilsecurity.android.common.data.remote.KeyManagerCloud
 import com.virgilsecurity.android.common.exceptions.*
+import com.virgilsecurity.android.ethreecoroutines.build.VersionVirgilAgent
 import com.virgilsecurity.android.ethreecoroutines.extensions.asyncWithCatch
 import com.virgilsecurity.keyknox.exception.DecryptionFailedException
 import com.virgilsecurity.keyknox.exception.EntryAlreadyExistsException
@@ -96,7 +97,9 @@ class EThree
                         VirgilCardClient(VIRGIL_BASE_URL + VIRGIL_CARDS_SERVICE_PATH))
         }
         keyManagerLocal = KeyManagerLocal(tokenProvider.getToken(NO_CONTEXT).identity, context)
-        keyManagerCloud = KeyManagerCloud(currentIdentity(), tokenProvider)
+        keyManagerCloud = KeyManagerCloud(currentIdentity(),
+                                          tokenProvider,
+                                          VersionVirgilAgent.VERSION)
     }
 
     /**
