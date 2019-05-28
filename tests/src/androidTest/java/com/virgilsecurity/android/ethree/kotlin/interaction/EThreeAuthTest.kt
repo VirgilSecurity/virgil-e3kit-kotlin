@@ -40,12 +40,14 @@ import com.virgilsecurity.android.ethree.utils.TestConfig
 import com.virgilsecurity.android.ethree.utils.TestConfig.Companion.virgilBaseUrl
 import com.virgilsecurity.android.ethree.utils.TestConfig.Companion.virgilCrypto
 import com.virgilsecurity.android.ethree.utils.TestUtils
+import com.virgilsecurity.crypto.foundation.FoundationException
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.model.RawSignedModel
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
 import com.virgilsecurity.sdk.client.VirgilCardClient
 import com.virgilsecurity.sdk.common.TimeSpan
 import com.virgilsecurity.sdk.crypto.*
+import com.virgilsecurity.sdk.crypto.exceptions.CryptoException
 import com.virgilsecurity.sdk.jwt.JwtGenerator
 import com.virgilsecurity.sdk.jwt.accessProviders.GeneratorJwtProvider
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
@@ -277,6 +279,33 @@ class EThreeAuthTest {
         val newKeyData = keyStorage.load(identity).value
         val oldKeyData = publishPair.left.privateKey.privateKey.exportPrivateKey()
         assertThat(oldKeyData, not(equalTo(newKeyData)))
+    }
+
+    @Test fun encrypt_after_rotate() {
+        val cardManager = initCardManager(identity)
+        val publishPair = generateRawCard(identity, cardManager)
+        cardManager.publishCard(publishPair.right)
+        val eThree = initEThree(identity)
+
+        var encrypted: String? = null
+        val waiterTwo = CountDownLatch(1)
+        eThree.rotatePrivateKey(object : EThree.OnCompleteListener {
+            override fun onSuccess() {
+                try {
+                    encrypted = eThree.encrypt("Some text")
+                } catch (throwable: Throwable) {
+                    // Just leave encrypted == null
+                }
+                waiterTwo.countDown()
+            }
+
+            override fun onError(throwable: Throwable) {
+                // Just leave encrypted == null
+            }
+        })
+        waiterTwo.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+
+        assertNotNull("Error during keys rotation", encrypted)
     }
 
     @Test fun rotate_when_multiply_cards_available() {
