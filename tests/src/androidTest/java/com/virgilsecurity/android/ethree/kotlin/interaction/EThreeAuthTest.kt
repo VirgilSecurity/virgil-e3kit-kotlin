@@ -282,6 +282,33 @@ class EThreeAuthTest {
         assertThat(oldKeyData, not(equalTo(newKeyData)))
     }
 
+    @Test fun encrypt_after_rotate() {
+        val cardManager = initCardManager(identity)
+        val publishPair = generateRawCard(identity, cardManager)
+        cardManager.publishCard(publishPair.right)
+        val eThree = initEThree(identity)
+
+        var encrypted: String? = null
+        val waiterTwo = CountDownLatch(1)
+        eThree.rotatePrivateKey(object : OnCompleteListener {
+            override fun onSuccess() {
+                try {
+                    encrypted = eThree.encrypt("Some text")
+                } catch (throwable: Throwable) {
+                    // Just leave encrypted == null
+                }
+                waiterTwo.countDown()
+            }
+
+            override fun onError(throwable: Throwable) {
+                // Just leave encrypted == null
+            }
+        })
+        waiterTwo.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+
+        assertNotNull("Error during keys rotation", encrypted)
+    }
+
     @Test fun rotate_when_multiply_cards_available() {
         val cardManager = initCardManager(identity)
         val publishPair = generateRawCard(identity, cardManager)
@@ -336,5 +363,60 @@ class EThreeAuthTest {
         waiterTwo.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
 
         assertTrue(rotateFailed)
+    }
+
+    @Test fun unregister_with_local_key() {
+        val eThree = initAndRegisterEThree(identity)
+        assertTrue(keyStorage.exists(identity))
+
+        val cards = initCardManager(identity).searchCards(identity)
+        assertEquals(1, cards.size)
+        assertNotNull(cards)
+
+        val waiter = CountDownLatch(1)
+        eThree.unregister(object : OnCompleteListener {
+            override fun onSuccess() {
+
+                waiter.countDown()
+            }
+
+            override fun onError(throwable: Throwable) {
+                // TODO Implement body or it will be empty ):
+            }
+        })
+        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        assertFalse(keyStorage.exists(identity))
+
+        val cardsUnregistered = initCardManager(identity).searchCards(identity)
+        assertEquals(0, cardsUnregistered.size)
+    }
+
+    @Test fun unregister_without_local_key() {
+        val eThree = initAndRegisterEThree(identity)
+        assertTrue(keyStorage.exists(identity))
+
+        val cards = initCardManager(identity).searchCards(identity)
+        assertEquals(1, cards.size)
+        assertNotNull(cards)
+
+        eThree.cleanup()
+        assertFalse(keyStorage.exists(identity))
+
+        val waiter = CountDownLatch(1)
+        eThree.unregister(object : OnCompleteListener {
+            override fun onSuccess() {
+
+                waiter.countDown()
+            }
+
+            override fun onError(throwable: Throwable) {
+                // TODO Implement body or it will be empty ):
+            }
+        })
+        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        assertFalse(keyStorage.exists(identity))
+
+        val cardsUnregistered = initCardManager(identity).searchCards(identity)
+        assertEquals(0, cardsUnregistered.size)
     }
 }
