@@ -43,14 +43,12 @@ import com.virgilsecurity.android.ethree.utils.TestConfig
 import com.virgilsecurity.android.ethree.utils.TestConfig.Companion.virgilBaseUrl
 import com.virgilsecurity.android.ethree.utils.TestConfig.Companion.virgilCrypto
 import com.virgilsecurity.android.ethree.utils.TestUtils
-import com.virgilsecurity.crypto.foundation.FoundationException
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.model.RawSignedModel
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
 import com.virgilsecurity.sdk.client.VirgilCardClient
 import com.virgilsecurity.sdk.common.TimeSpan
 import com.virgilsecurity.sdk.crypto.*
-import com.virgilsecurity.sdk.crypto.exceptions.CryptoException
 import com.virgilsecurity.sdk.jwt.JwtGenerator
 import com.virgilsecurity.sdk.jwt.accessProviders.GeneratorJwtProvider
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
@@ -292,7 +290,7 @@ class EThreeAuthTest {
 
         var encrypted: String? = null
         val waiterTwo = CountDownLatch(1)
-        eThree.rotatePrivateKey(object : EThree.OnCompleteListener {
+        eThree.rotatePrivateKey(object : OnCompleteListener {
             override fun onSuccess() {
                 try {
                     encrypted = eThree.encrypt("Some text")
@@ -365,5 +363,60 @@ class EThreeAuthTest {
         waiterTwo.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
 
         assertTrue(rotateFailed)
+    }
+
+    @Test fun unregister_with_local_key() {
+        val eThree = initAndRegisterEThree(identity)
+        assertTrue(keyStorage.exists(identity))
+
+        val cards = initCardManager(identity).searchCards(identity)
+        assertEquals(1, cards.size)
+        assertNotNull(cards)
+
+        val waiter = CountDownLatch(1)
+        eThree.unregister(object : OnCompleteListener {
+            override fun onSuccess() {
+
+                waiter.countDown()
+            }
+
+            override fun onError(throwable: Throwable) {
+                // TODO Implement body or it will be empty ):
+            }
+        })
+        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        assertFalse(keyStorage.exists(identity))
+
+        val cardsUnregistered = initCardManager(identity).searchCards(identity)
+        assertEquals(0, cardsUnregistered.size)
+    }
+
+    @Test fun unregister_without_local_key() {
+        val eThree = initAndRegisterEThree(identity)
+        assertTrue(keyStorage.exists(identity))
+
+        val cards = initCardManager(identity).searchCards(identity)
+        assertEquals(1, cards.size)
+        assertNotNull(cards)
+
+        eThree.cleanup()
+        assertFalse(keyStorage.exists(identity))
+
+        val waiter = CountDownLatch(1)
+        eThree.unregister(object : OnCompleteListener {
+            override fun onSuccess() {
+
+                waiter.countDown()
+            }
+
+            override fun onError(throwable: Throwable) {
+                // TODO Implement body or it will be empty ):
+            }
+        })
+        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        assertFalse(keyStorage.exists(identity))
+
+        val cardsUnregistered = initCardManager(identity).searchCards(identity)
+        assertEquals(0, cardsUnregistered.size)
     }
 }

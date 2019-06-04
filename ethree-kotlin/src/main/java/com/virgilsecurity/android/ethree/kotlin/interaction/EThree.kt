@@ -126,6 +126,35 @@ class EThree
     }
 
     /**
+     * Publishes the public key in Virgil's Cards Service in case no public key for current
+     * identity is published yet. Otherwise [RegistrationException] will be thrown.
+     *
+     * @throws UnregistrationException
+     */
+    @Synchronized fun unregister(onCompleteListener: OnCompleteListener) {
+        GlobalScope.launch {
+            try {
+                val foundCards = cardManager.searchCards(currentIdentity())
+                if (foundCards.isEmpty())
+                    throw UnregistrationException("Card with identity " +
+                                                "${currentIdentity()} does not exist.")
+
+                if (foundCards.size > 1)
+                    throw UnregistrationException("Too many cards with identity: " +
+                                                  "${currentIdentity()}.")
+
+                cardManager.revokeCard(foundCards.first().identifier).run {
+                    if (hasLocalPrivateKey()) cleanup()
+
+                    onCompleteListener.onSuccess()
+                }
+            } catch (throwable: Throwable) {
+                onCompleteListener.onError(throwable)
+            }
+        }
+    }
+
+    /**
      * ! *WARNING* ! If you call this function after [register] without using [backupPrivateKey]
      * then you loose private key permanently, as well you won't be able to use identity that
      * was used with that private key no more.
@@ -272,7 +301,7 @@ class EThree
      * @throws CardNotFoundException
      * @throws CryptoException
      */
-    fun rotatePrivateKey(onCompleteListener: OnCompleteListener) {
+    @Synchronized fun rotatePrivateKey(onCompleteListener: OnCompleteListener) {
         GlobalScope.launch {
             try {
                 if (keyManagerLocal.exists())
