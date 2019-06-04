@@ -36,17 +36,23 @@ package com.virgilsecurity.android.ethree.kotlin.interaction
 import com.virgilsecurity.android.common.exceptions.PrivateKeyNotFoundException
 import com.virgilsecurity.android.common.exceptions.PublicKeyDuplicateException
 import com.virgilsecurity.android.common.exceptions.PublicKeyNotFoundException
+import com.virgilsecurity.android.common.exceptions.UnregistrationException
 import com.virgilsecurity.android.ethree.kotlin.callback.OnCompleteListener
 import com.virgilsecurity.android.ethree.kotlin.callback.OnGetTokenCallback
 import com.virgilsecurity.android.ethree.kotlin.callback.OnResultListener
 import com.virgilsecurity.android.ethree.utils.TestConfig
 import com.virgilsecurity.android.ethree.utils.TestUtils
+import com.virgilsecurity.sdk.cards.CardManager
+import com.virgilsecurity.sdk.cards.model.RawSignedModel
+import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
+import com.virgilsecurity.sdk.client.VirgilCardClient
 import com.virgilsecurity.sdk.common.TimeSpan
-import com.virgilsecurity.sdk.crypto.VirgilAccessTokenSigner
-import com.virgilsecurity.sdk.crypto.VirgilPublicKey
+import com.virgilsecurity.sdk.crypto.*
 import com.virgilsecurity.sdk.jwt.JwtGenerator
+import com.virgilsecurity.sdk.jwt.accessProviders.GeneratorJwtProvider
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
 import com.virgilsecurity.sdk.storage.KeyStorage
+import com.virgilsecurity.sdk.utils.Tuple
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Before
@@ -84,6 +90,23 @@ class EThreeNegativeTest {
         eThree = initEThree(identity)
     }
 
+    private fun initCardManager(identity: String): CardManager {
+        val cardCrypto = VirgilCardCrypto()
+        return CardManager(
+            cardCrypto,
+            GeneratorJwtProvider(jwtGenerator, identity),
+            VirgilCardVerifier(cardCrypto, false, false),
+            VirgilCardClient(TestConfig.virgilBaseUrl + TestConfig.VIRGIL_CARDS_SERVICE_PATH)
+        )
+    }
+
+    private fun generateRawCard(identity: String,
+                                cardManager: CardManager): Tuple<VirgilKeyPair, RawSignedModel> {
+        return VirgilCrypto().generateKeyPair().let {
+            Tuple(it, cardManager.generateRawCard(it.privateKey, it.publicKey, identity))
+        }
+    }
+
     private fun initEThree(identity: String): EThree {
         var eThree: EThree? = null
         val waiter = CountDownLatch(1)
@@ -109,7 +132,7 @@ class EThreeNegativeTest {
         return eThree!!
     }
 
-    private fun bootstrapEThree(eThree: EThree): EThree {
+    private fun registerEThree(eThree: EThree): EThree {
         val waiter = CountDownLatch(1)
 
         eThree.register(object : OnCompleteListener {
@@ -223,7 +246,7 @@ class EThreeNegativeTest {
     }
 
     @Test fun lookup_fail_wrong_identity() {
-        bootstrapEThree(eThree)
+        registerEThree(eThree)
 
         var failed = false
         val waiter = CountDownLatch(1)
@@ -268,7 +291,7 @@ class EThreeNegativeTest {
     @Test fun lookup_with_duplicate_identities() {
         var failed = false
         val waiter = CountDownLatch(1)
-        bootstrapEThree(eThree)
+        registerEThree(eThree)
         eThree.lookupPublicKeys(listOf(identity, identity, identity,
                                        WRONG_IDENTITY, WRONG_IDENTITY,
                                        WRONG_IDENTITY + identity),
@@ -291,7 +314,7 @@ class EThreeNegativeTest {
     @Test fun change_pass_with_same_new() {
         var failed = false
         val waiter = CountDownLatch(1)
-        bootstrapEThree(eThree)
+        registerEThree(eThree)
         eThree.changePassword(password, password, object : OnCompleteListener {
             override fun onSuccess() {
                 fail("Illegal State")
@@ -299,6 +322,53 @@ class EThreeNegativeTest {
 
             override fun onError(throwable: Throwable) {
                 if (throwable is IllegalArgumentException)
+                    failed = true
+
+                waiter.countDown()
+            }
+        })
+        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        assertTrue(failed)
+    }
+
+    @Test fun unregister_with_multiple_card() {
+        val identityTwo = UUID.randomUUID().toString()
+        val cardManager = initCardManager(identityTwo)
+
+        val eThreeTwo = initEThree(identityTwo)
+        registerEThree(eThreeTwo)
+
+        val publishPair = generateRawCard(identityTwo, cardManager)
+        cardManager.publishCard(publishPair.right)
+
+        var failed = false
+        val waiter = CountDownLatch(1)
+        eThree.unregister(object : OnCompleteListener {
+            override fun onSuccess() {
+                fail("Unregister should fail when there are 1+ cards published for 1 identity.")
+            }
+
+            override fun onError(throwable: Throwable) {
+                if (throwable is UnregistrationException)
+                    failed = true
+
+                waiter.countDown()
+            }
+        })
+        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        assertTrue(failed)
+    }
+
+    @Test fun unregister_without_card() {
+        var failed = false
+        val waiter = CountDownLatch(1)
+        eThree.unregister(object : OnCompleteListener {
+            override fun onSuccess() {
+                fail("Unregister should fail when there are no cards published for identity.")
+            }
+
+            override fun onError(throwable: Throwable) {
+                if (throwable is UnregistrationException)
                     failed = true
 
                 waiter.countDown()
