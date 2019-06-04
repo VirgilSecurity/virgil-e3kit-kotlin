@@ -126,10 +126,11 @@ class EThree
     }
 
     /**
-     * Publishes the public key in Virgil's Cards Service in case no public key for current
-     * identity is published yet. Otherwise [RegistrationException] will be thrown.
+     * Revokes the public key for current *identity* in Virgil's Cards Service. After this operation
+     * you can call [EThree.register] again.
      *
-     * @throws UnregistrationException
+     * @throws UnregistrationException if there's no public key published yet, or if there's more
+     * than one public key is published.
      */
     @Synchronized fun unregister(onCompleteListener: OnCompleteListener) {
         GlobalScope.launch {
