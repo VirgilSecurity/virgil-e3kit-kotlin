@@ -297,7 +297,7 @@ class EThree
                                                               this.first.identifier)
                     cardManager.publishCard(rawCard)
 
-                    keyManagerLocal.store(this.second.privateKey.privateKey.exportPrivateKey())
+                    keyManagerLocal.store(virgilCrypto.exportPrivateKey(this.second.privateKey))
 
                     onCompleteListener.onSuccess()
                 }
