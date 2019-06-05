@@ -31,13 +31,14 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.ethree.kotlin.interaction
+package com.virgilsecurity.android.ethree.kotlin.interaction.async
 
 import com.virgilsecurity.android.common.data.model.LookupResult
 import com.virgilsecurity.android.common.exceptions.PrivateKeyNotFoundException
 import com.virgilsecurity.android.ethree.kotlin.callback.OnCompleteListener
 import com.virgilsecurity.android.ethree.kotlin.callback.OnGetTokenCallback
 import com.virgilsecurity.android.ethree.kotlin.callback.OnResultListener
+import com.virgilsecurity.android.ethree.kotlin.interaction.EThree
 import com.virgilsecurity.android.ethree.utils.TestConfig
 import com.virgilsecurity.android.ethree.utils.TestUtils
 import com.virgilsecurity.sdk.cards.CardManager
@@ -45,7 +46,10 @@ import com.virgilsecurity.sdk.cards.model.RawSignedModel
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
 import com.virgilsecurity.sdk.client.VirgilCardClient
 import com.virgilsecurity.sdk.common.TimeSpan
-import com.virgilsecurity.sdk.crypto.*
+import com.virgilsecurity.sdk.crypto.VirgilAccessTokenSigner
+import com.virgilsecurity.sdk.crypto.VirgilCardCrypto
+import com.virgilsecurity.sdk.crypto.VirgilCrypto
+import com.virgilsecurity.sdk.crypto.VirgilKeyPair
 import com.virgilsecurity.sdk.exception.EmptyArgumentException
 import com.virgilsecurity.sdk.jwt.JwtGenerator
 import com.virgilsecurity.sdk.jwt.accessProviders.GeneratorJwtProvider
@@ -100,11 +104,15 @@ class EThreeEncryptionTest {
         var eThree: EThree? = null
         val waiter = CountDownLatch(1)
 
-        EThree.initialize(TestConfig.context, object : OnGetTokenCallback {
-            override fun onGetToken(): String {
-                return jwtGenerator.generateToken(identity).stringRepresentation()
-            }
-        }, object : OnResultListener<EThree> {
+        EThree.initialize(TestConfig.context,
+                          object : OnGetTokenCallback {
+                                                                                             override fun onGetToken(): String {
+                                                                                                 return jwtGenerator.generateToken(
+                                                                                                     identity)
+                                                                                                         .stringRepresentation()
+                                                                                             }
+                                                                                         })
+                .addCallback(object : OnResultListener<EThree> {
             override fun onSuccess(result: EThree) {
                 eThree = result
                 waiter.countDown()
@@ -124,7 +132,7 @@ class EThreeEncryptionTest {
     private fun registerEThree(eThree: EThree): EThree {
         val waiter = CountDownLatch(1)
 
-        eThree.register(object : OnCompleteListener {
+        eThree.register().addCallback(object : OnCompleteListener {
 
             override fun onSuccess() {
                 // Good, go on
@@ -164,18 +172,18 @@ class EThreeEncryptionTest {
         val publishedCardOne = cardManagerOne.publishCard(generateRawCard(identityOne,
                                                                           cardManagerOne).right)
 
-        eThree.lookupPublicKeys(listOf(identityOne),
-                                object : OnResultListener<Map<String, VirgilPublicKey>> {
-                                    override fun onSuccess(result: Map<String, VirgilPublicKey>) {
-                                        assertTrue(result.isNotEmpty() && result.size == 1)
-                                        assertEquals(publishedCardOne.publicKey,
-                                                     result[identityOne])
-                                    }
+        eThree.lookupPublicKeys(identityOne)
+                .addCallback(object : OnResultListener<LookupResult> {
+                    override fun onSuccess(result: LookupResult) {
+                        assertTrue(result.isNotEmpty() && result.size == 1)
+                        assertEquals(publishedCardOne.publicKey,
+                                     result[identityOne])
+                    }
 
-                                    override fun onError(throwable: Throwable) {
-                                        fail(throwable.message)
-                                    }
-                                })
+                    override fun onError(throwable: Throwable) {
+                        fail(throwable.message)
+                    }
+                })
     }
 
     // STE-1
@@ -198,37 +206,38 @@ class EThreeEncryptionTest {
         val publishedCardThree = cardManagerThree.publishCard(generateRawCard(identityThree,
                                                                               cardManagerThree).right)
 
-        eThree.lookupPublicKeys(listOf(identityOne, identityTwo, identityThree),
-                                object : OnResultListener<Map<String, VirgilPublicKey>> {
+        eThree.lookupPublicKeys(listOf(identityOne, identityTwo, identityThree))
+                .addCallback(object : OnResultListener<LookupResult> {
 
-                                    override fun onSuccess(result: Map<String, VirgilPublicKey>) {
-                                        assertTrue(result.isNotEmpty() && result.size == 3)
-                                        if (result[identityOne] == publishedCardOne.publicKey
-                                            && result[identityTwo] == publishedCardTwo.publicKey
-                                            && result[identityThree] == publishedCardThree.publicKey) {
-                                            foundCards = true
-                                        }
+                    override fun onSuccess(result: LookupResult) {
+                        assertTrue(result.isNotEmpty() && result.size == 3)
+                        if (result[identityOne] == publishedCardOne.publicKey
+                            && result[identityTwo] == publishedCardTwo.publicKey
+                            && result[identityThree] == publishedCardThree.publicKey) {
+                            foundCards = true
+                        }
 
-                                        assertTrue(foundCards)
-                                    }
+                        assertTrue(foundCards)
+                    }
 
-                                    override fun onError(throwable: Throwable) {
-                                        fail(throwable.message)
-                                    }
-                                })
+                    override fun onError(throwable: Throwable) {
+                        fail(throwable.message)
+                    }
+                })
     }
 
     //STE-2
     @Test fun lookup_zero_users() {
-        eThree.lookupPublicKeys(listOf(), object : OnResultListener<Map<String, VirgilPublicKey>> {
-            override fun onSuccess(result: Map<String, VirgilPublicKey>) {
-                fail("Illegal State")
-            }
+        eThree.lookupPublicKeys(listOf())
+                .addCallback(object : OnResultListener<LookupResult> {
+                    override fun onSuccess(result: LookupResult) {
+                        fail("Illegal State")
+                    }
 
-            override fun onError(throwable: Throwable) {
-                assertTrue(throwable is EmptyArgumentException)
-            }
-        })
+                    override fun onError(throwable: Throwable) {
+                        assertTrue(throwable is EmptyArgumentException)
+                    }
+                })
     }
 
     @Test fun encrypt_adding_owner_public_key() {
@@ -238,17 +247,17 @@ class EThreeEncryptionTest {
         var eThreeKeys: LookupResult? = null
 
         val waiter = CountDownLatch(1)
-        eThree.lookupPublicKeys(listOf(identity, identityTwo),
-                                object : OnResultListener<LookupResult> {
-                                    override fun onSuccess(result: LookupResult) {
-                                        eThreeKeys = result
-                                        waiter.countDown()
-                                    }
+        eThree.lookupPublicKeys(listOf(identity, identityTwo))
+                .addCallback(object : OnResultListener<LookupResult> {
+                    override fun onSuccess(result: LookupResult) {
+                        eThreeKeys = result
+                        waiter.countDown()
+                    }
 
-                                    override fun onError(throwable: Throwable) {
-                                        fail(throwable.message)
-                                    }
-                                })
+                    override fun onError(throwable: Throwable) {
+                        fail(throwable.message)
+                    }
+                })
         waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
         assertNotNull(eThreeKeys)
         assertEquals(2, eThreeKeys?.size)
@@ -270,17 +279,17 @@ class EThreeEncryptionTest {
         var eThreeKeys: LookupResult? = null
 
         val waiter = CountDownLatch(1)
-        eThree.lookupPublicKeys(listOf(identity, identityTwo),
-                                object : OnResultListener<LookupResult> {
-                                    override fun onSuccess(result: LookupResult) {
-                                        eThreeKeys = result
-                                        waiter.countDown()
-                                    }
+        eThree.lookupPublicKeys(listOf(identity, identityTwo))
+                .addCallback(object : OnResultListener<LookupResult> {
+                    override fun onSuccess(result: LookupResult) {
+                        eThreeKeys = result
+                        waiter.countDown()
+                    }
 
-                                    override fun onError(throwable: Throwable) {
-                                        fail(throwable.message)
-                                    }
-                                })
+                    override fun onError(throwable: Throwable) {
+                        fail(throwable.message)
+                    }
+                })
         waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
         assertNotNull(eThreeKeys)
         assertEquals(2, eThreeKeys?.size)
@@ -330,11 +339,15 @@ class EThreeEncryptionTest {
         val identity = UUID.randomUUID().toString()
 
         val waiter = CountDownLatch(1)
-        EThree.initialize(TestConfig.context, object : OnGetTokenCallback {
-            override fun onGetToken(): String {
-                return jwtGenerator.generateToken(identity).stringRepresentation()
-            }
-        }, object : OnResultListener<EThree> {
+        EThree.initialize(TestConfig.context,
+                          object : OnGetTokenCallback {
+                                                                                             override fun onGetToken(): String {
+                                                                                                 return jwtGenerator.generateToken(
+                                                                                                     identity)
+                                                                                                         .stringRepresentation()
+                                                                                             }
+                                                                                         })
+                .addCallback(object : OnResultListener<EThree> {
             override fun onSuccess(result: EThree) {
                 eThreeTwo = result
                 waiter.countDown()
@@ -373,11 +386,15 @@ class EThreeEncryptionTest {
 
         val waiter = CountDownLatch(1)
 
-        EThree.initialize(TestConfig.context, object : OnGetTokenCallback {
-            override fun onGetToken(): String {
-                return jwtGenerator.generateToken(identity).stringRepresentation()
-            }
-        }, object : OnResultListener<EThree> {
+        EThree.initialize(TestConfig.context,
+                          object : OnGetTokenCallback {
+                                                                                             override fun onGetToken(): String {
+                                                                                                 return jwtGenerator.generateToken(
+                                                                                                     identity)
+                                                                                                         .stringRepresentation()
+                                                                                             }
+                                                                                         })
+                .addCallback(object : OnResultListener<EThree> {
             override fun onSuccess(result: EThree) {
                 eThreeTwo = result
                 waiter.countDown()
@@ -423,17 +440,16 @@ class EThreeEncryptionTest {
         var eThreeKeys: LookupResult? = null
 
         val waiter = CountDownLatch(1)
-        eThree.lookupPublicKeys(identity,
-                                object : OnResultListener<LookupResult> {
-                                    override fun onSuccess(result: LookupResult) {
-                                        eThreeKeys = result
-                                        waiter.countDown()
-                                    }
+        eThree.lookupPublicKeys(identity).addCallback(object : OnResultListener<LookupResult> {
+            override fun onSuccess(result: LookupResult) {
+                eThreeKeys = result
+                waiter.countDown()
+            }
 
-                                    override fun onError(throwable: Throwable) {
-                                        fail(throwable.message)
-                                    }
-                                })
+            override fun onError(throwable: Throwable) {
+                fail(throwable.message)
+            }
+        })
         waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
 
         assertNotNull(eThreeKeys)
@@ -447,17 +463,17 @@ class EThreeEncryptionTest {
         var eThreeKeys: LookupResult? = null
 
         val waiter = CountDownLatch(1)
-        eThree.lookupPublicKeys(listOf(identity, identityTwo),
-                                object : OnResultListener<LookupResult> {
-                                    override fun onSuccess(result: LookupResult) {
-                                        eThreeKeys = result
-                                        waiter.countDown()
-                                    }
+        eThree.lookupPublicKeys(listOf(identity, identityTwo))
+                .addCallback(object : OnResultListener<LookupResult> {
+                    override fun onSuccess(result: LookupResult) {
+                        eThreeKeys = result
+                        waiter.countDown()
+                    }
 
-                                    override fun onError(throwable: Throwable) {
-                                        fail(throwable.message)
-                                    }
-                                })
+                    override fun onError(throwable: Throwable) {
+                        fail(throwable.message)
+                    }
+                })
         waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
         assertNotNull(eThreeKeys)
         assertEquals(2, eThreeKeys?.size)
