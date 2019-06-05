@@ -83,16 +83,38 @@ dependencies {
     compileOnly "com.google.android:android:$versions.android"
 }
 
+task generateVersionVirgilAgent {
+    outputs.dir "$buildDir/generated"
+    doFirst {
+        def versionFile = file("$buildDir/generated/com/virgilsecurity/android/ethreecoroutines/build/VersionVirgilAgent.kt")
+        versionFile.parentFile.mkdirs()
+        versionFile.text =
+                """
+package com.virgilsecurity.android.ethreecoroutines.build;
+
+object VersionVirgilAgent {
+    const val VERSION = "$project.version"
+}
+"""
+    }
+}
+
+project.android.sourceSets.main.java.srcDirs = ["${buildDir}/generated/", "src/main/java"]
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
+    dependsOn(generateVersionVirgilAgent)
+}
+
 sourceCompatibility = "8"
 targetCompatibility = "8"
 
 task sourcesJar(type: Jar) {
-    from android.sourceSets.main.java.srcDirs
+    from(project.android.sourceSets.main.java)
     classifier = 'sources'
 }
 
 task javadocJar(type: Jar, dependsOn: 'dokka') {
-    from "$buildDir/javadoc"
+    from("$buildDir/javadoc")
     classifier = 'javadoc'
 }
 
