@@ -34,8 +34,8 @@
 buildscript {
     ext.versions = [
             // Virgil
-            virgilSdk   : '5.1.0',
-            virgilCrypto: '0.7.0',
+            virgilSdk   : '5.1.1',
+            virgilCrypto: '0.7.1',
             pythia      : '0.3.0',
             keyknox     : '0.2.0',
 
@@ -61,9 +61,6 @@ buildscript {
         google()
         jcenter()
         mavenCentral()
-        maven {
-            url = "https://oss.sonatype.org/content/repositories/snapshots"
-        }
     }
     dependencies {
         classpath "com.android.tools.build:gradle:$versions.gardle"
@@ -78,9 +75,6 @@ allprojects {
         google()
         jcenter()
         mavenCentral()
-        maven {
-            url = "https://oss.sonatype.org/content/repositories/snapshots"
-        }
     }
 }
 

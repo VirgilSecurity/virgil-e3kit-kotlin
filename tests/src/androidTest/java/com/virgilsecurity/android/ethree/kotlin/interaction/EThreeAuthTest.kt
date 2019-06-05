@@ -36,18 +36,19 @@ package com.virgilsecurity.android.ethree.kotlin.interaction
 import com.virgilsecurity.android.common.exceptions.CardNotFoundException
 import com.virgilsecurity.android.common.exceptions.PrivateKeyExistsException
 import com.virgilsecurity.android.common.exceptions.RegistrationException
+import com.virgilsecurity.android.ethree.kotlin.callback.OnCompleteListener
+import com.virgilsecurity.android.ethree.kotlin.callback.OnGetTokenCallback
+import com.virgilsecurity.android.ethree.kotlin.callback.OnResultListener
 import com.virgilsecurity.android.ethree.utils.TestConfig
 import com.virgilsecurity.android.ethree.utils.TestConfig.Companion.virgilBaseUrl
 import com.virgilsecurity.android.ethree.utils.TestConfig.Companion.virgilCrypto
 import com.virgilsecurity.android.ethree.utils.TestUtils
-import com.virgilsecurity.crypto.foundation.FoundationException
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.model.RawSignedModel
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
 import com.virgilsecurity.sdk.client.VirgilCardClient
 import com.virgilsecurity.sdk.common.TimeSpan
 import com.virgilsecurity.sdk.crypto.*
-import com.virgilsecurity.sdk.crypto.exceptions.CryptoException
 import com.virgilsecurity.sdk.jwt.JwtGenerator
 import com.virgilsecurity.sdk.jwt.accessProviders.GeneratorJwtProvider
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
@@ -101,11 +102,11 @@ class EThreeAuthTest {
         var eThree: EThree? = null
         val waiter = CountDownLatch(1)
 
-        EThree.initialize(TestConfig.context, object : EThree.OnGetTokenCallback {
+        EThree.initialize(TestConfig.context, object : OnGetTokenCallback {
             override fun onGetToken(): String {
                 return jwtGenerator.generateToken(identity).stringRepresentation()
             }
-        }, object : EThree.OnResultListener<EThree> {
+        }, object : OnResultListener<EThree> {
             override fun onSuccess(result: EThree) {
                 eThree = result
                 waiter.countDown()
@@ -125,7 +126,7 @@ class EThreeAuthTest {
     private fun registerEThree(eThree: EThree): EThree {
         val waiter = CountDownLatch(1)
 
-        eThree.register(object : EThree.OnCompleteListener {
+        eThree.register(object : OnCompleteListener {
 
             override fun onSuccess() {
                 // Good, go on
@@ -184,7 +185,7 @@ class EThreeAuthTest {
         val eThree = initEThree(identity)
 
         val waiter = CountDownLatch(1)
-        eThree.register(object : EThree.OnCompleteListener {
+        eThree.register(object : OnCompleteListener {
             override fun onSuccess() {
                 fail("Illegal state")
             }
@@ -204,7 +205,7 @@ class EThreeAuthTest {
         val eThree = initEThree(identity)
 
         val waiter = CountDownLatch(1)
-        eThree.register(object : EThree.OnCompleteListener {
+        eThree.register(object : OnCompleteListener {
             override fun onSuccess() {
                 fail("Illegal state")
             }
@@ -222,7 +223,7 @@ class EThreeAuthTest {
         val eThree = initEThree(identity)
 
         val waiter = CountDownLatch(1)
-        eThree.rotatePrivateKey(object : EThree.OnCompleteListener {
+        eThree.rotatePrivateKey(object : OnCompleteListener {
             override fun onSuccess() {
                 fail("Illegal state")
             }
@@ -242,7 +243,7 @@ class EThreeAuthTest {
         assertTrue(initCardManager(identity).searchCards(identity).isNotEmpty())
 
         val waiterTwo = CountDownLatch(1)
-        eThree.rotatePrivateKey(object : EThree.OnCompleteListener {
+        eThree.rotatePrivateKey(object : OnCompleteListener {
             override fun onSuccess() {
                 fail("Illegal state")
             }
@@ -263,7 +264,7 @@ class EThreeAuthTest {
         val eThree = initEThree(identity)
 
         val waiterTwo = CountDownLatch(1)
-        eThree.rotatePrivateKey(object : EThree.OnCompleteListener {
+        eThree.rotatePrivateKey(object : OnCompleteListener {
             override fun onSuccess() {
                 waiterTwo.countDown()
             }
@@ -289,7 +290,7 @@ class EThreeAuthTest {
 
         var encrypted: String? = null
         val waiterTwo = CountDownLatch(1)
-        eThree.rotatePrivateKey(object : EThree.OnCompleteListener {
+        eThree.rotatePrivateKey(object : OnCompleteListener {
             override fun onSuccess() {
                 try {
                     encrypted = eThree.encrypt("Some text")
@@ -318,7 +319,7 @@ class EThreeAuthTest {
 
         var rotateFailed = false
         val waiterTwo = CountDownLatch(1)
-        eThree.rotatePrivateKey(object : EThree.OnCompleteListener {
+        eThree.rotatePrivateKey(object : OnCompleteListener {
             override fun onSuccess() {
                 fail("Illegal state")
             }
@@ -346,7 +347,7 @@ class EThreeAuthTest {
         var rotateFailed = false
         val waiterTwo = CountDownLatch(1)
         eThree.lookupPublicKeys(listOf(identity),
-                                object : EThree.OnResultListener<Map<String, VirgilPublicKey>> {
+                                object : OnResultListener<Map<String, VirgilPublicKey>> {
                                     override fun onSuccess(result: Map<String, VirgilPublicKey>) {
                                         fail("Illegal state")
                                     }
@@ -362,5 +363,60 @@ class EThreeAuthTest {
         waiterTwo.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
 
         assertTrue(rotateFailed)
+    }
+
+    @Test fun unregister_with_local_key() {
+        val eThree = initAndRegisterEThree(identity)
+        assertTrue(keyStorage.exists(identity))
+
+        val cards = initCardManager(identity).searchCards(identity)
+        assertNotNull(cards)
+        assertEquals(1, cards.size)
+
+        val waiter = CountDownLatch(1)
+        eThree.unregister(object : OnCompleteListener {
+            override fun onSuccess() {
+
+                waiter.countDown()
+            }
+
+            override fun onError(throwable: Throwable) {
+                // TODO Implement body or it will be empty ):
+            }
+        })
+        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        assertFalse(keyStorage.exists(identity))
+
+        val cardsUnregistered = initCardManager(identity).searchCards(identity)
+        assertEquals(0, cardsUnregistered.size)
+    }
+
+    @Test fun unregister_without_local_key() {
+        val eThree = initAndRegisterEThree(identity)
+        assertTrue(keyStorage.exists(identity))
+
+        val cards = initCardManager(identity).searchCards(identity)
+        assertNotNull(cards)
+        assertEquals(1, cards.size)
+
+        eThree.cleanup()
+        assertFalse(keyStorage.exists(identity))
+
+        val waiter = CountDownLatch(1)
+        eThree.unregister(object : OnCompleteListener {
+            override fun onSuccess() {
+
+                waiter.countDown()
+            }
+
+            override fun onError(throwable: Throwable) {
+                // TODO Implement body or it will be empty ):
+            }
+        })
+        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        assertFalse(keyStorage.exists(identity))
+
+        val cardsUnregistered = initCardManager(identity).searchCards(identity)
+        assertEquals(0, cardsUnregistered.size)
     }
 }

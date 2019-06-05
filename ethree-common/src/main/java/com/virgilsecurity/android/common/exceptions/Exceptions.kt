@@ -84,3 +84,7 @@ class RegistrationException @JvmOverloads constructor(
 class PrivateKeyExistsException @JvmOverloads constructor(
     override val message: String? = null, throwable: Throwable? = null
 ) : RuntimeException(message, throwable)
+
+class UnregistrationException @JvmOverloads constructor(
+        override val message: String? = null, throwable: Throwable? = null
+) : RuntimeException(message, throwable)

@@ -35,6 +35,9 @@ package com.virgilsecurity.android.ethree.java;
 
 import android.support.test.runner.AndroidJUnit4;
 
+import com.virgilsecurity.android.ethree.kotlin.callback.OnCompleteListener;
+import com.virgilsecurity.android.ethree.kotlin.callback.OnGetTokenCallback;
+import com.virgilsecurity.android.ethree.kotlin.callback.OnResultListener;
 import com.virgilsecurity.android.ethree.kotlin.interaction.EThree;
 import com.virgilsecurity.android.ethree.utils.TestConfig;
 import com.virgilsecurity.android.ethree.utils.TestUtils;
@@ -102,13 +105,13 @@ public class EThreeTestPositive {
             e.printStackTrace();
         }
 
-        EThree.initialize(TestConfig.Companion.getContext(), new EThree.OnGetTokenCallback() {
+        EThree.initialize(TestConfig.Companion.getContext(), new OnGetTokenCallback() {
             @NotNull
             @Override
             public String onGetToken() {
                 return tokenString;
             }
-        }, new EThree.OnResultListener<EThree>() {
+        }, new OnResultListener<EThree>() {
             @Override
             public void onSuccess(EThree result) {
                 eThree = result;
@@ -129,7 +132,7 @@ public class EThreeTestPositive {
                                new GeneratorJwtProvider(jwtGenerator, identity),
                                new VirgilCardVerifier(cardCrypto, false, false),
                                new VirgilCardClient(TestConfig.Companion.getVirgilBaseUrl()
-                                                      + TestConfig.VIRGIL_CARDS_SERVICE_PATH));
+                                                            + TestConfig.VIRGIL_CARDS_SERVICE_PATH));
     }
 
     private PrivateKeyStorage initPrivateKeyStorage() {
@@ -154,7 +157,7 @@ public class EThreeTestPositive {
         final int[] result = new int[1];
 
         final CountDownLatch lock = new CountDownLatch(1);
-        eThree.register(new EThree.OnCompleteListener() {
+        eThree.register(new OnCompleteListener() {
 
             @Override
             public void onSuccess() {
