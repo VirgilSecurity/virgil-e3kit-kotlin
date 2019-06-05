@@ -38,8 +38,12 @@ import com.virgilsecurity.android.common.data.Const.NO_CONTEXT
 import com.virgilsecurity.android.common.data.Const.VIRGIL_BASE_URL
 import com.virgilsecurity.android.common.data.Const.VIRGIL_CARDS_SERVICE_PATH
 import com.virgilsecurity.android.common.data.local.KeyManagerLocal
+import com.virgilsecurity.android.common.data.model.LookupResult
 import com.virgilsecurity.android.common.data.remote.KeyManagerCloud
 import com.virgilsecurity.android.common.exceptions.*
+import com.virgilsecurity.android.ethree.kotlin.callback.OnCompleteListener
+import com.virgilsecurity.android.ethree.kotlin.callback.OnGetTokenCallback
+import com.virgilsecurity.android.ethree.kotlin.callback.OnResultListener
 import com.virgilsecurity.keyknox.exception.DecryptionFailedException
 import com.virgilsecurity.keyknox.exception.EntryAlreadyExistsException
 import com.virgilsecurity.pythia.brainkey.BrainKey
@@ -61,17 +65,8 @@ import com.virgilsecurity.sdk.storage.DefaultKeyStorage
 import com.virgilsecurity.sdk.utils.ConvertionUtils
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-
-/**
- * . _  _
- * .| || | _
- * -| || || |   Created by:
- * .| || || |-  Danylo Oliinyk
- * ..\_  || |   on
- * ....|  _/    10/8/18
- * ...-| | \    at Virgil Security
- * ....|_|-
- */
+import java.io.InputStream
+import java.io.OutputStream
 
 /**
  * [EThree] class simplifies work with Virgil Services to easily implement End to End Encrypted
@@ -122,6 +117,36 @@ class EThree
                 virgilCrypto.generateKeyPair().run {
                     cardManager.publishCard(this.privateKey, this.publicKey, currentIdentity())
                     keyManagerLocal.store(virgilCrypto.exportPrivateKey(this.privateKey))
+                    onCompleteListener.onSuccess()
+                }
+            } catch (throwable: Throwable) {
+                onCompleteListener.onError(throwable)
+            }
+        }
+    }
+
+    /**
+     * Revokes the public key for current *identity* in Virgil's Cards Service. After this operation
+     * you can call [EThree.register] again.
+     *
+     * @throws UnregistrationException if there's no public key published yet, or if there's more
+     * than one public key is published.
+     */
+    @Synchronized fun unregister(onCompleteListener: OnCompleteListener) {
+        GlobalScope.launch {
+            try {
+                val foundCards = cardManager.searchCards(currentIdentity())
+                if (foundCards.isEmpty())
+                    throw UnregistrationException("Card with identity " +
+                                                "${currentIdentity()} does not exist.")
+
+                if (foundCards.size > 1)
+                    throw UnregistrationException("Too many cards with identity: " +
+                                                  "${currentIdentity()}.")
+
+                cardManager.revokeCard(foundCards.first().identifier).run {
+                    if (hasLocalPrivateKey()) cleanup()
+
                     onCompleteListener.onSuccess()
                 }
             } catch (throwable: Throwable) {
@@ -277,7 +302,7 @@ class EThree
      * @throws CardNotFoundException
      * @throws CryptoException
      */
-    fun rotatePrivateKey(onCompleteListener: OnCompleteListener) {
+    @Synchronized fun rotatePrivateKey(onCompleteListener: OnCompleteListener) {
         GlobalScope.launch {
             try {
                 if (keyManagerLocal.exists())
@@ -360,33 +385,10 @@ class EThree
     }
 
     /**
-     * Encrypts text messages for a group of users.
+     * Signs then encrypts text for a group of users.
      *
-     * Encrypts provided [text] using [publicKeys] list of recipients and returns encrypted
-     * message converted to *base64* [String].
-     *
-     * Can be called only if private key is on the device otherwise [PrivateKeyNotFoundException]
-     * exception will be thrown.
-     *
-     * @throws PrivateKeyNotFoundException
-     * @throws CryptoException
-     */
-    @JvmOverloads fun encrypt(text: String, publicKeys: List<VirgilPublicKey>? = null): String {
-        checkPrivateKeyOrThrow()
-
-        if (text.isBlank()) throw EmptyArgumentException("data")
-        if (publicKeys?.isEmpty() == true) throw EmptyArgumentException("publicKeys")
-        if (publicKeys?.contains(loadCurrentPublicKey()) == true)
-            throw IllegalArgumentException("You should not include your own public key.")
-
-        return encrypt(text.toByteArray(), publicKeys).let { ConvertionUtils.toBase64String(it) }
-    }
-
-    /**
-     * Encrypts messages/other data for a group of users.
-     *
-     * Encrypts provided [data] using [publicKeys] list of recipients and returns encrypted
-     * data as [ByteArray].
+     * Signs then encrypts provided [text] using [lookupResult] with recipients public keys and
+     * returns encrypted message converted to *base64* [String].
      *
      * Can be called only if private key is on the device otherwise [PrivateKeyNotFoundException]
      * exception will be thrown.
@@ -394,31 +396,86 @@ class EThree
      * @throws PrivateKeyNotFoundException
      * @throws CryptoException
      */
-    @JvmOverloads fun encrypt(data: ByteArray,
-                              publicKeys: List<VirgilPublicKey>? = null): ByteArray {
+    @JvmOverloads fun encrypt(text: String, lookupResult: LookupResult? = null): String {
         checkPrivateKeyOrThrow()
 
-        if (data.isEmpty()) throw EmptyArgumentException("data")
-        if (publicKeys?.isEmpty() == true) throw EmptyArgumentException("publicKeys")
-        if (publicKeys?.contains(loadCurrentPublicKey()) == true)
+        if (text.isBlank()) throw EmptyArgumentException("text")
+        if (lookupResult?.isEmpty() == true) throw EmptyArgumentException("publicKeys")
+        if (lookupResult?.values?.contains(loadCurrentPublicKey()) == true)
             throw IllegalArgumentException("You should not include your own public key.")
 
-        return (publicKeys == null).let { isNull ->
-            (if (isNull) {
-                listOf(loadCurrentPublicKey())
-            } else {
-                publicKeys?.asSequence()?.filterIsInstance<VirgilPublicKey>()?.toMutableList()
-                        ?.apply {
-                            add(loadCurrentPublicKey())
-                        }
-            })
-        }.let { keys ->
-            virgilCrypto.signThenEncrypt(data, loadCurrentPrivateKey(), keys)
+        return signThenEncryptData(text.toByteArray(), lookupResult).let {
+            ConvertionUtils.toBase64String(it)
         }
     }
 
     /**
-     * Decrypts encrypted text that is in base64 [String] format.
+     * Signs then encrypts text/other data for a group of users.
+     *
+     * Signs then encrypts provided [data] using [publicKeys] list of recipients and returns
+     * encrypted data as [ByteArray].
+     *
+     * Can be called only if private key is on the device otherwise [PrivateKeyNotFoundException]
+     * exception will be thrown.
+     *
+     * @throws PrivateKeyNotFoundException
+     * @throws CryptoException
+     */
+    @JvmOverloads fun encrypt(data: ByteArray, lookupResult: LookupResult? = null): ByteArray {
+        checkPrivateKeyOrThrow()
+
+        if (data.isEmpty()) throw EmptyArgumentException("data")
+        if (lookupResult?.isEmpty() == true) throw EmptyArgumentException("publicKeys")
+        if (lookupResult?.values?.contains(loadCurrentPublicKey()) == true)
+            throw IllegalArgumentException("You should not include your own public key.")
+
+        return signThenEncryptData(data, lookupResult)
+    }
+
+    /**
+     * Encrypts Input Stream for a group of users.
+     *
+     * Encrypts provided [inputStream] using [publicKeys] list of recipients and returns it
+     * encrypted in the [outputStream].
+     *
+     * Can be called only if private key is on the device otherwise [PrivateKeyNotFoundException]
+     * exception will be thrown.
+     *
+     * @throws PrivateKeyNotFoundException
+     * @throws CryptoException
+     */
+    @JvmOverloads fun encrypt(inputStream: InputStream,
+                              outputStream: OutputStream,
+                              lookupResult: LookupResult? = null) {
+        checkPrivateKeyOrThrow()
+
+        if (inputStream.available() == 0) throw EmptyArgumentException("inputStream")
+        if (lookupResult?.values?.contains(loadCurrentPublicKey()) == true)
+            throw IllegalArgumentException("You should not include your own public key.")
+
+        (lookupResult?.values?.toMutableList()?.apply { add(loadCurrentPublicKey()) }
+         ?: listOf(loadCurrentPublicKey())).run {
+            virgilCrypto.encrypt(inputStream, outputStream, this)
+        }
+    }
+
+    /**
+     * Signs then encrypts text/other data for a group of users.
+     *
+     * Signs then encrypts provided [data] using [publicKeys] list of recipients and returns
+     * encrypted data as [ByteArray].
+     *
+     * @throws CryptoException
+     */
+    private fun signThenEncryptData(data: ByteArray,
+                                    lookupResult: LookupResult? = null): ByteArray =
+            (lookupResult?.values?.toMutableList()?.apply { add(loadCurrentPublicKey()) }
+             ?: listOf(loadCurrentPublicKey())).run {
+                virgilCrypto.signThenEncrypt(data, loadCurrentPrivateKey(), this)
+            }
+
+    /**
+     * Decrypts then verifies encrypted text that is in base64 [String] format.
      *
      * Decrypts provided [base64String] (that was previously encrypted with [encrypt] function)
      * using current user's private key.
@@ -436,14 +493,14 @@ class EThree
         if (sendersKey == loadCurrentPublicKey())
             throw IllegalArgumentException("You should not provide your own public key.")
 
-        return String(decrypt(ConvertionUtils.base64ToBytes(base64String), sendersKey))
+        return String(decryptAndVerifyData(ConvertionUtils.base64ToBytes(base64String), sendersKey))
     }
 
     /**
-     * Decrypts encrypted data.
+     * Decrypts then verifies encrypted data.
      *
-     * Decrypts provided [data] using current user's private key and returns decrypted data
-     * in [ByteArray].
+     * Decrypts provided [data] using current user's private key then verifies that data was
+     * encrypted by sender with her [sendersKey] and returns decrypted data in [ByteArray].
      *
      * Can be called only if private key is on the device otherwise [PrivateKeyNotFoundException]
      * exception will be thrown.
@@ -458,39 +515,90 @@ class EThree
         if (sendersKey == loadCurrentPublicKey())
             throw IllegalArgumentException("You should not provide your own public key.")
 
-        return (sendersKey == null).let { isNull ->
-            (if (isNull) {
-                listOf(loadCurrentPublicKey())
-            } else {
-                mutableListOf(sendersKey as VirgilPublicKey).apply {
-                    add(loadCurrentPublicKey())
-                }
-            })
-        }.let { keys ->
-            virgilCrypto.decryptThenVerify(
-                data,
-                loadCurrentPrivateKey(),
-                keys
-            )
-        }
+        return decryptAndVerifyData(data, sendersKey)
     }
+
+    /**
+     * Decrypts encrypted inputStream.
+     *
+     * Decrypts provided [inputStream] using current user's private key and returns decrypted data
+     * in the [outputStream].
+     *
+     * Can be called only if private key is on the device otherwise [PrivateKeyNotFoundException]
+     * exception will be thrown.
+     *
+     * @throws PrivateKeyNotFoundException
+     * @throws CryptoException
+     */
+    fun decrypt(inputStream: InputStream,
+                outputStream: OutputStream) {
+        checkPrivateKeyOrThrow()
+
+        if (inputStream.available() == 0) throw EmptyArgumentException("inputStream")
+
+        return virgilCrypto.decrypt(inputStream, outputStream, loadCurrentPrivateKey())
+    }
+
+    /**
+     * Decrypts then verifies encrypted data.
+     *
+     * Decrypts provided [data] using current user's private key then verifies that data was
+     * encrypted by sender with her [sendersKey] and returns decrypted data in [ByteArray].
+     *
+     * @throws CryptoException
+     */
+    private fun decryptAndVerifyData(data: ByteArray,
+                                     sendersKey: VirgilPublicKey? = null): ByteArray =
+            (sendersKey == null).let { isNull ->
+                (if (isNull) {
+                    listOf(loadCurrentPublicKey())
+                } else {
+                    mutableListOf(sendersKey as VirgilPublicKey).apply {
+                        add(loadCurrentPublicKey())
+                    }
+                })
+            }.let { keys ->
+                virgilCrypto.decryptThenVerify(
+                    data,
+                    loadCurrentPrivateKey(),
+                    keys
+                )
+            }
+
+    /**
+     * Retrieves user public key from the cloud for encryption/verification operations.
+     *
+     * Searches for public key with specified [identity] and returns map of [String] ->
+     * [PublicKey] in [onResultListener] callback or [Throwable] if something went wrong.
+     *
+     * [PublicKeyNotFoundException] will be thrown if public key wasn't found.
+     *
+     * Can be called only if private key is on the device, otherwise [PrivateKeyNotFoundException]
+     * exception will be thrown.
+     *
+     * @throws PrivateKeyNotFoundException
+     * @throws PublicKeyDuplicateException
+     */
+    fun lookupPublicKeys(identity: String,
+                         onResultListener: OnResultListener<LookupResult>) =
+            lookupPublicKeys(listOf(identity), onResultListener)
 
     /**
      * Retrieves user public keys from the cloud for encryption/verification operations.
      *
-     * Searches for public keys with specified [identities] and returns list of [PublicKey] in
-     * [onResultListener] callback or [Throwable] if something went wrong.
+     * Searches for public keys with specified [identities] and returns map of [String] ->
+     * [PublicKey] in [onResultListener] callback or [Throwable] if something went wrong.
      *
      * [PublicKeyNotFoundException] will be thrown for the first not found public key.
      *
-     * Can be called only if private key is on the device otherwise [PrivateKeyNotFoundException]
+     * Can be called only if private key is on the device, otherwise [PrivateKeyNotFoundException]
      * exception will be thrown.
      *
      * @throws PrivateKeyNotFoundException
      * @throws PublicKeyDuplicateException
      */
     fun lookupPublicKeys(identities: List<String>,
-                         onResultListener: OnResultListener<Map<String, VirgilPublicKey>>) {
+                         onResultListener: OnResultListener<LookupResult>) {
         GlobalScope.launch {
             try {
                 if (identities.isEmpty()) throw EmptyArgumentException("identities")
@@ -560,55 +668,6 @@ class EThree
         if (!keyManagerLocal.exists()) throw PrivateKeyNotFoundException(
             "You have to get private key first. Use \'register\' " +
             "or \'restorePrivateKey\' functions.")
-    }
-
-    /**
-     * Interface that is intended to signal if some asynchronous process is completed successfully
-     * or not.
-     */
-    interface OnCompleteListener {
-
-        /**
-         * This method will be called if asynchronous process is completed successfully.
-         */
-        fun onSuccess()
-
-        /**
-         * This method will be called if asynchronous process is failed and provide [throwable]
-         * cause.
-         */
-        fun onError(throwable: Throwable)
-    }
-
-    /**
-     * Interface that should provide Json Web Token when [onGetToken] callback is called.
-     */
-    interface OnGetTokenCallback {
-
-        /**
-         * This method should return valid Json Web Token [String] representation with identity
-         * (in it) of the user which will use this class.
-         */
-        fun onGetToken(): String
-    }
-
-    /**
-     * Interface that is intended to return *<T>* type result if some asynchronous process is
-     * completed successfully, otherwise error will be returned.
-     */
-    interface OnResultListener<T> {
-
-        /**
-         * This method will be called if asynchronous process is completed successfully and
-         * provide *<T>* type [result].
-         */
-        fun onSuccess(result: T)
-
-        /**
-         * This method will be called if asynchronous process is failed and provide [throwable]
-         * cause.
-         */
-        fun onError(throwable: Throwable)
     }
 
     companion object {
