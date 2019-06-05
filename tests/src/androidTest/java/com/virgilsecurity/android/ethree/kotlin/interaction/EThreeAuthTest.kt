@@ -370,8 +370,8 @@ class EThreeAuthTest {
         assertTrue(keyStorage.exists(identity))
 
         val cards = initCardManager(identity).searchCards(identity)
-        assertEquals(1, cards.size)
         assertNotNull(cards)
+        assertEquals(1, cards.size)
 
         val waiter = CountDownLatch(1)
         eThree.unregister(object : OnCompleteListener {
@@ -396,8 +396,8 @@ class EThreeAuthTest {
         assertTrue(keyStorage.exists(identity))
 
         val cards = initCardManager(identity).searchCards(identity)
-        assertEquals(1, cards.size)
         assertNotNull(cards)
+        assertEquals(1, cards.size)
 
         eThree.cleanup()
         assertFalse(keyStorage.exists(identity))

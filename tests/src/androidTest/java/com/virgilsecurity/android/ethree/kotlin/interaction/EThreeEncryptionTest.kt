@@ -251,7 +251,7 @@ class EThreeEncryptionTest {
                                 })
         waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
         assertNotNull(eThreeKeys)
-        assertTrue(eThreeKeys?.size == 2)
+        assertEquals(2, eThreeKeys?.size)
 
         var failedEncrypt = false
         try {
@@ -283,7 +283,7 @@ class EThreeEncryptionTest {
                                 })
         waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
         assertNotNull(eThreeKeys)
-        assertTrue(eThreeKeys?.size == 2)
+        assertEquals(2, eThreeKeys?.size)
 
         val lookupEntry =
                 eThreeKeys?.toMutableMap()?.apply { remove(identity) } // We need only identity
@@ -437,7 +437,7 @@ class EThreeEncryptionTest {
         waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
 
         assertNotNull(eThreeKeys)
-        assertTrue(eThreeKeys?.size == 1)
+        assertEquals(1, eThreeKeys?.size)
     }
 
     @Test fun encrypt_decrypt_stream() {
@@ -460,7 +460,7 @@ class EThreeEncryptionTest {
                                 })
         waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
         assertNotNull(eThreeKeys)
-        assertTrue(eThreeKeys?.size == 2)
+        assertEquals(2, eThreeKeys?.size)
 
         val lookupEntry =
                 eThreeKeys?.toMutableMap()?.apply { remove(identity) } // We need only identityTwo
