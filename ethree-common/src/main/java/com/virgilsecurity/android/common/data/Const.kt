@@ -40,6 +40,7 @@ object Const {
 
     const val VIRGIL_BASE_URL = "https://api.virgilsecurity.com"
     const val VIRGIL_CARDS_SERVICE_PATH = "/card/v5/"
+    const val ETHREE_NAME = "e3kit"
 
     val NO_CONTEXT = null
 }

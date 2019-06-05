@@ -34,6 +34,7 @@
 package com.virgilsecurity.android.ethree.kotlin.interaction
 
 import android.content.Context
+import com.virgilsecurity.android.common.data.Const
 import com.virgilsecurity.android.common.data.Const.NO_CONTEXT
 import com.virgilsecurity.android.common.data.Const.VIRGIL_BASE_URL
 import com.virgilsecurity.android.common.data.Const.VIRGIL_CARDS_SERVICE_PATH
@@ -41,6 +42,7 @@ import com.virgilsecurity.android.common.data.local.KeyManagerLocal
 import com.virgilsecurity.android.common.data.model.LookupResult
 import com.virgilsecurity.android.common.data.remote.KeyManagerCloud
 import com.virgilsecurity.android.common.exceptions.*
+import com.virgilsecurity.android.ethree.build.VersionVirgilAgent
 import com.virgilsecurity.android.ethree.kotlin.callback.OnCompleteListener
 import com.virgilsecurity.android.ethree.kotlin.callback.OnGetTokenCallback
 import com.virgilsecurity.android.ethree.kotlin.callback.OnResultListener
@@ -52,6 +54,7 @@ import com.virgilsecurity.pythia.client.VirgilPythiaClient
 import com.virgilsecurity.pythia.crypto.VirgilPythiaCrypto
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
+import com.virgilsecurity.sdk.client.HttpClient
 import com.virgilsecurity.sdk.client.VirgilCardClient
 import com.virgilsecurity.sdk.crypto.VirgilCardCrypto
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
@@ -86,13 +89,17 @@ class EThree
 
     init {
         cardManager = VirgilCardCrypto().let { cardCrypto ->
+            val httpClient = HttpClient(Const.ETHREE_NAME, VersionVirgilAgent.VERSION)
             CardManager(cardCrypto,
                         tokenProvider,
                         VirgilCardVerifier(cardCrypto, false, false),
-                        VirgilCardClient(VIRGIL_BASE_URL + VIRGIL_CARDS_SERVICE_PATH))
+                        VirgilCardClient(VIRGIL_BASE_URL + VIRGIL_CARDS_SERVICE_PATH,
+                                         httpClient))
         }
         keyManagerLocal = KeyManagerLocal(tokenProvider.getToken(NO_CONTEXT).identity, context)
-        keyManagerCloud = KeyManagerCloud(currentIdentity(), tokenProvider)
+        keyManagerCloud = KeyManagerCloud(currentIdentity(),
+                                          tokenProvider,
+                                          VersionVirgilAgent.VERSION)
     }
 
     /**
