@@ -48,8 +48,6 @@ import com.virgilsecurity.sdk.crypto.VirgilPrivateKey
 import com.virgilsecurity.sdk.crypto.VirgilPublicKey
 import com.virgilsecurity.sdk.jwt.contract.AccessTokenProvider
 import java.net.URL
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 /**
  * KeyManagerCloud
@@ -71,43 +69,38 @@ class KeyManagerCloud(
             .setPythiaCrypto(VirgilPythiaCrypto())
             .build()
 
-    suspend fun exists(password: String) = initCloudKeyStorage(password).exists(identity)
+    fun exists(password: String) = initCloudKeyStorage(password).exists(identity)
 
-    suspend fun store(password: String, data: ByteArray, meta: Map<String, String>? = null) =
+    fun store(password: String, data: ByteArray, meta: Map<String, String>? = null) =
             initCloudKeyStorage(password).store(identity, data, meta)
 
-    suspend fun retrieve(password: String) = initCloudKeyStorage(password).retrieve(identity)
+    fun retrieve(password: String) = initCloudKeyStorage(password).retrieve(identity)
 
-    suspend fun delete(password: String) = initCloudKeyStorage(password).delete(identity)
+    fun delete(password: String) = initCloudKeyStorage(password).delete(identity)
 
-    suspend fun deleteAll() =
-            suspendCoroutine<Unit> {
-                keyknoxClient.resetValue(tokenProvider.getToken(Const.NO_CONTEXT).stringRepresentation())
-                it.resume(Unit)
-            }
+    fun deleteAll() =
+            keyknoxClient.resetValue(tokenProvider.getToken(Const.NO_CONTEXT).stringRepresentation())
 
-    suspend fun updateRecipients(password: String,
-                                 publicKeys: List<VirgilPublicKey>,
-                                 privateKey: VirgilPrivateKey) =
+    fun updateRecipients(password: String,
+                         publicKeys: List<VirgilPublicKey>,
+                         privateKey: VirgilPrivateKey) =
             initCloudKeyStorage(password).updateRecipients(publicKeys, privateKey)
 
     /**
      * Initializes [SyncKeyStorage] with default settings, [tokenProvider] and provided
      * [password] after that returns initialized [SyncKeyStorage] object.
      */
-    private suspend fun initCloudKeyStorage(password: String): CloudKeyStorage =
-            suspendCoroutine {
-                BrainKey(brainKeyContext).generateKeyPair(password)
-                        .let { keyPair ->
-                            val keyknoxManager = KeyknoxManager(tokenProvider,
-                                                                keyknoxClient,
-                                                                listOf(keyPair.publicKey),
-                                                                keyPair.privateKey,
-                                                                KeyknoxCrypto())
-                            val cloudKeyStorage = CloudKeyStorage(keyknoxManager).also { cloudKeyStorage ->
-                                cloudKeyStorage.retrieveCloudEntries()
-                            }
-                            it.resume(cloudKeyStorage)
+    private fun initCloudKeyStorage(password: String): CloudKeyStorage =
+            BrainKey(brainKeyContext).generateKeyPair(password)
+                    .let { keyPair ->
+                        val keyknoxManager = KeyknoxManager(tokenProvider,
+                                                            keyknoxClient,
+                                                            listOf(keyPair.publicKey),
+                                                            keyPair.privateKey,
+                                                            KeyknoxCrypto())
+                        val cloudKeyStorage = CloudKeyStorage(keyknoxManager).also { cloudKeyStorage ->
+                            cloudKeyStorage.retrieveCloudEntries()
                         }
-            }
+                        cloudKeyStorage
+                    }
 }

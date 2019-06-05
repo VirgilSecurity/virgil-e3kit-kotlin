@@ -1,4 +1,4 @@
-package com.virgilsecurity.android.ethree.kotlin.interaction
+package com.virgilsecurity.android.ethree.kotlin.interaction.profile
 
 import android.os.Debug
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
