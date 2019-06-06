@@ -199,7 +199,10 @@ class EThreeAuthTest {
     // STE-Auth-11
     @Test fun register_with_existing_private_key() {
         keyStorage.store(JsonKeyEntry(identity,
-                                      virgilCrypto.generateKeyPair().privateKey.privateKey.exportPrivateKey()))
+                                      virgilCrypto.generateKeyPair()
+                                              .privateKey
+                                              .privateKey
+                                              .exportPrivateKey()))
         val eThree = initEThree(identity)
 
         val waiter = CountDownLatch(1)
@@ -380,7 +383,7 @@ class EThreeAuthTest {
             }
 
             override fun onError(throwable: Throwable) {
-                // TODO Implement body or it will be empty ):
+                fail(throwable.message)
             }
         })
         waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
@@ -408,7 +411,7 @@ class EThreeAuthTest {
             }
 
             override fun onError(throwable: Throwable) {
-                // TODO Implement body or it will be empty ):
+                fail(throwable.message)
             }
         })
         waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)

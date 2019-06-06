@@ -115,23 +115,23 @@ class EThreeNegativeTest {
 
         EThree.initialize(TestConfig.context,
                           object : OnGetTokenCallback {
-                                                                                             override fun onGetToken(): String {
-                                                                                                 return jwtGenerator.generateToken(
-                                                                                                     identity)
-                                                                                                         .stringRepresentation()
-                                                                                             }
-                                                                                         })
+                              override fun onGetToken(): String {
+                                  return jwtGenerator.generateToken(
+                                      identity)
+                                          .stringRepresentation()
+                              }
+                          })
                 .addCallback(object : OnResultListener<EThree> {
-            override fun onSuccess(result: EThree) {
-                eThree = result
-                waiter.countDown()
-            }
+                    override fun onSuccess(result: EThree) {
+                        eThree = result
+                        waiter.countDown()
+                    }
 
-            override fun onError(throwable: Throwable) {
-                fail(throwable.message)
-            }
+                    override fun onError(throwable: Throwable) {
+                        fail(throwable.message)
+                    }
 
-        })
+                })
 
         waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
 
@@ -266,8 +266,10 @@ class EThreeNegativeTest {
                     }
 
                     override fun onError(throwable: Throwable) {
-                        if (throwable is PublicKeyNotFoundException && throwable.identity == WRONG_IDENTITY)
+                        if (throwable is PublicKeyNotFoundException
+                            && throwable.identity == WRONG_IDENTITY) {
                             failed = true
+                        }
 
                         waiter.countDown()
                     }
@@ -281,20 +283,20 @@ class EThreeNegativeTest {
         val waiter = CountDownLatch(1)
         EThree.initialize(TestConfig.context,
                           object : OnGetTokenCallback {
-                                                                                             override fun onGetToken(): String {
-                                                                                                 return ""
-                                                                                             }
-                                                                                         })
+                              override fun onGetToken(): String {
+                                  return ""
+                              }
+                          })
                 .addCallback(object : OnResultListener<EThree> {
-            override fun onSuccess(result: EThree) {
-                fail("Illegal State")
-            }
+                    override fun onSuccess(result: EThree) {
+                        fail("Illegal State")
+                    }
 
-            override fun onError(throwable: Throwable) {
-                failed = true
-                waiter.countDown()
-            }
-        })
+                    override fun onError(throwable: Throwable) {
+                        failed = true
+                        waiter.countDown()
+                    }
+                })
         waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
         assertTrue(failed)
     }

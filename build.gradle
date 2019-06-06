@@ -44,7 +44,7 @@ buildscript {
             coroutines  : '1.0.1',
 
             // Gradle
-            gardle      : '3.3.2',
+            gardle      : '3.4.1',
 
             // Android
             android     : '4.1.1.4',
