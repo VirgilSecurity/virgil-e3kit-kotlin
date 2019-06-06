@@ -55,7 +55,6 @@ import com.virgilsecurity.sdk.jwt.accessProviders.GeneratorJwtProvider;
 
 import org.jetbrains.annotations.NotNull;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 

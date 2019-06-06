@@ -106,23 +106,23 @@ class EThreeEncryptionTest {
 
         EThree.initialize(TestConfig.context,
                           object : OnGetTokenCallback {
-                                                                                             override fun onGetToken(): String {
-                                                                                                 return jwtGenerator.generateToken(
-                                                                                                     identity)
-                                                                                                         .stringRepresentation()
-                                                                                             }
-                                                                                         })
+                              override fun onGetToken(): String {
+                                  return jwtGenerator.generateToken(
+                                      identity)
+                                          .stringRepresentation()
+                              }
+                          })
                 .addCallback(object : OnResultListener<EThree> {
-            override fun onSuccess(result: EThree) {
-                eThree = result
-                waiter.countDown()
-            }
+                    override fun onSuccess(result: EThree) {
+                        eThree = result
+                        waiter.countDown()
+                    }
 
-            override fun onError(throwable: Throwable) {
-                fail(throwable.message)
-            }
+                    override fun onError(throwable: Throwable) {
+                        fail(throwable.message)
+                    }
 
-        })
+                })
 
         waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
 
@@ -341,23 +341,23 @@ class EThreeEncryptionTest {
         val waiter = CountDownLatch(1)
         EThree.initialize(TestConfig.context,
                           object : OnGetTokenCallback {
-                                                                                             override fun onGetToken(): String {
-                                                                                                 return jwtGenerator.generateToken(
-                                                                                                     identity)
-                                                                                                         .stringRepresentation()
-                                                                                             }
-                                                                                         })
+                              override fun onGetToken(): String {
+                                  return jwtGenerator.generateToken(
+                                      identity)
+                                          .stringRepresentation()
+                              }
+                          })
                 .addCallback(object : OnResultListener<EThree> {
-            override fun onSuccess(result: EThree) {
-                eThreeTwo = result
-                waiter.countDown()
-            }
+                    override fun onSuccess(result: EThree) {
+                        eThreeTwo = result
+                        waiter.countDown()
+                    }
 
-            override fun onError(throwable: Throwable) {
-                fail(throwable.message)
-            }
+                    override fun onError(throwable: Throwable) {
+                        fail(throwable.message)
+                    }
 
-        })
+                })
 
 
         waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
@@ -388,23 +388,23 @@ class EThreeEncryptionTest {
 
         EThree.initialize(TestConfig.context,
                           object : OnGetTokenCallback {
-                                                                                             override fun onGetToken(): String {
-                                                                                                 return jwtGenerator.generateToken(
-                                                                                                     identity)
-                                                                                                         .stringRepresentation()
-                                                                                             }
-                                                                                         })
+                              override fun onGetToken(): String {
+                                  return jwtGenerator.generateToken(
+                                      identity)
+                                          .stringRepresentation()
+                              }
+                          })
                 .addCallback(object : OnResultListener<EThree> {
-            override fun onSuccess(result: EThree) {
-                eThreeTwo = result
-                waiter.countDown()
-            }
+                    override fun onSuccess(result: EThree) {
+                        eThreeTwo = result
+                        waiter.countDown()
+                    }
 
-            override fun onError(throwable: Throwable) {
-                fail(throwable.message)
-            }
+                    override fun onError(throwable: Throwable) {
+                        fail(throwable.message)
+                    }
 
-        })
+                })
 
         waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
 

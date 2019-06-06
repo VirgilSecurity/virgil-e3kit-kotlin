@@ -34,6 +34,9 @@
 package com.virgilsecurity.android.ethreecoroutines.interaction
 
 import android.content.Context
+import com.virgilsecurity.android.common.data.Const.NO_CONTEXT
+import com.virgilsecurity.android.common.data.Const.VIRGIL_BASE_URL
+import com.virgilsecurity.android.common.data.Const.VIRGIL_CARDS_SERVICE_PATH
 import com.virgilsecurity.android.common.data.local.KeyManagerLocal
 import com.virgilsecurity.android.common.data.remote.KeyManagerCloud
 import com.virgilsecurity.android.common.exceptions.*
@@ -216,6 +219,7 @@ class EThree
 
                 keyManagerCloud.delete(password)
             }
+            Unit
         },
         {
             if (it is DecryptionFailedException)

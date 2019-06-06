@@ -187,23 +187,6 @@ class EThreeBackupTest {
         return syncKeyStorage
     }
 
-    private fun initCardManager(identity: String): CardManager {
-        val cardCrypto = VirgilCardCrypto()
-        return CardManager(
-            cardCrypto,
-            GeneratorJwtProvider(jwtGenerator, identity),
-            VirgilCardVerifier(cardCrypto, false, false),
-            VirgilCardClient(virgilBaseUrl + TestConfig.VIRGIL_CARDS_SERVICE_PATH)
-        )
-    }
-
-    private fun generateRawCard(identity: String,
-                                cardManager: CardManager): Tuple<VirgilKeyPair, RawSignedModel> {
-        return VirgilCrypto().generateKeyPair().let {
-            Tuple(it, cardManager.generateRawCard(it.privateKey, it.publicKey, identity))
-        }
-    }
-
     // STE-15_1
     @Test fun backup_key_before_register() {
         val identity = UUID.randomUUID().toString()
