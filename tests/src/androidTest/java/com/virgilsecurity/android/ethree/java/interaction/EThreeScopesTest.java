@@ -68,7 +68,6 @@ import java.util.concurrent.TimeUnit;
 import kotlin.coroutines.CoroutineContext;
 import kotlinx.coroutines.CoroutineScope;
 import kotlinx.coroutines.Dispatchers;
-import kotlinx.coroutines.Job;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -79,9 +78,6 @@ import static org.junit.Assert.fail;
  */
 @RunWith(AndroidJUnit4.class)
 public class EThreeScopesTest {
-
-    private static final int NUMBER_OF_REPEATS = 10;
-    private static final long A_FEW_NETWORK_CALLS_DELAY = 1500L;
 
     private String identity = UUID.randomUUID().toString();
     private String tokenString;
