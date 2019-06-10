@@ -86,7 +86,7 @@ dependencies {
 task generateVersionVirgilAgent {
     outputs.dir "$buildDir/generated"
     doFirst {
-        def versionFile = file("$buildDir/generated/com/virgilsecurity/android/ethreecoroutines/build/VersionVirgilAgent.kt")
+        def versionFile = file("$buildDir/generated/release/com/virgilsecurity/android/ethreecoroutines/build/VersionVirgilAgent.kt")
         versionFile.parentFile.mkdirs()
         versionFile.text =
                 """
@@ -99,7 +99,7 @@ object VersionVirgilAgent {
     }
 }
 
-project.android.sourceSets.main.java.srcDirs = ["${buildDir}/generated/", "src/main/java"]
+project.android.sourceSets.main.java.srcDirs = ["${buildDir}/generated/release/", "src/main/java"]
 
 tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
     dependsOn(generateVersionVirgilAgent)
