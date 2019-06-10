@@ -31,16 +31,32 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.common.data
+package com.virgilsecurity.android.ethree.kotlin.model
+
+import com.virgilsecurity.android.ethree.kotlin.callback.OnCompleteListener
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 /**
- * Const
+ * Completable
  */
-object Const {
+interface Completable {
 
-    const val VIRGIL_BASE_URL = "https://api.virgilsecurity.com"
-    const val VIRGIL_CARDS_SERVICE_PATH = "/card/v5/"
-    const val ETHREE_NAME = "e3kit"
+    fun execute()
 
-    val NO_CONTEXT = null
+    fun addCallback(onCompleteListener: OnCompleteListener, scope: CoroutineScope = GlobalScope) {
+        scope.launch {
+            try {
+                execute()
+                onCompleteListener.onSuccess()
+            } catch (throwable: Throwable) {
+                onCompleteListener.onError(throwable)
+            }
+        }
+    }
+
+    fun addCallback(onCompleteListener: OnCompleteListener) =
+            addCallback(onCompleteListener, GlobalScope)
+
 }

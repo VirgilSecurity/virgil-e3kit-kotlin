@@ -31,16 +31,22 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.common.data
+package com.virgilsecurity.android.ethree.kotlin.callback
 
 /**
- * Const
+ * Interface that is intended to signal if some asynchronous process is completed successfully
+ * or not.
  */
-object Const {
+interface OnCompleteListener {
 
-    const val VIRGIL_BASE_URL = "https://api.virgilsecurity.com"
-    const val VIRGIL_CARDS_SERVICE_PATH = "/card/v5/"
-    const val ETHREE_NAME = "e3kit"
+    /**
+     * This method will be called if asynchronous process is completed successfully.
+     */
+    fun onSuccess()
 
-    val NO_CONTEXT = null
+    /**
+     * This method will be called if asynchronous process is failed and provide [throwable]
+     * cause.
+     */
+    fun onError(throwable: Throwable)
 }

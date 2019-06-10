@@ -31,16 +31,33 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.common.data
+package com.virgilsecurity.android.ethree.kotlin.model
+
+import com.virgilsecurity.android.ethree.kotlin.callback.OnResultListener
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 /**
- * Const
+ * Result
  */
-object Const {
+interface Result<T> {
 
-    const val VIRGIL_BASE_URL = "https://api.virgilsecurity.com"
-    const val VIRGIL_CARDS_SERVICE_PATH = "/card/v5/"
-    const val ETHREE_NAME = "e3kit"
+    fun get(): T
 
-    val NO_CONTEXT = null
+    fun addCallback(onResultListener: OnResultListener<T>, scope: CoroutineScope = GlobalScope) {
+        scope.launch {
+            try {
+                val result = get()
+                onResultListener.onSuccess(result)
+            } catch (throwable: Throwable) {
+                onResultListener.onError(throwable)
+            }
+        }
+    }
+
+    fun addCallback(onResultListener: OnResultListener<T>) =
+            addCallback(onResultListener, GlobalScope)
+
+    // TODO check whether we need cancel()
 }
