@@ -1,7 +1,0 @@
-$dokka.format:html
-$dokka.linkExtension:html
-
-com.virgilsecurity.android.common.data
-com.virgilsecurity.android.common.data.local
-com.virgilsecurity.android.common.data.remote
-com.virgilsecurity.android.common.exceptions

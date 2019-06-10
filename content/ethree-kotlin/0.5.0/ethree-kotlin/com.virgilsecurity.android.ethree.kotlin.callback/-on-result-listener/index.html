@@ -1,0 +1,40 @@
+<HTML>
+<HEAD>
+<meta charset="UTF-8">
+<title>OnResultListener - ethree-kotlin</title>
+<link rel="stylesheet" href="../../../style.css">
+</HEAD>
+<BODY>
+<a href="../../index.html">ethree-kotlin</a>&nbsp;/&nbsp;<a href="../index.html">com.virgilsecurity.android.ethree.kotlin.callback</a>&nbsp;/&nbsp;<a href="./index.html">OnResultListener</a><br/>
+<br/>
+<h1>OnResultListener</h1>
+<code><span class="keyword">interface </span><span class="identifier">OnResultListener</span><span class="symbol">&lt;</span><span class="identifier">T</span><span class="symbol">&gt;</span></code>
+<p>Interface that is intended to return <em></em> type result if some asynchronous process is
+completed successfully, otherwise error will be returned.</p>
+<h3>Functions</h3>
+<table>
+<tbody>
+<tr>
+<td>
+<p><a href="on-error.html">onError</a></p>
+</td>
+<td>
+<code><span class="keyword">abstract</span> <span class="keyword">fun </span><span class="identifier">onError</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.ethree.kotlin.callback.OnResultListener$onError(kotlin.Throwable)/throwable">throwable</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-throwable/index.html"><span class="identifier">Throwable</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a></code>
+<p>This method will be called if asynchronous process is failed and provide <a href="on-error.html#com.virgilsecurity.android.ethree.kotlin.callback.OnResultListener$onError(kotlin.Throwable)/throwable">throwable</a>
+cause.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="on-success.html">onSuccess</a></p>
+</td>
+<td>
+<code><span class="keyword">abstract</span> <span class="keyword">fun </span><span class="identifier">onSuccess</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.ethree.kotlin.callback.OnResultListener$onSuccess(com.virgilsecurity.android.ethree.kotlin.callback.OnResultListener.T)/result">result</span><span class="symbol">:</span>&nbsp;<a href="index.html#T"><span class="identifier">T</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a></code>
+<p>This method will be called if asynchronous process is completed successfully and
+provide <em></em> type <a href="on-success.html#com.virgilsecurity.android.ethree.kotlin.callback.OnResultListener$onSuccess(com.virgilsecurity.android.ethree.kotlin.callback.OnResultListener.T)/result">result</a>.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</BODY>
+</HTML>

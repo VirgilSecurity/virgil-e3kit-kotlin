@@ -1,0 +1,25 @@
+<HTML>
+<HEAD>
+<meta charset="UTF-8">
+<title>EThree.resetPrivateKeyBackup - ethree-kotlin</title>
+<link rel="stylesheet" href="../../../style.css">
+</HEAD>
+<BODY>
+<a href="../../index.html">ethree-kotlin</a>&nbsp;/&nbsp;<a href="../index.html">com.virgilsecurity.android.ethree.kotlin.interaction</a>&nbsp;/&nbsp;<a href="index.html">EThree</a>&nbsp;/&nbsp;<a href="./reset-private-key-backup.html">resetPrivateKeyBackup</a><br/>
+<br/>
+<h1>resetPrivateKeyBackup</h1>
+<a name="com.virgilsecurity.android.ethree.kotlin.interaction.EThree$resetPrivateKeyBackup(kotlin.String)"></a>
+<code><span class="identifier">@JvmOverloads</span> <span class="keyword">fun </span><span class="identifier">resetPrivateKeyBackup</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.ethree.kotlin.interaction.EThree$resetPrivateKeyBackup(kotlin.String)/password">password</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">)</span><span class="symbol">: </span><a href="../../com.virgilsecurity.android.ethree.kotlin.model/-completable/index.html"><span class="identifier">Completable</span></a></code>
+<p>Deletes the user's private key from Virgil's cloud.</p>
+<p>Deletes private key backup using specified <a href="reset-private-key-backup.html#com.virgilsecurity.android.ethree.kotlin.interaction.EThree$resetPrivateKeyBackup(kotlin.String)/password">password</a> and provides <a href="#">onCompleteListener</a>
+callback that will notify you with successful completion or with a <a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-throwable/index.html">Throwable</a> if
+something went wrong.</p>
+<p>Can be called only if private key is on the device otherwise <a href="#">PrivateKeyNotFoundException</a>
+exception will be thrown.</p>
+<h3>Exceptions</h3>
+<p><a name="PrivateKeyNotFoundException"></a>
+<code>PrivateKeyNotFoundException</code> - </p>
+<p><a name="WrongPasswordException"></a>
+<code>WrongPasswordException</code> - </p>
+</BODY>
+</HTML>
