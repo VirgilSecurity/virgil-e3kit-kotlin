@@ -31,15 +31,17 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.ethree.kotlin.interaction
+package com.virgilsecurity.android.ethree.kotlin.interaction.async
 
+import com.virgilsecurity.android.common.data.model.LookupResult
 import com.virgilsecurity.android.common.exceptions.PrivateKeyNotFoundException
 import com.virgilsecurity.android.common.exceptions.PublicKeyDuplicateException
 import com.virgilsecurity.android.common.exceptions.PublicKeyNotFoundException
-import com.virgilsecurity.android.common.exceptions.UnregistrationException
+import com.virgilsecurity.android.common.exceptions.UnRegistrationException
 import com.virgilsecurity.android.ethree.kotlin.callback.OnCompleteListener
 import com.virgilsecurity.android.ethree.kotlin.callback.OnGetTokenCallback
 import com.virgilsecurity.android.ethree.kotlin.callback.OnResultListener
+import com.virgilsecurity.android.ethree.kotlin.interaction.EThree
 import com.virgilsecurity.android.ethree.utils.TestConfig
 import com.virgilsecurity.android.ethree.utils.TestUtils
 import com.virgilsecurity.sdk.cards.CardManager
@@ -111,21 +113,25 @@ class EThreeNegativeTest {
         var eThree: EThree? = null
         val waiter = CountDownLatch(1)
 
-        EThree.initialize(TestConfig.context, object : OnGetTokenCallback {
-            override fun onGetToken(): String {
-                return jwtGenerator.generateToken(identity).stringRepresentation()
-            }
-        }, object : OnResultListener<EThree> {
-            override fun onSuccess(result: EThree) {
-                eThree = result
-                waiter.countDown()
-            }
+        EThree.initialize(TestConfig.context,
+                          object : OnGetTokenCallback {
+                              override fun onGetToken(): String {
+                                  return jwtGenerator.generateToken(
+                                      identity)
+                                          .stringRepresentation()
+                              }
+                          })
+                .addCallback(object : OnResultListener<EThree> {
+                    override fun onSuccess(result: EThree) {
+                        eThree = result
+                        waiter.countDown()
+                    }
 
-            override fun onError(throwable: Throwable) {
-                fail(throwable.message)
-            }
+                    override fun onError(throwable: Throwable) {
+                        fail(throwable.message)
+                    }
 
-        })
+                })
 
         waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
 
@@ -135,7 +141,7 @@ class EThreeNegativeTest {
     private fun registerEThree(eThree: EThree): EThree {
         val waiter = CountDownLatch(1)
 
-        eThree.register(object : OnCompleteListener {
+        eThree.register().addCallback(object : OnCompleteListener {
 
             override fun onSuccess() {
                 // Good, go on
@@ -160,7 +166,7 @@ class EThreeNegativeTest {
     @Test fun backup_fail_without_bootstrap() {
         var failed = false
         val waiter = CountDownLatch(1)
-        eThree.backupPrivateKey(password, object : OnCompleteListener {
+        eThree.backupPrivateKey(password).addCallback(object : OnCompleteListener {
             override fun onSuccess() {
                 fail("Not Bootstrapped")
             }
@@ -177,7 +183,7 @@ class EThreeNegativeTest {
     @Test fun reset_key_fail_without_bootstrap() {
         var failed = false
         val waiter = CountDownLatch(1)
-        eThree.resetPrivateKeyBackup(password, object : OnCompleteListener {
+        eThree.resetPrivateKeyBackup(password).addCallback(object : OnCompleteListener {
             override fun onSuccess() {
                 fail("Not Bootstrapped")
             }
@@ -194,16 +200,17 @@ class EThreeNegativeTest {
     @Test fun change_pass_fail_without_bootstrap() {
         var failed = false
         val waiter = CountDownLatch(1)
-        eThree.changePassword(password, password + password, object : OnCompleteListener {
-            override fun onSuccess() {
-                fail("Not Bootstrapped")
-            }
+        eThree.changePassword(password, password + password)
+                .addCallback(object : OnCompleteListener {
+                    override fun onSuccess() {
+                        fail("Not Bootstrapped")
+                    }
 
-            override fun onError(throwable: Throwable) {
-                failed = true
-                waiter.countDown()
-            }
-        })
+                    override fun onError(throwable: Throwable) {
+                        failed = true
+                        waiter.countDown()
+                    }
+                })
         waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
         assertTrue(failed)
     }
@@ -231,16 +238,17 @@ class EThreeNegativeTest {
     @Test fun lookup_fail_without_bootstrap() {
         var failed = false
         val waiter = CountDownLatch(1)
-        eThree.lookupPublicKeys(listOf(""), object : OnResultListener<Map<String, VirgilPublicKey>> {
-            override fun onSuccess(result: Map<String, VirgilPublicKey>) {
-                fail("Not Bootstrapped")
-            }
+        eThree.lookupPublicKeys(listOf(""))
+                .addCallback(object : OnResultListener<LookupResult> {
+                    override fun onSuccess(result: LookupResult) {
+                        fail("Not Bootstrapped")
+                    }
 
-            override fun onError(throwable: Throwable) {
-                failed = true
-                waiter.countDown()
-            }
-        })
+                    override fun onError(throwable: Throwable) {
+                        failed = true
+                        waiter.countDown()
+                    }
+                })
         waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
         assertTrue(failed)
     }
@@ -250,19 +258,22 @@ class EThreeNegativeTest {
 
         var failed = false
         val waiter = CountDownLatch(1)
-        eThree.lookupPublicKeys(listOf(identity, WRONG_IDENTITY),
-                                object : OnResultListener<Map<String, VirgilPublicKey>> {
-                                    override fun onSuccess(result: Map<String, VirgilPublicKey>) {
-                                        fail("Illegal State")
-                                    }
+        eThree.lookupPublicKeys(listOf(identity,
+                                       WRONG_IDENTITY))
+                .addCallback(object : OnResultListener<Map<String, VirgilPublicKey>> {
+                    override fun onSuccess(result: Map<String, VirgilPublicKey>) {
+                        fail("Illegal State")
+                    }
 
-                                    override fun onError(throwable: Throwable) {
-                                        if (throwable is PublicKeyNotFoundException && throwable.identity == WRONG_IDENTITY)
-                                            failed = true
+                    override fun onError(throwable: Throwable) {
+                        if (throwable is PublicKeyNotFoundException
+                            && throwable.identity == WRONG_IDENTITY) {
+                            failed = true
+                        }
 
-                                        waiter.countDown()
-                                    }
-                                })
+                        waiter.countDown()
+                    }
+                })
         waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
         assertTrue(failed)
     }
@@ -270,20 +281,22 @@ class EThreeNegativeTest {
     @Test fun init_ethree_with_empty_token() {
         var failed = false
         val waiter = CountDownLatch(1)
-        EThree.initialize(TestConfig.context, object : OnGetTokenCallback {
-            override fun onGetToken(): String {
-                return ""
-            }
-        }, object : OnResultListener<EThree> {
-            override fun onSuccess(result: EThree) {
-                fail("Illegal State")
-            }
+        EThree.initialize(TestConfig.context,
+                          object : OnGetTokenCallback {
+                              override fun onGetToken(): String {
+                                  return ""
+                              }
+                          })
+                .addCallback(object : OnResultListener<EThree> {
+                    override fun onSuccess(result: EThree) {
+                        fail("Illegal State")
+                    }
 
-            override fun onError(throwable: Throwable) {
-                failed = true
-                waiter.countDown()
-            }
-        })
+                    override fun onError(throwable: Throwable) {
+                        failed = true
+                        waiter.countDown()
+                    }
+                })
         waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
         assertTrue(failed)
     }
@@ -293,20 +306,21 @@ class EThreeNegativeTest {
         val waiter = CountDownLatch(1)
         registerEThree(eThree)
         eThree.lookupPublicKeys(listOf(identity, identity, identity,
-                                       WRONG_IDENTITY, WRONG_IDENTITY,
-                                       WRONG_IDENTITY + identity),
-                                object : OnResultListener<Map<String, VirgilPublicKey>> {
-                                    override fun onSuccess(result: Map<String, VirgilPublicKey>) {
-                                        fail("Illegal State")
-                                    }
+                                       WRONG_IDENTITY,
+                                       WRONG_IDENTITY,
+                                       WRONG_IDENTITY + identity))
+                .addCallback(object : OnResultListener<LookupResult> {
+                    override fun onSuccess(result: LookupResult) {
+                        fail("Illegal State")
+                    }
 
-                                    override fun onError(throwable: Throwable) {
-                                        if (throwable is PublicKeyDuplicateException)
-                                            failed = true
+                    override fun onError(throwable: Throwable) {
+                        if (throwable is PublicKeyDuplicateException)
+                            failed = true
 
-                                        waiter.countDown()
-                                    }
-                                })
+                        waiter.countDown()
+                    }
+                })
         waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
         assertTrue(failed)
     }
@@ -315,7 +329,7 @@ class EThreeNegativeTest {
         var failed = false
         val waiter = CountDownLatch(1)
         registerEThree(eThree)
-        eThree.changePassword(password, password, object : OnCompleteListener {
+        eThree.changePassword(password, password).addCallback(object : OnCompleteListener {
             override fun onSuccess() {
                 fail("Illegal State")
             }
@@ -343,13 +357,13 @@ class EThreeNegativeTest {
 
         var failed = false
         val waiter = CountDownLatch(1)
-        eThree.unregister(object : OnCompleteListener {
+        eThree.unregister().addCallback(object : OnCompleteListener {
             override fun onSuccess() {
                 fail("Unregister should fail when there are 1+ cards published for 1 identity.")
             }
 
             override fun onError(throwable: Throwable) {
-                if (throwable is UnregistrationException)
+                if (throwable is UnRegistrationException)
                     failed = true
 
                 waiter.countDown()
@@ -362,13 +376,13 @@ class EThreeNegativeTest {
     @Test fun unregister_without_card() {
         var failed = false
         val waiter = CountDownLatch(1)
-        eThree.unregister(object : OnCompleteListener {
+        eThree.unregister().addCallback(object : OnCompleteListener {
             override fun onSuccess() {
                 fail("Unregister should fail when there are no cards published for identity.")
             }
 
             override fun onError(throwable: Throwable) {
-                if (throwable is UnregistrationException)
+                if (throwable is UnRegistrationException)
                     failed = true
 
                 waiter.countDown()

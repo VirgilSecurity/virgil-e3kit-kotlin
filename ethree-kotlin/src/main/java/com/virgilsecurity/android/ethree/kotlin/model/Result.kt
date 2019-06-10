@@ -31,22 +31,33 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.ethree.kotlin.callback
+package com.virgilsecurity.android.ethree.kotlin.model
+
+import com.virgilsecurity.android.ethree.kotlin.callback.OnResultListener
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 /**
- * Interface that is intended to signal if some asynchronous process is completed successfully
- * or not.
+ * Result
  */
-interface OnCompleteListener {
+interface Result<T> {
 
-    /**
-     * This method will be called if asynchronous process is completed successfully.
-     */
-    fun onSuccess()
+    fun get(): T
 
-    /**
-     * This method will be called if asynchronous process is failed and provide [throwable]
-     * cause.
-     */
-    fun onError(throwable: Throwable)
+    fun addCallback(onResultListener: OnResultListener<T>, scope: CoroutineScope = GlobalScope) {
+        scope.launch {
+            try {
+                val result = get()
+                onResultListener.onSuccess(result)
+            } catch (throwable: Throwable) {
+                onResultListener.onError(throwable)
+            }
+        }
+    }
+
+    fun addCallback(onResultListener: OnResultListener<T>) =
+            addCallback(onResultListener, GlobalScope)
+
+    // TODO check whether we need cancel()
 }

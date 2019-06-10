@@ -31,7 +31,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.ethree.kotlin.interaction
+package com.virgilsecurity.android.ethree.kotlin.interaction.async
 
 import com.virgilsecurity.android.common.exceptions.CardNotFoundException
 import com.virgilsecurity.android.common.exceptions.PrivateKeyExistsException
@@ -39,6 +39,7 @@ import com.virgilsecurity.android.common.exceptions.RegistrationException
 import com.virgilsecurity.android.ethree.kotlin.callback.OnCompleteListener
 import com.virgilsecurity.android.ethree.kotlin.callback.OnGetTokenCallback
 import com.virgilsecurity.android.ethree.kotlin.callback.OnResultListener
+import com.virgilsecurity.android.ethree.kotlin.interaction.EThree
 import com.virgilsecurity.android.ethree.utils.TestConfig
 import com.virgilsecurity.android.ethree.utils.TestConfig.Companion.virgilBaseUrl
 import com.virgilsecurity.android.ethree.utils.TestConfig.Companion.virgilCrypto
@@ -64,13 +65,6 @@ import java.util.*
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
-/**
- * Created by:
- * Danylo Oliinyk
- * on
- * 10/9/18
- * at Virgil Security
- */
 class EThreeAuthTest {
 
     private val identity = UUID.randomUUID().toString()
@@ -86,7 +80,7 @@ class EThreeAuthTest {
             TestConfig.apiKey,
             TestConfig.apiPublicKeyId,
             TimeSpan.fromTime(600, TimeUnit.SECONDS),
-            VirgilAccessTokenSigner(TestConfig.virgilCrypto)
+            VirgilAccessTokenSigner(virgilCrypto)
         )
 
         keyStorage = DefaultKeyStorage(TestConfig.DIRECTORY_PATH, TestConfig.KEYSTORE_NAME)
@@ -102,21 +96,25 @@ class EThreeAuthTest {
         var eThree: EThree? = null
         val waiter = CountDownLatch(1)
 
-        EThree.initialize(TestConfig.context, object : OnGetTokenCallback {
-            override fun onGetToken(): String {
-                return jwtGenerator.generateToken(identity).stringRepresentation()
-            }
-        }, object : OnResultListener<EThree> {
-            override fun onSuccess(result: EThree) {
-                eThree = result
-                waiter.countDown()
-            }
+        EThree.initialize(TestConfig.context,
+                          object : OnGetTokenCallback {
+                              override fun onGetToken(): String {
+                                  return jwtGenerator.generateToken(
+                                      identity)
+                                          .stringRepresentation()
+                              }
+                          })
+                .addCallback(object : OnResultListener<EThree> {
+                    override fun onSuccess(result: EThree) {
+                        eThree = result
+                        waiter.countDown()
+                    }
 
-            override fun onError(throwable: Throwable) {
-                fail(throwable.message)
-            }
+                    override fun onError(throwable: Throwable) {
+                        fail(throwable.message)
+                    }
 
-        })
+                })
 
         waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
 
@@ -126,7 +124,7 @@ class EThreeAuthTest {
     private fun registerEThree(eThree: EThree): EThree {
         val waiter = CountDownLatch(1)
 
-        eThree.register(object : OnCompleteListener {
+        eThree.register().addCallback(object : OnCompleteListener {
 
             override fun onSuccess() {
                 // Good, go on
@@ -185,7 +183,7 @@ class EThreeAuthTest {
         val eThree = initEThree(identity)
 
         val waiter = CountDownLatch(1)
-        eThree.register(object : OnCompleteListener {
+        eThree.register().addCallback(object : OnCompleteListener {
             override fun onSuccess() {
                 fail("Illegal state")
             }
@@ -201,11 +199,14 @@ class EThreeAuthTest {
     // STE-Auth-11
     @Test fun register_with_existing_private_key() {
         keyStorage.store(JsonKeyEntry(identity,
-                                      virgilCrypto.generateKeyPair().privateKey.privateKey.exportPrivateKey()))
+                                      virgilCrypto.generateKeyPair()
+                                              .privateKey
+                                              .privateKey
+                                              .exportPrivateKey()))
         val eThree = initEThree(identity)
 
         val waiter = CountDownLatch(1)
-        eThree.register(object : OnCompleteListener {
+        eThree.register().addCallback(object : OnCompleteListener {
             override fun onSuccess() {
                 fail("Illegal state")
             }
@@ -223,16 +224,18 @@ class EThreeAuthTest {
         val eThree = initEThree(identity)
 
         val waiter = CountDownLatch(1)
-        eThree.rotatePrivateKey(object : OnCompleteListener {
-            override fun onSuccess() {
-                fail("Illegal state")
-            }
+        eThree.rotatePrivateKey().addCallback(
+            object : OnCompleteListener {
+                override fun onSuccess() {
+                    fail("Illegal state")
+                }
 
-            override fun onError(throwable: Throwable) {
-                assertTrue(throwable is CardNotFoundException)
-                waiter.countDown()
+                override fun onError(throwable: Throwable) {
+                    assertTrue(throwable is CardNotFoundException)
+                    waiter.countDown()
+                }
             }
-        })
+        )
         waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
     }
 
@@ -243,7 +246,7 @@ class EThreeAuthTest {
         assertTrue(initCardManager(identity).searchCards(identity).isNotEmpty())
 
         val waiterTwo = CountDownLatch(1)
-        eThree.rotatePrivateKey(object : OnCompleteListener {
+        eThree.rotatePrivateKey().addCallback(object : OnCompleteListener {
             override fun onSuccess() {
                 fail("Illegal state")
             }
@@ -264,7 +267,7 @@ class EThreeAuthTest {
         val eThree = initEThree(identity)
 
         val waiterTwo = CountDownLatch(1)
-        eThree.rotatePrivateKey(object : OnCompleteListener {
+        eThree.rotatePrivateKey().addCallback(object : OnCompleteListener {
             override fun onSuccess() {
                 waiterTwo.countDown()
             }
@@ -290,7 +293,7 @@ class EThreeAuthTest {
 
         var encrypted: String? = null
         val waiterTwo = CountDownLatch(1)
-        eThree.rotatePrivateKey(object : OnCompleteListener {
+        eThree.rotatePrivateKey().addCallback(object : OnCompleteListener {
             override fun onSuccess() {
                 try {
                     encrypted = eThree.encrypt("Some text")
@@ -319,7 +322,7 @@ class EThreeAuthTest {
 
         var rotateFailed = false
         val waiterTwo = CountDownLatch(1)
-        eThree.rotatePrivateKey(object : OnCompleteListener {
+        eThree.rotatePrivateKey().addCallback(object : OnCompleteListener {
             override fun onSuccess() {
                 fail("Illegal state")
             }
@@ -346,20 +349,20 @@ class EThreeAuthTest {
 
         var rotateFailed = false
         val waiterTwo = CountDownLatch(1)
-        eThree.lookupPublicKeys(listOf(identity),
-                                object : OnResultListener<Map<String, VirgilPublicKey>> {
-                                    override fun onSuccess(result: Map<String, VirgilPublicKey>) {
-                                        fail("Illegal state")
-                                    }
+        eThree.lookupPublicKeys(listOf(identity))
+                .addCallback(object : OnResultListener<Map<String, VirgilPublicKey>> {
+                    override fun onSuccess(result: Map<String, VirgilPublicKey>) {
+                        fail("Illegal state")
+                    }
 
-                                    override fun onError(throwable: Throwable) {
-                                        if (throwable is IllegalStateException)
-                                            rotateFailed = true
+                    override fun onError(throwable: Throwable) {
+                        if (throwable is IllegalStateException)
+                            rotateFailed = true
 
-                                        waiterTwo.countDown()
-                                    }
+                        waiterTwo.countDown()
+                    }
 
-                                })
+                })
         waiterTwo.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
 
         assertTrue(rotateFailed)
@@ -374,14 +377,13 @@ class EThreeAuthTest {
         assertEquals(1, cards.size)
 
         val waiter = CountDownLatch(1)
-        eThree.unregister(object : OnCompleteListener {
+        eThree.unregister().addCallback(object : OnCompleteListener {
             override fun onSuccess() {
-
                 waiter.countDown()
             }
 
             override fun onError(throwable: Throwable) {
-                // TODO Implement body or it will be empty ):
+                fail(throwable.message)
             }
         })
         waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
@@ -403,14 +405,13 @@ class EThreeAuthTest {
         assertFalse(keyStorage.exists(identity))
 
         val waiter = CountDownLatch(1)
-        eThree.unregister(object : OnCompleteListener {
+        eThree.unregister().addCallback(object : OnCompleteListener {
             override fun onSuccess() {
-
                 waiter.countDown()
             }
 
             override fun onError(throwable: Throwable) {
-                // TODO Implement body or it will be empty ):
+                fail(throwable.message)
             }
         })
         waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)

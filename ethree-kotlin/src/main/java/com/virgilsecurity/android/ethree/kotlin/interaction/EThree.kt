@@ -43,9 +43,9 @@ import com.virgilsecurity.android.common.data.model.LookupResult
 import com.virgilsecurity.android.common.data.remote.KeyManagerCloud
 import com.virgilsecurity.android.common.exceptions.*
 import com.virgilsecurity.android.ethree.build.VersionVirgilAgent
-import com.virgilsecurity.android.ethree.kotlin.callback.OnCompleteListener
 import com.virgilsecurity.android.ethree.kotlin.callback.OnGetTokenCallback
-import com.virgilsecurity.android.ethree.kotlin.callback.OnResultListener
+import com.virgilsecurity.android.ethree.kotlin.model.Completable
+import com.virgilsecurity.android.ethree.kotlin.model.Result
 import com.virgilsecurity.keyknox.exception.DecryptionFailedException
 import com.virgilsecurity.keyknox.exception.EntryAlreadyExistsException
 import com.virgilsecurity.pythia.brainkey.BrainKey
@@ -66,8 +66,6 @@ import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
 import com.virgilsecurity.sdk.jwt.contract.AccessTokenProvider
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
 import com.virgilsecurity.sdk.utils.ConvertionUtils
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import java.io.InputStream
 import java.io.OutputStream
 
@@ -109,25 +107,20 @@ class EThree
      * @throws RegistrationException
      * @throws CryptoException
      */
-    @Synchronized fun register(onCompleteListener: OnCompleteListener) {
-        GlobalScope.launch {
-            try {
-                if (cardManager.searchCards(currentIdentity()).isNotEmpty())
-                    throw RegistrationException("Card with identity " +
-                                                "${currentIdentity()} already exists")
+    @Synchronized fun register() = object : Completable {
+        override fun execute() {
+            if (cardManager.searchCards(currentIdentity()).isNotEmpty())
+                throw RegistrationException("Card with identity " +
+                                            "${currentIdentity()} already exists")
 
-                if (keyManagerLocal.exists())
-                    throw PrivateKeyExistsException("You already have a Private Key on this device" +
-                                                    "for identity: ${currentIdentity()}. Please, use" +
-                                                    "\'cleanup()\' function first.")
+            if (keyManagerLocal.exists())
+                throw PrivateKeyExistsException("You already have a Private Key on this device" +
+                                                "for identity: ${currentIdentity()}. Please, use" +
+                                                "\'cleanup()\' function first.")
 
-                virgilCrypto.generateKeyPair().run {
-                    cardManager.publishCard(this.privateKey, this.publicKey, currentIdentity())
-                    keyManagerLocal.store(virgilCrypto.exportPrivateKey(this.privateKey))
-                    onCompleteListener.onSuccess()
-                }
-            } catch (throwable: Throwable) {
-                onCompleteListener.onError(throwable)
+            virgilCrypto.generateKeyPair().run {
+                cardManager.publishCard(this.privateKey, this.publicKey, currentIdentity())
+                keyManagerLocal.store(virgilCrypto.exportPrivateKey(this.privateKey))
             }
         }
     }
@@ -136,28 +129,22 @@ class EThree
      * Revokes the public key for current *identity* in Virgil's Cards Service. After this operation
      * you can call [EThree.register] again.
      *
-     * @throws UnregistrationException if there's no public key published yet, or if there's more
+     * @throws UnRegistrationException if there's no public key published yet, or if there's more
      * than one public key is published.
      */
-    @Synchronized fun unregister(onCompleteListener: OnCompleteListener) {
-        GlobalScope.launch {
-            try {
-                val foundCards = cardManager.searchCards(currentIdentity())
-                if (foundCards.isEmpty())
-                    throw UnregistrationException("Card with identity " +
-                                                "${currentIdentity()} does not exist.")
+    @Synchronized fun unregister() = object : Completable {
+        override fun execute() {
+            val foundCards = cardManager.searchCards(currentIdentity())
+            if (foundCards.isEmpty())
+                throw UnRegistrationException("Card with identity " +
+                                              "${currentIdentity()} does not exist.")
 
-                if (foundCards.size > 1)
-                    throw UnregistrationException("Too many cards with identity: " +
-                                                  "${currentIdentity()}.")
+            if (foundCards.size > 1)
+                throw UnRegistrationException("Too many cards with identity: " +
+                                              "${currentIdentity()}.")
 
-                cardManager.revokeCard(foundCards.first().identifier).run {
-                    if (hasLocalPrivateKey()) cleanup()
-
-                    onCompleteListener.onSuccess()
-                }
-            } catch (throwable: Throwable) {
-                onCompleteListener.onError(throwable)
+            cardManager.revokeCard(foundCards.first().identifier).run {
+                if (hasLocalPrivateKey()) cleanup()
             }
         }
     }
@@ -202,8 +189,8 @@ class EThree
      * @throws PrivateKeyNotFoundException
      * @throws BackupKeyException
      */
-    fun backupPrivateKey(password: String, onCompleteListener: OnCompleteListener) {
-        GlobalScope.launch {
+    fun backupPrivateKey(password: String) = object : Completable {
+        override fun execute() {
             try {
                 checkPrivateKeyOrThrow()
 
@@ -212,15 +199,13 @@ class EThree
 
                 with(keyManagerLocal.load()) {
                     keyManagerCloud.store(password, this.value, this.meta)
-                    onCompleteListener.onSuccess()
                 }
             } catch (throwable: Throwable) {
                 if (throwable is EntryAlreadyExistsException)
-                    onCompleteListener.onError(BackupKeyException("Key with identity " +
-                                                                  "${currentIdentity()} " +
-                                                                  "already backuped."))
+                    throw BackupKeyException("Key with identity ${currentIdentity()} " +
+                                             "already backed up.")
                 else
-                    onCompleteListener.onError(throwable)
+                    throw throwable
             }
         }
     }
@@ -238,9 +223,8 @@ class EThree
      * @throws PrivateKeyNotFoundException
      * @throws WrongPasswordException
      */
-    @JvmOverloads fun resetPrivateKeyBackup(password: String? = null,
-                                            onCompleteListener: OnCompleteListener) {
-        GlobalScope.launch {
+    @JvmOverloads fun resetPrivateKeyBackup(password: String? = null) = object : Completable {
+        override fun execute() {
             try {
                 checkPrivateKeyOrThrow()
 
@@ -252,16 +236,14 @@ class EThree
 
                     keyManagerCloud.delete(password)
                 }
-
-                onCompleteListener.onSuccess()
             } catch (throwable: Throwable) {
                 if (throwable is DecryptionFailedException)
-                    onCompleteListener.onError(WrongPasswordException(
-                        "Specified password is not valid."))
+                    throw WrongPasswordException("Specified password is not valid.")
                 else
-                    onCompleteListener.onError(throwable)
+                    throw throwable
             }
         }
+
     }
 
     /**
@@ -272,8 +254,8 @@ class EThree
      * @throws WrongPasswordException
      * @throws RestoreKeyException
      */
-    fun restorePrivateKey(password: String, onCompleteListener: OnCompleteListener) {
-        GlobalScope.launch {
+    fun restorePrivateKey(password: String) = object : Completable {
+        override fun execute() {
             try {
                 if (keyManagerLocal.exists())
                     throw RestoreKeyException("You already have a Private Key on this device" +
@@ -285,17 +267,15 @@ class EThree
 
                     val keyEntry = keyManagerCloud.retrieve(password)
                     keyManagerLocal.store(keyEntry.data)
-                    onCompleteListener.onSuccess()
                 } else {
                     throw RestoreKeyException("There is no key backup with " +
                                               "identity: ${currentIdentity()}")
                 }
             } catch (throwable: Throwable) {
                 if (throwable is DecryptionFailedException)
-                    onCompleteListener.onError(WrongPasswordException(
-                        "Specified password is not valid."))
+                    throw WrongPasswordException("Specified password is not valid.")
                 else
-                    onCompleteListener.onError(throwable)
+                    throw throwable
             }
         }
     }
@@ -309,37 +289,31 @@ class EThree
      * @throws CardNotFoundException
      * @throws CryptoException
      */
-    @Synchronized fun rotatePrivateKey(onCompleteListener: OnCompleteListener) {
-        GlobalScope.launch {
-            try {
-                if (keyManagerLocal.exists())
-                    throw PrivateKeyExistsException("You already have a Private Key on this device" +
-                                                    "for identity: ${currentIdentity()}. Please, use" +
-                                                    "\'cleanup()\' function first.")
+    @Synchronized fun rotatePrivateKey() = object : Completable {
+        override fun execute() {
+            if (keyManagerLocal.exists())
+                throw PrivateKeyExistsException("You already have a Private Key on this device" +
+                                                "for identity: ${currentIdentity()}. Please, use" +
+                                                "\'cleanup()\' function first.")
 
-                val cards = cardManager.searchCards(currentIdentity())
-                if (cards.isEmpty())
-                    throw CardNotFoundException("No cards was found " +
-                                                "with identity: ${currentIdentity()}")
-                if (cards.size > 1)
-                    throw IllegalStateException("${cards.size} cards was found " +
-                                                "with identity: ${currentIdentity()}. How? (: " +
-                                                "Should be <= 1. Please, contact developers if " +
-                                                "it was not an intended behaviour.")
+            val cards = cardManager.searchCards(currentIdentity())
+            if (cards.isEmpty())
+                throw CardNotFoundException("No cards was found " +
+                                            "with identity: ${currentIdentity()}")
+            if (cards.size > 1)
+                throw IllegalStateException("${cards.size} cards was found " +
+                                            "with identity: ${currentIdentity()}. How? (: " +
+                                            "Should be <= 1. Please, contact developers if " +
+                                            "it was not an intended behaviour.")
 
-                (cards.first() to virgilCrypto.generateKeyPair()).run {
-                    val rawCard = cardManager.generateRawCard(this.second.privateKey,
-                                                              this.second.publicKey,
-                                                              currentIdentity(),
-                                                              this.first.identifier)
-                    cardManager.publishCard(rawCard)
+            (cards.first() to virgilCrypto.generateKeyPair()).run {
+                val rawCard = cardManager.generateRawCard(this.second.privateKey,
+                                                          this.second.publicKey,
+                                                          currentIdentity(),
+                                                          this.first.identifier)
+                cardManager.publishCard(rawCard)
 
-                    keyManagerLocal.store(virgilCrypto.exportPrivateKey(this.second.privateKey))
-
-                    onCompleteListener.onSuccess()
-                }
-            } catch (throwable: Throwable) {
-                onCompleteListener.onError(throwable)
+                keyManagerLocal.store(virgilCrypto.exportPrivateKey(this.second.privateKey))
             }
         }
     }
@@ -358,36 +332,30 @@ class EThree
      * @throws PrivateKeyNotFoundException
      */
     fun changePassword(oldPassword: String,
-                       newPassword: String,
-                       onCompleteListener: OnCompleteListener) {
-        GlobalScope.launch {
-            try {
-                checkPrivateKeyOrThrow()
+                       newPassword: String) = object : Completable {
+        override fun execute() {
+            checkPrivateKeyOrThrow()
 
-                if (oldPassword.isBlank())
-                    throw IllegalArgumentException("\'oldPassword\' should not be empty")
-                if (newPassword.isBlank())
-                    throw IllegalArgumentException("\'newPassword\' should not be empty")
-                if (newPassword == oldPassword)
-                    throw IllegalArgumentException("\'newPassword\' can't be the same as the old one")
+            if (oldPassword.isBlank())
+                throw IllegalArgumentException("\'oldPassword\' should not be empty")
+            if (newPassword.isBlank())
+                throw IllegalArgumentException("\'newPassword\' should not be empty")
+            if (newPassword == oldPassword)
+                throw IllegalArgumentException("\'newPassword\' can't be the same as the old one")
 
-                val brainKeyContext = BrainKeyContext.Builder()
-                        .setAccessTokenProvider(tokenProvider)
-                        .setPythiaClient(VirgilPythiaClient(VIRGIL_BASE_URL))
-                        .setPythiaCrypto(VirgilPythiaCrypto())
-                        .build()
+            val brainKeyContext = BrainKeyContext.Builder()
+                    .setAccessTokenProvider(tokenProvider)
+                    .setPythiaClient(VirgilPythiaClient(VIRGIL_BASE_URL))
+                    .setPythiaCrypto(VirgilPythiaCrypto())
+                    .build()
 
-                val keyPair = BrainKey(brainKeyContext).generateKeyPair(newPassword)
+            val keyPair = BrainKey(brainKeyContext).generateKeyPair(newPassword)
 
-                Thread.sleep(THROTTLE_TIMEOUT) // To avoid next request been throttled
+            Thread.sleep(THROTTLE_TIMEOUT) // To avoid next request been throttled
 
-                keyManagerCloud.updateRecipients(oldPassword,
-                                                 listOf(keyPair.publicKey),
-                                                 keyPair.privateKey)
-                onCompleteListener.onSuccess()
-            } catch (throwable: Throwable) {
-                onCompleteListener.onError(throwable)
-            }
+            keyManagerCloud.updateRecipients(oldPassword,
+                                             listOf(keyPair.publicKey),
+                                             keyPair.privateKey)
         }
     }
 
@@ -586,9 +554,8 @@ class EThree
      * @throws PrivateKeyNotFoundException
      * @throws PublicKeyDuplicateException
      */
-    fun lookupPublicKeys(identity: String,
-                         onResultListener: OnResultListener<LookupResult>) =
-            lookupPublicKeys(listOf(identity), onResultListener)
+    fun lookupPublicKeys(identity: String) =
+            lookupPublicKeys(listOf(identity))
 
     /**
      * Retrieves user public keys from the cloud for encryption/verification operations.
@@ -604,45 +571,36 @@ class EThree
      * @throws PrivateKeyNotFoundException
      * @throws PublicKeyDuplicateException
      */
-    fun lookupPublicKeys(identities: List<String>,
-                         onResultListener: OnResultListener<LookupResult>) {
-        GlobalScope.launch {
-            try {
-                if (identities.isEmpty()) throw EmptyArgumentException("identities")
-                identities.groupingBy { it }
-                        .eachCount()
-                        .filter { it.value > 1 }
-                        .run {
-                            if (this.isNotEmpty())
-                                throw PublicKeyDuplicateException(
-                                    "Duplicates are not allowed. " +
-                                    "Duplicated identities:\n${this}"
-                                )
-                        }
+    fun lookupPublicKeys(identities: List<String>) = object : Result<LookupResult> {
+        override fun get(): LookupResult {
+            if (identities.isEmpty()) throw EmptyArgumentException("identities")
+            identities.groupingBy { it }
+                    .eachCount()
+                    .filter { it.value > 1 }
+                    .run {
+                        if (this.isNotEmpty())
+                            throw PublicKeyDuplicateException(
+                                "Duplicates are not allowed. " +
+                                "Duplicated identities:\n${this}"
+                            )
+                    }
 
-                identities.map {
-                    cardManager.searchCards(it) to it
-                }.map {
-                    if (it.first.size > 1)
-                        throw IllegalStateException("${it.first.size} cards was found  with " +
-                                                    "identity: ${currentIdentity()}. How? (: " +
-                                                    "Should be <= 1. Please, contact developers " +
-                                                    "if it was not an intended behaviour.")
-                    else
-                        it
-                }.map {
-                    it.second to it.first
-                }.map {
-                    if (it.second.isNotEmpty())
-                        it.first to it.second.first().publicKey as VirgilPublicKey
-                    else
-                        throw PublicKeyNotFoundException(it.first)
-                }.toMap().run {
-                    onResultListener.onSuccess(this)
-                }
-            } catch (throwable: Throwable) {
-                onResultListener.onError(throwable)
-            }
+            return identities.map {
+                it to cardManager.searchCards(it)
+            }.map {
+                if (it.second.size > 1)
+                    throw IllegalStateException("${it.second.size} cards was found  with " +
+                                                "identity: ${currentIdentity()}. How? (: " +
+                                                "Should be <= 1. Please, contact developers " +
+                                                "if it was not an intended behaviour.")
+                else
+                    it
+            }.map {
+                if (it.second.isNotEmpty())
+                    it.first to it.second.first().publicKey as VirgilPublicKey
+                else
+                    throw PublicKeyNotFoundException(it.first)
+            }.toMap()
         }
     }
 
@@ -686,18 +644,17 @@ class EThree
          * if something went wrong.
          */
         @JvmStatic fun initialize(context: Context,
-                                  onGetTokenCallback: OnGetTokenCallback,
-                                  onResultListener: OnResultListener<EThree>) {
-            GlobalScope.launch {
-                try {
-                    val tokenProvider = CachingJwtProvider(CachingJwtProvider.RenewJwtCallback {
-                        Jwt(onGetTokenCallback.onGetToken())
-                    })
-                    if (tokenProvider.getToken(NO_CONTEXT) != null)
-                        onResultListener.onSuccess(EThree(context, tokenProvider))
-                } catch (throwable: Throwable) {
-                    onResultListener.onError(throwable)
-                }
+                                  onGetTokenCallback: OnGetTokenCallback) = object : Result<EThree> {
+            override fun get(): EThree {
+                val tokenProvider = CachingJwtProvider(CachingJwtProvider.RenewJwtCallback {
+                    Jwt(onGetTokenCallback.onGetToken())
+                })
+
+                // Just check whether we can get token, otherwise there's no reasons to
+                // initialize EThree. We have caching JWT provider, so sequential calls
+                // won't take much time, as token will be cached after first call.
+                tokenProvider.getToken(NO_CONTEXT)
+                return EThree(context, tokenProvider)
             }
         }
 
