@@ -31,16 +31,16 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.common.data
+package com.virgilsecurity.android.ethree.kotlin.callback
 
 /**
- * Const
+ * Interface that should provide Json Web Token when [onGetToken] callback is called.
  */
-object Const {
+interface OnGetTokenCallback {
 
-    const val VIRGIL_BASE_URL = "https://api.virgilsecurity.com"
-    const val VIRGIL_CARDS_SERVICE_PATH = "/card/v5/"
-    const val ETHREE_NAME = "e3kit"
-
-    val NO_CONTEXT = null
+    /**
+     * This method should return valid Json Web Token [String] representation with identity
+     * (in it) of the user which will use this class.
+     */
+    fun onGetToken(): String
 }
