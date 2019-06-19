@@ -7,6 +7,8 @@ import com.android.virgilsecurity.ethreenexmodemo.data.model.chat.NexmoMessage
 import com.nexmo.client.*
 import com.nexmo.client.request_listener.NexmoApiError
 import com.nexmo.client.request_listener.NexmoRequestListener
+import com.virgilsecurity.android.common.data.model.LookupResult
+import com.virgilsecurity.android.ethree.kotlin.callback.OnResultListener
 import com.virgilsecurity.android.ethree.kotlin.interaction.EThree
 import com.virgilsecurity.sdk.crypto.PublicKey
 
@@ -16,7 +18,7 @@ import com.virgilsecurity.sdk.crypto.PublicKey
 class ThreadPresenter(context: Context) {
 
     private val preferences = Preferences.instance(context)
-    private lateinit var publicKey: PublicKey
+    private lateinit var lookupResult: LookupResult
     private lateinit var messageEventListener: NexmoMessageEventListener
 
     fun startMessagesListener(thread: NexmoConversation, onNewMessage: (NexmoMessage) -> Unit) {
@@ -32,7 +34,7 @@ class ThreadPresenter(context: Context) {
             override fun onTextEvent(textEvent: NexmoTextEvent) {
                 if (textEvent.member.user.name != preferences.username()) {
                     val sender = thread.allMembers.first { it.user.name != preferences.username() }
-                        .user.name // TODO get right name
+                            .user.name // TODO get right name
                     onNewMessage(NexmoMessage(textEvent.text, sender))
                 }
             }
@@ -55,12 +57,12 @@ class ThreadPresenter(context: Context) {
     }
 
     fun requestSendMessage(
-        thread: NexmoConversation,
-        text: String,
-        onSuccess: (NexmoMessage) -> Unit,
-        onError: (Throwable) -> Unit
+            thread: NexmoConversation,
+            text: String,
+            onSuccess: (NexmoMessage) -> Unit,
+            onError: (Throwable) -> Unit
     ) {
-        val encryptedText = EThreeNexmoApp.eThree.encrypt(text, listOf(publicKey))
+        val encryptedText = EThreeNexmoApp.eThree.encrypt(text, lookupResult)
 
         thread.sendText(encryptedText, object : NexmoRequestListener<Void> {
             override fun onSuccess(p0: Void?) {
@@ -74,21 +76,21 @@ class ThreadPresenter(context: Context) {
         })
     }
 
-    fun requestPublicKey(thread: NexmoConversation, onSuccess: (PublicKey) -> Unit, onError: (Throwable) -> Unit) {
+    fun requestPublicKey(thread: NexmoConversation, onSuccess: (LookupResult) -> Unit, onError: (Throwable) -> Unit) {
         val interlocutor = thread.allMembers.first { it.user.name != preferences.username() }.user.name
 
-        EThreeNexmoApp.eThree.lookupPublicKeys(
-            listOf(interlocutor),
-            object : EThree.OnResultListener<Map<String, PublicKey>> {
-                override fun onSuccess(result: Map<String, PublicKey>) {
-                    publicKey = result.getValue(interlocutor)
-                    onSuccess(publicKey)
-                }
+        EThreeNexmoApp.eThree
+                .lookupPublicKeys(interlocutor)
+                .addCallback(object : OnResultListener<LookupResult> {
+                    override fun onSuccess(result: LookupResult) {
+                        lookupResult = result
+                        onSuccess(lookupResult)
+                    }
 
-                override fun onError(throwable: Throwable) {
-                    onError(throwable)
-                }
-            })
+                    override fun onError(throwable: Throwable) {
+                        onError(throwable)
+                    }
+                })
     }
 
     fun stopMessagesListener(thread: NexmoConversation) {

@@ -6,6 +6,7 @@ import com.android.virgilsecurity.virgilback4app.model.ChatThread
 import com.android.virgilsecurity.virgilback4app.model.Message
 import com.android.virgilsecurity.virgilback4app.util.RxEthree
 import com.android.virgilsecurity.virgilback4app.util.RxParse
+import com.virgilsecurity.android.common.data.model.LookupResult
 import com.virgilsecurity.sdk.crypto.PublicKey
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -25,7 +26,7 @@ class ChatThreadPresenter(context: Context) {
     private lateinit var sortCriteria: String
     private val compositeDisposable = CompositeDisposable()
     private val eThree = AppVirgil.eThree
-    private lateinit var publicKey: PublicKey
+    private lateinit var lookupResult: LookupResult
     private val rxEthree = RxEthree(context)
 
     fun requestMessages(thread: ChatThread, limit: Int,
@@ -75,7 +76,7 @@ class ChatThreadPresenter(context: Context) {
                            onSuccess: () -> Unit,
                            onError: (Throwable) -> Unit) {
 
-        val encryptedText = eThree.encrypt(text, listOf(publicKey))
+        val encryptedText = eThree.encrypt(text, lookupResult)
         val disposable = RxParse.sendMessage(encryptedText, thread)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -92,7 +93,7 @@ class ChatThreadPresenter(context: Context) {
     }
 
     fun requestPublicKey(identity: String,
-                         onSuccess: (PublicKey) -> Unit,
+                         onSuccess: (LookupResult) -> Unit,
                          onError: (Throwable) -> Unit) {
 
         val disposable = rxEthree.findPublicKey(identity)
@@ -100,7 +101,7 @@ class ChatThreadPresenter(context: Context) {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeBy(
                     onSuccess = {
-                        publicKey = it
+                        lookupResult = it
                         onSuccess(it)
                     },
                     onError = {
