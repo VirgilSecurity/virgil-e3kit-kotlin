@@ -12,6 +12,7 @@ import com.android.virgilsecurity.ethreenexmodemo.R
 import com.android.virgilsecurity.ethreenexmodemo.data.model.chat.NexmoMessage
 import com.android.virgilsecurity.ethreenexmodemo.ui.chatControl.ChatControlActivity
 import com.nexmo.client.NexmoConversation
+import com.virgilsecurity.android.common.data.model.LookupResult
 import com.virgilsecurity.android.common.exceptions.PublicKeyNotFoundException
 import com.virgilsecurity.sdk.crypto.PublicKey
 import kotlinx.android.synthetic.main.fragment_thread.*
@@ -83,10 +84,10 @@ class ThreadFragment : Fragment() {
         presenter.stopMessagesListener(thread)
     }
 
-    private fun onGetPublicKeySuccess(publicKey: PublicKey) {
+    private fun onGetPublicKeySuccess(lookupResult: LookupResult) {
         activity!!.runOnUiThread {
             pbLoading.visibility = View.INVISIBLE
-            adapter.setPublicKey(publicKey)
+            adapter.setLookupResult(lookupResult)
         }
     }
 
@@ -94,7 +95,7 @@ class ThreadFragment : Fragment() {
         activity!!.runOnUiThread {
             pbLoading.visibility = View.INVISIBLE
             if (throwable is PublicKeyNotFoundException)
-            Toast.makeText(activity!!, "No public key was found", Toast.LENGTH_SHORT).show()
+                Toast.makeText(activity!!, "No public key was found", Toast.LENGTH_SHORT).show()
             else
                 Toast.makeText(activity!!, throwable.message, Toast.LENGTH_SHORT).show()
         }
@@ -125,8 +126,8 @@ class ThreadFragment : Fragment() {
         private const val KEY_THREAD = "KEY_THREAD"
 
         fun instance(thread: NexmoConversation): ThreadFragment =
-            with(Bundle().apply { putParcelable(KEY_THREAD, thread) }) {
-                ThreadFragment().apply { arguments = this@with }
-            }
+                with(Bundle().apply { putParcelable(KEY_THREAD, thread) }) {
+                    ThreadFragment().apply { arguments = this@with }
+                }
     }
 }

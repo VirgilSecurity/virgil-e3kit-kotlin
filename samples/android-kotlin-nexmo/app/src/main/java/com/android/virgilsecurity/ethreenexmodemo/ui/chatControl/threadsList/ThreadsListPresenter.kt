@@ -9,6 +9,8 @@ import com.nexmo.client.NexmoConversation
 import com.nexmo.client.NexmoMember
 import com.nexmo.client.request_listener.NexmoApiError
 import com.nexmo.client.request_listener.NexmoRequestListener
+import com.virgilsecurity.android.ethree.kotlin.callback.OnGetTokenCallback
+import com.virgilsecurity.android.ethree.kotlin.callback.OnResultListener
 import com.virgilsecurity.android.ethree.kotlin.interaction.EThree
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
@@ -71,34 +73,33 @@ class ThreadsListPresenter(val context: Context) {
 
     fun initNexmo(onSuccess: () -> Unit, onError: (Throwable) -> Unit) {
         val initNexmoDisposable = nexmoRx.initNexmo(preferences.nexmoToken()!!)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribeBy(
-                onSuccess = { onSuccess() },
-                onError = { onError(it) }
-            )
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeBy(
+                    onSuccess = { onSuccess() },
+                    onError = { onError(it) }
+                )
 
         compositeDisposable += initNexmoDisposable
     }
 
     fun startEthree(onSuccess: () -> Unit, onError: (Throwable) -> Unit) {
         EThree.initialize(context,
-            object : EThree.OnGetTokenCallback {
-                override fun onGetToken(): String {
-                    return preferences.virgilToken()!!
-                }
+                          object : OnGetTokenCallback {
+                              override fun onGetToken(): String {
+                                  return preferences.virgilToken()!!
+                              }
 
-            },
-            object : EThree.OnResultListener<EThree> {
-                override fun onSuccess(result: EThree) {
-                    EThreeNexmoApp.eThree = result
-                    onSuccess()
-                }
+                          }).addCallback(object : OnResultListener<EThree> {
+            override fun onSuccess(result: EThree) {
+                EThreeNexmoApp.eThree = result
+                onSuccess()
+            }
 
-                override fun onError(throwable: Throwable) {
-                    onError(throwable)
-                }
-            })
+            override fun onError(throwable: Throwable) {
+                onError(throwable)
+            }
+        })
     }
 
     fun disposeAll() {

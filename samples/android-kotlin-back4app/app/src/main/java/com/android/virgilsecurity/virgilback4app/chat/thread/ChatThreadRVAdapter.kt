@@ -8,6 +8,7 @@ import com.android.virgilsecurity.virgilback4app.AppVirgil
 import com.android.virgilsecurity.virgilback4app.R
 import com.android.virgilsecurity.virgilback4app.model.Message
 import com.parse.ParseUser
+import com.virgilsecurity.android.common.data.model.LookupResult
 import com.virgilsecurity.android.ethree.kotlin.interaction.EThree
 import com.virgilsecurity.sdk.crypto.PublicKey
 
@@ -20,7 +21,7 @@ class ChatThreadRVAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private var items: MutableList<Message> = mutableListOf()
     private var eThree: EThree = AppVirgil.eThree
-    lateinit var interlocutorPublicKey: PublicKey
+    lateinit var interlocutorLookupResult: LookupResult
 
     @IntDef(MessageType.ME, MessageType.YOU)
     private annotation class MessageType {
@@ -49,7 +50,8 @@ class ChatThreadRVAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     }
 
     override fun onBindViewHolder(viewHolder: RecyclerView.ViewHolder, position: Int) {
-        val decryptedText = eThree.decrypt(items[position].body, interlocutorPublicKey)
+        val decryptedText = eThree.decrypt(items[position].body,
+                                           interlocutorLookupResult.entries.first().value)
 
         when (viewHolder) {
             is HolderMessageMe -> viewHolder.bind(decryptedText)

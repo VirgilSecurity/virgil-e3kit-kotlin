@@ -2,8 +2,11 @@ package com.android.virgilsecurity.virgilback4app.util
 
 import android.content.Context
 import com.android.virgilsecurity.virgilback4app.AppVirgil
+import com.virgilsecurity.android.common.data.model.LookupResult
+import com.virgilsecurity.android.ethree.kotlin.callback.OnCompleteListener
+import com.virgilsecurity.android.ethree.kotlin.callback.OnGetTokenCallback
+import com.virgilsecurity.android.ethree.kotlin.callback.OnResultListener
 import com.virgilsecurity.android.ethree.kotlin.interaction.EThree
-import com.virgilsecurity.sdk.crypto.PublicKey
 import io.reactivex.Completable
 import io.reactivex.Single
 
@@ -16,24 +19,23 @@ class RxEthree(val context: Context) {
 
     fun initEthree(): Single<EThree> = Single.create<EThree> { e ->
         EThree.initialize(context,
-                          object : EThree.OnGetTokenCallback {
+                          object : OnGetTokenCallback {
                               override fun onGetToken(): String {
                                   return preferences.virgilToken()!!
                               }
-                          },
-                          object : EThree.OnResultListener<EThree> {
-                              override fun onSuccess(result: EThree) {
-                                  e.onSuccess(result)
-                              }
+                          }).addCallback(object : OnResultListener<EThree> {
+            override fun onSuccess(result: EThree) {
+                e.onSuccess(result)
+            }
 
-                              override fun onError(throwable: Throwable) {
-                                  e.onError(throwable)
-                              }
-                          })
+            override fun onError(throwable: Throwable) {
+                e.onError(throwable)
+            }
+        })
     }
 
     fun registerEthree(): Completable = Completable.create { e ->
-        AppVirgil.eThree.register(object : EThree.OnCompleteListener {
+        AppVirgil.eThree.register().addCallback(object : OnCompleteListener {
             override fun onSuccess() {
                 e.onComplete()
             }
@@ -44,22 +46,17 @@ class RxEthree(val context: Context) {
         })
     }
 
-    fun findPublicKey(identity: String): Single<PublicKey> = Single.create<PublicKey> { e ->
-        AppVirgil.eThree.lookupPublicKeys(listOf(identity),
-                                          object : EThree.OnResultListener<Map<String, PublicKey>> {
-                                              override fun onSuccess(result: Map<String, PublicKey>) {
-                                                  val publicKey = result[identity]
+    fun findPublicKey(identity: String): Single<LookupResult> = Single.create<LookupResult> { e ->
+        AppVirgil.eThree
+                .lookupPublicKeys(identity)
+                .addCallback(object : OnResultListener<LookupResult> {
+                    override fun onSuccess(result: LookupResult) {
+                        e.onSuccess(result)
+                    }
 
-                                                  if (publicKey != null)
-                                                      e.onSuccess(publicKey)
-                                                  else
-                                                      e.onError(Throwable("Public key for identity " +
-                                                                          "\"$identity\" was not found"))
-                                              }
-
-                                              override fun onError(throwable: Throwable) {
-                                                  e.onError(throwable)
-                                              }
-                                          })
+                    override fun onError(throwable: Throwable) {
+                        e.onError(throwable)
+                    }
+                })
     }
 }

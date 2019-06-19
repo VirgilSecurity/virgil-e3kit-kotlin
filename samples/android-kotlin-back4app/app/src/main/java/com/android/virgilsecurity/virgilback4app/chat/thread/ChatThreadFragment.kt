@@ -18,6 +18,7 @@ import com.android.virgilsecurity.virgilback4app.util.Const
 import com.android.virgilsecurity.virgilback4app.util.Utils
 import com.github.pwittchen.reactivenetwork.library.rx2.ReactiveNetwork
 import com.parse.*
+import com.virgilsecurity.android.common.data.model.LookupResult
 import com.virgilsecurity.sdk.client.exceptions.VirgilCardIsNotFoundException
 import com.virgilsecurity.sdk.client.exceptions.VirgilCardServiceException
 import com.virgilsecurity.sdk.crypto.PublicKey
@@ -270,9 +271,9 @@ class ChatThreadFragment : BaseFragment<ChatThreadActivity>() {
         Utils.toast(this, Utils.resolveError(t))
     }
 
-    private fun onGetPublicKeySuccess(publicKey: PublicKey) {
+    private fun onGetPublicKeySuccess(lookupResult: LookupResult) {
         showProgress(false)
-        adapter.interlocutorPublicKey = publicKey
+        adapter.interlocutorLookupResult = lookupResult
         presenter.requestMessages(thread,
                                   50,
                                   page,

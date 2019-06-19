@@ -54,7 +54,7 @@ buildscript {
             androidRx       : "2.1.1",
 
             // Virgil
-            ethree          : "0.3.4"
+            ethree          : "0.5.0"
     ]
 
     repositories {
