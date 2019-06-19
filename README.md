@@ -22,17 +22,15 @@ You can install E3Kit SDK using [Gradle](https://gradle.org/). Please, choose pa
 | Package | Description |
 |----------|---------|
 | [`E3Kit`](./ethree-kotlin) | Standard package for Java/Kotlin with methods responses in `callbacks` |
-| [`E3Kit Coroutines`](./ethree-kotlin-coroutines) | [Coroutines](https://github.com/Kotlin/kotlinx.coroutines) package with methods responses in [`Deferred`](https://kotlin.github.io/kotlinx.coroutines/kotlinx-coroutines-core/kotlinx.coroutines/-deferred/) |
 
 ## Samples
 
-You can find the code samples for Java and Kotlin (for Kotlin-Coroutines module as well) here:
+You can find the code samples for Java and Kotlin here:
 
 | Sample type | 
 |----------| 
 | [`Android Java`](./samples/android-java) | 
 | [`Android Kotlin`](./samples/android-kotlin) | 
-| [`Android Kotlin Coroutines`](./samples/android-kotlin-coroutines) | 
 | [`Android Java Firebase`](./samples/android-java-firebase-function) | 
 | [`Android Kotlin Firebase`](./samples/android-kotlin-firebase-function) | 
 
@@ -40,15 +38,14 @@ You can run any of them on an emulator to check out the example of how to initia
 
 ## Usage
 
-#### Register User
-Use the following lines of code to authenticate a user.
+#### Initialize e3kit:
 
 ```kotlin
-var eThree: EThree? = null
+lateinit var eThree: EThree
 
 // Listener for E3Kit initialization
 val initializeListener =
-    object : EThree.OnResultListener<EThree> {
+    object : OnResultListener<EThree> {
         override fun onSuccess(result: EThree) {
             // Init done!
             eThree = result
@@ -60,27 +57,18 @@ val initializeListener =
     }
 
 // initialize E3Kit
-EThree.initialize(context, virgilTokenCallback, initializeListener)
+EThree.initialize(context, virgilTokenCallback).addCallback(initializeListener)
 ```
 
-#### Encrypt & decrypt
-
-Virgil E3Kit lets you use a user's Private key and his or her Public Keys to sign, then encrypt text.
-
+#### Register e3kit user
+Use the following lines of code to register a user:
 ```kotlin
-var eThree: EThree? = null
-var encryptedData: ByteArray? = null
-var encryptedText: String? = null           
+// TODO: Initialize e3kit
 
-// Listener for keys lookup Two
-val lookupKeysListenerTwo =
-    object : EThree.OnResultListener<Map<String, PublicKey>> {
-        override fun onSuccess(result: Map<String, PublicKey>) {
-            // Decrypt data using senders public key (In this example it's E3Kit current user)
-            val decryptedData = eThree.decrypt(encryptedData!!, result[identityInToken])
-            
-            // Decrypt data using senders public key (In this example it's E3Kit current user)
-            val decryptedText = eThree.decrypt(encryptedText!!, result[identityInToken])
+val registerListener =
+    object : OnCompleteListener {
+        override fun onSuccess() {
+            // User private key loaded, ready for end-to-end encrypt!
         }
 
         override fun onError(throwable: Throwable) {
@@ -88,21 +76,28 @@ val lookupKeysListenerTwo =
         }
     }
 
-// Listener for keys lookup
+eThree.register().addCallback(registerListener)
+```
+This function generates PrivateKey/PublicKey keypair, saves PrivateKey locally on device and publishes PublicKey to Virgil Cards Service.
+
+#### Sign Then Encrypt data/text
+
+This method signs the data/text with the sender's private key and encrypts the message for recipients' public key(s).
+
+```kotlin
+// TODO: Initialize e3kit, Register e3kit user          
+
 val lookupKeysListener =
-    object : EThree.OnResultListener<Map<String, PublicKey>> {
-        override fun onSuccess(result: Map<String, PublicKey>) {
-            val text = "I was a text, but become a byte array"
+    object : OnResultListener<LookupResult> {
+        override fun onSuccess(result: LookupResult) {
+            val text = "I was text but become byte array"
             val data = text.toByteArray()
 
             // Encrypt data using user public keys
-            encryptedData = eThree.encrypt(data, result.values.toList())
+            val encryptedData = eThree.encrypt(data, result)
 
             // Encrypt message using user public keys
-            encryptedText = eThree.encrypt(text, result.values.toList())
-            
-            // E3Kit using identity that specified in Jwt provided with *virgilTokenCallback*
-            eThree!!.lookupPublicKeys(listOf(identityInToken), lookupKeysListenerTwo)
+            val encryptedText = eThree.encrypt(text, result)
         }
 
         override fun onError(throwable: Throwable) {
@@ -110,13 +105,23 @@ val lookupKeysListener =
         }
     }
 
-// Listener for register
-val registerListener =
-    object : EThree.OnCompleteListener {
-        override fun onSuccess() {
-            // User private key loaded!
-            // Now we need public keys and we ready for end-to-end encrypt.
-            eThree!!.lookupPublicKeys(listOf("AliceUUID", "BobUUID"), lookupKeysListener)
+// Lookup destination user public keys
+eThree.lookupPublicKeys(listOf("userUID1", "userUID2", "userUID3")).addCallback(lookupKeysListener)
+```
+
+#### Decrypt Then Verify data/text
+
+```kotlin
+// TODO: Initialize e3kit, Register e3kit user 
+
+val lookupKeysListener =
+    object : OnResultListener<LookupResult> {
+        override fun onSuccess(result: LookupResult) {
+            // Decrypt data and verify if it was really written by Bob
+            val decryptedData = eThree.decrypt(encryptedData, result["bobUID"])
+
+            // Decrypt text and verify if it was really written by Bob
+            val decryptedText = eThree.decrypt(encryptedText, result["bobUID"])
         }
 
         override fun onError(throwable: Throwable) {
@@ -124,22 +129,8 @@ val registerListener =
         }
     }
 
-// Listener for E3Kit initialization
-val initializeListener =
-    object : EThree.OnResultListener<EThree> {
-        override fun onSuccess(result: EThree) {
-            // Init done!
-            eThree = result
-            eThree!!.register(registerListener)
-        }
-
-        override fun onError(throwable: Throwable) {
-            // Error handling
-        }
-    }
-
-// initialize E3Kit
-EThree.initialize(context, virgilTokenCallback, initializeListener)
+// Lookup chat room member key
+eThree.lookupPublicKeys("bobUID").addCallback(lookupKeysListener)
 ```
 
 ## License
