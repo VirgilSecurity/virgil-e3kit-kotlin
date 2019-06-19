@@ -33,6 +33,8 @@ You can find the code samples for Java and Kotlin here:
 | [`Android Kotlin`](./samples/android-kotlin) | 
 | [`Android Java Firebase`](./samples/android-java-firebase-function) | 
 | [`Android Kotlin Firebase`](./samples/android-kotlin-firebase-function) | 
+| [`Android Kotlin Back4App`](./samples/android-kotlin-back4app) | 
+| [`Android Kotlin Nexmo`](./samples/android-kotlin-nexmo) | 
 
 You can run any of them on an emulator to check out the example of how to initialize the SDK, register users and encrypt messages using the E3Kit.
 
