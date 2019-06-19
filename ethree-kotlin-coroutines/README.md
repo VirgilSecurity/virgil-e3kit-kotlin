@@ -1,7 +1,9 @@
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.virgilsecurity/ethree-kotlin-coroutines/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.virgilsecurity/ethree-kotlin-coroutines)
 [![GitHub license](https://img.shields.io/badge/license-BSD%203--Clause-blue.svg)](https://github.com/VirgilSecurity/virgil/blob/master/LICENSE)
 
-## Installation of E3Kit Coroutines
+# Deprecated. Please use the regular [`e3kit`](../ethree-kotlin) package.
+
+## Deprecated. Installation of E3Kit Coroutines
 
 > Android API 21+ is required.
 
@@ -15,9 +17,9 @@ To use it add next in your `build.gradle`:
 
 The **\<latest-version>** of the SDK can be found in the [Maven Central Repository](https://mvnrepository.com/artifact/com.virgilsecurity/ethree-kotlin-coroutines)  or in the header of current readme.
 
-## Usage
+## Deprecated. Usage
 
-#### Register User
+#### Deprecated. Register User
 Use the following lines of code to authenticate a user.
 
 ```kotlin
@@ -25,7 +27,7 @@ Use the following lines of code to authenticate a user.
 val eThree = EThree.initialize(context, tokenCallback).await()
 ```
 
-#### Encrypt & decrypt
+#### Deprecated. Encrypt & decrypt
 
 Virgil E3Kit lets you use a user's Private key and his or her Public Keys to sign, then encrypt text.
 
