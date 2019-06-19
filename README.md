@@ -3,7 +3,7 @@
 [![Build Status](https://travis-ci.com/VirgilSecurity/virgil-e3kit-kotlin.svg?branch=master)](https://travis-ci.com/VirgilSecurity/virgil-e3kit-kotlin)
 [![GitHub license](https://img.shields.io/badge/license-BSD%203--Clause-blue.svg)](https://github.com/VirgilSecurity/virgil/blob/master/LICENSE)
 
-[Introduction](#introduction) | [SDK Features](#sdk-features) | [Install E3Kit SDK](#install-e3kit-sdk) | [Usage](#usage) | [Samples](#samples) | [License](#license) | [Support](#support)
+[Introduction](#introduction) | [SDK Features](#sdk-features) | [Installation](#installation) | [Usage Examples](#usage-examples) | [Samples](#samples) | [License](#license) | [Docs](#docs) | [Support](#support)
 
 ## Introduction
 
@@ -23,24 +23,10 @@ You can install E3Kit SDK using [Gradle](https://gradle.org/). Please, choose pa
 |----------|---------|
 | [`E3Kit`](./ethree-kotlin) | Standard package for Java/Kotlin with methods responses in `callbacks` |
 
-## Samples
-
-You can find the code samples for Java and Kotlin here:
-
-| Sample type | 
-|----------| 
-| [`Android Java`](./samples/android-java) | 
-| [`Android Kotlin`](./samples/android-kotlin) | 
-| [`Android Java Firebase`](./samples/android-java-firebase-function) | 
-| [`Android Kotlin Firebase`](./samples/android-kotlin-firebase-function) | 
-| [`Android Kotlin Back4App`](./samples/android-kotlin-back4app) | 
-| [`Android Kotlin Nexmo`](./samples/android-kotlin-nexmo) | 
-
-You can run any of them on an emulator to check out the example of how to initialize the SDK, register users and encrypt messages using the E3Kit.
 
 ## Usage
 
-#### Initialize e3kit:
+#### Initialize e3kit
 
 ```kotlin
 lateinit var eThree: EThree
@@ -62,7 +48,7 @@ val initializeListener =
 EThree.initialize(context, virgilTokenCallback).addCallback(initializeListener)
 ```
 
-#### Register e3kit user
+#### Register user
 Use the following lines of code to register a user:
 ```kotlin
 // TODO: Initialize e3kit
@@ -82,7 +68,7 @@ eThree.register().addCallback(registerListener)
 ```
 This function generates PrivateKey/PublicKey keypair, saves PrivateKey locally on device and publishes PublicKey to Virgil Cards Service.
 
-#### Sign Then Encrypt data/text
+#### Sign and encrypt data/text
 
 This method signs the data/text with the sender's private key and encrypts the message for recipients' public key(s).
 
@@ -111,7 +97,7 @@ val lookupKeysListener =
 eThree.lookupPublicKeys(listOf("userUID1", "userUID2", "userUID3")).addCallback(lookupKeysListener)
 ```
 
-#### Decrypt Then Verify data/text
+#### Decrypt data/text and verify signature
 
 ```kotlin
 // TODO: Initialize e3kit, Register e3kit user 
@@ -135,9 +121,35 @@ val lookupKeysListener =
 eThree.lookupPublicKeys("bobUID").addCallback(lookupKeysListener)
 ```
 
+## Samples
+
+You can find the code samples for Java and Kotlin here:
+
+| Sample type | 
+|----------| 
+| [`Android Java`](./samples/android-java) | 
+| [`Android Kotlin`](./samples/android-kotlin) | 
+| [`Android Java Firebase`](./samples/android-java-firebase-function) | 
+| [`Android Kotlin Firebase`](./samples/android-kotlin-firebase-function) | 
+| [`Android Kotlin Back4App`](./samples/android-kotlin-back4app) | 
+| [`Android Kotlin Nexmo`](./samples/android-kotlin-nexmo) | 
+
+You can run any of them on an emulator to check out the example of how to initialize the SDK, register users and encrypt messages using the E3Kit.
+
 ## License
 
-This library is released under the [3-clause BSD License](LICENSE).
+This library is released under the [3-clause BSD License](LICENSE.md).
+
+## Docs
+Virgil Security has a powerful set of APIs, and the documentation below can get you started today.
+
+* E3kit integrations with:
+  * [Custom platform][_any_platform]
+  * [Firebase][_firebase] 
+  * [Twilio][_twilio] 
+  * [Nexmo][_nexmo]
+  * [Pubnub][_pubnub] 
+* [Reference API][_reference_api]
 
 ## Support
 Our developer support team is here to help you. Find out more information on our [Help Center](https://help.virgilsecurity.com/).
@@ -146,16 +158,9 @@ You can find us on [Twitter](https://twitter.com/VirgilSecurity) or send us emai
 
 Also, get extra help from our support team on [Slack](https://virgilsecurity.com/join-community).
 
-[_cards_service]: https://developer.virgilsecurity.com/docs/api-reference/card-service/v5
-[_use_card]: https://developer.virgilsecurity.com/docs/swift/how-to/public-key-management/v5/use-card-for-crypto-operation
-[_get_card]: https://developer.virgilsecurity.com/docs/swift/how-to/public-key-management/v5/get-card
-[_search_card]: https://developer.virgilsecurity.com/docs/swift/how-to/public-key-management/v5/search-card
-[_create_card]: https://developer.virgilsecurity.com/docs/swift/how-to/public-key-management/v5/create-card
-[_own_crypto]: https://developer.virgilsecurity.com/docs/swift/how-to/setup/v5/setup-own-crypto-library
-[_key_storage]: https://developer.virgilsecurity.com/docs/swift/how-to/setup/v5/setup-key-storage
-[_card_verifier]: https://developer.virgilsecurity.com/docs/swift/how-to/setup/v5/setup-card-verifier
-[_card_manager]: https://developer.virgilsecurity.com/docs/swift/how-to/setup/v5/setup-card-manager
-[_setup_authentication]: https://developer.virgilsecurity.com/docs/swift/how-to/setup/v5/setup-authentication
+[_any_platform]: https://developer.virgilsecurity.com/docs/use-cases/v5/encrypted-communication
+[_twilio]: https://developer.virgilsecurity.com/docs/use-cases/v5/encrypted-communication-for-twilio
+[_nexmo]: https://developer.virgilsecurity.com/docs/use-cases/v5/encrypted-communication-for-nexmo
+[_firebase]: https://developer.virgilsecurity.com/docs/use-cases/v5/encrypted-communication-for-firebase
+[_pubnub]: https://developer.virgilsecurity.com/docs/use-cases/v5/smart-door-lock
 [_reference_api]: https://developer.virgilsecurity.com/docs/api-reference
-[_configure_sdk]: https://developer.virgilsecurity.com/docs/how-to#sdk-configuration
-[_more_examples]: https://developer.virgilsecurity.com/docs/how-to#public-key-management
