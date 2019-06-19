@@ -15,7 +15,7 @@ Virgil E3kit allows you to setup user encryption with multidevice support in jus
 - group chats
 - manage users' Public Keys
 
-## Install E3Kit SDK
+## Installation
 
 You can install E3Kit SDK using [Gradle](https://gradle.org/). Please, choose package that suits best for your needs:
 
@@ -24,9 +24,11 @@ You can install E3Kit SDK using [Gradle](https://gradle.org/). Please, choose pa
 | [`E3Kit`](./ethree-kotlin) | Standard package for Java/Kotlin with methods responses in `callbacks` |
 
 
-## Usage
+## Usage Examples
 
 #### Initialize e3kit
+
+In order to interact with the Virgil Cloud, the Virgil e3kit SDK must be provided with a callback that it will call to fetch the Virgil JWT from your backend for the current user.
 
 ```kotlin
 lateinit var eThree: EThree
@@ -49,7 +51,9 @@ EThree.initialize(context, virgilTokenCallback).addCallback(initializeListener)
 ```
 
 #### Register user
+
 Use the following lines of code to register a user:
+
 ```kotlin
 // TODO: Initialize e3kit
 
@@ -98,6 +102,8 @@ eThree.lookupPublicKeys(listOf("userUID1", "userUID2", "userUID3")).addCallback(
 ```
 
 #### Decrypt data/text and verify signature
+
+This method decrypts the data using the recipient's private key and verifies authenticity of the decrypted data with sender's public key.
 
 ```kotlin
 // TODO: Initialize e3kit, Register e3kit user 
