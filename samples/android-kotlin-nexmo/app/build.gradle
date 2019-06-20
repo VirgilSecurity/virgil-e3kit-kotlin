@@ -1,0 +1,48 @@
+apply plugin: 'com.android.application'
+
+apply plugin: 'kotlin-android'
+
+apply plugin: 'kotlin-android-extensions'
+
+android {
+    compileSdkVersion 28
+    defaultConfig {
+        applicationId "com.android.virgilsecurity.ethreenexmodemo"
+        minSdkVersion 21
+        targetSdkVersion 28
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$versions.kotlin"
+    implementation "com.android.support:appcompat-v7:$versions.support"
+    implementation "com.android.support.constraint:constraint-layout:$versions.constraintLayout"
+    implementation "com.android.support:design:$versions.support"
+
+    // Nexmo
+    implementation "com.nexmo.android:client-sdk:$versions.nexmoClient"
+
+    // Fuel
+    implementation "com.github.kittinunf.fuel:fuel:$versions.fuel"
+    implementation "com.github.kittinunf.fuel:fuel-rxjava:$versions.fuel"
+
+    // Rx
+    implementation "io.reactivex.rxjava2:rxkotlin:$versions.kotlinRx"
+    implementation "io.reactivex.rxjava2:rxandroid:$versions.androidRx"
+
+    // Virgil
+    implementation "com.virgilsecurity:ethree-kotlin:$versions.ethree"
+}
+
+androidExtensions {
+    experimental = true
+}

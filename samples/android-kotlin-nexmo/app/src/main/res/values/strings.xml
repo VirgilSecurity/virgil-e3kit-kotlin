@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">EThreeNexmoDemo</string>
+    <string name="login">Login</string>
+    <string name="password">Password</string>
+    <string name="sing_up">Sing Up</string>
+    <string name="nexmo_e3kit_demo">Nexmo E3Kit Demo</string>
+    <string name="threads_list">Threads List</string>
+    <string name="add_thread">Add Thread</string>
+    <string name="sign_out">Sign Out</string>
+    <string name="search">Search</string>
+    <string name="message">Message</string>
+    <string name="send">Send</string>
+    <string name="interlocutor">Interlocutor</string>
+    <string name="start_thread">start thread</string>
+    <string name="navigation_drawer_open">Open Drawer</string>
+    <string name="navigation_drawer_close">Close Drawer</string>
+</resources>
