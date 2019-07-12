@@ -55,7 +55,7 @@ android {
 }
 
 group 'com.virgilsecurity'
-version '0.5.0'
+version '0.5.1'
 
 dependencies {
     // Inner dependencies
@@ -126,7 +126,7 @@ def authentication_password = hasProperty('authentication_password') ? authentic
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            artifactId = 'ethree-kotlin'
+            artifactId = 'ethree'
             artifact javadocJar
             artifact sourcesJar
             from components.android

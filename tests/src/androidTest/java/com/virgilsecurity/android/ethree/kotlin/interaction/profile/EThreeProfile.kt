@@ -37,6 +37,7 @@ import android.os.Debug
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilKeyPair
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 import kotlin.random.Random
 
@@ -59,25 +60,25 @@ class EThreeProfile {
         signature = crypto.generateSignature(oneMbData, keyPair.privateKey)
     }
 
-    @Test fun encrypt_debug_profile() {
+    @Ignore("Needed only to profile from time to time") @Test fun encrypt_debug_profile() {
         Debug.startMethodTracing("EThreeProfile_encrypt")
         crypto.encrypt(oneMbData, keyPair.publicKey)
         Debug.stopMethodTracing()
     }
 
-    @Test fun decrypt_debug_profile() {
+    @Ignore("Needed only to profile from time to time") @Test fun decrypt_debug_profile() {
         Debug.startMethodTracing("EThreeProfile_decrypt")
         crypto.decrypt(encryptedData, keyPair.privateKey)
         Debug.stopMethodTracing()
     }
 
-    @Test fun generate_signature_debug_profile() {
+    @Ignore("Needed only to profile from time to time") @Test fun generate_signature_debug_profile() {
         Debug.startMethodTracing("EThreeProfile_generate_signature")
         crypto.generateSignature(oneMbData, keyPair.privateKey)
         Debug.stopMethodTracing()
     }
 
-    @Test fun verify_signature_debug_profile() {
+    @Ignore("Needed only to profile from time to time") @Test fun verify_signature_debug_profile() {
         Debug.startMethodTracing("EThreeProfile_verify_signature")
         crypto.verifySignature(signature, oneMbData, keyPair.publicKey)
         Debug.stopMethodTracing()

@@ -39,12 +39,20 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
 /**
- * Result
+ * Result's class intent is to give possibility to call an operation that returns result in Success or Error in case of
+ * error *synchronously* or *asynchronously*.
  */
 interface Result<T> {
 
+    /**
+     * Call this method to get result *synchronously*.
+     */
     fun get(): T
 
+    /**
+     * Call this method to get result *asynchronously*. You'll get the result of an operation in the
+     * [onResultListener]. Provided [scope] will be used to execute operation.
+     */
     fun addCallback(onResultListener: OnResultListener<T>, scope: CoroutineScope = GlobalScope) {
         scope.launch {
             try {
@@ -56,8 +64,10 @@ interface Result<T> {
         }
     }
 
+    /**
+     * Call this method to get result *asynchronously*. You'll get the result of an operation in the
+     * [onResultListener].
+     */
     fun addCallback(onResultListener: OnResultListener<T>) =
             addCallback(onResultListener, GlobalScope)
-
-    // TODO check whether we need cancel()
 }
