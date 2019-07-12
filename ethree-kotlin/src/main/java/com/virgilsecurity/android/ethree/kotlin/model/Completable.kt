@@ -39,12 +39,20 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
 /**
- * Completable
+ * Completable's class intent is to give possibility to call a completable operation that got only Success or Error
+ * without actual result *synchronously* or *asynchronously*.
  */
 interface Completable {
 
+    /**
+     * Call this method to complete operation *synchronously*.
+     */
     fun execute()
 
+    /**
+     * Call this method to complete operation *asynchronously*. You'll get the completion status in the
+     * [onCompleteListener]. Provided [scope] will be used to execute operation.
+     */
     fun addCallback(onCompleteListener: OnCompleteListener, scope: CoroutineScope = GlobalScope) {
         scope.launch {
             try {
@@ -56,6 +64,10 @@ interface Completable {
         }
     }
 
+    /**
+     * Call this method to complete operation *asynchronously*. You'll get the completion status in the
+     * [onCompleteListener].
+     */
     fun addCallback(onCompleteListener: OnCompleteListener) =
             addCallback(onCompleteListener, GlobalScope)
 

@@ -161,7 +161,8 @@ class EThreeAuthTest {
     // STE-Auth-8
     @Test fun delete_local_key() {
         val keys = VirgilCrypto().generateKeyPair()
-        keyStorage.store(JsonKeyEntry(identity, keys.privateKey.privateKey.exportPrivateKey()))
+        val privateKey = VirgilCrypto().exportPrivateKey(keys.privateKey)
+        keyStorage.store(JsonKeyEntry(identity, privateKey))
         assertTrue(keyStorage.exists(identity))
         initEThree(identity).cleanup()
         assertFalse(keyStorage.exists(identity))
@@ -198,11 +199,9 @@ class EThreeAuthTest {
 
     // STE-Auth-11
     @Test fun register_with_existing_private_key() {
-        keyStorage.store(JsonKeyEntry(identity,
-                                      virgilCrypto.generateKeyPair()
-                                              .privateKey
-                                              .privateKey
-                                              .exportPrivateKey()))
+        val privateKeyData =
+                virgilCrypto.exportPrivateKey(virgilCrypto.generateKeyPair().privateKey)
+        keyStorage.store(JsonKeyEntry(identity, privateKeyData))
         val eThree = initEThree(identity)
 
         val waiter = CountDownLatch(1)
@@ -281,7 +280,7 @@ class EThreeAuthTest {
         assertTrue(cardManager.searchCards(identity).last().previousCardId != null)
 
         val newKeyData = keyStorage.load(identity).value
-        val oldKeyData = publishPair.left.privateKey.privateKey.exportPrivateKey()
+        val oldKeyData = VirgilCrypto().exportPrivateKey(publishPair.left.privateKey)
         assertThat(oldKeyData, not(equalTo(newKeyData)))
     }
 
