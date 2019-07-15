@@ -31,4 +31,4 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-include ':tests', ':ethree-kotlin', ':ethree-kotlin-coroutines', ':ethree-common', ':testscoroutines'
+include ':ethree-common', ':ethree-kotlin', ':tests'
