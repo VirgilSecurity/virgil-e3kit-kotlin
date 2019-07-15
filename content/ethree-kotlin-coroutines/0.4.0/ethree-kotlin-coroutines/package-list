@@ -1,7 +1,0 @@
-$dokka.format:html
-$dokka.linkExtension:html
-$dokka.location:com.virgilsecurity.android.ethreecoroutines.extensions$asyncWithCatch(kotlinx.coroutines.CoroutineScope, kotlin.SuspendFunction1((kotlinx.coroutines.CoroutineScope, com.virgilsecurity.android.ethreecoroutines.extensions.asyncWithCatch.T)), kotlin.SuspendFunction1((kotlin.Throwable, kotlin.Nothing)))com.virgilsecurity.android.ethreecoroutines.extensions/kotlinx.coroutines.-coroutine-scope/async-with-catch.html
-com.virgilsecurity.android.ethreecoroutines
-com.virgilsecurity.android.ethreecoroutines.build
-com.virgilsecurity.android.ethreecoroutines.extensions
-com.virgilsecurity.android.ethreecoroutines.interaction
