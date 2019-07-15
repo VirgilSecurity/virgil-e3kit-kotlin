@@ -100,9 +100,39 @@ class EThree
                                           VersionVirgilAgent.VERSION)
     }
 
+    companion object {
+        /**
+         * Current method allows you to initialize EThree helper class. To do this you
+         * should provide [onGetTokenCallback] that must return Json Web Token string
+         * representation with identity of the user which will use this class.
+         * In [onResultListener] you will receive instance of [EThree] class or an [Throwable]
+         * if something went wrong.
+         *
+         * To start execution of the current function, please see [Result] description.
+         */
+        @JvmStatic fun initialize(context: Context,
+                                  onGetTokenCallback: OnGetTokenCallback) = object : Result<EThree> {
+            override fun get(): EThree {
+                val tokenProvider = CachingJwtProvider(CachingJwtProvider.RenewJwtCallback {
+                    Jwt(onGetTokenCallback.onGetToken())
+                })
+
+                // Just check whether we can get token, otherwise there's no reasons to
+                // initialize EThree. We have caching JWT provider, so sequential calls
+                // won't take much time, as token will be cached after first call.
+                tokenProvider.getToken(NO_CONTEXT)
+                return EThree(context, tokenProvider)
+            }
+        }
+
+        private const val THROTTLE_TIMEOUT = 2 * 1000L // 2 seconds
+    }
+
     /**
      * Publishes the public key in Virgil's Cards Service in case no public key for current
      * identity is published yet. Otherwise [RegistrationException] will be thrown.
+     *
+     * To start execution of the current function, please see [Completable] description.
      *
      * @throws RegistrationException
      * @throws CryptoException
@@ -128,6 +158,8 @@ class EThree
     /**
      * Revokes the public key for current *identity* in Virgil's Cards Service. After this operation
      * you can call [EThree.register] again.
+     *
+     * To start execution of the current function, please see [Completable] description.
      *
      * @throws UnRegistrationException if there's no public key published yet, or if there's more
      * than one public key is published.
@@ -186,6 +218,8 @@ class EThree
      * Can be called only if private key is on the device otherwise [PrivateKeyNotFoundException]
      * exception will be thrown.
      *
+     * To start execution of the current function, please see [Completable] description.
+     *
      * @throws PrivateKeyNotFoundException
      * @throws BackupKeyException
      */
@@ -220,6 +254,8 @@ class EThree
      * Can be called only if private key is on the device otherwise [PrivateKeyNotFoundException]
      * exception will be thrown.
      *
+     * To start execution of the current function, please see [Completable] description.
+     *
      * @throws PrivateKeyNotFoundException
      * @throws WrongPasswordException
      */
@@ -250,6 +286,8 @@ class EThree
      * Pulls user's private key from the Virgil's cloud, decrypts it with *Private key* that
      * is generated based on provided [password] and saves it to the current private keys
      * local storage.
+     *
+     * To start execution of the current function, please see [Completable] description.
      *
      * @throws WrongPasswordException
      * @throws RestoreKeyException
@@ -284,6 +322,8 @@ class EThree
      * Generates new key pair, publishes new public key for current identity and deprecating old
      * public key, saves private key to the local storage. All data that was encrypted earlier
      * will become undecryptable.
+     *
+     * To start execution of the current function, please see [Completable] description.
      *
      * @throws PrivateKeyExistsException
      * @throws CardNotFoundException
@@ -328,6 +368,8 @@ class EThree
      *
      * Can be called only if private key is on the device otherwise [PrivateKeyNotFoundException]
      * exception will be thrown.
+     *
+     * To start execution of the current function, please see [Completable] description.
      *
      * @throws PrivateKeyNotFoundException
      */
@@ -564,9 +606,12 @@ class EThree
      * [PublicKey] in [onResultListener] callback or [Throwable] if something went wrong.
      *
      * [PublicKeyNotFoundException] will be thrown for the first not found public key.
+     * [EThree.register]
      *
      * Can be called only if private key is on the device, otherwise [PrivateKeyNotFoundException]
      * exception will be thrown.
+     *
+     * To start execution of the current function, please see [Result] description.
      *
      * @throws PrivateKeyNotFoundException
      * @throws PublicKeyDuplicateException
@@ -633,32 +678,5 @@ class EThree
         if (!keyManagerLocal.exists()) throw PrivateKeyNotFoundException(
             "You have to get private key first. Use \'register\' " +
             "or \'restorePrivateKey\' functions.")
-    }
-
-    companion object {
-        /**
-         * Current method allows you to initialize EThree helper class. To do this you
-         * should provide [onGetTokenCallback] that must return Json Web Token string
-         * representation with identity of the user which will use this class.
-         * In [onResultListener] you will receive instance of [EThree] class or an [Throwable]
-         * if something went wrong.
-         */
-        @JvmStatic fun initialize(context: Context,
-                                  onGetTokenCallback: OnGetTokenCallback) = object : Result<EThree> {
-            override fun get(): EThree {
-                val tokenProvider = CachingJwtProvider(CachingJwtProvider.RenewJwtCallback {
-                    Jwt(onGetTokenCallback.onGetToken())
-                })
-
-                // Just check whether we can get token, otherwise there's no reasons to
-                // initialize EThree. We have caching JWT provider, so sequential calls
-                // won't take much time, as token will be cached after first call.
-                tokenProvider.getToken(NO_CONTEXT)
-                return EThree(context, tokenProvider)
-            }
-        }
-
-        //        private const val KEYKNOX_KEY_POSTFIX = "_keyknox"
-        private const val THROTTLE_TIMEOUT = 2 * 1000L // 2 seconds
     }
 }
