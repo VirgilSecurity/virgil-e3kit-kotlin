@@ -127,6 +127,21 @@ val lookupKeysListener =
 eThree.lookupPublicKeys("bobUID").addCallback(lookupKeysListener)
 ```
 
+#### Encrypt & decrypt large files
+
+If the data that needs to be encrypted is too large for your RAM to encrypt all at once, use the following snippets to encrypt and decrypt streams.
+> Stream encryption doesn’t sign the data, and stream decryption doesn’t verify it. This is why stream decryption doesn’t need VirgilPublicKey unlike the general data decryption.
+
+Encryption:
+```kotlin
+
+```
+
+Decryption:
+```kotlin
+
+```
+
 ## Samples
 
 You can find the code samples for Java and Kotlin here:
