@@ -127,6 +127,47 @@ val lookupKeysListener =
 eThree.lookupPublicKeys("bobUID").addCallback(lookupKeysListener)
 ```
 
+#### Encrypt & decrypt large files
+
+If the data that needs to be encrypted is too large for your RAM to encrypt all at once, use the following snippets to encrypt and decrypt streams.
+> Stream encryption doesn’t sign the data. This is why stream decryption doesn’t require VirgilPublicKey for verification unlike the general data decryption.
+
+Encryption:
+```kotlin
+// TODO: initialize and register user (see EThree.initialize and EThree#register)
+
+// Listener for keys lookup
+val lookupKeysListener =
+        object : OnResultListener<LookupResult> {
+            override fun onSuccess(result: LookupResult) {
+                val assetManager = context.assets
+
+                assetManager.open("some_file.txt").use { inputStream ->
+                    ByteArrayOutputStream().use { outputStream ->
+                        // Encrypt input stream using user public keys and writes output to the output stream
+                        eThree.encrypt(inputStream, outputStream, result)
+                    }
+                }
+            }
+
+            override fun onError(throwable: Throwable) {
+                // Error handling
+            }
+        }
+
+// Lookup destination user public keys
+eThree.lookupPublicKeys(listOf("userUID1", "userUID2", "userUID3")).addCallback(lookupKeysListener)
+```
+
+Decryption:
+```kotlin
+// TODO: init SDK and register users - see EThree.initialize and EThree#register
+ByteArrayOutputStream().use { outputStream ->
+    // Decrypt encrypted input stream and writes output to the output stream
+    eThree.decrypt(encryptedStream, outputStream)
+}
+```
+
 ## Samples
 
 You can find the code samples for Java and Kotlin here:
@@ -151,10 +192,10 @@ Virgil Security has a powerful set of APIs, and the documentation below can get 
 
 * E3kit integrations with:
   * [Custom platform][_any_platform]
-  * [Firebase][_firebase] 
-  * [Twilio][_twilio] 
+  * [Firebase][_firebase]
+  * [Twilio][_twilio]
   * [Nexmo][_nexmo]
-  * [Pubnub][_pubnub] 
+  * [Pubnub][_pubnub]
 * [Reference API][_reference_api]
 
 ## Support
