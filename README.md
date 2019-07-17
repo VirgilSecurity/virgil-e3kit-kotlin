@@ -134,6 +134,9 @@ If the data that needs to be encrypted is too large for your RAM to encrypt all 
 
 Encryption:
 ```kotlin
+// TODO: initialize and register user (see EThree.initialize and EThree#register)
+
+// Listener for keys lookup
 val lookupKeysListener =
         object : OnResultListener<LookupResult> {
             override fun onSuccess(result: LookupResult) {
