@@ -33,11 +33,11 @@
 
 package com.virgilsecurity.android.ethree.kotlin.interaction.async
 
-import com.virgilsecurity.android.common.data.model.LookupResult
+import com.virgilsecurity.android.common.model.LookupResult
 import com.virgilsecurity.android.common.exceptions.PrivateKeyNotFoundException
-import com.virgilsecurity.android.ethree.kotlin.callback.OnCompleteListener
-import com.virgilsecurity.android.ethree.kotlin.callback.OnGetTokenCallback
-import com.virgilsecurity.android.ethree.kotlin.callback.OnResultListener
+import com.virgilsecurity.android.common.callback.OnCompleteListener
+import com.virgilsecurity.android.common.callback.OnGetTokenCallback
+import com.virgilsecurity.android.common.callback.OnResultListener
 import com.virgilsecurity.android.ethree.kotlin.interaction.EThree
 import com.virgilsecurity.android.ethree.utils.TestConfig
 import com.virgilsecurity.android.ethree.utils.TestUtils

@@ -37,9 +37,9 @@ package com.virgilsecurity.android.ethree.java.interaction;
 
 import android.support.test.runner.AndroidJUnit4;
 
-import com.virgilsecurity.android.ethree.kotlin.callback.OnCompleteListener;
-import com.virgilsecurity.android.ethree.kotlin.callback.OnGetTokenCallback;
-import com.virgilsecurity.android.ethree.kotlin.callback.OnResultListener;
+import com.virgilsecurity.android.common.callback.OnCompleteListener;
+import com.virgilsecurity.android.common.callback.OnGetTokenCallback;
+import com.virgilsecurity.android.common.callback.OnResultListener;
 import com.virgilsecurity.android.ethree.kotlin.interaction.EThree;
 import com.virgilsecurity.android.ethree.utils.TestConfig;
 import com.virgilsecurity.sdk.cards.Card;

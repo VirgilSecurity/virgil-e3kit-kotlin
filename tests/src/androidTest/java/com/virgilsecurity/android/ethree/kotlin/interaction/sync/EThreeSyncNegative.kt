@@ -34,7 +34,7 @@
 package com.virgilsecurity.android.ethree.kotlin.interaction.sync
 
 import com.virgilsecurity.android.common.exceptions.*
-import com.virgilsecurity.android.ethree.kotlin.callback.OnGetTokenCallback
+import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.ethree.kotlin.interaction.EThree
 import com.virgilsecurity.android.ethree.utils.TestConfig
 import com.virgilsecurity.android.ethree.utils.TestUtils
