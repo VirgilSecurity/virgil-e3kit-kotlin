@@ -1,4 +1,4 @@
-package com.virgilsecurity.android.common.data.model
+package com.virgilsecurity.android.common.model
 
 import com.virgilsecurity.sdk.crypto.VirgilPublicKey
 

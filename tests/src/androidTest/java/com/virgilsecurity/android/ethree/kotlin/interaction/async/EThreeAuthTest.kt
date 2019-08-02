@@ -33,12 +33,14 @@
 
 package com.virgilsecurity.android.ethree.kotlin.interaction.async
 
+import android.content.Context
+import com.virgilsecurity.android.common.model.LookupResult
 import com.virgilsecurity.android.common.exceptions.CardNotFoundException
 import com.virgilsecurity.android.common.exceptions.PrivateKeyExistsException
 import com.virgilsecurity.android.common.exceptions.RegistrationException
-import com.virgilsecurity.android.ethree.kotlin.callback.OnCompleteListener
-import com.virgilsecurity.android.ethree.kotlin.callback.OnGetTokenCallback
-import com.virgilsecurity.android.ethree.kotlin.callback.OnResultListener
+import com.virgilsecurity.android.common.callback.OnCompleteListener
+import com.virgilsecurity.android.common.callback.OnGetTokenCallback
+import com.virgilsecurity.android.common.callback.OnResultListener
 import com.virgilsecurity.android.ethree.kotlin.interaction.EThree
 import com.virgilsecurity.android.ethree.utils.TestConfig
 import com.virgilsecurity.android.ethree.utils.TestConfig.Companion.virgilBaseUrl
@@ -61,6 +63,7 @@ import org.hamcrest.core.IsNot.not
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
+import java.io.ByteArrayOutputStream
 import java.util.*
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -195,6 +198,40 @@ class EThreeAuthTest {
             }
         })
         waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+    }
+
+lateinit var eThree: EThree
+    lateinit var context: Context
+
+    fun dsad() {
+val lookupKeysListener =
+        object : OnResultListener<LookupResult> {
+            override fun onSuccess(result: LookupResult) {
+                val assetManager = context.assets
+
+                assetManager.open("some_file.txt").use { inputStream ->
+                    ByteArrayOutputStream().use { outputStream ->
+                        // Encrypt input stream using user public keys and writes output to the output stream
+                        eThree.encrypt(inputStream, outputStream, result)
+                    }
+                }
+            }
+
+            override fun onError(throwable: Throwable) {
+                // Error handling
+            }
+        }
+
+// Lookup destination user public keys
+eThree.lookupPublicKeys(listOf("userUID1", "userUID2", "userUID3")).addCallback(lookupKeysListener)
+    }
+
+    fun fdsf() {
+// TODO: init SDK and register users - see EThree.initialize and EThree#register
+ByteArrayOutputStream().use { outputStream ->
+    // Decrypt input stream and writes output to the output stream
+    eThree.decrypt(encryptedStream, outputStream)
+}
     }
 
     // STE-Auth-11
