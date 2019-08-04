@@ -33,8 +33,6 @@
 
 package com.virgilsecurity.android.ethree.java.interaction;
 
-import android.content.Context;
-import android.content.res.AssetManager;
 import android.support.test.runner.AndroidJUnit4;
 
 import com.virgilsecurity.android.common.callback.OnCompleteListener;
@@ -51,7 +49,6 @@ import com.virgilsecurity.sdk.client.exceptions.VirgilServiceException;
 import com.virgilsecurity.sdk.common.TimeSpan;
 import com.virgilsecurity.sdk.crypto.VirgilAccessTokenSigner;
 import com.virgilsecurity.sdk.crypto.VirgilCardCrypto;
-import com.virgilsecurity.sdk.crypto.VirgilPublicKey;
 import com.virgilsecurity.sdk.crypto.exceptions.CryptoException;
 import com.virgilsecurity.sdk.jwt.JwtGenerator;
 import com.virgilsecurity.sdk.jwt.accessProviders.GeneratorJwtProvider;
@@ -61,12 +58,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -114,50 +106,6 @@ public class EThreeTestPositive {
             }
         });
         lock.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS);
-    }
-
-    Context context;
-
-    void dsad() {
-// TODO: initialize and register user (see EThree.initialize and EThree#register)
-
-// Listener for keys lookup
-OnResultListener lookupKeysListener = new OnResultListener<Map<String, VirgilPublicKey>>() {
-    @Override public void onSuccess(Map<String, VirgilPublicKey> result) {
-        AssetManager assetManager = context.getAssets();
-
-        try (InputStream inputStream = assetManager.open("some_file.txt");
-             ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-
-            // Encrypt input stream using user public keys and writes output to the output stream
-            eThree.encrypt(inputStream, outputStream, result);
-        } catch (IOException e) {
-            // Handle error
-        }
-    }
-
-    @Override public void onError(@NotNull Throwable throwable) {
-
-    }
-};
-
-// Lookup destination user public keys
-List<String> identities = new ArrayList<>(3);
-identities.add("userUID1");
-identities.add("userUID2");
-identities.add("userUID3");
-eThree.lookupPublicKeys(identities).addCallback(lookupKeysListener);
-    }
-
-    void dsagsfd() {
-// TODO: initialize and register user (see EThree.initialize and EThree#register)
-try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
-
-    // Decrypt encrypted input stream and writes output to the output stream
-    eThree.decrypt(encryptedStream, outputStream);
-} catch (IOException e) {
-    // Handle error
-}
     }
 
     private CardManager initCardManager(String identity) {

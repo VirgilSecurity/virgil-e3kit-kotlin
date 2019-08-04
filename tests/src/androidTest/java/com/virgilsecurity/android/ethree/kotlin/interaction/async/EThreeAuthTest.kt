@@ -200,40 +200,6 @@ class EThreeAuthTest {
         waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
     }
 
-lateinit var eThree: EThree
-    lateinit var context: Context
-
-    fun dsad() {
-val lookupKeysListener =
-        object : OnResultListener<LookupResult> {
-            override fun onSuccess(result: LookupResult) {
-                val assetManager = context.assets
-
-                assetManager.open("some_file.txt").use { inputStream ->
-                    ByteArrayOutputStream().use { outputStream ->
-                        // Encrypt input stream using user public keys and writes output to the output stream
-                        eThree.encrypt(inputStream, outputStream, result)
-                    }
-                }
-            }
-
-            override fun onError(throwable: Throwable) {
-                // Error handling
-            }
-        }
-
-// Lookup destination user public keys
-eThree.lookupPublicKeys(listOf("userUID1", "userUID2", "userUID3")).addCallback(lookupKeysListener)
-    }
-
-    fun fdsf() {
-// TODO: init SDK and register users - see EThree.initialize and EThree#register
-ByteArrayOutputStream().use { outputStream ->
-    // Decrypt input stream and writes output to the output stream
-    eThree.decrypt(encryptedStream, outputStream)
-}
-    }
-
     // STE-Auth-11
     @Test fun register_with_existing_private_key() {
         val privateKeyData =

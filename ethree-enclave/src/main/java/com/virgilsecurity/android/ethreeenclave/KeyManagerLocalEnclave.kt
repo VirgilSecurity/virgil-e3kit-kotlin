@@ -33,29 +33,32 @@
  *
  */
 
-package com.virgilsecurity.android.common.interaction
+package com.virgilsecurity.android.ethree.kotlin.interaction
 
-import com.virgilsecurity.keyknox.model.CloudEntry
-import com.virgilsecurity.keyknox.model.DecryptedKeyknoxValue
-import com.virgilsecurity.sdk.crypto.VirgilPrivateKey
-import com.virgilsecurity.sdk.crypto.VirgilPublicKey
+import android.content.Context
+import com.virgilsecurity.android.common.interaction.KeyManagerLocal
+import com.virgilsecurity.sdk.storage.DefaultKeyStorage
+import com.virgilsecurity.sdk.storage.JsonKeyEntry
+import com.virgilsecurity.sdk.storage.KeyEntry
+import com.virgilsecurity.sdk.storage.KeyStorage
 
 /**
- * IKeyManagerCloud
+ * KeyManagerLocalEnclave
  */
-interface IKeyManagerCloud {
+class KeyManagerLocalEnclave(val identity: String, context: Context) : KeyManagerLocal {
 
-    fun exists(password: String): Boolean
+    private val keyStorage: KeyStorage = DefaultKeyStorage(context.filesDir.absolutePath,
+                                                           KEYSTORE_NAME)
 
-    fun store(password: String, data: ByteArray, meta: Map<String, String>? = null): CloudEntry
+    override fun exists() = keyStorage.exists(identity)
 
-    fun retrieve(password: String): CloudEntry
+    override fun store(privateKey: ByteArray) = keyStorage.store(JsonKeyEntry(identity, privateKey))
 
-    fun delete(password: String)
+    override fun load(): KeyEntry = keyStorage.load(identity)
 
-    fun deleteAll(): DecryptedKeyknoxValue
+    override fun delete() = keyStorage.delete(identity)
 
-    fun updateRecipients(password: String,
-                         publicKeys: List<VirgilPublicKey>,
-                         privateKey: VirgilPrivateKey)
+    companion object {
+        private const val KEYSTORE_NAME = "virgil.keystore"
+    }
 }

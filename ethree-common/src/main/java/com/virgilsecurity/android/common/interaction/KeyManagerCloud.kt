@@ -30,14 +30,13 @@
  *  * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
  *  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  *  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ *  
  */
 
-package com.virgilsecurity.android.ethree.kotlin.interaction
+package com.virgilsecurity.android.common.interaction
 
 import com.virgilsecurity.android.common.Const
 import com.virgilsecurity.android.common.Const.VIRGIL_BASE_URL
-import com.virgilsecurity.android.common.interaction.IKeyManagerCloud
 import com.virgilsecurity.keyknox.KeyknoxManager
 import com.virgilsecurity.keyknox.client.HttpClient
 import com.virgilsecurity.keyknox.client.KeyknoxClient
@@ -59,7 +58,7 @@ class KeyManagerCloud(
         private val identity: String,
         private val tokenProvider: AccessTokenProvider,
         ethreeVersion: String
-) : IKeyManagerCloud {
+) {
 
     private val keyknoxClient: KeyknoxClient =
             KeyknoxClient(URL(VIRGIL_BASE_URL), HttpClient(Const.ETHREE_NAME, ethreeVersion))
@@ -72,19 +71,19 @@ class KeyManagerCloud(
             .setPythiaCrypto(VirgilPythiaCrypto())
             .build()
 
-    override fun exists(password: String) = initCloudKeyStorage(password).exists(identity)
+    fun exists(password: String) = initCloudKeyStorage(password).exists(identity)
 
-    override fun store(password: String, data: ByteArray, meta: Map<String, String>?) =
+    fun store(password: String, data: ByteArray, meta: Map<String, String>?) =
             initCloudKeyStorage(password).store(identity, data, meta) // TODO ckech whether meta is null by default
 
-    override fun retrieve(password: String) = initCloudKeyStorage(password).retrieve(identity)
+    fun retrieve(password: String) = initCloudKeyStorage(password).retrieve(identity)
 
-    override fun delete(password: String) = initCloudKeyStorage(password).delete(identity)
+    fun delete(password: String) = initCloudKeyStorage(password).delete(identity)
 
-    override fun deleteAll() =
+    fun deleteAll() =
             keyknoxClient.resetValue(tokenProvider.getToken(Const.NO_CONTEXT).stringRepresentation())
 
-    override fun updateRecipients(password: String,
+    fun updateRecipients(password: String,
                          publicKeys: List<VirgilPublicKey>,
                          privateKey: VirgilPrivateKey) =
             initCloudKeyStorage(password).updateRecipients(publicKeys, privateKey)
