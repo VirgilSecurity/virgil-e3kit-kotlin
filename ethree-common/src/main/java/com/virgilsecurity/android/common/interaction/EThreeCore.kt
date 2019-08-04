@@ -35,16 +35,14 @@
 
 package com.virgilsecurity.android.common.interaction
 
-import android.content.Context
 import com.virgilsecurity.android.common.Const
 import com.virgilsecurity.android.common.Const.NO_CONTEXT
 import com.virgilsecurity.android.common.Const.VIRGIL_BASE_URL
 import com.virgilsecurity.android.common.Const.VIRGIL_CARDS_SERVICE_PATH
-import com.virgilsecurity.android.common.callback.OnGetTokenCallback
+import com.virgilsecurity.android.common.exceptions.*
 import com.virgilsecurity.android.common.model.Completable
 import com.virgilsecurity.android.common.model.LookupResult
 import com.virgilsecurity.android.common.model.Result
-import com.virgilsecurity.android.common.exceptions.*
 import com.virgilsecurity.keyknox.build.VersionVirgilAgent
 import com.virgilsecurity.keyknox.exception.DecryptionFailedException
 import com.virgilsecurity.keyknox.exception.EntryAlreadyExistsException
@@ -61,7 +59,6 @@ import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilPrivateKey
 import com.virgilsecurity.sdk.crypto.VirgilPublicKey
 import com.virgilsecurity.sdk.exception.EmptyArgumentException
-import com.virgilsecurity.sdk.jwt.Jwt
 import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
 import com.virgilsecurity.sdk.jwt.contract.AccessTokenProvider
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
@@ -78,12 +75,12 @@ abstract class EThreeCore
  * @constructor Initializing [CardManager] with provided in [EThreeCore.initialize] callback
  * [onGetTokenCallback] using [CachingJwtProvider] also initializing [DefaultKeyStorage] with
  * default settings.
- */ private constructor(context: Context, private val tokenProvider: AccessTokenProvider) {
+ */ constructor(private val tokenProvider: AccessTokenProvider) {
 
     private val virgilCrypto = VirgilCrypto()
     private val cardManager: CardManager
-    protected abstract val keyManagerLocal: IKeyManagerLocal
-    protected abstract  val keyManagerCloud: IKeyManagerCloud
+    protected abstract val keyManagerLocal: KeyManagerLocal
+    private val keyManagerCloud: KeyManagerCloud
 
     init {
         cardManager = VirgilCardCrypto().let { cardCrypto ->
@@ -94,34 +91,11 @@ abstract class EThreeCore
                         VirgilCardClient(VIRGIL_BASE_URL + VIRGIL_CARDS_SERVICE_PATH,
                                          httpClient))
         }
-    }
 
-    companion object {
-        /**
-         * Current method allows you to initialize EThree helper class. To do this you
-         * should provide [onGetTokenCallback] that must return Json Web Token string
-         * representation with identity of the user which will use this class.
-         * In [onResultListener] you will receive instance of [EThreeCore] class or an [Throwable]
-         * if something went wrong.
-         *
-         * To start execution of the current function, please see [Result] description.
-         */
-        @JvmStatic fun initialize(context: Context,
-                                  onGetTokenCallback: OnGetTokenCallback) = object : Result<EThreeCore> {
-            override fun get(): EThreeCore {
-                val tokenProvider = CachingJwtProvider(CachingJwtProvider.RenewJwtCallback {
-                    Jwt(onGetTokenCallback.onGetToken())
-                })
-
-                // Just check whether we can get token, otherwise there's no reasons to
-                // initialize EThree. We have caching JWT provider, so sequential calls
-                // won't take much time, as token will be cached after first call.
-                tokenProvider.getToken(NO_CONTEXT)
-                return EThreeCore(context, tokenProvider)
-            }
-        }
-
-        private const val THROTTLE_TIMEOUT = 2 * 1000L // 2 seconds
+        keyManagerCloud = KeyManagerCloud(
+            currentIdentity(),
+            tokenProvider,
+            VersionVirgilAgent.VERSION)
     }
 
     /**
@@ -674,5 +648,9 @@ abstract class EThreeCore
         if (!keyManagerLocal.exists()) throw PrivateKeyNotFoundException(
             "You have to get private key first. Use \'register\' " +
             "or \'restorePrivateKey\' functions.")
+    }
+
+    companion object {
+        private const val THROTTLE_TIMEOUT = 2 * 1000L // 2 seconds
     }
 }

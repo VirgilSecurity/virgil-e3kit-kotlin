@@ -33,36 +33,145 @@
  *
  */
 
+plugins {
+    id 'signing'
+}
+
 apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+
+apply plugin: 'maven-publish'
+apply plugin: 'digital.wup.android-maven-publish'
+apply plugin: 'org.jetbrains.dokka'
 
 android {
     compileSdkVersion 28
-
+    buildToolsVersion "28.0.3"
 
     defaultConfig {
         minSdkVersion 23
         targetSdkVersion 28
-        versionCode 1
-        versionName "1.0"
-
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-
+        consumerProguardFiles 'proguard-rules.txt'
     }
+}
 
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+group 'com.virgilsecurity'
+version '0.5.0'
+
+dependencies {
+    // Inner dependencies
+    api project(':ethree-common')
+
+    // Virgil
+    implementation "com.virgilsecurity.sdk:android-utils:6.0.1-SNAPSHOT"
+
+    // Kotlin
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$versions.kotlin"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$versions.coroutines"
+
+    // Android
+    compileOnly "com.google.android:android:$versions.android"
+}
+
+task generateVersionVirgilAgent {
+    outputs.dir "$buildDir/generated"
+    doFirst {
+        def versionFile = file("$buildDir/generated/release/com/virgilsecurity/android/ethreeenclave/build/VersionVirgilAgent.kt")
+        versionFile.parentFile.mkdirs()
+        versionFile.text =
+                """
+package com.virgilsecurity.android.ethreeenclave.build;
+
+object VersionVirgilAgent {
+    const val VERSION = "$project.version"
+}
+"""
+    }
+}
+
+project.android.sourceSets.main.java.srcDirs = ["${buildDir}/generated/release/", "src/main/java"]
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
+    dependsOn(generateVersionVirgilAgent)
+}
+
+sourceCompatibility = "8"
+targetCompatibility = "8"
+
+task sourcesJar(type: Jar) {
+    from(project.android.sourceSets.main.java.srcDirs)
+    classifier = 'sources'
+}
+
+task javadocJar(type: Jar, dependsOn: 'dokka') {
+    from("$buildDir/javadoc")
+    classifier = 'javadoc'
+}
+
+def authentication_username = hasProperty('authentication_username') ? authentication_username : System.getenv('authentication_username')
+def authentication_password = hasProperty('authentication_password') ? authentication_password : System.getenv('authentication_password')
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = 'ethree-enclave'
+            artifact javadocJar
+            artifact sourcesJar
+            from components.android
+
+            pom {
+                name = 'Virgil E3Kit Java/Kotlin SDK with Secure Enclave'
+                description = 'Virgil Security provides an SDK which symplifies work with Virgil services and presents easy to use API for adding security to any application. In a few simple steps you can setup user encryption with multidevice support.'
+                url = 'https://www.virgilsecurity.com/'
+                licenses {
+                    license {
+                        name = 'Virgil Security, Inc. license'
+                        url = 'https://github.com/VirgilSecurity/virgil-e3kit-kotlin/blob/master/LICENSE.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'BuddahLD'
+                        name = 'Danylo Oliinyk'
+                        email = 'doliinyk@virgilsecurity.com'
+                        organizationUrl = 'https://github.com/BuddahLD'
+                    }
+                    developer {
+                        id = 'andrii-iakovenko'
+                        name = 'Andrii Iakovenko'
+                        email = 'andrii-iakovenko@gmail.com'
+                        organizationUrl = 'https://github.com/andrii-iakovenko'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:https://github.com/VirgilSecurity/virgil-e3kit-kotlin.git'
+                    developerConnection = 'scm:git:git@github.com:VirgilSecurity/virgil-e3kit-kotlin.git'
+                    url = 'https://github.com/VirgilSecurity/virgil-e3kit-kotlin'
+                }
+            }
         }
     }
 
+    repositories {
+        maven {
+            def releasesRepoUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+            def snapshotsRepoUrl = "https://oss.sonatype.org/content/repositories/snapshots"
+            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+            credentials {
+                username "${authentication_username}"
+                password "${authentication_password}"
+            }
+        }
+    }
 }
 
-dependencies {
-    implementation "com.virgilsecurity.sdk:android-utils:6.0.1-SNAPSHOT"
+signing {
+    sign publishing.publications.mavenJava
+}
 
-    implementation 'com.android.support:appcompat-v7:28.0.0'
-    testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'com.android.support.test:runner:1.0.2'
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+dokka {
+    outputFormat = 'html'
+    outputDirectory = "$buildDir/javadoc"
+    reportUndocumented = false
 }

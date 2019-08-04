@@ -38,9 +38,8 @@ package com.virgilsecurity.android.ethreeenclave
 import android.content.Context
 import com.virgilsecurity.android.common.Const.NO_CONTEXT
 import com.virgilsecurity.android.common.interaction.EThreeCore
-import com.virgilsecurity.android.common.interaction.IKeyManagerCloud
-import com.virgilsecurity.android.common.interaction.IKeyManagerLocal
-import com.virgilsecurity.android.ethree.build.VersionVirgilAgent
+import com.virgilsecurity.android.common.interaction.KeyManagerLocal
+import com.virgilsecurity.android.ethree.kotlin.interaction.KeyManagerLocalEnclave
 import com.virgilsecurity.sdk.jwt.contract.AccessTokenProvider
 
 /**
@@ -49,18 +48,13 @@ import com.virgilsecurity.sdk.jwt.contract.AccessTokenProvider
  */
 class EThree(
         context: Context,
-        private val tokenProvider: AccessTokenProvider
-) : EThreeCore(context, tokenProvider) {
-    override val keyManagerLocal: IKeyManagerLocal
-    override val keyManagerCloud: IKeyManagerCloud
+        tokenProvider: AccessTokenProvider
+) : EThreeCore(tokenProvider) {
+    override val keyManagerLocal: KeyManagerLocal
 
     init {
-        keyManagerLocal = KeyManagerLocal(
+        keyManagerLocal = KeyManagerLocalEnclave(
             tokenProvider.getToken(NO_CONTEXT).identity,
             context)
-        keyManagerCloud = KeyManagerCloud(
-            currentIdentity(),
-            tokenProvider,
-            VersionVirgilAgent.VERSION)
     }
 }

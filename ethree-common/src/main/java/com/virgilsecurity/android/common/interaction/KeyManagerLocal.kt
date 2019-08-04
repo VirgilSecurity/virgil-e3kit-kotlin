@@ -33,32 +33,20 @@
  *
  */
 
-package com.virgilsecurity.android.ethree.kotlin.interaction
+package com.virgilsecurity.android.common.interaction
 
-import android.content.Context
-import com.virgilsecurity.android.common.interaction.IKeyManagerLocal
-import com.virgilsecurity.sdk.storage.DefaultKeyStorage
-import com.virgilsecurity.sdk.storage.JsonKeyEntry
 import com.virgilsecurity.sdk.storage.KeyEntry
-import com.virgilsecurity.sdk.storage.KeyStorage
 
 /**
  * KeyManagerLocal
  */
-class KeyManagerLocal(val identity: String, context: Context) : IKeyManagerLocal {
+interface KeyManagerLocal {
 
-    private val keyStorage: KeyStorage = DefaultKeyStorage(context.filesDir.absolutePath,
-                                                           KEYSTORE_NAME)
+    fun exists() : Boolean
 
-    override fun exists() = keyStorage.exists(identity)
+    fun store(privateKey: ByteArray)
 
-    override fun store(privateKey: ByteArray) = keyStorage.store(JsonKeyEntry(identity, privateKey))
+    fun load(): KeyEntry
 
-    override fun load(): KeyEntry = keyStorage.load(identity)
-
-    override fun delete() = keyStorage.delete(identity)
-
-    companion object {
-        private const val KEYSTORE_NAME = "virgil.keystore"
-    }
+    fun delete()
 }
