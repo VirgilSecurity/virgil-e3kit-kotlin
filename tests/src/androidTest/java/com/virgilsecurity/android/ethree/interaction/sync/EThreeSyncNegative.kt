@@ -31,10 +31,11 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.ethree.kotlin.interaction.sync
+package com.virgilsecurity.android.ethree.interaction.sync
 
+import com.virgilsecurity.android.common.exceptions.*
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
-import com.virgilsecurity.android.ethree.kotlin.interaction.EThree
+import com.virgilsecurity.android.ethree.interaction.EThree
 import com.virgilsecurity.android.ethree.utils.TestConfig
 import com.virgilsecurity.android.ethree.utils.TestUtils
 import com.virgilsecurity.keyknox.KeyknoxManager
@@ -55,16 +56,14 @@ import com.virgilsecurity.sdk.crypto.VirgilAccessTokenSigner
 import com.virgilsecurity.sdk.crypto.VirgilCardCrypto
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilKeyPair
+import com.virgilsecurity.sdk.exception.EmptyArgumentException
 import com.virgilsecurity.sdk.jwt.JwtGenerator
 import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
 import com.virgilsecurity.sdk.jwt.accessProviders.GeneratorJwtProvider
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
 import com.virgilsecurity.sdk.storage.KeyStorage
 import com.virgilsecurity.sdk.utils.Tuple
-import junit.framework.Assert.*
-import org.hamcrest.core.IsEqual
-import org.hamcrest.core.IsNot
-import org.junit.Assert.assertThat
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.net.URL
@@ -74,7 +73,7 @@ import java.util.concurrent.TimeUnit
 /**
  * EThreeSyncPositive
  */
-class EThreeSyncPositive {
+class EThreeSyncNegative {
 
     private lateinit var identity: String
     private lateinit var jwtGenerator: JwtGenerator
@@ -158,163 +157,98 @@ class EThreeSyncPositive {
         }
     }
 
-    @Test fun init_and_register() {
-        initAndRegisterEThree(identity)
-        assertTrue(keyStorage.exists(identity))
-
-        val card = initCardManager(identity).searchCards(identity)
-        assertNotNull(card)
-    }
-
-    @Test fun unregister_with_local_key() {
-        val eThree = initAndRegisterEThree(identity)
-        assertTrue(keyStorage.exists(identity))
-
-        val cards = initCardManager(identity).searchCards(identity)
-        assertNotNull(cards)
-        assertEquals(1, cards.size)
-
-        eThree.unregister().execute()
-        assertFalse(keyStorage.exists(identity))
-
-        val cardsUnregistered = initCardManager(identity).searchCards(identity)
-        assertEquals(0, cardsUnregistered.size)
-    }
-
-    // STE-15_2-4 - Sync
-    @Test fun backup_key_after_register() {
-        val password = UUID.randomUUID().toString()
-        val eThree = initAndRegisterEThree(identity)
-
-        TestUtils.pause()
-
-        eThree.backupPrivateKey(password).execute()
-
-        TestUtils.pause()
-
-        val syncKeyStorage = initSyncKeyStorage(identity, password)
-        assertTrue(syncKeyStorage.exists(identity))
-        val retrievedKey = syncKeyStorage.retrieve(identity)
-        assertEquals(TestConfig.virgilCrypto.importPrivateKey(keyStorage.load(identity).value),
-                     TestConfig.virgilCrypto.importPrivateKey(retrievedKey.value))
-    }
-
-    // STE-18_2 - Sync
-    @Test fun reset_key_backup_after_backup() {
-        val password = UUID.randomUUID().toString()
-        val eThreeWithPass = initAndRegisterEThree(identity)
-
-        eThreeWithPass.backupPrivateKey(password).execute()
-
-        TestUtils.pause()
-
-        eThreeWithPass.resetPrivateKeyBackup(password).execute()
-
-        TestUtils.pause()
-
-        val syncKeyStorage = initSyncKeyStorage(identity, password)
-        assertFalse(syncKeyStorage.exists(identity))
-
-        TestUtils.pause() // To avoid throttling in next test
-    }
-
-    // STE-16 - Sync
-    @Test fun restore_private_key() {
-        val password = UUID.randomUUID().toString()
-        val eThreeWithPass = initAndRegisterEThree(identity)
-        eThreeWithPass.backupPrivateKey(password).execute()
-
-        TestUtils.pause()
-
-        val syncKeyStorage = initSyncKeyStorage(identity, password)
-        assertTrue(syncKeyStorage.exists(identity))
-        val retrievedKey = syncKeyStorage.retrieve(identity)
-        assertEquals(TestConfig.virgilCrypto.importPrivateKey(keyStorage.load(identity).value),
-                     TestConfig.virgilCrypto.importPrivateKey(retrievedKey.value))
-
-        TestUtils.pause()
-
-        eThreeWithPass.cleanup()
-        eThreeWithPass.restorePrivateKey(password).execute()
-        assertTrue(keyStorage.exists(identity))
-    }
-
-    // STE-Auth-14 - Sync
-    @Test fun rotate_keys() {
+    @Test fun register_existing_identity() {
         val cardManager = initCardManager(identity)
-        val pairForPublish = generateRawCard(identity, cardManager)
-        cardManager.publishCard(pairForPublish.right)
+        cardManager.publishCard(generateRawCard(identity, cardManager).right)
         val eThree = initEThree(identity)
 
-        eThree.rotatePrivateKey().execute()
-
-        assertTrue(cardManager.searchCards(identity).last().previousCardId != null)
-
-        val newKeyData = keyStorage.load(identity).value
-        val oldKeyData = VirgilCrypto().exportPrivateKey(pairForPublish.left.privateKey)
-        assertThat(oldKeyData, IsNot.not(IsEqual.equalTo(newKeyData)))
+        try {
+            eThree.register().execute()
+        } catch (throwable: Throwable) {
+            assertTrue(throwable is RegistrationException)
+        }
     }
 
-    // STE-17 - Sync
-    @Test fun change_password() {
+    @Test fun unregister_without_card() {
+        val eThree = initEThree(identity)
+
+        try {
+            eThree.unregister().execute()
+        } catch (throwable: Throwable) {
+            assertTrue(throwable is UnRegistrationException)
+        }
+    }
+
+    // STE-15_1 - Sync
+    @Test fun backup_key_before_register() {
+        val password = UUID.randomUUID().toString()
+        val eThree = initEThree(identity)
+
+        try {
+            eThree.backupPrivateKey(password).execute()
+        } catch (throwable: Throwable) {
+            assertTrue(throwable is PrivateKeyNotFoundException)
+        }
+    }
+
+    // STE-18_1
+    @Test fun reset_key_backup_before_backup() {
+        val password = UUID.randomUUID().toString()
+        val eThreeWithPass = initEThree(identity)
+
+        TestUtils.pause()
+
+        try {
+            eThreeWithPass.resetPrivateKeyBackup(password).execute()
+        } catch (throwable: Throwable) {
+            assertTrue(throwable is PrivateKeyNotFoundException)
+        }
+    }
+
+    @Test fun restore_private_key_before_backup() {
+        val password = UUID.randomUUID().toString()
+        val eThree = initAndRegisterEThree(identity)
+
+        eThree.cleanup()
+        try {
+            eThree.restorePrivateKey(password).execute()
+        } catch (throwable: Throwable) {
+            assertTrue(throwable is RestoreKeyException)
+        }
+    }
+
+    // STE-Auth-12 - Sync
+    @Test fun rotate_without_published_card() {
+        val eThree = initEThree(identity)
+
+        try {
+            eThree.rotatePrivateKey().execute()
+        } catch (throwable: Throwable) {
+            assertTrue(throwable is CardNotFoundException)
+        }
+    }
+
+    @Test fun change_password_without_backup() {
         val password = UUID.randomUUID().toString()
         val passwordNew = UUID.randomUUID().toString()
         val eThreeWithPass = initAndRegisterEThree(identity)
-        eThreeWithPass.backupPrivateKey(password).execute()
 
-        TestUtils.pause()
+        eThreeWithPass.backupPrivateKey(password)
 
-        eThreeWithPass.changePassword(password, passwordNew).execute()
+        try {
+            eThreeWithPass.changePassword(passwordNew, password).execute()
+        } catch (throwable: Throwable) {
+            assertTrue(throwable is WrongPasswordException)
+        }
+    } // TODO check whether it's ok that updateRecipients executes successfully if KeyKnox is empty
 
-        TestUtils.pause()
-
-        eThreeWithPass.cleanup()
-        assertFalse(keyStorage.exists(identity))
-        eThreeWithPass.restorePrivateKey(passwordNew).execute()
-        assertTrue(keyStorage.exists(identity))
-    }
-
-    @Test fun lookup_one_user() {
+    //STE-2
+    @Test fun lookup_zero_users() {
         val eThree = initEThree(identity)
-        val cardManager = initCardManager(identity)
-        val publishedCardOne =
-                cardManager.publishCard(generateRawCard(identity, cardManager).right)
-
-        val lookupResult = eThree.lookupPublicKeys(identity).get()
-
-        assertTrue(lookupResult.isNotEmpty() && lookupResult.size == 1)
-        assertEquals(publishedCardOne.publicKey, lookupResult[identity])
-    }
-
-    // STE-1 - Sync
-    @Test fun lookup_multiply_users() {
-        val eThree = initAndRegisterEThree(identity)
-
-        // Card one
-        val identityOne = UUID.randomUUID().toString()
-        val cardManagerOne = initCardManager(identityOne)
-        val publishedCardOne =
-                cardManagerOne.publishCard(generateRawCard(identityOne, cardManagerOne).right)
-
-        // Card two
-        val identityTwo = UUID.randomUUID().toString()
-        val cardManagerTwo = initCardManager(identityTwo)
-        val publishedCardTwo =
-                cardManagerTwo.publishCard(generateRawCard(identityTwo, cardManagerTwo).right)
-
-        // Card three
-        val identityThree = UUID.randomUUID().toString()
-        val cardManagerThree = initCardManager(identityThree)
-        val publishedCardThree =
-                cardManagerThree.publishCard(generateRawCard(identityThree, cardManagerThree).right)
-
-        val lookupResult =
-                eThree.lookupPublicKeys(listOf(identityOne, identityTwo, identityThree)).get()
-
-        assertTrue(lookupResult.isNotEmpty() && lookupResult.size == 3)
-
-        assertTrue(lookupResult[identityOne] == publishedCardOne.publicKey
-                   && lookupResult[identityTwo] == publishedCardTwo.publicKey
-                   && lookupResult[identityThree] == publishedCardThree.publicKey)
+        try {
+            eThree.lookupPublicKeys(listOf()).get()
+        } catch (throwable: Throwable) {
+            assertTrue(throwable is EmptyArgumentException)
+        }
     }
 }

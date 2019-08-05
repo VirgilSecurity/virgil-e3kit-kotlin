@@ -33,28 +33,33 @@
  *
  */
 
-package com.virgilsecurity.android.ethreeenclave
+package com.virgilsecurity.android.ethreeenclave.interaction
 
 import android.content.Context
-import com.virgilsecurity.android.common.Const.NO_CONTEXT
-import com.virgilsecurity.android.common.interaction.EThreeCore
 import com.virgilsecurity.android.common.interaction.KeyManagerLocal
-import com.virgilsecurity.android.ethree.kotlin.interaction.KeyManagerLocalEnclave
-import com.virgilsecurity.sdk.jwt.contract.AccessTokenProvider
+import com.virgilsecurity.sdk.androidutils.storage.AndroidKeyStorage
+import com.virgilsecurity.sdk.storage.JsonKeyEntry
+import com.virgilsecurity.sdk.storage.KeyEntry
+import com.virgilsecurity.sdk.storage.KeyStorage
+import java.time.Duration
 
 /**
- * [EThree] class simplifies work with Virgil Services to easily implement End to End Encrypted
- * communication.
+ * KeyManagerLocalEnclave
  */
-class EThree(
-        context: Context,
-        tokenProvider: AccessTokenProvider
-) : EThreeCore(tokenProvider) {
-    override val keyManagerLocal: KeyManagerLocal
+class KeyManagerLocalEnclave(
+        private val keyStorage: AndroidKeyStorage,
+        private val identity: String
+) : KeyManagerLocal {
 
-    init {
-        keyManagerLocal = KeyManagerLocalEnclave(
-            tokenProvider.getToken(NO_CONTEXT).identity,
-            context)
+    override fun exists() = keyStorage.exists(identity)
+
+    override fun store(privateKey: ByteArray) = keyStorage.store(JsonKeyEntry(identity, privateKey))
+
+    override fun load(): KeyEntry = keyStorage.load(identity)
+
+    override fun delete() = keyStorage.delete(identity)
+
+    companion object {
+        private const val KEYSTORE_NAME = "virgil_android_keystore"
     }
 }
