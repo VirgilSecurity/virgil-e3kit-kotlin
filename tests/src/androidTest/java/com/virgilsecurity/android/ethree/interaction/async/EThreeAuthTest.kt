@@ -31,17 +31,15 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.ethree.kotlin.interaction.async
+package com.virgilsecurity.android.ethree.interaction.async
 
-import android.content.Context
-import com.virgilsecurity.android.common.model.LookupResult
 import com.virgilsecurity.android.common.exceptions.CardNotFoundException
 import com.virgilsecurity.android.common.exceptions.PrivateKeyExistsException
 import com.virgilsecurity.android.common.exceptions.RegistrationException
 import com.virgilsecurity.android.common.callback.OnCompleteListener
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.common.callback.OnResultListener
-import com.virgilsecurity.android.ethree.kotlin.interaction.EThree
+import com.virgilsecurity.android.ethree.interaction.EThree
 import com.virgilsecurity.android.ethree.utils.TestConfig
 import com.virgilsecurity.android.ethree.utils.TestConfig.Companion.virgilBaseUrl
 import com.virgilsecurity.android.ethree.utils.TestConfig.Companion.virgilCrypto
@@ -63,7 +61,6 @@ import org.hamcrest.core.IsNot.not
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-import java.io.ByteArrayOutputStream
 import java.util.*
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit

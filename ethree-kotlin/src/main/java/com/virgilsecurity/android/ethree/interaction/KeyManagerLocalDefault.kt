@@ -33,7 +33,7 @@
  *
  */
 
-package com.virgilsecurity.android.ethree.kotlin.interaction
+package com.virgilsecurity.android.ethree.interaction
 
 import android.content.Context
 import com.virgilsecurity.android.common.interaction.KeyManagerLocal
@@ -43,9 +43,9 @@ import com.virgilsecurity.sdk.storage.KeyEntry
 import com.virgilsecurity.sdk.storage.KeyStorage
 
 /**
- * KeyManagerLocalEnclave
+ * KeyManagerLocalDefault
  */
-class KeyManagerLocalEnclave(val identity: String, context: Context) : KeyManagerLocal {
+class KeyManagerLocalDefault(val identity: String, context: Context) : KeyManagerLocal {
 
     private val keyStorage: KeyStorage = DefaultKeyStorage(context.filesDir.absolutePath,
                                                            KEYSTORE_NAME)

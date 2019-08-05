@@ -31,7 +31,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.ethree.kotlin.interaction.profile
+package com.virgilsecurity.android.ethree.interaction.profile
 
 import android.os.Debug
 import com.virgilsecurity.sdk.crypto.VirgilCrypto

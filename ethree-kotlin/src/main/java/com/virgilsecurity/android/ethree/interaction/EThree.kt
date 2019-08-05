@@ -31,7 +31,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.ethree.kotlin.interaction
+package com.virgilsecurity.android.ethree.interaction
 
 import android.content.Context
 import com.virgilsecurity.android.common.Const.NO_CONTEXT
@@ -47,10 +47,12 @@ import com.virgilsecurity.sdk.jwt.contract.AccessTokenProvider
  * [EThree] class simplifies work with Virgil Services to easily implement End to End Encrypted
  * communication.
  */
-class EThree(
+class EThree
+private constructor(
         context: Context,
         tokenProvider: AccessTokenProvider
 ) : EThreeCore(tokenProvider) {
+
     override val keyManagerLocal: KeyManagerLocal
 
     init {

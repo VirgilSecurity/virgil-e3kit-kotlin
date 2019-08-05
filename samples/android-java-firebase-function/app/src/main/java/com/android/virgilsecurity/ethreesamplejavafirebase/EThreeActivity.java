@@ -48,7 +48,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GetTokenResult;
 import com.virgilsecurity.android.ethree.kotlin.callback.OnGetTokenCallback;
 import com.virgilsecurity.android.ethree.kotlin.callback.OnResultListener;
-import com.virgilsecurity.android.ethree.kotlin.interaction.EThree;
+import com.virgilsecurity.android.ethree.interaction.EThree;
 import com.virgilsecurity.sdk.crypto.VirgilPublicKey;
 import com.virgilsecurity.sdk.utils.ConvertionUtils;
 

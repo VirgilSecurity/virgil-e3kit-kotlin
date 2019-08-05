@@ -31,7 +31,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.ethree.kotlin.interaction.async
+package com.virgilsecurity.android.ethree.interaction.async
 
 import com.virgilsecurity.android.common.model.LookupResult
 import com.virgilsecurity.android.common.exceptions.PrivateKeyNotFoundException
@@ -41,7 +41,7 @@ import com.virgilsecurity.android.common.exceptions.UnRegistrationException
 import com.virgilsecurity.android.common.callback.OnCompleteListener
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.common.callback.OnResultListener
-import com.virgilsecurity.android.ethree.kotlin.interaction.EThree
+import com.virgilsecurity.android.ethree.interaction.EThree
 import com.virgilsecurity.android.ethree.utils.TestConfig
 import com.virgilsecurity.android.ethree.utils.TestUtils
 import com.virgilsecurity.sdk.cards.CardManager

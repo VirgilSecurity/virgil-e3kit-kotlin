@@ -42,7 +42,7 @@ import android.widget.Toast;
 import com.virgilsecurity.android.ethree.kotlin.callback.OnCompleteListener;
 import com.virgilsecurity.android.ethree.kotlin.callback.OnGetTokenCallback;
 import com.virgilsecurity.android.ethree.kotlin.callback.OnResultListener;
-import com.virgilsecurity.android.ethree.kotlin.interaction.EThree;
+import com.virgilsecurity.android.ethree.interaction.EThree;
 import com.virgilsecurity.sdk.crypto.VirgilPublicKey;
 import com.virgilsecurity.sdk.utils.ConvertionUtils;
 
