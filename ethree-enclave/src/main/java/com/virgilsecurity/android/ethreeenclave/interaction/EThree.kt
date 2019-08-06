@@ -47,7 +47,6 @@ import com.virgilsecurity.sdk.jwt.Jwt
 import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
 import com.virgilsecurity.sdk.jwt.contract.AccessTokenProvider
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
-import java.io.File
 
 /**
  * [EThree] class simplifies work with Virgil Services to easily implement End to End Encrypted
@@ -65,30 +64,37 @@ private constructor(
     override val keyManagerLocal: KeyManagerLocal
 
     init {
-        val keyStorageAndroid = AndroidKeyStorage.Builder(KEYSTORE_NAME)
-                .isAuthenticationRequired(isAuthenticationRequired)
-                .withKeyValidityDuration(keyValidityDuration)
-                .onPath(context.filesDir.absolutePath)
-                .build()
+        synchronized(this@EThree) {
+            val keyStorageAndroid = AndroidKeyStorage.Builder(alias)
+                    .isAuthenticationRequired(isAuthenticationRequired)
+                    .withKeyValidityDuration(keyValidityDuration)
+                    .onPath(context.filesDir.absolutePath)
+                    .build()
 
-        keyManagerLocal = KeyManagerLocalEnclave(keyStorageAndroid,
-                                                 tokenProvider.getToken(NO_CONTEXT).identity)
+            keyManagerLocal = KeyManagerLocalEnclave(keyStorageAndroid,
+                                                     tokenProvider.getToken(NO_CONTEXT).identity)
 
-        // TODO make as transaction
-        // Migration from old storage to new
-        val rootPath = (context.filesDir.absolutePath + File.separator + "VirgilSecurity"
-                        + File.separator + "Keys" + File.separator)
+            // Migration from old storage to new
+            val keyStorageDefault = DefaultKeyStorage(context.filesDir.absolutePath, KEYSTORE_NAME)
+            keyStorageDefault.names().forEach { name ->
+                val keyEntry = keyStorageDefault.load(name)
 
-        val keyStorageDefault = DefaultKeyStorage(rootPath, alias)
-        for (name in keyStorageDefault.names()) {
-            val keyEntry = keyStorageDefault.load(name)
+                if (keyEntry.meta.isEmpty()) {
+                    val keyEntryAndroid = AndroidKeyEntry(name, keyEntry.value).apply {
+                        meta = mapOf("Migrated" to "true")
+                    }
 
-            if (keyEntry.meta.isEmpty()) {
-                val keyEntryAndroid = AndroidKeyEntry(name, keyEntry.value).apply {
-                    meta = mapOf("Migrated" to "true")
+                    // If any error happens - restore state of storages.
+                    try {
+                        keyStorageAndroid.store(keyEntryAndroid)
+                    } catch (throwable: Throwable) {
+                        keyStorageAndroid.names().forEach { keyStorageAndroid.delete(it) }
+                    }
                 }
-                keyStorageAndroid.store(keyEntryAndroid)
             }
+
+            // If migration was successful - remove keys from old storage.
+            keyStorageDefault.names().forEach { keyStorageDefault.delete(it) }
         }
     }
 
@@ -125,6 +131,6 @@ private constructor(
             }
         }
 
-        private const val KEYSTORE_NAME = "virgil_android_keystore"
+        private const val KEYSTORE_NAME = "virgil.keystore"
     }
 }
