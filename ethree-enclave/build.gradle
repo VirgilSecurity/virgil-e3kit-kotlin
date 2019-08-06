@@ -64,7 +64,7 @@ dependencies {
     api project(':ethree-common')
 
     // Virgil
-    implementation "com.virgilsecurity.sdk:android-utils:6.0.1-SNAPSHOT"
+    api "com.virgilsecurity.sdk:android-utils:6.0.1-SNAPSHOT"
 
     // Kotlin
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$versions.kotlin"
