@@ -65,6 +65,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
@@ -148,23 +149,25 @@ public class EThreeTestPositive {
         assertEquals(1, cards.size());
     }
 
-    // TODO uncomment after sdk updated to handle null jwt properly
-//    @Test public void initialize_with_null_token() throws InterruptedException {
-//        final CountDownLatch lock = new CountDownLatch(1);
-//        EThree.initialize(TestConfig.Companion.getContext(), new OnGetTokenCallback() {
-//            @NotNull @Override public String onGetToken() {
-//                return null;
-//            }
-//        }).addCallback(new OnResultListener<EThree>() {
-//            @Override public void onSuccess(EThree result) {
-//                eThree = result;
-//                lock.countDown();
-//            }
-//
-//            @Override public void onError(@NotNull Throwable throwable) {
-//                fail(throwable.getMessage());
-//            }
-//        });
-//        lock.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS);
-//    }
+    @Test public void initialize_with_null_token() throws InterruptedException {
+        final CountDownLatch lock = new CountDownLatch(1);
+        EThree.initialize(TestConfig.Companion.getContext(), new OnGetTokenCallback() {
+            @NotNull @Override public String onGetToken() {
+                //noinspection ConstantConditions
+                return null;
+            }
+        }).addCallback(new OnResultListener<EThree>() {
+            @Override public void onSuccess(EThree result) {
+                fail("Null token should throw exception");
+
+            }
+
+            @Override public void onError(@NotNull Throwable throwable) {
+                assertTrue(throwable instanceof IllegalArgumentException);
+
+                lock.countDown();
+            }
+        });
+        lock.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS);
+    }
 }

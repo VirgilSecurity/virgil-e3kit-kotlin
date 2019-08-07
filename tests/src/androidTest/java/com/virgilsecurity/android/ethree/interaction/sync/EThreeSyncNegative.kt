@@ -240,7 +240,7 @@ class EThreeSyncNegative {
         } catch (throwable: Throwable) {
             assertTrue(throwable is WrongPasswordException)
         }
-    } // TODO check whether it's ok that updateRecipients executes successfully if KeyKnox is empty
+    }
 
     //STE-2
     @Test fun lookup_zero_users() {

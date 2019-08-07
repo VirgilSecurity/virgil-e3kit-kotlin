@@ -88,6 +88,7 @@ private constructor(
                         keyStorageAndroid.store(keyEntryAndroid)
                     } catch (throwable: Throwable) {
                         keyStorageAndroid.names().forEach { keyStorageAndroid.delete(it) }
+
                         throw KeyStorageException("Error while migrating keys from legacy key "
                         + "storage to the new one. All keys are restored in legacy key storage.")
                     }

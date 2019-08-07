@@ -72,7 +72,7 @@ class KeyManagerCloud(
     fun exists(password: String) = initCloudKeyStorage(password).exists(identity)
 
     fun store(password: String, data: ByteArray, meta: Map<String, String>?) =
-            initCloudKeyStorage(password).store(identity, data, meta) // TODO ckech whether meta is null by default
+            initCloudKeyStorage(password).store(identity, data, meta)
 
     fun retrieve(password: String) = initCloudKeyStorage(password).retrieve(identity)
 
