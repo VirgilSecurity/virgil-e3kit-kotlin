@@ -31,4 +31,4 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-include ':ethree-common', ':ethree-kotlin', ':tests'
+include ':ethree-common', ':ethree-kotlin', ':tests', ':ethree-enclave', ':testsenclave'

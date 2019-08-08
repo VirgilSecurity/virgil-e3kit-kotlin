@@ -48,14 +48,10 @@ class TestConfig {
             virgilCrypto.importPrivateKey(ConvertionUtils.base64ToBytes(BuildConfig.API_PRIVATE_KEY))
                     .privateKey
         }
-        val apiPublicKey: VirgilPublicKey by lazy {
-            virgilCrypto.importPublicKey(ConvertionUtils.base64ToBytes(BuildConfig.API_PUBLIC_KEY))
-        }
         val apiPublicKeyId = BuildConfig.API_PUBLIC_KEY_ID
 
         val virgilBaseUrl = BuildConfig.VIRGIL_BASE_URL
         const val VIRGIL_CARDS_SERVICE_PATH = "/card/v5/"
-        const val KEYKNOX_KEY_POSTFIX = "_keyknox"
 
         val context = InstrumentationRegistry.getTargetContext()
         val DIRECTORY_PATH = InstrumentationRegistry.getTargetContext().filesDir.absolutePath

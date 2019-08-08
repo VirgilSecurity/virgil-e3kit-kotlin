@@ -1,0 +1,175 @@
+/*
+ * Copyright (c) 2015-2019, Virgil Security, Inc.
+ *
+ * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
+ *
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *     (1) Redistributions of source code must retain the above copyright notice, this
+ *     list of conditions and the following disclaimer.
+ *
+ *     (2) Redistributions in binary form must reproduce the above copyright notice,
+ *     this list of conditions and the following disclaimer in the documentation
+ *     and/or other materials provided with the distribution.
+ *
+ *     (3) Neither the name of virgil nor the names of its
+ *     contributors may be used to endorse or promote products derived from
+ *     this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+ * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+plugins {
+    id 'signing'
+}
+
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+
+apply plugin: 'maven-publish'
+apply plugin: 'digital.wup.android-maven-publish'
+apply plugin: 'org.jetbrains.dokka'
+
+android {
+    compileSdkVersion 28
+    buildToolsVersion "28.0.3"
+
+    defaultConfig {
+        minSdkVersion 23
+        targetSdkVersion 28
+        consumerProguardFiles 'proguard-rules.txt'
+    }
+}
+
+group 'com.virgilsecurity'
+version '0.5.0'
+
+dependencies {
+    // Inner dependencies
+    api project(':ethree-common')
+
+    // Virgil
+    api "com.virgilsecurity.sdk:android-utils:6.0.1-SNAPSHOT"
+
+    // Kotlin
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$versions.kotlin"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$versions.coroutines"
+
+    // Android
+    compileOnly "com.google.android:android:$versions.android"
+}
+
+task generateVersionVirgilAgent {
+    outputs.dir "$buildDir/generated"
+    doFirst {
+        def versionFile = file("$buildDir/generated/release/com/virgilsecurity/android/ethreeenclave/build/VersionVirgilAgent.kt")
+        versionFile.parentFile.mkdirs()
+        versionFile.text =
+                """
+package com.virgilsecurity.android.ethreeenclave.build;
+
+object VersionVirgilAgent {
+    const val VERSION = "$project.version"
+}
+"""
+    }
+}
+
+project.android.sourceSets.main.java.srcDirs = ["${buildDir}/generated/release/", "src/main/java"]
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
+    dependsOn(generateVersionVirgilAgent)
+}
+
+sourceCompatibility = "8"
+targetCompatibility = "8"
+
+task sourcesJar(type: Jar) {
+    from(project.android.sourceSets.main.java.srcDirs)
+    classifier = 'sources'
+}
+
+task javadocJar(type: Jar, dependsOn: 'dokka') {
+    from("$buildDir/javadoc")
+    classifier = 'javadoc'
+}
+
+def authentication_username = hasProperty('authentication_username') ? authentication_username : System.getenv('authentication_username')
+def authentication_password = hasProperty('authentication_password') ? authentication_password : System.getenv('authentication_password')
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = 'ethree-enclave'
+            artifact javadocJar
+            artifact sourcesJar
+            from components.android
+
+            pom {
+                name = 'Virgil E3Kit Java/Kotlin SDK with Secure Enclave'
+                description = 'Virgil Security provides an SDK which symplifies work with Virgil services and presents easy to use API for adding security to any application. In a few simple steps you can setup user encryption with multidevice support.'
+                url = 'https://www.virgilsecurity.com/'
+                licenses {
+                    license {
+                        name = 'Virgil Security, Inc. license'
+                        url = 'https://github.com/VirgilSecurity/virgil-e3kit-kotlin/blob/master/LICENSE.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'BuddahLD'
+                        name = 'Danylo Oliinyk'
+                        email = 'doliinyk@virgilsecurity.com'
+                        organizationUrl = 'https://github.com/BuddahLD'
+                    }
+                    developer {
+                        id = 'andrii-iakovenko'
+                        name = 'Andrii Iakovenko'
+                        email = 'andrii-iakovenko@gmail.com'
+                        organizationUrl = 'https://github.com/andrii-iakovenko'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:https://github.com/VirgilSecurity/virgil-e3kit-kotlin.git'
+                    developerConnection = 'scm:git:git@github.com:VirgilSecurity/virgil-e3kit-kotlin.git'
+                    url = 'https://github.com/VirgilSecurity/virgil-e3kit-kotlin'
+                }
+            }
+        }
+    }
+
+    repositories {
+        maven {
+            def releasesRepoUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+            def snapshotsRepoUrl = "https://oss.sonatype.org/content/repositories/snapshots"
+            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+            credentials {
+                username "${authentication_username}"
+                password "${authentication_password}"
+            }
+        }
+    }
+}
+
+signing {
+    sign publishing.publications.mavenJava
+}
+
+dokka {
+    outputFormat = 'html'
+    outputDirectory = "$buildDir/javadoc"
+    reportUndocumented = false
+}

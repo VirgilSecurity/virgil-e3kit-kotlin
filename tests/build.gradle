@@ -44,7 +44,7 @@ def VIRGIL_BASE_URL = hasProperty('VIRGIL_BASE_URL') ? VIRGIL_BASE_URL : System.
 android {
     compileSdkVersion 28
     defaultConfig {
-        applicationId "com.virgilsecurity.ethree"
+        applicationId "com.virgilsecurity.android.ethree"
         minSdkVersion 21
         targetSdkVersion 28
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"

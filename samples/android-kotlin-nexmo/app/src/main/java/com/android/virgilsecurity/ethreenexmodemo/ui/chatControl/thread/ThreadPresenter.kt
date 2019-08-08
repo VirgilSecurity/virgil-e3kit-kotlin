@@ -24,31 +24,31 @@ class ThreadPresenter(context: Context) {
     fun startMessagesListener(thread: NexmoConversation, onNewMessage: (NexmoMessage) -> Unit) {
         messageEventListener = object : NexmoMessageEventListener {
             override fun onTypingEvent(p0: NexmoTypingEvent) {
-                // TODO Implement body or it will be empty ):
+
             }
 
             override fun onAttachmentEvent(p0: NexmoAttachmentEvent) {
-                // TODO Implement body or it will be empty ):
+
             }
 
             override fun onTextEvent(textEvent: NexmoTextEvent) {
                 if (textEvent.member.user.name != preferences.username()) {
                     val sender = thread.allMembers.first { it.user.name != preferences.username() }
-                            .user.name // TODO get right name
+                            .user.name
                     onNewMessage(NexmoMessage(textEvent.text, sender))
                 }
             }
 
             override fun onSeenReceipt(p0: NexmoSeenEvent) {
-                // TODO Implement body or it will be empty ):
+
             }
 
             override fun onEventDeleted(p0: NexmoDeletedEvent) {
-                // TODO Implement body or it will be empty ):
+
             }
 
             override fun onDeliveredReceipt(p0: NexmoDeliveredEvent) {
-                // TODO Implement body or it will be empty ):
+
             }
 
         }
