@@ -52,6 +52,7 @@ dependencies {
     // Virgil
     api "com.virgilsecurity.sdk:sdk:$versions.virgilSdk"
     implementation "com.virgilsecurity.sdk:crypto-android:$versions.virgilSdk"
+    implementation "com.virgilsecurity:common:$versions.virgilSdk"
 
     implementation("com.virgilsecurity:pythia:$versions.pythia") {
         exclude group: 'com.virgilsecurity.sdk', module: 'crypto'

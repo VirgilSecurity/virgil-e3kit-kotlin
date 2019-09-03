@@ -31,23 +31,21 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.common.callback
+package com.virgilsecurity.android.common.model
+
+import com.google.gson.Gson
+import com.virgilsecurity.common.model.Data
+import com.virgilsecurity.model.Data
+import com.virgilsecurity.sdk.utils.ConvertionUtils
 
 /**
- * Interface that is intended to return *<T>* type result if some asynchronous process is
- * completed successfully, otherwise error will be returned.
+ * GroupInfo
  */
-interface OnResultListener<T> {
+internal class GroupInfo(internal val initiator: String) {
 
-    /**
-     * This method will be called if asynchronous process is completed successfully and
-     * provide *<T>* type [result].
-     */
-    fun onSuccess(result: T)
-
-    /**
-     * This method will be called if asynchronous process is failed and provide [throwable]
-     * cause.
-     */
-    fun onError(throwable: Throwable)
+    companion object {
+        internal fun deserialize(data: Data): GroupInfo {
+            return ConvertionUtils.deserializeFromJson()
+        }
+    }
 }

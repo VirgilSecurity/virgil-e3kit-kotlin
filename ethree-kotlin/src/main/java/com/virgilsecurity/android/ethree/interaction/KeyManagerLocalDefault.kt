@@ -43,7 +43,7 @@ import com.virgilsecurity.sdk.storage.KeyStorage
 /**
  * KeyManagerLocalDefault
  */
-class KeyManagerLocalDefault(val identity: String, context: Context) : KeyManagerLocal {
+class KeyManagerLocalDefault(val identity: String, context: Context) : KeyManagerLocal { // TODO change context with rootPath
 
     private val keyStorage: KeyStorage = DefaultKeyStorage(context.filesDir.absolutePath,
                                                            KEYSTORE_NAME)

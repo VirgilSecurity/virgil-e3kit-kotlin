@@ -33,7 +33,7 @@
 
 package com.virgilsecurity.android.ethree.interaction.sync
 
-import com.virgilsecurity.android.common.exceptions.*
+import com.virgilsecurity.android.common.exception.*
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.ethree.interaction.EThree
 import com.virgilsecurity.android.ethree.utils.TestConfig

@@ -33,40 +33,10 @@
 
 package com.virgilsecurity.android.common.model
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-
 /**
- * Result's class intent is to give possibility to call an operation that returns result in Success or Error in case of
- * error *synchronously* or *asynchronously*.
+ * RawGroup
  */
-interface Result<T> {
-
-    /**
-     * Call this method to get result *synchronously*.
-     */
-    fun get(): T
-
-    /**
-     * Call this method to get result *asynchronously*. You'll get the result of an operation in the
-     * [onResultListener]. Provided [scope] will be used to execute operation.
-     */
-    fun addCallback(onResultListener: OnResultListener<T>, scope: CoroutineScope = GlobalScope) {
-        scope.launch {
-            try {
-                val result = get()
-                onResultListener.onSuccess(result)
-            } catch (throwable: Throwable) {
-                onResultListener.onError(throwable)
-            }
-        }
-    }
-
-    /**
-     * Call this method to get result *asynchronously*. You'll get the result of an operation in the
-     * [onResultListener].
-     */
-    fun addCallback(onResultListener: OnResultListener<T>) =
-            addCallback(onResultListener, GlobalScope)
+internal class RawGroup {
+    internal val info: GroupInfo
+    internal val tickets: List<Ticke>
 }

@@ -34,7 +34,7 @@
 package com.virgilsecurity.android.ethree.interaction.async
 
 import com.virgilsecurity.android.common.model.LookupResult
-import com.virgilsecurity.android.common.exceptions.PrivateKeyNotFoundException
+import com.virgilsecurity.android.common.exception.PrivateKeyNotFoundException
 import com.virgilsecurity.android.common.callback.OnCompleteListener
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.common.callback.OnResultListener

@@ -33,9 +33,9 @@
 
 package com.virgilsecurity.android.ethree.interaction.async
 
-import com.virgilsecurity.android.common.exceptions.CardNotFoundException
-import com.virgilsecurity.android.common.exceptions.PrivateKeyExistsException
-import com.virgilsecurity.android.common.exceptions.RegistrationException
+import com.virgilsecurity.android.common.exception.CardNotFoundException
+import com.virgilsecurity.android.common.exception.PrivateKeyExistsException
+import com.virgilsecurity.android.common.exception.RegistrationException
 import com.virgilsecurity.android.common.callback.OnCompleteListener
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.common.callback.OnResultListener

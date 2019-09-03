@@ -31,42 +31,45 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.common.model
+package com.virgilsecurity.android.common.storage.local
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import com.virgilsecurity.sdk.crypto.VirgilCrypto
+import com.virgilsecurity.sdk.crypto.VirgilKeyPair
+import com.virgilsecurity.sdk.storage.FileSystemEncrypted
+import com.virgilsecurity.sdk.storage.FileSystemEncryptedCredentials
+import java.io.File
 
 /**
- * Result's class intent is to give possibility to call an operation that returns result in Success or Error in case of
- * error *synchronously* or *asynchronously*.
+ * FileGroupStorage
  */
-interface Result<T> {
+class FileGroupStorage internal constructor(
+        private val identity: String,
+        crypto: VirgilCrypto,
+        identityKeyPair: VirgilKeyPair,
+        rootPath: String
+) { // TODO use internal everywhere possible
 
-    /**
-     * Call this method to get result *synchronously*.
-     */
-    fun get(): T
+    private val fileSystemEncrypted: FileSystemEncrypted
 
-    /**
-     * Call this method to get result *asynchronously*. You'll get the result of an operation in the
-     * [onResultListener]. Provided [scope] will be used to execute operation.
-     */
-    fun addCallback(onResultListener: OnResultListener<T>, scope: CoroutineScope = GlobalScope) {
-        scope.launch {
-            try {
-                val result = get()
-                onResultListener.onSuccess(result)
-            } catch (throwable: Throwable) {
-                onResultListener.onError(throwable)
-            }
-        }
+    init {
+        val credentials = FileSystemEncryptedCredentials(crypto, identityKeyPair)
+        val fullPath: String = rootPath +
+                               File.separator +
+                               identityKeyPair +
+                               File.separator +
+                               STORAGE_POSTFIX_E3KIT +
+                               File.separator +
+                               STORAGE_POSTFIX_GROUPS
+
+        fileSystemEncrypted = FileSystemEncrypted(fullPath, credentials)
     }
 
-    /**
-     * Call this method to get result *asynchronously*. You'll get the result of an operation in the
-     * [onResultListener].
-     */
-    fun addCallback(onResultListener: OnResultListener<T>) =
-            addCallback(onResultListener, GlobalScope)
+    internal fun store(group: RawGroup)
+
+    companion object {
+        private const val groupInfoName = "GROUP_INFO"
+        private const val ticketsSubdir = "TICKETS"
+        private const val STORAGE_POSTFIX_E3KIT = "VIRGIL-E3KIT"
+        private const val STORAGE_POSTFIX_GROUPS = "GROUPS"
+    }
 }

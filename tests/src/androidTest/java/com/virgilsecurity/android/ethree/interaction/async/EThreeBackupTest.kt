@@ -33,10 +33,10 @@
 
 package com.virgilsecurity.android.ethree.interaction.async
 
-import com.virgilsecurity.android.common.exceptions.BackupKeyException
-import com.virgilsecurity.android.common.exceptions.PrivateKeyNotFoundException
-import com.virgilsecurity.android.common.exceptions.RestoreKeyException
-import com.virgilsecurity.android.common.exceptions.WrongPasswordException
+import com.virgilsecurity.android.common.exception.BackupKeyException
+import com.virgilsecurity.android.common.exception.PrivateKeyNotFoundException
+import com.virgilsecurity.android.common.exception.RestoreKeyException
+import com.virgilsecurity.android.common.exception.WrongPasswordException
 import com.virgilsecurity.android.common.callback.OnCompleteListener
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.common.callback.OnResultListener

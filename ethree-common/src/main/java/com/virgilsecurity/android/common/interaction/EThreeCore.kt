@@ -37,7 +37,7 @@ import com.virgilsecurity.android.common.Const
 import com.virgilsecurity.android.common.Const.NO_CONTEXT
 import com.virgilsecurity.android.common.Const.VIRGIL_BASE_URL
 import com.virgilsecurity.android.common.Const.VIRGIL_CARDS_SERVICE_PATH
-import com.virgilsecurity.android.common.exceptions.*
+import com.virgilsecurity.android.common.exception.*
 import com.virgilsecurity.android.common.model.Completable
 import com.virgilsecurity.android.common.model.LookupResult
 import com.virgilsecurity.android.common.model.Result

@@ -34,17 +34,17 @@
 buildscript {
     ext.versions = [
             // Virgil
-            virgilSdk   : '5.1.2',
-            virgilCrypto: '0.8.0',
+            virgilSdk   : '6.0-SNAPSHOT',
+            virgilCrypto: '0.10.0',
             pythia      : '0.3.1',
             keyknox     : '0.2.1',
 
             // Kotlin
-            kotlin      : '1.3.40',
+            kotlin      : '1.3.50',
             coroutines  : '1.3.0-M1',
 
             // Gradle
-            gradle      : '3.4.2',
+            gradle      : '3.5.0',
 
             // Maven
             mavenPublish: '3.6.2',
@@ -84,67 +84,4 @@ allprojects {
 
 task clean(type: Delete) {
     delete rootProject.buildDir
-}
-
-// Default value is ALL
-enum ArtifactType {
-    ALL,
-    COMMON,
-    STANDARD
-}
-
-static String getArtifactType(Project project) {
-    def systemProperty = null
-    if (System.getenv('ARTIFACT_TYPE') != null)
-        systemProperty = System.getenv('ARTIFACT_TYPE')
-    if (System.getProperty('ARTIFACT_TYPE') != null)
-        systemProperty = System.getProperty('ARTIFACT_TYPE')
-
-    if (systemProperty != null)
-        return systemProperty
-    else if (project.hasProperty('ARTIFACT_TYPE')) {
-        return project.findProperty('ARTIFACT_TYPE')
-    } else {
-        return ArtifactType.ALL
-    }
-}
-
-task installEthree() {
-    def artifactType
-    try {
-        artifactType = getArtifactType(project) as ArtifactType
-    } catch (IllegalArgumentException ignored) {
-        throw new IllegalArgumentException("Please, choose one of the available types: " + ArtifactType.values() + "."
-                + " You entered: " + getArtifactType(project))
-    }
-
-    if (artifactType == ArtifactType.STANDARD) {
-        dependsOn ':ethree-kotlin:publishToMavenLocal'
-    } else if (artifactType == ArtifactType.ALL) {
-        dependsOn ':ethree-common:publishToMavenLocal', ':ethree-kotlin:publishToMavenLocal'
-    } else if (artifactType == ArtifactType.COMMON) {
-        dependsOn ':ethree-common:publishToMavenLocal'
-    } else {
-        throw new IllegalArgumentException("Please, choose one of artifacts type: " + ArtifactType.values())
-    }
-}
-
-task publishEthree() {
-    def artifactType
-    try {
-        artifactType = getArtifactType(project) as ArtifactType
-    } catch (IllegalArgumentException ignored) {
-        throw new IllegalArgumentException("Please, choose one of the available types: " + ArtifactType.values() + "."
-                + " You entered: " + getArtifactType(project))
-    }
-
-    if (artifactType == ArtifactType.STANDARD) {
-        dependsOn ':ethree-kotlin:publish'
-    } else if (artifactType == ArtifactType.ALL) {
-        dependsOn ':ethree-common:publish', ':ethree-kotlin:publish'
-    } else if (artifactType == ArtifactType.COMMON) {
-        dependsOn ':ethree-common:publish'
-    } else {
-        throw new IllegalArgumentException("Please, choose one of artifacts type: " + ArtifactType.values())
-    }
 }
