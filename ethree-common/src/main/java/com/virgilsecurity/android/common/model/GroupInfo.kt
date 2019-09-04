@@ -33,19 +33,21 @@
 
 package com.virgilsecurity.android.common.model
 
-import com.google.gson.Gson
 import com.virgilsecurity.common.model.Data
-import com.virgilsecurity.model.Data
-import com.virgilsecurity.sdk.utils.ConvertionUtils
+import com.virgilsecurity.common.util.SerializeUtils
 
 /**
  * GroupInfo
  */
 internal class GroupInfo(internal val initiator: String) {
 
+    internal fun serialize(): Data {
+        return SerializeUtils.serialize(this)
+    }
+
     companion object {
         internal fun deserialize(data: Data): GroupInfo {
-            return ConvertionUtils.deserializeFromJson()
+            return SerializeUtils.deserialize(data, GroupInfo::class.java)
         }
     }
 }

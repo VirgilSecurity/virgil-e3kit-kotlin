@@ -33,13 +33,13 @@
 
 plugins {
     id 'signing'
+    id 'maven-publish'
 }
 
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
-apply plugin: 'maven-publish'
 apply plugin: 'digital.wup.android-maven-publish'
 apply plugin: 'org.jetbrains.dokka'
 

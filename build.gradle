@@ -51,6 +51,7 @@ buildscript {
 
             // Android
             android     : '4.1.1.4',
+            appCompat   : '28.0.0',
 
             // Docs
             dokka       : '0.9.18',

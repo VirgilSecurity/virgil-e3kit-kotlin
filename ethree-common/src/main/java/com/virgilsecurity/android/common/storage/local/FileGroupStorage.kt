@@ -33,6 +33,11 @@
 
 package com.virgilsecurity.android.common.storage.local
 
+import com.virgilsecurity.android.common.exception.RawGroupException
+import com.virgilsecurity.android.common.model.RawGroup
+import com.virgilsecurity.android.common.model.Ticket
+import com.virgilsecurity.common.model.Data
+import com.virgilsecurity.common.util.toHexString
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilKeyPair
 import com.virgilsecurity.sdk.storage.FileSystemEncrypted
@@ -64,7 +69,28 @@ class FileGroupStorage internal constructor(
         fileSystemEncrypted = FileSystemEncrypted(fullPath, credentials)
     }
 
-    internal fun store(group: RawGroup)
+    internal fun store(group: RawGroup) {
+        val ticket = group.tickets.last()
+
+        val subdir = ticket.groupMessage.sessionId.toHexString()
+
+        val name = ticket.groupMessage.epoch.toString() // TODO was it meant like that?
+        val data = ticket.serialize()
+
+        fileSystemEncrypted.write(data, name, subdir)
+    }
+
+    internal fun retrieve(sessionId: Data, lastTicketCount: Int): RawGroup? {
+
+    }
+
+    internal fun delete(sessionId: Data) {
+
+    }
+
+    internal fun reset() {
+
+    }
 
     companion object {
         private const val groupInfoName = "GROUP_INFO"

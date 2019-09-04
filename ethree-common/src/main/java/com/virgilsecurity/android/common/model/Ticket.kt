@@ -33,8 +33,40 @@
 
 package com.virgilsecurity.android.common.model
 
+import android.os.Parcelable
+import com.virgilsecurity.common.model.Data
+import com.virgilsecurity.common.util.SerializeUtils
+import com.virgilsecurity.crypto.foundation.GroupSessionMessage
+import com.virgilsecurity.crypto.foundation.GroupSessionTicket
+import com.virgilsecurity.sdk.crypto.VirgilCrypto
+
 /**
  * Ticket
  */
-class Ticket {
+internal class Ticket {
+
+    internal val groupMessage: GroupSessionMessage
+    internal val participants: Set<String>
+
+    internal constructor(groupMessage: GroupSessionMessage, participants: Set<String>) {
+        this.groupMessage = groupMessage
+        this.participants = participants
+    }
+
+    internal constructor(crypto: VirgilCrypto, sessionId: Data, participants: Set<String>) {
+        val ticket = GroupSessionTicket()
+        ticket.setRng(crypto.rng)
+
+        ticket.setupTicketAsNew(sessionId.data)
+
+        this.groupMessage = ticket.ticketMessage
+        this.participants = participants
+    }
+
+    internal fun serialize(): Data = SerializeUtils.serialize(this)
+
+    internal fun deserialize(data: Data): Ticket = SerializeUtils.deserialize(data,
+                                                                              Ticket::class.java)
+
+    // TODO add Parcelable
 }

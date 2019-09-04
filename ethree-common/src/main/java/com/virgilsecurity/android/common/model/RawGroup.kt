@@ -33,10 +33,17 @@
 
 package com.virgilsecurity.android.common.model
 
+import com.virgilsecurity.android.common.exception.RawGroupException
+
 /**
  * RawGroup
  */
-internal class RawGroup {
-    internal val info: GroupInfo
-    internal val tickets: List<Ticke>
+internal class RawGroup(
+        internal val info: GroupInfo,
+        internal val tickets: List<Ticket>
+) {
+
+    init {
+        if (tickets.isEmpty()) throw RawGroupException("Tickets are empty")
+    }
 }
