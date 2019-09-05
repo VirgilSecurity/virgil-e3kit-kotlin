@@ -92,3 +92,7 @@ class UnRegistrationException @JvmOverloads constructor(
 class RawGroupException @JvmOverloads constructor(
         override val message: String? = null, throwable: Throwable? = null
 ) : RuntimeException(message, throwable)
+
+class FileGroupStorageException @JvmOverloads constructor(
+        override val message: String? = null, throwable: Throwable? = null
+) : RuntimeException(message, throwable)

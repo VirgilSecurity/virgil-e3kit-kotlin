@@ -33,7 +33,6 @@
 
 package com.virgilsecurity.android.common.model
 
-import android.os.Parcelable
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.common.util.SerializeUtils
 import com.virgilsecurity.crypto.foundation.GroupSessionMessage
@@ -65,8 +64,10 @@ internal class Ticket {
 
     internal fun serialize(): Data = SerializeUtils.serialize(this)
 
-    internal fun deserialize(data: Data): Ticket = SerializeUtils.deserialize(data,
-                                                                              Ticket::class.java)
+    companion object {
+        @JvmStatic internal fun deserialize(data: Data): Ticket =
+                SerializeUtils.deserialize(data, Ticket::class.java)
+    }
 
     // TODO add Parcelable
 }

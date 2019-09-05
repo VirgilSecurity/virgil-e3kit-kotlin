@@ -33,7 +33,8 @@
 
 package com.virgilsecurity.android.common.storage.local
 
-import com.virgilsecurity.android.common.exception.RawGroupException
+import com.virgilsecurity.android.common.exception.FileGroupStorageException
+import com.virgilsecurity.android.common.model.GroupInfo
 import com.virgilsecurity.android.common.model.RawGroup
 import com.virgilsecurity.android.common.model.Ticket
 import com.virgilsecurity.common.model.Data
@@ -47,6 +48,7 @@ import java.io.File
 /**
  * FileGroupStorage
  */
+@ExperimentalUnsignedTypes
 class FileGroupStorage internal constructor(
         private val identity: String,
         crypto: VirgilCrypto,
@@ -80,21 +82,75 @@ class FileGroupStorage internal constructor(
         fileSystemEncrypted.write(data, name, subdir)
     }
 
-    internal fun retrieve(sessionId: Data, lastTicketCount: Int): RawGroup? {
+    internal fun retrieveInfo(sessionId: Data): GroupInfo = retrieveGroupInfo(sessionId)
 
+    internal fun retrieve(sessionId: Data, count: Int): RawGroup {
+        val tickets = retrieveLastTickets(count, sessionId)
+        val groupInfo = retrieveGroupInfo(sessionId)
+
+        return RawGroup(groupInfo, tickets)
     }
 
-    internal fun delete(sessionId: Data) {
+    internal fun retrieve(sessionId: Data, epoch: UInt): RawGroup {
+        val ticket = retrieveTicket(sessionId, epoch)
+        val groupInfo = retrieveGroupInfo(sessionId)
 
+        return RawGroup(groupInfo, listOf(ticket))
     }
 
-    internal fun reset() {
+    internal fun delete(sessionId: Data) = fileSystemEncrypted.delete(sessionId.toHexString())
 
+    internal fun reset() = fileSystemEncrypted.delete()
+
+    private fun retrieveTicket(sessionId: Data, epoch: UInt): Ticket {
+        val subdir = sessionId.toHexString() + File.separator + TICKETS_SUBDIR
+        val name = epoch.toString()
+
+        val data = fileSystemEncrypted.read(name, subdir)
+
+        return Ticket.deserialize(data)
+    }
+
+    private fun retrieveLastTickets(count: Int, sessionId: Data): List<Ticket> {
+        val result = mutableListOf<Ticket>()
+
+        val subdir = sessionId.toHexString() + File.separator + TICKETS_SUBDIR
+
+        val epochs = fileSystemEncrypted
+                .listFileNames(subdir).map { name ->
+                    try {
+                        name.toUInt()
+                    } catch (exception: NumberFormatException) {
+                        throw FileGroupStorageException("Invalid file name")
+                    }
+                }
+                .sorted()
+                .takeLast(count)
+
+        epochs.forEach { epoch ->
+            try {
+                retrieveTicket(sessionId, epoch)
+            } catch (throwable: Throwable) {
+                throw FileGroupStorageException("File is empty")
+            }.also { ticket ->
+                result.add(ticket)
+            }
+        }
+
+        return result
+    }
+
+    private fun retrieveGroupInfo(sessionId: Data): GroupInfo {
+        val subdir = sessionId.toHexString()
+
+        val data = fileSystemEncrypted.read(GROUP_INFO_NAME, subdir)
+
+        return GroupInfo.deserialize(data)
     }
 
     companion object {
-        private const val groupInfoName = "GROUP_INFO"
-        private const val ticketsSubdir = "TICKETS"
+        private const val GROUP_INFO_NAME = "GROUP_INFO"
+        private const val TICKETS_SUBDIR = "TICKETS"
         private const val STORAGE_POSTFIX_E3KIT = "VIRGIL-E3KIT"
         private const val STORAGE_POSTFIX_GROUPS = "GROUPS"
     }
