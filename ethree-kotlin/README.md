@@ -16,7 +16,7 @@ repositories {
 Set up dependencies in your `build.gradle`:
 
 ```
-    implementation 'com.virgilsecurity:ethree:<latest-version>'
+    implementation 'com.virgilsecurity:ethree-kotlin:<latest-version>'
 ```
 
 The **\<latest-version>** of the SDK can be found in the [Maven Central Repository](https://mvnrepository.com/artifact/com.virgilsecurity/ethree-kotlin)  or in the header of current readme.
