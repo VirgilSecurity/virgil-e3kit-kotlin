@@ -50,7 +50,7 @@ import java.io.File
  */
 @ExperimentalUnsignedTypes
 class FileGroupStorage internal constructor(
-        private val identity: String,
+        internal val identity: String,
         crypto: VirgilCrypto,
         identityKeyPair: VirgilKeyPair,
         rootPath: String
@@ -84,7 +84,7 @@ class FileGroupStorage internal constructor(
 
     internal fun retrieveInfo(sessionId: Data): GroupInfo = retrieveGroupInfo(sessionId)
 
-    internal fun retrieve(sessionId: Data, count: Int): RawGroup {
+    internal fun retrieve(sessionId: Data, count: Int): RawGroup { // TODO return nullable?
         val tickets = retrieveLastTickets(count, sessionId)
         val groupInfo = retrieveGroupInfo(sessionId)
 

@@ -149,6 +149,42 @@ internal class CloudTicketStorage(
         }
     }
 
+    internal fun reAddRecipient(card: Card, sessionId: Data) {
+        val selfKeyPair = keyStorageLocal.load()
+
+        val path = sessionId.toHexString()
+
+        val getParams = KeyknoxGetKeysParams(this.identity,
+                                             GROUP_SESSION_ROOT,
+                                             path)
+
+        val epochs = keyknoxManager.getKeys(getParams)
+
+        for (epoch in epochs) {
+            val pullParams = KeyknoxPullParams(this.identity,
+                                               GROUP_SESSION_ROOT,
+                                               path,
+                                               epoch)
+
+            val response = keyknoxManager.pullValue(pullParams,
+                                                    listOf(selfKeyPair.publicKey),
+                                                    selfKeyPair.privateKey)
+
+            removeRecipient(card.identity, sessionId, epoch)
+
+            val pushParams = KeyknoxPushParams(listOf(card.identity),
+                                               GROUP_SESSION_ROOT,
+                                               path,
+                                               epoch)
+
+            keyknoxManager.pushValue(pushParams,
+                                     response.value,
+                                     response.keyknoxHash,
+                                     listOf(card.publicKey, selfKeyPair.publicKey),
+                                     selfKeyPair.privateKey)
+        }
+    }
+
     internal fun removeRecipient(identity: String, sessionId: Data, epoch: String? = null) {
         val sessionIdHex = sessionId.toHexString()
 
