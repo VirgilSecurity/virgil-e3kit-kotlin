@@ -78,7 +78,7 @@ constructor(private val tokenProvider: AccessTokenProvider) {
 
     private val virgilCrypto = VirgilCrypto()
     private val cardManager: CardManager
-    protected abstract val keyManagerLocal: KeyManagerLocal
+    protected abstract val keyStorageLocal: KeyStorageLocal
     private val keyManagerCloud: KeyManagerCloud
 
     init {
@@ -112,14 +112,14 @@ constructor(private val tokenProvider: AccessTokenProvider) {
                 throw RegistrationException("Card with identity " +
                                             "${currentIdentity()} already exists")
 
-            if (keyManagerLocal.exists())
+            if (keyStorageLocal.exists())
                 throw PrivateKeyExistsException("You already have a Private Key on this device" +
                                                 "for identity: ${currentIdentity()}. Please, use" +
                                                 "\'cleanup()\' function first.")
 
             virgilCrypto.generateKeyPair().run {
                 cardManager.publishCard(this.privateKey, this.publicKey, currentIdentity())
-                keyManagerLocal.store(virgilCrypto.exportPrivateKey(this.privateKey))
+                keyStorageLocal.store(virgilCrypto.exportPrivateKey(this.privateKey))
             }
         }
     }
@@ -166,14 +166,14 @@ constructor(private val tokenProvider: AccessTokenProvider) {
     fun cleanup() {
         checkPrivateKeyOrThrow()
 
-        keyManagerLocal.delete()
+        keyStorageLocal.delete()
     }
 
     /**
      * Checks whether the private key is present in the local storage of current device.
      * Returns *true* if the key is present in the local key storage otherwise *false*.
      */
-    fun hasLocalPrivateKey() = keyManagerLocal.exists()
+    fun hasLocalPrivateKey() = keyStorageLocal.exists()
 
     /**
      * Encrypts the user's private key using the user's [password] and backs up the encrypted
@@ -200,7 +200,7 @@ constructor(private val tokenProvider: AccessTokenProvider) {
                 if (password.isBlank())
                     throw IllegalArgumentException("\'password\' should not be empty")
 
-                with(keyManagerLocal.load()) {
+                with(keyStorageLocal.load()) {
                     keyManagerCloud.store(password, this.value, this.meta)
                 }
             } catch (throwable: Throwable) {
@@ -264,7 +264,7 @@ constructor(private val tokenProvider: AccessTokenProvider) {
     fun restorePrivateKey(password: String) = object : Completable {
         override fun execute() {
             try {
-                if (keyManagerLocal.exists())
+                if (keyStorageLocal.exists())
                     throw RestoreKeyException("You already have a Private Key on this device" +
                                               "for identity: ${currentIdentity()}. Please, use" +
                                               "\'cleanup()\' function first.")
@@ -273,7 +273,7 @@ constructor(private val tokenProvider: AccessTokenProvider) {
                     Thread.sleep(THROTTLE_TIMEOUT) // To avoid next request been throttled
 
                     val keyEntry = keyManagerCloud.retrieve(password)
-                    keyManagerLocal.store(keyEntry.data)
+                    keyStorageLocal.store(keyEntry.data)
                 } else {
                     throw RestoreKeyException("There is no key backup with " +
                                               "identity: ${currentIdentity()}")
@@ -300,7 +300,7 @@ constructor(private val tokenProvider: AccessTokenProvider) {
      */
     @Synchronized fun rotatePrivateKey() = object : Completable {
         override fun execute() {
-            if (keyManagerLocal.exists())
+            if (keyStorageLocal.exists())
                 throw PrivateKeyExistsException("You already have a Private Key on this device" +
                                                 "for identity: ${currentIdentity()}. Please, use" +
                                                 "\'cleanup()\' function first.")
@@ -322,7 +322,7 @@ constructor(private val tokenProvider: AccessTokenProvider) {
                                                           this.first.identifier)
                 cardManager.publishCard(rawCard)
 
-                keyManagerLocal.store(virgilCrypto.exportPrivateKey(this.second.privateKey))
+                keyStorageLocal.store(virgilCrypto.exportPrivateKey(this.second.privateKey))
             }
         }
     }
@@ -623,7 +623,7 @@ constructor(private val tokenProvider: AccessTokenProvider) {
      * from [tokenProvider].
      */
     private fun loadCurrentPrivateKey(): VirgilPrivateKey =
-            keyManagerLocal.load().let {
+            keyStorageLocal.load().let {
                 virgilCrypto.importPrivateKey(it.value).privateKey
             }
 
@@ -644,7 +644,7 @@ constructor(private val tokenProvider: AccessTokenProvider) {
      * [PrivateKeyNotFoundException] exception.
      */
     private fun checkPrivateKeyOrThrow() {
-        if (!keyManagerLocal.exists()) throw PrivateKeyNotFoundException(
+        if (!keyStorageLocal.exists()) throw PrivateKeyNotFoundException(
             "You have to get private key first. Use \'register\' " +
             "or \'restorePrivateKey\' functions.")
     }

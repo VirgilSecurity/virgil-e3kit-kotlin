@@ -31,20 +31,22 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.common.interaction
+package com.virgilsecurity.android.common
 
-import com.virgilsecurity.sdk.storage.KeyEntry
+import com.virgilsecurity.sdk.cards.Card
 
 /**
- * KeyManagerLocal
+ * SQLiteCardStorageStub
  */
-interface KeyManagerLocal {
+interface SQLiteCardStorageStub {
 
-    fun exists() : Boolean
+    fun storeCard(card: Card)
 
-    fun store(privateKey: ByteArray)
+    fun getCard(cardId: String): Card?
 
-    fun load(): KeyEntry
+    fun searchCards(identities: List<String>): List<Card>
 
-    fun delete()
+    fun getNewestCardIds(): List<String>
+
+    fun reset()
 }

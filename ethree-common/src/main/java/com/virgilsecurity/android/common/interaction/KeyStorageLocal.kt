@@ -31,57 +31,26 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-buildscript {
-    ext.versions = [
-            // Virgil
-            virgilSdk   : '6.0-SNAPSHOT',
-            virgilCrypto: '0.10.2',
-            pythia      : '0.3.1',
+package com.virgilsecurity.android.common.interaction
 
-            // Kotlin
-            kotlin      : '1.3.50',
-            coroutines  : '1.3.0-M1',
+import com.virgilsecurity.common.model.Data
+import com.virgilsecurity.sdk.crypto.VirgilKeyPair
 
-            // Gradle
-            gradle      : '3.5.0',
+/**
+ * KeyStorageLocal
+ */
+interface KeyStorageLocal {
 
-            // Maven
-            mavenPublish: '3.6.2',
+    val identity: String
 
-            // Android
-            android     : '4.1.1.4',
-            appCompat   : '28.0.0',
+    fun exists() : Boolean
 
-            // Docs
-            dokka       : '0.9.18',
+    fun store(privateKey: Data)
 
-            // Tests
-            junit       : '4.12',
-            testsRunner : '1.0.2',
-            espresso    : '3.0.2',
-    ]
-    repositories {
-        google()
-        jcenter()
-        mavenCentral()
-    }
-    dependencies {
-        classpath "com.android.tools.build:gradle:$versions.gradle"
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$versions.kotlin"
-        classpath "org.jetbrains.dokka:dokka-gradle-plugin:$versions.dokka"
-        classpath "digital.wup:android-maven-publish:$versions.mavenPublish"
-    }
-}
+    /**
+     * Retrieves current user's [VirgilKeyPair] with
+     */
+    fun load(): VirgilKeyPair
 
-allprojects {
-    repositories {
-        mavenLocal()
-        google()
-        jcenter()
-        mavenCentral()
-    }
-}
-
-task clean(type: Delete) {
-    delete rootProject.buildDir
+    fun delete()
 }

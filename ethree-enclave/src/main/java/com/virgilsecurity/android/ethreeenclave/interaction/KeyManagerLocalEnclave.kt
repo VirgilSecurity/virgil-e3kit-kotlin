@@ -33,13 +33,10 @@
 
 package com.virgilsecurity.android.ethreeenclave.interaction
 
-import android.content.Context
-import com.virgilsecurity.android.common.interaction.KeyManagerLocal
+import com.virgilsecurity.android.common.interaction.KeyStorageLocal
 import com.virgilsecurity.sdk.androidutils.storage.AndroidKeyStorage
 import com.virgilsecurity.sdk.storage.JsonKeyEntry
 import com.virgilsecurity.sdk.storage.KeyEntry
-import com.virgilsecurity.sdk.storage.KeyStorage
-import java.time.Duration
 
 /**
  * KeyManagerLocalEnclave
@@ -47,7 +44,7 @@ import java.time.Duration
 class KeyManagerLocalEnclave(
         private val keyStorage: AndroidKeyStorage,
         private val identity: String
-) : KeyManagerLocal {
+) : KeyStorageLocal {
 
     override fun exists() = keyStorage.exists(identity)
 

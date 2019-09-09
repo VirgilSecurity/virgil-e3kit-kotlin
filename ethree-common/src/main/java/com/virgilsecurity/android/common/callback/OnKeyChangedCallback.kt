@@ -31,57 +31,17 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-buildscript {
-    ext.versions = [
-            // Virgil
-            virgilSdk   : '6.0-SNAPSHOT',
-            virgilCrypto: '0.10.2',
-            pythia      : '0.3.1',
+package com.virgilsecurity.android.common.callback
 
-            // Kotlin
-            kotlin      : '1.3.50',
-            coroutines  : '1.3.0-M1',
+/**
+ * OnKeyChangedCallback can be used to track users keys rotations.
+ */
+interface OnKeyChangedCallback {
 
-            // Gradle
-            gradle      : '3.5.0',
-
-            // Maven
-            mavenPublish: '3.6.2',
-
-            // Android
-            android     : '4.1.1.4',
-            appCompat   : '28.0.0',
-
-            // Docs
-            dokka       : '0.9.18',
-
-            // Tests
-            junit       : '4.12',
-            testsRunner : '1.0.2',
-            espresso    : '3.0.2',
-    ]
-    repositories {
-        google()
-        jcenter()
-        mavenCentral()
-    }
-    dependencies {
-        classpath "com.android.tools.build:gradle:$versions.gradle"
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$versions.kotlin"
-        classpath "org.jetbrains.dokka:dokka-gradle-plugin:$versions.dokka"
-        classpath "digital.wup:android-maven-publish:$versions.mavenPublish"
-    }
-}
-
-allprojects {
-    repositories {
-        mavenLocal()
-        google()
-        jcenter()
-        mavenCentral()
-    }
-}
-
-task clean(type: Delete) {
-    delete rootProject.buildDir
+    /**
+     * This function is called when some local card became outdated
+     *
+     * @param identity Identity, which key was changed.
+     */
+    fun keyChanged(identity: String)
 }

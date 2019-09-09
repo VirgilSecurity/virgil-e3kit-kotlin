@@ -34,7 +34,7 @@
 package com.virgilsecurity.android.ethree.interaction
 
 import android.content.Context
-import com.virgilsecurity.android.common.interaction.KeyManagerLocal
+import com.virgilsecurity.android.common.interaction.KeyStorageLocal
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
 import com.virgilsecurity.sdk.storage.JsonKeyEntry
 import com.virgilsecurity.sdk.storage.KeyEntry
@@ -43,7 +43,7 @@ import com.virgilsecurity.sdk.storage.KeyStorage
 /**
  * KeyManagerLocalDefault
  */
-class KeyManagerLocalDefault(val identity: String, context: Context) : KeyManagerLocal { // TODO change context with rootPath
+class KeyManagerLocalDefault(val identity: String, context: Context) : KeyStorageLocal { // TODO change context with rootPath
 
     private val keyStorage: KeyStorage = DefaultKeyStorage(context.filesDir.absolutePath,
                                                            KEYSTORE_NAME)

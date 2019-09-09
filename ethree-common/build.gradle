@@ -74,13 +74,13 @@ dependencies {
         exclude group: 'com.virgilsecurity.crypto', module: 'pythia'
     }
     implementation "com.virgilsecurity.crypto:pythia-android:$versions.virgilCrypto"
-    implementation("com.virgilsecurity:keyknox:$versions.keyknox") {
+    implementation("com.virgilsecurity.sdk:keyknox:$versions.virgilSdk") {
         exclude group: 'com.virgilsecurity.sdk', module: 'crypto'
+        exclude group: 'com.virgilsecurity.sdk', module: 'sdk'
+        exclude group: 'com.virgilsecurity.crypto', module: 'common'
+        exclude group: 'com.virgilsecurity.crypto', module: 'foundation'
         exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
     }
-
-//    // Android
-//    compileOnly "com.google.android:android:$versions.android"
 }
 
 sourceCompatibility = "8"

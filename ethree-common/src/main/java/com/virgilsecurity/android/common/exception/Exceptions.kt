@@ -96,3 +96,7 @@ class RawGroupException @JvmOverloads constructor(
 class FileGroupStorageException @JvmOverloads constructor(
         override val message: String? = null, throwable: Throwable? = null
 ) : RuntimeException(message, throwable)
+
+class FindUsersException @JvmOverloads constructor(
+        override val message: String? = null, throwable: Throwable? = null
+) : RuntimeException(message, throwable)
