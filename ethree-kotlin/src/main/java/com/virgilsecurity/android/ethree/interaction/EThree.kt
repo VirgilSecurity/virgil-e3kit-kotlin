@@ -36,9 +36,8 @@ package com.virgilsecurity.android.ethree.interaction
 import android.content.Context
 import com.virgilsecurity.android.common.Const.NO_CONTEXT
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
-import com.virgilsecurity.android.common.interaction.EThreeCore
-import com.virgilsecurity.android.common.interaction.KeyStorageLocal
-import com.virgilsecurity.android.common.model.Result
+import com.virgilsecurity.android.common.EThreeCore
+import com.virgilsecurity.android.common.storage.local.KeyStorageLocal
 import com.virgilsecurity.sdk.jwt.Jwt
 import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
 import com.virgilsecurity.sdk.jwt.contract.AccessTokenProvider

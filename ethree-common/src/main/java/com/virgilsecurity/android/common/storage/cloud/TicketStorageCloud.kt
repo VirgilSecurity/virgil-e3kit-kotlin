@@ -33,7 +33,7 @@
 
 package com.virgilsecurity.android.common.storage.cloud
 
-import com.virgilsecurity.android.common.interaction.KeyStorageLocal
+import com.virgilsecurity.android.common.storage.local.KeyStorageLocal
 import com.virgilsecurity.android.common.model.Ticket
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.common.util.toHexString
@@ -43,12 +43,11 @@ import com.virgilsecurity.keyknox.client.*
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.crypto.VirgilPublicKey
 import com.virgilsecurity.sdk.jwt.contract.AccessTokenProvider
-import java.time.Instant.EPOCH
 
 /**
- * CloudTicketStorage
+ * TicketStorageCloud
  */
-internal class CloudTicketStorage(
+internal class TicketStorageCloud(
         accessTokenProvider: AccessTokenProvider,
         private val keyStorageLocal: KeyStorageLocal
 ) {

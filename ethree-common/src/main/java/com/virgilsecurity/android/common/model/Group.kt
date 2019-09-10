@@ -34,9 +34,9 @@
 package com.virgilsecurity.android.common.model
 
 import com.virgilsecurity.android.common.exception.GroupException
-import com.virgilsecurity.android.common.interaction.KeyStorageLocal
-import com.virgilsecurity.android.common.managers.GroupManager
-import com.virgilsecurity.android.common.managers.LookupManager
+import com.virgilsecurity.android.common.storage.local.KeyStorageLocal
+import com.virgilsecurity.android.common.manager.GroupManager
+import com.virgilsecurity.android.common.manager.LookupManager
 import com.virgilsecurity.crypto.foundation.GroupSession
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 

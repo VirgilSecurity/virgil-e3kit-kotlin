@@ -33,26 +33,49 @@
 
 package com.virgilsecurity.android.common.model
 
+import android.os.Parcel
+import android.os.Parcelable
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.common.util.SerializeUtils
 import com.virgilsecurity.crypto.foundation.GroupSessionMessage
 import com.virgilsecurity.crypto.foundation.GroupSessionTicket
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
+import java.io.IOException
+import java.io.Serializable
 
 /**
  * Ticket
  */
-internal class Ticket {
+internal class Ticket : Parcelable { // TODO test parcelable implementation
 
     internal val groupMessage: GroupSessionMessage
     internal val participants: Set<String>
+
+    internal constructor(parcel: Parcel) {
+        val groupMessageDataLength = parcel.readInt()
+        val serializedGroupMessage = ByteArray(groupMessageDataLength)
+        parcel.readByteArray(serializedGroupMessage)
+        this.groupMessage = GroupSessionMessage.deserialize(serializedGroupMessage)
+
+        this.participants = try {
+             parcel.readSerializable() as Set<String>
+        } catch (exception: IOException) { // TODO check exception type when not serializable
+//            val participantsArraySize = parcel.readInt()
+            val participantsArray = parcel.createStringArray()
+                                    ?: throw IllegalStateException("participantsArray cannot be null")
+
+            participantsArray.toSet()
+        }
+    }
 
     internal constructor(groupMessage: GroupSessionMessage, participants: Set<String>) {
         this.groupMessage = groupMessage
         this.participants = participants
     }
 
-    internal constructor(crypto: VirgilCrypto, sessionId: Data, participants: Set<String>) {
+    internal constructor(crypto: VirgilCrypto,
+                         sessionId: Data,
+                         participants: Set<String>) {
         val ticket = GroupSessionTicket()
         ticket.setRng(crypto.rng)
 
@@ -64,10 +87,55 @@ internal class Ticket {
 
     internal fun serialize(): Data = SerializeUtils.serialize(this)
 
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        val groupMessageData = this.groupMessage.serialize()
+        parcel.writeInt(groupMessageData.size)
+        parcel.writeByteArray(groupMessageData)
+
+        if (participants is Serializable) {
+            parcel.writeSerializable(participants as Serializable)
+        } else {
+//            val participantsArray = participants.toTypedArray()
+//            parcel.writeInt(participantsArray.size)
+//            parcel.writeStringArray(participantsArray)
+            parcel.writeStringArray(participants.toTypedArray())
+        }
+    }
+
+    override fun describeContents(): Int {
+        return hashCode()
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as Ticket
+
+        if (!groupMessage.serialize().contentEquals(other.groupMessage.serialize())) return false
+        if (participants != other.participants) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = groupMessage.hashCode()
+        result = 31 * result + participants.hashCode()
+        return result
+    }
+
     companion object {
         @JvmStatic internal fun deserialize(data: Data): Ticket =
                 SerializeUtils.deserialize(data, Ticket::class.java)
-    }
 
-    // TODO add Parcelable
+        @JvmField val CREATOR = object : Parcelable.Creator<Ticket> {
+            override fun createFromParcel(parcel: Parcel): Ticket {
+                return Ticket(parcel)
+            }
+
+            override fun newArray(size: Int): Array<Ticket?> {
+                return arrayOfNulls(size)
+            }
+        }
+    }
 }

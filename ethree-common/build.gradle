@@ -62,9 +62,13 @@ dependencies {
     compileOnly "org.jetbrains.kotlinx:kotlinx-coroutines-core:$versions.coroutines"
 
     // Virgil
-    api "com.virgilsecurity.sdk:sdk:$versions.virgilSdk"
+    api ("com.virgilsecurity.sdk:sdk:$versions.virgilSdk") {
+        exclude group: 'com.virgilsecurity.sdk', module: 'crypto'
+    }
     implementation "com.virgilsecurity.sdk:crypto-android:$versions.virgilSdk"
-    implementation "com.virgilsecurity:common:$versions.virgilSdk"
+    implementation ("com.virgilsecurity:common:$versions.virgilSdk") {
+        exclude group: 'com.virgilsecurity.crypto', module: 'foundation'
+    }
     implementation "com.virgilsecurity.crypto:foundation-android:$versions.virgilCrypto"
 
     implementation("com.virgilsecurity:pythia:$versions.pythia") {

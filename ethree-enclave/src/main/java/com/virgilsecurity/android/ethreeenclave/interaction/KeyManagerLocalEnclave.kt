@@ -33,7 +33,7 @@
 
 package com.virgilsecurity.android.ethreeenclave.interaction
 
-import com.virgilsecurity.android.common.interaction.KeyStorageLocal
+import com.virgilsecurity.android.common.storage.local.KeyStorageLocal
 import com.virgilsecurity.sdk.androidutils.storage.AndroidKeyStorage
 import com.virgilsecurity.sdk.storage.JsonKeyEntry
 import com.virgilsecurity.sdk.storage.KeyEntry

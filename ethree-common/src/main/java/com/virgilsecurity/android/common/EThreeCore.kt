@@ -31,16 +31,15 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.common.interaction
+package com.virgilsecurity.android.common
 
-import com.virgilsecurity.android.common.Const
 import com.virgilsecurity.android.common.Const.NO_CONTEXT
 import com.virgilsecurity.android.common.Const.VIRGIL_BASE_URL
 import com.virgilsecurity.android.common.Const.VIRGIL_CARDS_SERVICE_PATH
 import com.virgilsecurity.android.common.exception.*
-import com.virgilsecurity.android.common.model.Completable
+import com.virgilsecurity.android.common.storage.cloud.KeyManagerCloud
+import com.virgilsecurity.android.common.storage.local.KeyStorageLocal
 import com.virgilsecurity.android.common.model.LookupResult
-import com.virgilsecurity.android.common.model.Result
 import com.virgilsecurity.keyknox.build.VersionVirgilAgent
 import com.virgilsecurity.keyknox.exception.DecryptionFailedException
 import com.virgilsecurity.keyknox.exception.EntryAlreadyExistsException

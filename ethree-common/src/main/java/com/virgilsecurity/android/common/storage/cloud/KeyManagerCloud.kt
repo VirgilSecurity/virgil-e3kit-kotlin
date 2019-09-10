@@ -31,7 +31,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.common.interaction
+package com.virgilsecurity.android.common.storage.cloud
 
 import com.virgilsecurity.android.common.Const
 import com.virgilsecurity.android.common.Const.VIRGIL_BASE_URL

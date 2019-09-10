@@ -46,10 +46,10 @@ import com.virgilsecurity.sdk.storage.FileSystemEncryptedCredentials
 import java.io.File
 
 /**
- * FileGroupStorage
+ * GroupStorageFile
  */
 @ExperimentalUnsignedTypes
-class FileGroupStorage internal constructor(
+class GroupStorageFile internal constructor(
         internal val identity: String,
         crypto: VirgilCrypto,
         identityKeyPair: VirgilKeyPair,

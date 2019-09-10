@@ -31,26 +31,12 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.common.interaction
-
-import com.virgilsecurity.common.model.Data
-import com.virgilsecurity.sdk.crypto.VirgilKeyPair
+package com.virgilsecurity.android.common.worker
 
 /**
- * KeyStorageLocal
+ * AuthorizationWorker
  */
-interface KeyStorageLocal {
+class AuthorizationWorker {
 
-    val identity: String
 
-    fun exists() : Boolean
-
-    fun store(privateKey: Data)
-
-    /**
-     * Retrieves current user's [VirgilKeyPair] with
-     */
-    fun load(): VirgilKeyPair
-
-    fun delete()
 }

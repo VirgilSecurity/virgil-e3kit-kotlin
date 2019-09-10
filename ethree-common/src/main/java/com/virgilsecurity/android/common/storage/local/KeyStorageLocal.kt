@@ -31,32 +31,26 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.ethree.interaction
+package com.virgilsecurity.android.common.storage.local
 
-import android.content.Context
-import com.virgilsecurity.android.common.storage.local.KeyStorageLocal
-import com.virgilsecurity.sdk.storage.DefaultKeyStorage
-import com.virgilsecurity.sdk.storage.JsonKeyEntry
-import com.virgilsecurity.sdk.storage.KeyEntry
-import com.virgilsecurity.sdk.storage.KeyStorage
+import com.virgilsecurity.common.model.Data
+import com.virgilsecurity.sdk.crypto.VirgilKeyPair
 
 /**
- * KeyManagerLocalDefault
+ * KeyStorageLocal
  */
-class KeyManagerLocalDefault(val identity: String, context: Context) : KeyStorageLocal { // TODO change context with rootPath
+interface KeyStorageLocal {
 
-    private val keyStorage: KeyStorage = DefaultKeyStorage(context.filesDir.absolutePath,
-                                                           KEYSTORE_NAME)
+    val identity: String
 
-    override fun exists() = keyStorage.exists(identity)
+    fun exists() : Boolean
 
-    override fun store(privateKey: ByteArray) = keyStorage.store(JsonKeyEntry(identity, privateKey))
+    fun store(privateKey: Data)
 
-    override fun load(): KeyEntry = keyStorage.load(identity)
+    /**
+     * Retrieves current user's [VirgilKeyPair] with
+     */
+    fun load(): VirgilKeyPair
 
-    override fun delete() = keyStorage.delete(identity)
-
-    companion object {
-        private const val KEYSTORE_NAME = "virgil.keystore"
-    }
+    fun delete()
 }

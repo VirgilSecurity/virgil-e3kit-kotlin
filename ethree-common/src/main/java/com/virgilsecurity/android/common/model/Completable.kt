@@ -33,6 +33,7 @@
 
 package com.virgilsecurity.android.common.model
 
+import com.virgilsecurity.common.callback.OnCompleteListener
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
