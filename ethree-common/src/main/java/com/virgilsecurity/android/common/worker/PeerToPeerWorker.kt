@@ -31,16 +31,14 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.common
+package com.virgilsecurity.android.common.worker
+
+import com.virgilsecurity.android.common.manager.GroupManager
 
 /**
- * Const
+ * PeerToPeerWorker
  */
-object Const {
-
-    const val VIRGIL_BASE_URL = "https://api.virgilsecurity.com"
-    const val VIRGIL_CARDS_SERVICE_PATH = "/card/v5/"
-    const val ETHREE_NAME = "e3kit"
-
-    val NO_CONTEXT = null
+internal class PeerToPeerWorker(
+        private val groupManager: GroupManager?
+) {
 }

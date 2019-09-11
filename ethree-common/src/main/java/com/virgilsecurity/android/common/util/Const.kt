@@ -31,44 +31,16 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.common.model
-
-import com.virgilsecurity.common.callback.OnCompleteListener
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+package com.virgilsecurity.android.common.util
 
 /**
- * Completable's class intent is to give possibility to call a completable operation that got only Success or Error
- * without actual result *synchronously* or *asynchronously*.
+ * Const
  */
-interface Completable {
+object Const {
 
-    /**
-     * Call this method to complete operation *synchronously*.
-     */
-    fun execute()
+    const val VIRGIL_BASE_URL = "https://api.virgilsecurity.com"
+    const val VIRGIL_CARDS_SERVICE_PATH = "/card/v5/"
+    const val ETHREE_NAME = "e3kit"
 
-    /**
-     * Call this method to complete operation *asynchronously*. You'll get the completion status in the
-     * [onCompleteListener]. Provided [scope] will be used to execute operation.
-     */
-    fun addCallback(onCompleteListener: OnCompleteListener, scope: CoroutineScope = GlobalScope) {
-        scope.launch {
-            try {
-                execute()
-                onCompleteListener.onSuccess()
-            } catch (throwable: Throwable) {
-                onCompleteListener.onError(throwable)
-            }
-        }
-    }
-
-    /**
-     * Call this method to complete operation *asynchronously*. You'll get the completion status in the
-     * [onCompleteListener].
-     */
-    fun addCallback(onCompleteListener: OnCompleteListener) =
-            addCallback(onCompleteListener, GlobalScope)
-
+    val NO_CONTEXT = null
 }

@@ -33,6 +33,7 @@
 
 package com.virgilsecurity.android.common.manager
 
+import com.virgilsecurity.android.common.SQLiteCardStorageStub
 import com.virgilsecurity.android.common.callback.OnKeyChangedCallback
 import com.virgilsecurity.android.common.exception.FindUsersException
 import com.virgilsecurity.android.common.model.FindUsersResult
@@ -44,7 +45,7 @@ import com.virgilsecurity.sdk.exception.EmptyArgumentException
  * LookupManager
  */
 internal class LookupManager(
-        private val cardStorage: SQLiteCardStorage,
+        private val cardStorage: SQLiteCardStorageStub,
         private val cardManager: CardManager,
         private val onKeyChangedCallback: OnKeyChangedCallback? = null
 ) {

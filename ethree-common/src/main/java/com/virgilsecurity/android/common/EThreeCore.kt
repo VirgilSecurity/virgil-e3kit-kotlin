@@ -33,13 +33,16 @@
 
 package com.virgilsecurity.android.common
 
-import com.virgilsecurity.android.common.Const.NO_CONTEXT
-import com.virgilsecurity.android.common.Const.VIRGIL_BASE_URL
-import com.virgilsecurity.android.common.Const.VIRGIL_CARDS_SERVICE_PATH
+import com.virgilsecurity.android.common.util.Const.NO_CONTEXT
+import com.virgilsecurity.android.common.util.Const.VIRGIL_BASE_URL
+import com.virgilsecurity.android.common.util.Const.VIRGIL_CARDS_SERVICE_PATH
 import com.virgilsecurity.android.common.exception.*
 import com.virgilsecurity.android.common.storage.cloud.KeyManagerCloud
 import com.virgilsecurity.android.common.storage.local.KeyStorageLocal
 import com.virgilsecurity.android.common.model.LookupResult
+import com.virgilsecurity.android.common.util.Const
+import com.virgilsecurity.android.common.worker.AuthorizationWorker
+import com.virgilsecurity.common.model.Completable
 import com.virgilsecurity.keyknox.build.VersionVirgilAgent
 import com.virgilsecurity.keyknox.exception.DecryptionFailedException
 import com.virgilsecurity.keyknox.exception.EntryAlreadyExistsException
@@ -79,6 +82,7 @@ constructor(private val tokenProvider: AccessTokenProvider) {
     private val cardManager: CardManager
     protected abstract val keyStorageLocal: KeyStorageLocal
     private val keyManagerCloud: KeyManagerCloud
+    private val authorizationWorker: AuthorizationWorker
 
     init {
         cardManager = VirgilCardCrypto().let { cardCrypto ->
@@ -94,6 +98,8 @@ constructor(private val tokenProvider: AccessTokenProvider) {
             currentIdentity(),
             tokenProvider,
             VersionVirgilAgent.VERSION)
+
+        authorizationWorker = AuthorizationWorker()
     }
 
     /**
@@ -105,23 +111,7 @@ constructor(private val tokenProvider: AccessTokenProvider) {
      * @throws RegistrationException
      * @throws CryptoException
      */
-    @Synchronized fun register() = object : Completable {
-        override fun execute() {
-            if (cardManager.searchCards(currentIdentity()).isNotEmpty())
-                throw RegistrationException("Card with identity " +
-                                            "${currentIdentity()} already exists")
-
-            if (keyStorageLocal.exists())
-                throw PrivateKeyExistsException("You already have a Private Key on this device" +
-                                                "for identity: ${currentIdentity()}. Please, use" +
-                                                "\'cleanup()\' function first.")
-
-            virgilCrypto.generateKeyPair().run {
-                cardManager.publishCard(this.privateKey, this.publicKey, currentIdentity())
-                keyStorageLocal.store(virgilCrypto.exportPrivateKey(this.privateKey))
-            }
-        }
-    }
+    @Synchronized fun register() = authorizationWorker.register()
 
     /**
      * Revokes the public key for current *identity* in Virgil's Cards Service. After this operation
@@ -132,22 +122,26 @@ constructor(private val tokenProvider: AccessTokenProvider) {
      * @throws UnRegistrationException if there's no public key published yet, or if there's more
      * than one public key is published.
      */
-    @Synchronized fun unregister() = object : Completable {
-        override fun execute() {
-            val foundCards = cardManager.searchCards(currentIdentity())
-            if (foundCards.isEmpty())
-                throw UnRegistrationException("Card with identity " +
-                                              "${currentIdentity()} does not exist.")
+    @Synchronized fun unregister() = authorizationWorker.unregister()
 
-            if (foundCards.size > 1)
-                throw UnRegistrationException("Too many cards with identity: " +
-                                              "${currentIdentity()}.")
+    /**
+     * Generates new key pair, publishes new public key for current identity and deprecating old
+     * public key, saves private key to the local storage. All data that was encrypted earlier
+     * will become undecryptable.
+     *
+     * To start execution of the current function, please see [Completable] description.
+     *
+     * @throws PrivateKeyExistsException
+     * @throws CardNotFoundException
+     * @throws CryptoException
+     */
+    @Synchronized fun rotatePrivateKey() = authorizationWorker.rotatePrivateKey()
 
-            cardManager.revokeCard(foundCards.first().identifier).run {
-                if (hasLocalPrivateKey()) cleanup()
-            }
-        }
-    }
+    /**
+     * Checks whether the private key is present in the local storage of current device.
+     * Returns *true* if the key is present in the local key storage otherwise *false*.
+     */
+    fun hasLocalPrivateKey() = authorizationWorker.hasLocalPrivateKey()
 
     /**
      * ! *WARNING* ! If you call this function after [register] without using [backupPrivateKey]
@@ -162,212 +156,15 @@ constructor(private val tokenProvider: AccessTokenProvider) {
      *
      * @throws PrivateKeyNotFoundException
      */
-    fun cleanup() {
-        checkPrivateKeyOrThrow()
+    fun cleanup() = authorizationWorker.cleanup()
 
-        keyStorageLocal.delete()
-    }
 
-    /**
-     * Checks whether the private key is present in the local storage of current device.
-     * Returns *true* if the key is present in the local key storage otherwise *false*.
-     */
-    fun hasLocalPrivateKey() = keyStorageLocal.exists()
 
-    /**
-     * Encrypts the user's private key using the user's [password] and backs up the encrypted
-     * private key to Virgil's cloud. This enables users to log in from other devices and have
-     * access to their private key to decrypt data.
-     *
-     * Encrypts loaded from private keys local storage user's *Private key* using *Public key*
-     * that is generated based on provided [password] after that backs up encrypted user's
-     * *Private key* to the Virgil's cloud storage.
-     *
-     * Can be called only if private key is on the device otherwise [PrivateKeyNotFoundException]
-     * exception will be thrown.
-     *
-     * To start execution of the current function, please see [Completable] description.
-     *
-     * @throws PrivateKeyNotFoundException
-     * @throws BackupKeyException
-     */
-    fun backupPrivateKey(password: String) = object : Completable {
-        override fun execute() {
-            try {
-                checkPrivateKeyOrThrow()
 
-                if (password.isBlank())
-                    throw IllegalArgumentException("\'password\' should not be empty")
 
-                with(keyStorageLocal.load()) {
-                    keyManagerCloud.store(password, this.value, this.meta)
-                }
-            } catch (throwable: Throwable) {
-                if (throwable is EntryAlreadyExistsException)
-                    throw BackupKeyException("Key with identity ${currentIdentity()} " +
-                                             "already backed up.")
-                else
-                    throw throwable
-            }
-        }
-    }
 
-    /**
-     * Deletes the user's private key from Virgil's cloud.
-     *
-     * Deletes private key backup using specified [password] and provides [onCompleteListener]
-     * callback that will notify you with successful completion or with a [Throwable] if
-     * something went wrong.
-     *
-     * Can be called only if private key is on the device otherwise [PrivateKeyNotFoundException]
-     * exception will be thrown.
-     *
-     * To start execution of the current function, please see [Completable] description.
-     *
-     * @throws PrivateKeyNotFoundException
-     * @throws WrongPasswordException
-     */
-    @JvmOverloads fun resetPrivateKeyBackup(password: String? = null) = object : Completable {
-        override fun execute() {
-            try {
-                checkPrivateKeyOrThrow()
 
-                if (password == null) {
-                    keyManagerCloud.deleteAll()
-                } else {
-                    if (password.isBlank())
-                        throw IllegalArgumentException("\'password\' should not be empty")
 
-                    keyManagerCloud.delete(password)
-                }
-            } catch (throwable: Throwable) {
-                if (throwable is DecryptionFailedException)
-                    throw WrongPasswordException("Specified password is not valid.")
-                else
-                    throw throwable
-            }
-        }
-
-    }
-
-    /**
-     * Pulls user's private key from the Virgil's cloud, decrypts it with *Private key* that
-     * is generated based on provided [password] and saves it to the current private keys
-     * local storage.
-     *
-     * To start execution of the current function, please see [Completable] description.
-     *
-     * @throws WrongPasswordException
-     * @throws RestoreKeyException
-     */
-    fun restorePrivateKey(password: String) = object : Completable {
-        override fun execute() {
-            try {
-                if (keyStorageLocal.exists())
-                    throw RestoreKeyException("You already have a Private Key on this device" +
-                                              "for identity: ${currentIdentity()}. Please, use" +
-                                              "\'cleanup()\' function first.")
-
-                if (keyManagerCloud.exists(password)) {
-                    Thread.sleep(THROTTLE_TIMEOUT) // To avoid next request been throttled
-
-                    val keyEntry = keyManagerCloud.retrieve(password)
-                    keyStorageLocal.store(keyEntry.data)
-                } else {
-                    throw RestoreKeyException("There is no key backup with " +
-                                              "identity: ${currentIdentity()}")
-                }
-            } catch (throwable: Throwable) {
-                if (throwable is DecryptionFailedException)
-                    throw WrongPasswordException("Specified password is not valid.")
-                else
-                    throw throwable
-            }
-        }
-    }
-
-    /**
-     * Generates new key pair, publishes new public key for current identity and deprecating old
-     * public key, saves private key to the local storage. All data that was encrypted earlier
-     * will become undecryptable.
-     *
-     * To start execution of the current function, please see [Completable] description.
-     *
-     * @throws PrivateKeyExistsException
-     * @throws CardNotFoundException
-     * @throws CryptoException
-     */
-    @Synchronized fun rotatePrivateKey() = object : Completable {
-        override fun execute() {
-            if (keyStorageLocal.exists())
-                throw PrivateKeyExistsException("You already have a Private Key on this device" +
-                                                "for identity: ${currentIdentity()}. Please, use" +
-                                                "\'cleanup()\' function first.")
-
-            val cards = cardManager.searchCards(currentIdentity())
-            if (cards.isEmpty())
-                throw CardNotFoundException("No cards was found " +
-                                            "with identity: ${currentIdentity()}")
-            if (cards.size > 1)
-                throw IllegalStateException("${cards.size} cards was found " +
-                                            "with identity: ${currentIdentity()}. How? (: " +
-                                            "Should be <= 1. Please, contact developers if " +
-                                            "it was not an intended behaviour.")
-
-            (cards.first() to virgilCrypto.generateKeyPair()).run {
-                val rawCard = cardManager.generateRawCard(this.second.privateKey,
-                                                          this.second.publicKey,
-                                                          currentIdentity(),
-                                                          this.first.identifier)
-                cardManager.publishCard(rawCard)
-
-                keyStorageLocal.store(virgilCrypto.exportPrivateKey(this.second.privateKey))
-            }
-        }
-    }
-
-    /**
-     * Changes the password of the private key backup.
-     *
-     * Pulls user's private key from the Virgil's cloud storage, decrypts it with *Private key*
-     * that is generated based on provided [oldPassword] after that encrypts user's *Private key*
-     * using *Public key* that is generated based on provided [newPassword] and pushes encrypted
-     * user's *Private key* to the Virgil's cloud storage.
-     *
-     * Can be called only if private key is on the device otherwise [PrivateKeyNotFoundException]
-     * exception will be thrown.
-     *
-     * To start execution of the current function, please see [Completable] description.
-     *
-     * @throws PrivateKeyNotFoundException
-     */
-    fun changePassword(oldPassword: String,
-                       newPassword: String) = object : Completable {
-        override fun execute() {
-            checkPrivateKeyOrThrow()
-
-            if (oldPassword.isBlank())
-                throw IllegalArgumentException("\'oldPassword\' should not be empty")
-            if (newPassword.isBlank())
-                throw IllegalArgumentException("\'newPassword\' should not be empty")
-            if (newPassword == oldPassword)
-                throw IllegalArgumentException("\'newPassword\' can't be the same as the old one")
-
-            val brainKeyContext = BrainKeyContext.Builder()
-                    .setAccessTokenProvider(tokenProvider)
-                    .setPythiaClient(VirgilPythiaClient(VIRGIL_BASE_URL))
-                    .setPythiaCrypto(VirgilPythiaCrypto())
-                    .build()
-
-            val keyPair = BrainKey(brainKeyContext).generateKeyPair(newPassword)
-
-            Thread.sleep(THROTTLE_TIMEOUT) // To avoid next request been throttled
-
-            keyManagerCloud.updateRecipients(oldPassword,
-                                             listOf(keyPair.publicKey),
-                                             keyPair.privateKey)
-        }
-    }
 
     /**
      * Signs then encrypts text for a group of users.
@@ -550,72 +347,7 @@ constructor(private val tokenProvider: AccessTokenProvider) {
                 )
             }
 
-    /**
-     * Retrieves user public key from the cloud for encryption/verification operations.
-     *
-     * Searches for public key with specified [identity] and returns map of [String] ->
-     * [PublicKey] in [onResultListener] callback or [Throwable] if something went wrong.
-     *
-     * [PublicKeyNotFoundException] will be thrown if public key wasn't found.
-     *
-     * Can be called only if private key is on the device, otherwise [PrivateKeyNotFoundException]
-     * exception will be thrown.
-     *
-     * @throws PrivateKeyNotFoundException
-     * @throws PublicKeyDuplicateException
-     */
-    fun lookupPublicKeys(identity: String) =
-            lookupPublicKeys(listOf(identity))
 
-    /**
-     * Retrieves user public keys from the cloud for encryption/verification operations.
-     *
-     * Searches for public keys with specified [identities] and returns map of [String] ->
-     * [PublicKey] in [onResultListener] callback or [Throwable] if something went wrong.
-     *
-     * [PublicKeyNotFoundException] will be thrown for the first not found public key.
-     * [EThreeCore.register]
-     *
-     * Can be called only if private key is on the device, otherwise [PrivateKeyNotFoundException]
-     * exception will be thrown.
-     *
-     * To start execution of the current function, please see [Result] description.
-     *
-     * @throws PrivateKeyNotFoundException
-     * @throws PublicKeyDuplicateException
-     */
-    fun lookupPublicKeys(identities: List<String>) = object : Result<LookupResult> {
-        override fun get(): LookupResult {
-            if (identities.isEmpty()) throw EmptyArgumentException("identities")
-            identities.groupingBy { it }
-                    .eachCount()
-                    .filter { it.value > 1 }
-                    .run {
-                        if (this.isNotEmpty())
-                            throw PublicKeyDuplicateException(
-                                "Duplicates are not allowed. " +
-                                "Duplicated identities:\n${this}"
-                            )
-                    }
-
-            return identities.map {
-                it to cardManager.searchCards(it)
-            }.map {
-                if (it.second.size > 1)
-                    throw IllegalStateException("${it.second.size} cards was found  with " +
-                                                "identity: ${currentIdentity()}. How? (: " +
-                                                "Should be <= 1. Please, contact developers " +
-                                                "if it was not an intended behaviour.")
-                else
-                    it
-            }.map {
-                if (it.second.isNotEmpty())
-                    it.first to it.second.first().publicKey as VirgilPublicKey
-                else
-                    throw PublicKeyNotFoundException(it.first)
-            }.toMap()
-        }
-    }
 
     /**
      * Loads and returns current user's [PrivateKey]. Current user's identity is taken

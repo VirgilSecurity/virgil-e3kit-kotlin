@@ -33,8 +33,8 @@
 
 package com.virgilsecurity.android.common.storage.cloud
 
-import com.virgilsecurity.android.common.Const
-import com.virgilsecurity.android.common.Const.VIRGIL_BASE_URL
+import com.virgilsecurity.android.common.util.Const
+import com.virgilsecurity.android.common.util.Const.VIRGIL_BASE_URL
 import com.virgilsecurity.keyknox.KeyknoxManager
 import com.virgilsecurity.keyknox.client.HttpClient
 import com.virgilsecurity.keyknox.client.KeyknoxClient

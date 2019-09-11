@@ -34,7 +34,7 @@
 package com.virgilsecurity.android.ethreeenclave.interaction
 
 import android.content.Context
-import com.virgilsecurity.android.common.Const.NO_CONTEXT
+import com.virgilsecurity.android.common.util.Const.NO_CONTEXT
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.common.EThreeCore
 import com.virgilsecurity.android.common.storage.local.KeyStorageLocal
