@@ -33,8 +33,146 @@
 
 package com.virgilsecurity.android.common.worker
 
+import com.virgilsecurity.android.common.exception.GroupException
+import com.virgilsecurity.android.common.manager.GroupManager
+import com.virgilsecurity.android.common.model.FindUsersResult
+import com.virgilsecurity.android.common.model.Group
+import com.virgilsecurity.android.common.model.Ticket
+import com.virgilsecurity.common.model.Completable
+import com.virgilsecurity.common.model.Data
+import com.virgilsecurity.common.model.Result
+import com.virgilsecurity.sdk.cards.Card
+import com.virgilsecurity.sdk.crypto.VirgilCrypto
+import java.nio.charset.StandardCharsets
+
 /**
  * GroupWorker
  */
-class GroupWorker {
+internal class GroupWorker(
+        private val identity: String,
+        private val crypto: VirgilCrypto,
+        private val getGroupManager: () -> GroupManager,
+        private val computeSessionId: (Data) -> Data
+) {
+
+    /**
+     * Creates group, saves in cloud and locally.
+     *
+     * @param identifier Identifier of group. Should be *> 10* length.
+     * @param users Cards of participants. Result of findUsers call.
+     *
+     * @return New [Group].
+     */
+    internal fun createGroup(identifier: Data, users: FindUsersResult): Result<Group> =
+            object : Result<Group> {
+                override fun get(): Group {
+                    val sessionId = computeSessionId(identifier)
+                    val participants = users.keys + identity
+
+                    Group.validateParticipantsCount(participants.size)
+
+                    val ticket = Ticket(crypto, sessionId, participants)
+
+                    return getGroupManager().store(ticket, users.values.toList())
+                }
+            }
+
+    /**
+     * Returns cached local group.
+     *
+     * @param identifier Identifier of group. Should be *> 10* length.
+     *
+     * @return [Group] if exists, null otherwise.
+     */
+    internal fun getGroup(identifier: Data): Group? {
+        val sessionId = computeSessionId(identifier)
+        return getGroupManager().retrieve(sessionId)
+    }
+
+    /**
+     * Loads group from cloud, saves locally.
+     *
+     * @param identifier Identifier of group. Should be *> 10* length.
+     * @param card Card of group initiator.
+     *
+     * @return Loaded [Group].
+     */
+    internal fun loadGroup(identifier: Data, card: Card): Result<Group> =
+            object : Result<Group> {
+                override fun get(): Group {
+                    val sessionId = computeSessionId(identifier)
+                    return getGroupManager().pull(sessionId, card)
+                }
+            }
+
+    /**
+     * Deletes group from cloud and local storage.
+     *
+     * @param identifier Identifier of group. Should be *> 10* length.
+     */
+    internal fun deleteGroup(identifier: Data): Completable =
+            object : Completable {
+                override fun execute() {
+                    val sessionId = computeSessionId(identifier)
+                    val group = getGroupManager().retrieve(sessionId)
+                                ?: throw GroupException("Group with provided id not found " +
+                                                        "locally. Try to call loadGroup first")
+
+                    group.checkPermissions()
+
+                    getGroupManager().delete(sessionId)
+                }
+            }
+
+    /**
+     * Creates group, saves in cloud and locally.
+     *
+     * @param identifier Identifier of group. Should be *> 10* length.
+     * @param users Cards of participants. Result of findUsers call.
+     *
+     * @return New [Group].
+     */
+    internal fun createGroup(identifier: String, users: FindUsersResult): Result<Group> {
+        val identifierData = Data(identifier.toByteArray(StandardCharsets.UTF_8))
+
+        return createGroup(identifierData, users)
+    }
+
+    /**
+     * Returns cached local group.
+     *
+     * @param identifier Identifier of group. Should be *> 10* length.
+     *
+     * @return [Group] if exists, null otherwise.
+     */
+    internal fun getGroup(identifier: String): Group? {
+        val identifierData = Data(identifier.toByteArray(StandardCharsets.UTF_8))
+
+        return getGroup(identifierData)
+    }
+
+    /**
+     * Loads group from cloud, saves locally.
+     *
+     * @param identifier Identifier of group. Should be *> 10* length.
+     * @param card Card of group initiator.
+     *
+     * @return Loaded [Group].
+     */
+    internal fun loadGroup(identifier: String, card: Card): Result<Group> {
+        val identifierData = Data(identifier.toByteArray(StandardCharsets.UTF_8))
+
+        return loadGroup(identifierData, card)
+    }
+
+    /**
+     * Deletes group from cloud and local storage.
+     *
+     * @param identifier Identifier of group. Should be *> 10* length.
+     */
+    internal fun deleteGroup(identifier: String): Completable {
+        val identifierData = Data(identifier.toByteArray(StandardCharsets.UTF_8))
+
+        return deleteGroup(identifierData)
+    }
 }

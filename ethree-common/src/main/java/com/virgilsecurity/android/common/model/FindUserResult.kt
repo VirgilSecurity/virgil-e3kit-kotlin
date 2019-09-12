@@ -40,4 +40,4 @@ import com.virgilsecurity.sdk.cards.Card
  */
 
 // Type alias for the result of findUsers call
-typealias FindUsersResult = MutableMap<String, Card>
+typealias FindUsersResult = Map<String, Card>

@@ -37,19 +37,19 @@ import com.virgilsecurity.android.common.util.Const.NO_CONTEXT
 import com.virgilsecurity.android.common.util.Const.VIRGIL_BASE_URL
 import com.virgilsecurity.android.common.util.Const.VIRGIL_CARDS_SERVICE_PATH
 import com.virgilsecurity.android.common.exception.*
+import com.virgilsecurity.android.common.manager.GroupManager
 import com.virgilsecurity.android.common.storage.cloud.KeyManagerCloud
 import com.virgilsecurity.android.common.storage.local.KeyStorageLocal
 import com.virgilsecurity.android.common.model.LookupResult
 import com.virgilsecurity.android.common.util.Const
+import com.virgilsecurity.android.common.worker.*
 import com.virgilsecurity.android.common.worker.AuthorizationWorker
+import com.virgilsecurity.android.common.worker.GroupWorker
+import com.virgilsecurity.android.common.worker.PeerToPeerWorker
+import com.virgilsecurity.android.common.worker.SearchWorker
 import com.virgilsecurity.common.model.Completable
+import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.keyknox.build.VersionVirgilAgent
-import com.virgilsecurity.keyknox.exception.DecryptionFailedException
-import com.virgilsecurity.keyknox.exception.EntryAlreadyExistsException
-import com.virgilsecurity.pythia.brainkey.BrainKey
-import com.virgilsecurity.pythia.brainkey.BrainKeyContext
-import com.virgilsecurity.pythia.client.VirgilPythiaClient
-import com.virgilsecurity.pythia.crypto.VirgilPythiaCrypto
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
 import com.virgilsecurity.sdk.client.HttpClient
@@ -58,13 +58,9 @@ import com.virgilsecurity.sdk.crypto.VirgilCardCrypto
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilPrivateKey
 import com.virgilsecurity.sdk.crypto.VirgilPublicKey
-import com.virgilsecurity.sdk.exception.EmptyArgumentException
 import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
 import com.virgilsecurity.sdk.jwt.contract.AccessTokenProvider
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
-import com.virgilsecurity.sdk.utils.ConvertionUtils
-import java.io.InputStream
-import java.io.OutputStream
 
 /**
  * [EThreeCore] class simplifies work with Virgil Services to easily implement End to End Encrypted
@@ -78,11 +74,20 @@ abstract class EThreeCore
  */
 constructor(private val tokenProvider: AccessTokenProvider) {
 
-    private val virgilCrypto = VirgilCrypto()
+    val identity: String
+
+    private val crypto = VirgilCrypto()
     private val cardManager: CardManager
     protected abstract val keyStorageLocal: KeyStorageLocal
     private val keyManagerCloud: KeyManagerCloud
+
     private val authorizationWorker: AuthorizationWorker
+    private val backupWorker: BackupWorker
+    private val groupWorker: GroupWorker
+    private val p2pWorker: PeerToPeerWorker
+    private val searchWorker: SearchWorker
+
+    private var groupManager: GroupManager? = null
 
     init {
         cardManager = VirgilCardCrypto().let { cardCrypto ->
@@ -100,7 +105,18 @@ constructor(private val tokenProvider: AccessTokenProvider) {
             VersionVirgilAgent.VERSION)
 
         authorizationWorker = AuthorizationWorker()
+        backupWorker = BackupWorker()
+        groupWorker = GroupWorker(identity,
+                                  crypto,
+                                  ::getGroupManager,
+                                  ::computeSessionId)
+        p2pWorker = PeerToPeerWorker()
+        searchWorker = SearchWorker()
     }
+
+    internal fun getGroupManager(): GroupManager =
+            groupManager ?: throw EThreeException("No private key on device. You should call " +
+                                                  "register() of retrievePrivateKey()")
 
     /**
      * Publishes the public key in Virgil's Cards Service in case no public key for current
@@ -166,80 +182,7 @@ constructor(private val tokenProvider: AccessTokenProvider) {
 
 
 
-    /**
-     * Signs then encrypts text for a group of users.
-     *
-     * Signs then encrypts provided [text] using [lookupResult] with recipients public keys and
-     * returns encrypted message converted to *base64* [String].
-     *
-     * Can be called only if private key is on the device otherwise [PrivateKeyNotFoundException]
-     * exception will be thrown.
-     *
-     * @throws PrivateKeyNotFoundException
-     * @throws CryptoException
-     */
-    @JvmOverloads fun encrypt(text: String, lookupResult: LookupResult? = null): String {
-        checkPrivateKeyOrThrow()
 
-        if (text.isBlank()) throw EmptyArgumentException("text")
-        if (lookupResult?.isEmpty() == true) throw EmptyArgumentException("publicKeys")
-        if (lookupResult?.values?.contains(loadCurrentPublicKey()) == true)
-            throw IllegalArgumentException("You should not include your own public key.")
-
-        return signThenEncryptData(text.toByteArray(), lookupResult).let {
-            ConvertionUtils.toBase64String(it)
-        }
-    }
-
-    /**
-     * Signs then encrypts text/other data for a group of users.
-     *
-     * Signs then encrypts provided [data] using [publicKeys] list of recipients and returns
-     * encrypted data as [ByteArray].
-     *
-     * Can be called only if private key is on the device otherwise [PrivateKeyNotFoundException]
-     * exception will be thrown.
-     *
-     * @throws PrivateKeyNotFoundException
-     * @throws CryptoException
-     */
-    @JvmOverloads fun encrypt(data: ByteArray, lookupResult: LookupResult? = null): ByteArray {
-        checkPrivateKeyOrThrow()
-
-        if (data.isEmpty()) throw EmptyArgumentException("data")
-        if (lookupResult?.isEmpty() == true) throw EmptyArgumentException("publicKeys")
-        if (lookupResult?.values?.contains(loadCurrentPublicKey()) == true)
-            throw IllegalArgumentException("You should not include your own public key.")
-
-        return signThenEncryptData(data, lookupResult)
-    }
-
-    /**
-     * Encrypts Input Stream for a group of users.
-     *
-     * Encrypts provided [inputStream] using [publicKeys] list of recipients and returns it
-     * encrypted in the [outputStream].
-     *
-     * Can be called only if private key is on the device otherwise [PrivateKeyNotFoundException]
-     * exception will be thrown.
-     *
-     * @throws PrivateKeyNotFoundException
-     * @throws CryptoException
-     */
-    @JvmOverloads fun encrypt(inputStream: InputStream,
-                              outputStream: OutputStream,
-                              lookupResult: LookupResult? = null) {
-        checkPrivateKeyOrThrow()
-
-        if (inputStream.available() == 0) throw EmptyArgumentException("inputStream")
-        if (lookupResult?.values?.contains(loadCurrentPublicKey()) == true)
-            throw IllegalArgumentException("You should not include your own public key.")
-
-        (lookupResult?.values?.toMutableList()?.apply { add(loadCurrentPublicKey()) }
-         ?: listOf(loadCurrentPublicKey())).run {
-            virgilCrypto.encrypt(inputStream, outputStream, this)
-        }
-    }
 
     /**
      * Signs then encrypts text/other data for a group of users.
@@ -253,73 +196,10 @@ constructor(private val tokenProvider: AccessTokenProvider) {
                                     lookupResult: LookupResult? = null): ByteArray =
             (lookupResult?.values?.toMutableList()?.apply { add(loadCurrentPublicKey()) }
              ?: listOf(loadCurrentPublicKey())).run {
-                virgilCrypto.signThenEncrypt(data, loadCurrentPrivateKey(), this)
+                crypto.signThenEncrypt(data, loadCurrentPrivateKey(), this)
             }
 
-    /**
-     * Decrypts then verifies encrypted text that is in base64 [String] format.
-     *
-     * Decrypts provided [base64String] (that was previously encrypted with [encrypt] function)
-     * using current user's private key.
-     *
-     * Can be called only if private key is on the device otherwise [PrivateKeyNotFoundException]
-     * exception will be thrown.
-     *
-     * @throws PrivateKeyNotFoundException
-     * @throws CryptoException
-     */
-    @JvmOverloads fun decrypt(base64String: String, sendersKey: VirgilPublicKey? = null): String {
-        checkPrivateKeyOrThrow()
 
-        if (base64String.isBlank()) throw EmptyArgumentException("data")
-        if (sendersKey == loadCurrentPublicKey())
-            throw IllegalArgumentException("You should not provide your own public key.")
-
-        return String(decryptAndVerifyData(ConvertionUtils.base64ToBytes(base64String), sendersKey))
-    }
-
-    /**
-     * Decrypts then verifies encrypted data.
-     *
-     * Decrypts provided [data] using current user's private key then verifies that data was
-     * encrypted by sender with her [sendersKey] and returns decrypted data in [ByteArray].
-     *
-     * Can be called only if private key is on the device otherwise [PrivateKeyNotFoundException]
-     * exception will be thrown.
-     *
-     * @throws PrivateKeyNotFoundException
-     * @throws CryptoException
-     */
-    @JvmOverloads fun decrypt(data: ByteArray, sendersKey: VirgilPublicKey? = null): ByteArray {
-        checkPrivateKeyOrThrow()
-
-        if (data.isEmpty()) throw EmptyArgumentException("data")
-        if (sendersKey == loadCurrentPublicKey())
-            throw IllegalArgumentException("You should not provide your own public key.")
-
-        return decryptAndVerifyData(data, sendersKey)
-    }
-
-    /**
-     * Decrypts encrypted inputStream.
-     *
-     * Decrypts provided [inputStream] using current user's private key and returns decrypted data
-     * in the [outputStream].
-     *
-     * Can be called only if private key is on the device otherwise [PrivateKeyNotFoundException]
-     * exception will be thrown.
-     *
-     * @throws PrivateKeyNotFoundException
-     * @throws CryptoException
-     */
-    fun decrypt(inputStream: InputStream,
-                outputStream: OutputStream) {
-        checkPrivateKeyOrThrow()
-
-        if (inputStream.available() == 0) throw EmptyArgumentException("inputStream")
-
-        return virgilCrypto.decrypt(inputStream, outputStream, loadCurrentPrivateKey())
-    }
 
     /**
      * Decrypts then verifies encrypted data.
@@ -340,7 +220,7 @@ constructor(private val tokenProvider: AccessTokenProvider) {
                     }
                 })
             }.let { keys ->
-                virgilCrypto.decryptThenVerify(
+                crypto.decryptThenVerify(
                     data,
                     loadCurrentPrivateKey(),
                     keys
@@ -355,7 +235,7 @@ constructor(private val tokenProvider: AccessTokenProvider) {
      */
     private fun loadCurrentPrivateKey(): VirgilPrivateKey =
             keyStorageLocal.load().let {
-                virgilCrypto.importPrivateKey(it.value).privateKey
+                crypto.importPrivateKey(it.value).privateKey
             }
 
     /**
@@ -363,7 +243,7 @@ constructor(private val tokenProvider: AccessTokenProvider) {
      * user's [PrivateKey]. Current user's identity is taken from [tokenProvider].
      */
     private fun loadCurrentPublicKey(): VirgilPublicKey =
-            virgilCrypto.extractPublicKey(loadCurrentPrivateKey())
+            crypto.extractPublicKey(loadCurrentPrivateKey())
 
     /**
      * Extracts current user's *Identity* from Json Web Token received from [tokenProvider].
@@ -378,6 +258,10 @@ constructor(private val tokenProvider: AccessTokenProvider) {
         if (!keyStorageLocal.exists()) throw PrivateKeyNotFoundException(
             "You have to get private key first. Use \'register\' " +
             "or \'restorePrivateKey\' functions.")
+    }
+
+    internal fun computeSessionId(identifier: Data): Data {
+
     }
 
     companion object {

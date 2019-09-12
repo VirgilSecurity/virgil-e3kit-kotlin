@@ -104,3 +104,7 @@ class FindUsersException @JvmOverloads constructor(
 class GroupException @JvmOverloads constructor(
         override val message: String? = null, throwable: Throwable? = null
 ) : RuntimeException(message, throwable)
+
+class EThreeException @JvmOverloads constructor(
+        override val message: String? = null, throwable: Throwable? = null
+) : RuntimeException(message, throwable)
