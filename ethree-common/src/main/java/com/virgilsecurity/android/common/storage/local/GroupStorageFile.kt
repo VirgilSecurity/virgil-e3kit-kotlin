@@ -49,7 +49,7 @@ import java.io.File
  * GroupStorageFile
  */
 @ExperimentalUnsignedTypes
-class GroupStorageFile internal constructor(
+internal class GroupStorageFile internal constructor(
         internal val identity: String,
         crypto: VirgilCrypto,
         identityKeyPair: VirgilKeyPair,

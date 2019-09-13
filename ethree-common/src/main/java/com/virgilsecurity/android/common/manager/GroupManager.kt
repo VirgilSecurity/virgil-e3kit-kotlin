@@ -34,12 +34,13 @@
 package com.virgilsecurity.android.common.manager
 
 import com.virgilsecurity.android.common.exception.GroupException
-import com.virgilsecurity.android.common.storage.local.KeyStorageLocal
 import com.virgilsecurity.android.common.model.Group
 import com.virgilsecurity.android.common.model.GroupInfo
 import com.virgilsecurity.android.common.model.RawGroup
 import com.virgilsecurity.android.common.model.Ticket
 import com.virgilsecurity.android.common.storage.cloud.TicketStorageCloud
+import com.virgilsecurity.android.common.storage.local.GroupStorageFile
+import com.virgilsecurity.android.common.storage.local.KeyStorageLocal
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
@@ -48,7 +49,7 @@ import com.virgilsecurity.sdk.crypto.VirgilCrypto
  * GroupManager
  */
 internal class GroupManager(
-        private val localGroupStorage: FileGroupStorage,
+        internal val localGroupStorage: GroupStorageFile,
         private val ticketStorageCloud: TicketStorageCloud,
         private val keyStorageLocal: KeyStorageLocal,
         private val lookupManager: LookupManager,

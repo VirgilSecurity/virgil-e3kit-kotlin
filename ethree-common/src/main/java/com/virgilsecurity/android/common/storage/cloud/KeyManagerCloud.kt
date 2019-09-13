@@ -44,6 +44,7 @@ import com.virgilsecurity.pythia.brainkey.BrainKey
 import com.virgilsecurity.pythia.brainkey.BrainKeyContext
 import com.virgilsecurity.pythia.client.VirgilPythiaClient
 import com.virgilsecurity.pythia.crypto.VirgilPythiaCrypto
+import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilPrivateKey
 import com.virgilsecurity.sdk.crypto.VirgilPublicKey
 import com.virgilsecurity.sdk.jwt.contract.AccessTokenProvider
@@ -54,20 +55,32 @@ import java.net.URL
  */
 class KeyManagerCloud(
         private val identity: String,
+        private val crypto: VirgilCrypto,
         private val tokenProvider: AccessTokenProvider,
         ethreeVersion: String
 ) {
 
-    private val keyknoxClient: KeyknoxClient =
-            KeyknoxClient(URL(VIRGIL_BASE_URL), HttpClient(Const.ETHREE_NAME, ethreeVersion))
-    private val brainKeyContext: BrainKeyContext = BrainKeyContext.Builder()
-            .setAccessTokenProvider(tokenProvider)
-            .setPythiaClient(VirgilPythiaClient(VIRGIL_BASE_URL,
-                                                Const.ETHREE_NAME,
-                                                Const.ETHREE_NAME,
-                                                ethreeVersion))
-            .setPythiaCrypto(VirgilPythiaCrypto())
-            .build()
+    private val keyknoxClient: KeyknoxClient
+    private val keyknoxManager: KeyknoxManager
+
+    private val brainKey: BrainKey
+
+    init {
+        val httpClient = HttpClient(tokenProvider, Const.ETHREE_NAME, ethreeVersion)
+        keyknoxClient = KeyknoxClient(httpClient, URL(VIRGIL_BASE_URL))
+        this.keyknoxManager = KeyknoxManager(keyknoxClient)
+        val pythiaClient = VirgilPythiaClient(VIRGIL_BASE_URL, // TODO change VirgilPythiaClient to have tokenProvider inside
+                                              Const.ETHREE_NAME,
+                                              Const.ETHREE_NAME,
+                                              ethreeVersion)
+        val brainKeyContext = BrainKeyContext.Builder()
+                .setAccessTokenProvider(tokenProvider)
+                .setPythiaClient(pythiaClient)
+                .setPythiaCrypto(VirgilPythiaCrypto())
+                .build()
+
+        this.brainKey = BrainKey(brainKeyContext)
+    }
 
     fun exists(password: String) = initCloudKeyStorage(password).exists(identity)
 

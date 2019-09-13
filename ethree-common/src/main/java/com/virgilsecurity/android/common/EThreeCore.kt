@@ -33,31 +33,33 @@
 
 package com.virgilsecurity.android.common
 
-import com.virgilsecurity.android.common.util.Const.NO_CONTEXT
-import com.virgilsecurity.android.common.util.Const.VIRGIL_BASE_URL
-import com.virgilsecurity.android.common.util.Const.VIRGIL_CARDS_SERVICE_PATH
+import android.content.Context
+import com.virgilsecurity.android.common.callback.OnGetTokenCallback
+import com.virgilsecurity.android.common.callback.OnKeyChangedCallback
 import com.virgilsecurity.android.common.exception.*
 import com.virgilsecurity.android.common.manager.GroupManager
+import com.virgilsecurity.android.common.manager.LookupManager
 import com.virgilsecurity.android.common.storage.cloud.KeyManagerCloud
+import com.virgilsecurity.android.common.storage.cloud.TicketStorageCloud
+import com.virgilsecurity.android.common.storage.local.GroupStorageFile
 import com.virgilsecurity.android.common.storage.local.KeyStorageLocal
-import com.virgilsecurity.android.common.model.LookupResult
 import com.virgilsecurity.android.common.util.Const
+import com.virgilsecurity.android.common.util.Const.VIRGIL_BASE_URL
+import com.virgilsecurity.android.common.util.Const.VIRGIL_CARDS_SERVICE_PATH
 import com.virgilsecurity.android.common.worker.*
-import com.virgilsecurity.android.common.worker.AuthorizationWorker
-import com.virgilsecurity.android.common.worker.GroupWorker
-import com.virgilsecurity.android.common.worker.PeerToPeerWorker
-import com.virgilsecurity.android.common.worker.SearchWorker
 import com.virgilsecurity.common.model.Completable
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.keyknox.build.VersionVirgilAgent
+import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
 import com.virgilsecurity.sdk.client.HttpClient
 import com.virgilsecurity.sdk.client.VirgilCardClient
+import com.virgilsecurity.sdk.crypto.HashAlgorithm
 import com.virgilsecurity.sdk.crypto.VirgilCardCrypto
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
-import com.virgilsecurity.sdk.crypto.VirgilPrivateKey
-import com.virgilsecurity.sdk.crypto.VirgilPublicKey
+import com.virgilsecurity.sdk.crypto.VirgilKeyPair
+import com.virgilsecurity.sdk.jwt.Jwt
 import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
 import com.virgilsecurity.sdk.jwt.contract.AccessTokenProvider
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
@@ -72,14 +74,19 @@ abstract class EThreeCore
  * [onGetTokenCallback] using [CachingJwtProvider] also initializing [DefaultKeyStorage] with
  * default settings.
  */
-constructor(private val tokenProvider: AccessTokenProvider) {
+constructor(identity: String,
+            getTokenCallback: OnGetTokenCallback,
+            keyChangedCallback: OnKeyChangedCallback,
+            context: Context) {
 
-    val identity: String
-
-    private val crypto = VirgilCrypto()
+    private var accessTokenProvider: AccessTokenProvider
+    private val crypto: VirgilCrypto = VirgilCrypto()
     private val cardManager: CardManager
-    protected abstract val keyStorageLocal: KeyStorageLocal
+    private val rootPath: String
+
     private val keyManagerCloud: KeyManagerCloud
+    private val lookupManager: LookupManager
+    protected abstract val keyStorageLocal: KeyStorageLocal
 
     private val authorizationWorker: AuthorizationWorker
     private val backupWorker: BackupWorker
@@ -89,29 +96,41 @@ constructor(private val tokenProvider: AccessTokenProvider) {
 
     private var groupManager: GroupManager? = null
 
+    val identity: String
+
     init {
-        cardManager = VirgilCardCrypto().let { cardCrypto ->
-            val httpClient = HttpClient(Const.ETHREE_NAME, VersionVirgilAgent.VERSION)
-            CardManager(cardCrypto,
-                        tokenProvider,
-                        VirgilCardVerifier(cardCrypto, false, false),
-                        VirgilCardClient(VIRGIL_BASE_URL + VIRGIL_CARDS_SERVICE_PATH,
-                                         httpClient))
+        val cardCrypto = VirgilCardCrypto(crypto)
+        val virgilCardVerifier = VirgilCardVerifier(cardCrypto)
+        val httpClient = HttpClient(Const.ETHREE_NAME, VersionVirgilAgent.VERSION)
+        this.accessTokenProvider = CachingJwtProvider { Jwt(getTokenCallback.onGetToken()) }
+
+        cardManager = CardManager(cardCrypto,
+                                  accessTokenProvider,
+                                  VirgilCardVerifier(cardCrypto, false, false),
+                                  VirgilCardClient(VIRGIL_BASE_URL + VIRGIL_CARDS_SERVICE_PATH,
+                                                   httpClient))
+
+        keyManagerCloud = KeyManagerCloud(identity,
+                                          crypto,
+                                          accessTokenProvider,
+                                          VersionVirgilAgent.VERSION)
+
+        val cardStorageSqlite: CardStorageSQLiteStub // TODO virgilCardVerifier goes here
+
+        this.lookupManager = LookupManager(cardStorageSqlite, cardManager, keyChangedCallback)
+        this.identity = identity
+        this.rootPath = context.filesDir.absolutePath
+        this.authorizationWorker = AuthorizationWorker(cardManager, crypto, keyStorageLocal)
+        this.backupWorker = BackupWorker()
+        this.groupWorker = GroupWorker(identity, crypto, ::getGroupManager, ::computeSessionId)
+        this.p2pWorker = PeerToPeerWorker(::getGroupManager, keyStorageLocal, crypto)
+        this.searchWorker = SearchWorker(lookupManager)
+
+        if (keyStorageLocal.exists()) {
+            privateKeyChanged()
         }
 
-        keyManagerCloud = KeyManagerCloud(
-            currentIdentity(),
-            tokenProvider,
-            VersionVirgilAgent.VERSION)
-
-        authorizationWorker = AuthorizationWorker()
-        backupWorker = BackupWorker()
-        groupWorker = GroupWorker(identity,
-                                  crypto,
-                                  ::getGroupManager,
-                                  ::computeSessionId)
-        p2pWorker = PeerToPeerWorker()
-        searchWorker = SearchWorker()
+        lookupManager.startUpdateCachedCards()
     }
 
     internal fun getGroupManager(): GroupManager =
@@ -174,94 +193,57 @@ constructor(private val tokenProvider: AccessTokenProvider) {
      */
     fun cleanup() = authorizationWorker.cleanup()
 
+    internal fun privateKeyChanged(newCard: Card? = null) {
+        val selfKeyPair = keyStorageLocal.load()
 
+        val localGroupStorage = GroupStorageFile(identity, crypto, selfKeyPair, rootPath)
+        val ticketStorageCloud = TicketStorageCloud(acc, keyStorageLocal)
 
+        this.groupManager = GroupManager(localGroupStorage,
+                                         ticketStorageCloud,
+                                         this.keyStorageLocal,
+                                         this.lookupManager,
+                                         this.crypto)
 
+        if (newCard != null) {
+            this.lookupManager.cardStorage.storeCard(newCard)
+        }
+    }
 
+    internal fun privateKeyDeleted() {
+        groupManager?.localGroupStorage?.reset()
+        groupManager = null
 
-
-
-
-
-
-    /**
-     * Signs then encrypts text/other data for a group of users.
-     *
-     * Signs then encrypts provided [data] using [publicKeys] list of recipients and returns
-     * encrypted data as [ByteArray].
-     *
-     * @throws CryptoException
-     */
-    private fun signThenEncryptData(data: ByteArray,
-                                    lookupResult: LookupResult? = null): ByteArray =
-            (lookupResult?.values?.toMutableList()?.apply { add(loadCurrentPublicKey()) }
-             ?: listOf(loadCurrentPublicKey())).run {
-                crypto.signThenEncrypt(data, loadCurrentPrivateKey(), this)
-            }
-
-
-
-    /**
-     * Decrypts then verifies encrypted data.
-     *
-     * Decrypts provided [data] using current user's private key then verifies that data was
-     * encrypted by sender with her [sendersKey] and returns decrypted data in [ByteArray].
-     *
-     * @throws CryptoException
-     */
-    private fun decryptAndVerifyData(data: ByteArray,
-                                     sendersKey: VirgilPublicKey? = null): ByteArray =
-            (sendersKey == null).let { isNull ->
-                (if (isNull) {
-                    listOf(loadCurrentPublicKey())
-                } else {
-                    mutableListOf(sendersKey as VirgilPublicKey).apply {
-                        add(loadCurrentPublicKey())
-                    }
-                })
-            }.let { keys ->
-                crypto.decryptThenVerify(
-                    data,
-                    loadCurrentPrivateKey(),
-                    keys
-                )
-            }
-
-
-
-    /**
-     * Loads and returns current user's [PrivateKey]. Current user's identity is taken
-     * from [tokenProvider].
-     */
-    private fun loadCurrentPrivateKey(): VirgilPrivateKey =
-            keyStorageLocal.load().let {
-                crypto.importPrivateKey(it.value).privateKey
-            }
-
-    /**
-     * Loads and returns current user's [PublicKey] that is extracted from current
-     * user's [PrivateKey]. Current user's identity is taken from [tokenProvider].
-     */
-    private fun loadCurrentPublicKey(): VirgilPublicKey =
-            crypto.extractPublicKey(loadCurrentPrivateKey())
-
-    /**
-     * Extracts current user's *Identity* from Json Web Token received from [tokenProvider].
-     */
-    private fun currentIdentity() = tokenProvider.getToken(NO_CONTEXT).identity
-
-    /**
-     * Checks if private key for current identity is present in local key storage or throws an
-     * [PrivateKeyNotFoundException] exception.
-     */
-    private fun checkPrivateKeyOrThrow() {
-        if (!keyStorageLocal.exists()) throw PrivateKeyNotFoundException(
-            "You have to get private key first. Use \'register\' " +
-            "or \'restorePrivateKey\' functions.")
+        lookupManager.cardStorage.reset()
     }
 
     internal fun computeSessionId(identifier: Data): Data {
+        require(identifier.data.size > 10) { "Group Id length should be > 10" }
 
+        val hash = crypto.computeHash(identifier.data, HashAlgorithm.SHA512)
+                .sliceArray(IntRange(0, 31))
+
+        return Data(hash)
+    }
+
+    internal fun publishCardThenSaveLocal(keyPair: VirgilKeyPair? = null,
+                                          previousCardId: String? = null) {
+        val virgilKeyPair = keyPair ?: crypto.generateKeyPair()
+
+        val card = if (previousCardId != null) {
+            cardManager.publishCard(virgilKeyPair.privateKey,
+                                    virgilKeyPair.publicKey,
+                                    this.identity,
+                                    previousCardId)
+        } else {
+            cardManager.publishCard(virgilKeyPair.privateKey,
+                                    virgilKeyPair.publicKey,
+                                    this.identity)
+        }
+
+        val privateKeyData = Data(crypto.exportPrivateKey(virgilKeyPair.privateKey))
+        keyStorageLocal.store(privateKeyData)
+        privateKeyChanged(card)
     }
 
     companion object {

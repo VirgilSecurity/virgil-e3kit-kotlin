@@ -36,9 +36,9 @@ package com.virgilsecurity.android.common
 import com.virgilsecurity.sdk.cards.Card
 
 /**
- * SQLiteCardStorageStub
+ * CardStorageSQLiteStub
  */
-interface SQLiteCardStorageStub {
+interface CardStorageSQLiteStub {
 
     fun storeCard(card: Card)
 
