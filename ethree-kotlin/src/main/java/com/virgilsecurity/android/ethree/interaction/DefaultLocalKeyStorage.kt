@@ -34,11 +34,9 @@
 package com.virgilsecurity.android.ethree.interaction
 
 import android.content.Context
-import com.virgilsecurity.android.common.storage.local.LocalKeyStorage
+import com.virgilsecurity.android.common.storage.local.KeyStorageLocal
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
-import com.virgilsecurity.sdk.storage.JsonKeyEntry
-import com.virgilsecurity.sdk.storage.KeyEntry
 import com.virgilsecurity.sdk.storage.KeyStorage
 
 /**

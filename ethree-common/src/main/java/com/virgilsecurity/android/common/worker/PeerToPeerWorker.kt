@@ -38,7 +38,8 @@ import com.virgilsecurity.android.common.exception.PrivateKeyNotFoundException
 import com.virgilsecurity.android.common.manager.GroupManager
 import com.virgilsecurity.android.common.model.FindUsersResult
 import com.virgilsecurity.android.common.model.LookupResult
-import com.virgilsecurity.android.common.storage.local.LocalKeyStorage
+import com.virgilsecurity.android.common.model.toPublicKeys
+import com.virgilsecurity.android.common.storage.local.KeyStorageLocal
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
@@ -56,7 +57,7 @@ import java.util.*
  */
 internal class PeerToPeerWorker(
         private val getGroupManager: () -> GroupManager,
-        private val localKeyStorage: LocalKeyStorage,
+        private val keyStorageLocal: KeyStorageLocal,
         private val crypto: VirgilCrypto
 ) {
 
@@ -75,7 +76,7 @@ internal class PeerToPeerWorker(
      *
      * @return Encrypted Data.
      */
-    internal fun encrypt(data: Data, users: FindUsersResult? = null): Data =
+    @JvmOverloads internal fun encrypt(data: Data, users: FindUsersResult? = null): Data =
             encryptInternal(data, users?.map { it.value.publicKey })
 
     /**
@@ -89,7 +90,7 @@ internal class PeerToPeerWorker(
      *
      * @return Decrypted Data.
      */
-    internal fun decrypt(data: Data, user: Card? = null): Data =
+    @JvmOverloads internal fun decrypt(data: Data, user: Card? = null): Data =
             decryptInternal(data, user?.publicKey)
 
     /**
@@ -131,10 +132,10 @@ internal class PeerToPeerWorker(
      * @param users Result of findUsers call recipient Cards with Public Keys to sign and encrypt
      * with. Use null to sign and encrypt for self.
      */
-    internal fun encrypt(inputStream: InputStream,
-                         outputStream: OutputStream,
-                         users: FindUsersResult? = null) =
-        encryptInternal(inputStream, outputStream, users?.map { it.value.publicKey })
+    @JvmOverloads internal fun encrypt(inputStream: InputStream,
+                                       outputStream: OutputStream,
+                                       users: FindUsersResult? = null) =
+            encryptInternal(inputStream, outputStream, users?.map { it.value.publicKey })
 
     /**
      * Decrypts encrypted stream.
@@ -150,7 +151,7 @@ internal class PeerToPeerWorker(
     internal fun decrypt(inputStream: InputStream, outputStream: OutputStream) {
         if (inputStream.available() == 0) throw EmptyArgumentException("inputStream")
 
-        val selfKeyPair = localKeyStorage.load()
+        val selfKeyPair = keyStorageLocal.load()
 
         crypto.decrypt(inputStream, outputStream, selfKeyPair.privateKey)
     }
@@ -170,7 +171,7 @@ internal class PeerToPeerWorker(
      *
      * @return Encrypted base64String.
      */
-    internal fun encrypt(text: String, users: FindUsersResult? = null): String {
+    @JvmOverloads internal fun encrypt(text: String, users: FindUsersResult? = null): String {
         require(text.isNotEmpty()) { "\'text\' should not be empty" }
 
         val data = Data(text.toByteArray(StandardCharsets.UTF_8)) // TODO check exception type and wrap with "String to Data failed" message
@@ -188,7 +189,7 @@ internal class PeerToPeerWorker(
      *
      * @return Decrypted String.
      */
-    internal fun decrypt(text: String, user: Card? = null): String {
+    @JvmOverloads internal fun decrypt(text: String, user: Card? = null): String {
         require(text.isNotEmpty()) { "\'text\' should not be empty" }
 
         val data = Data.fromBase64String(text) // TODO check exception type and wrap with "Data to String failed" message
@@ -266,7 +267,7 @@ internal class PeerToPeerWorker(
     internal fun encryptInternal(inputStream: InputStream,
                                  outputStream: OutputStream,
                                  publicKeys: List<VirgilPublicKey>?) {
-        val selfKeyPair = localKeyStorage.load()
+        val selfKeyPair = keyStorageLocal.load()
         val pubKeys = mutableListOf(selfKeyPair.publicKey)
 
         if (publicKeys != null) {
@@ -280,8 +281,9 @@ internal class PeerToPeerWorker(
         crypto.encrypt(inputStream, outputStream, pubKeys)
     }
 
-    internal fun encryptInternal(data: Data, publicKeys: List<VirgilPublicKey>?): Data { // TODO check for empty/null args
-        val selfKeyPair = localKeyStorage.load()
+    internal fun encryptInternal(data: Data,
+                                 publicKeys: List<VirgilPublicKey>?): Data { // TODO check for empty/null args
+        val selfKeyPair = keyStorageLocal.load()
         val pubKeys = mutableListOf(selfKeyPair.publicKey)
 
         if (publicKeys != null) {
@@ -296,14 +298,14 @@ internal class PeerToPeerWorker(
     }
 
     internal fun decryptInternal(data: Data, publicKey: VirgilPublicKey?): Data {
-        val selfKeyPair = localKeyStorage.load()
+        val selfKeyPair = keyStorageLocal.load()
         val pubKey = publicKey ?: selfKeyPair.publicKey
 
         return try {
             Data(crypto.decryptThenVerify(data.data, selfKeyPair.privateKey, pubKey))
         } catch (exception: Throwable) {
-            when(exception) {
-                is SignatureIsNotValidException, is VerificationException -> {
+            when (exception) {
+                is SignatureIsNotValidException, is VerificationException -> { // TODO test this case
                     throw EThreeException("Verification of message failed. This may be caused by " +
                                           "rotating sender key. Try finding new one")
                 }
@@ -313,10 +315,6 @@ internal class PeerToPeerWorker(
     }
 
     // Backward compatibility deprecated methods --------------------------------------------------
-
-    private fun LookupResult?.toPublicKeys(): List<VirgilPublicKey>? {
-        return this?.values?.toList()
-    }
 
     /**
      * Signs then encrypts data for a group of users.
@@ -334,8 +332,8 @@ internal class PeerToPeerWorker(
      * @throws PrivateKeyNotFoundException
      * @throws CryptoException
      */
-    @Deprecated("Use encryptForUsers method instead.")
-    @JvmOverloads fun encrypt(text: String, lookupResult: LookupResult? = null): String {
+    @Deprecated("Use encryptForUsers method instead.") // TODO change to actual fun name
+    internal fun encryptOld(text: String, lookupResult: LookupResult): String {
         val data = Data(text.toByteArray(StandardCharsets.UTF_8)) // TODO check exception type
 
         return encryptInternal(data, lookupResult.toPublicKeys()).toBase64String()
@@ -360,7 +358,7 @@ internal class PeerToPeerWorker(
      * @throws CryptoException
      */
     @Deprecated("Use encryptForUsers method instead.")
-    @JvmOverloads fun encrypt(data: ByteArray, lookupResult: LookupResult? = null): ByteArray =
+    internal fun encryptOld(data: ByteArray, lookupResult: LookupResult): ByteArray =
             encryptInternal(Data(data), lookupResult.toPublicKeys()).data
 
     /**
@@ -381,10 +379,10 @@ internal class PeerToPeerWorker(
      * @throws CryptoException
      */
     @Deprecated("Use encryptForUsers method instead.") // TODO change to actual methods signature
-    @JvmOverloads fun encrypt(inputStream: InputStream,
-                              outputStream: OutputStream,
-                              lookupResult: LookupResult? = null) =
-            encryptInternal(inputStream, outputStream, lookupResult?.toPublicKeys())
+    internal fun encryptOld(inputStream: InputStream,
+                            outputStream: OutputStream,
+                            lookupResult: LookupResult) =
+            encryptInternal(inputStream, outputStream, lookupResult.toPublicKeys())
 
     /**
      * Decrypts and verifies encrypted text that is in base64 [String] format.
@@ -404,7 +402,7 @@ internal class PeerToPeerWorker(
      * @throws CryptoException
      */
     @Deprecated("Use decryptFromUser method instead.")
-    @JvmOverloads fun decrypt(base64String: String, sendersKey: VirgilPublicKey? = null): String {
+    internal fun decryptOld(base64String: String, sendersKey: VirgilPublicKey): String {
         val data = Data.fromBase64String(base64String) // TODO check exception type
 
         val decryptedData = decryptInternal(data, sendersKey)
@@ -424,6 +422,6 @@ internal class PeerToPeerWorker(
      * @throws CryptoException
      */
     @Deprecated("Use decryptFromUser method instead.")
-    @JvmOverloads fun decrypt(data: ByteArray, sendersKey: VirgilPublicKey? = null): ByteArray =
+    internal fun decryptOld(data: ByteArray, sendersKey: VirgilPublicKey): ByteArray =
             decryptInternal(Data(data), sendersKey).data
 }

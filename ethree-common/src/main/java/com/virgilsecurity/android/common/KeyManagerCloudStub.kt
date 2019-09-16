@@ -31,43 +31,23 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.common.storage.local
+package com.virgilsecurity.android.common
 
-import com.virgilsecurity.android.common.exception.PrivateKeyNotFoundException
-import com.virgilsecurity.common.model.Data
-import com.virgilsecurity.sdk.crypto.VirgilCrypto
-import com.virgilsecurity.sdk.crypto.VirgilKeyPair
-import com.virgilsecurity.sdk.crypto.exceptions.CryptoException
-import com.virgilsecurity.sdk.storage.KeyStorage
+import com.virgilsecurity.keyknox.model.CloudEntry
+import com.virgilsecurity.sdk.crypto.VirgilPrivateKey
 
 /**
- * Local KeyStorage.
+ * KeyManagerCloudStub
  */
-open class LocalKeyStorage(val identity: String, private val crypto: VirgilCrypto, private val keyStorage: KeyStorage) {
+interface KeyManagerCloudStub {
 
-    fun exists() : Boolean {
-        return this.keyStorage.exists(this.identity)
-    }
+    fun store(key: VirgilPrivateKey, password: String)
 
-    fun store(privateKeyData: Data) {
-        return this.keyStorage.store(this.keyStorage.createEntry(this.identity, privateKeyData.data))
-    }
+    fun retrieve(password: String): CloudEntry
 
-    /**
-     * Retrieves current user's [VirgilKeyPair] with
-     */
-    fun load(): VirgilKeyPair {
-        val keyEntry = this.keyStorage.load(this.identity)
-        try {
-            val keyPair = this.crypto.importPrivateKey(keyEntry.value)
-            return keyPair
-        }
-        catch (e: CryptoException) {
-            throw PrivateKeyNotFoundException()
-        }
-    }
+    fun delete(password: String)
 
-    fun delete() {
-        this.keyStorage.delete(this.identity)
-    }
+    fun deleteAll()
+
+    fun changePassword(oldPassword: String, newPassword: String)
 }

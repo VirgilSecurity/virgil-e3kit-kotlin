@@ -31,16 +31,43 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.common.model
+package com.virgilsecurity.android.common.storage.local
 
-import com.virgilsecurity.sdk.crypto.VirgilPublicKey
+import com.virgilsecurity.android.common.exception.PrivateKeyNotFoundException
+import com.virgilsecurity.common.model.Data
+import com.virgilsecurity.sdk.crypto.VirgilCrypto
+import com.virgilsecurity.sdk.crypto.VirgilKeyPair
+import com.virgilsecurity.sdk.crypto.exceptions.CryptoException
+import com.virgilsecurity.sdk.storage.KeyStorage
 
 /**
- * Lookup Result typealias to ease e3kit usage
+ * Local KeyStorage.
  */
+open class KeyStorageLocal(val identity: String, private val crypto: VirgilCrypto, private val keyStorage: KeyStorage) {
 
-typealias LookupResult = Map<String, VirgilPublicKey>
+    fun exists() : Boolean {
+        return this.keyStorage.exists(this.identity)
+    }
 
-fun LookupResult?.toPublicKeys(): List<VirgilPublicKey>? {
-    return this?.values?.toList()
+    fun store(privateKeyData: Data) {
+        return this.keyStorage.store(this.keyStorage.createEntry(this.identity, privateKeyData.data))
+    }
+
+    /**
+     * Retrieves current user's [VirgilKeyPair] with
+     */
+    fun load(): VirgilKeyPair {
+        val keyEntry = this.keyStorage.load(this.identity)
+        try {
+            val keyPair = this.crypto.importPrivateKey(keyEntry.value)
+            return keyPair
+        }
+        catch (e: CryptoException) { // TODO check whether this is the only one exception we should catch
+            throw PrivateKeyNotFoundException()
+        }
+    }
+
+    fun delete() {
+        this.keyStorage.delete(this.identity)
+    }
 }

@@ -33,137 +33,96 @@
 
 package com.virgilsecurity.android.common.worker
 
-import com.virgilsecurity.android.common.EThreeCore
-import com.virgilsecurity.android.common.exception.*
-import com.virgilsecurity.android.common.storage.local.LocalKeyStorage
+import com.virgilsecurity.android.common.exception.EThreeException
+import com.virgilsecurity.android.common.exception.PrivateKeyExistsException
+import com.virgilsecurity.android.common.exception.PrivateKeyNotFoundException
+import com.virgilsecurity.android.common.storage.local.KeyStorageLocal
 import com.virgilsecurity.common.model.Completable
 import com.virgilsecurity.sdk.cards.CardManager
-import com.virgilsecurity.sdk.crypto.VirgilCrypto
+import com.virgilsecurity.sdk.crypto.VirgilKeyPair
 
 /**
  * AuthorizationWorker
  */
 internal class AuthorizationWorker(
         private val cardManager: CardManager,
-        private val virgilCrypto: VirgilCrypto,
-        private val localKeyStorage: LocalKeyStorage
+        private val keyStorageLocal: KeyStorageLocal,
+        private val identity: String,
+        private val publishCardThenSaveLocal: (VirgilKeyPair?, String?) -> Unit,
+        private val privateKeyDeleted: () -> Unit
 ) {
 
-    /**
-     * Publishes the public key in Virgil's Cards Service in case no public key for current
-     * identity is published yet. Otherwise [RegistrationException] will be thrown.
+    /** // TODO check throws for all functions
+     * Publishes Card on Virgil Cards Service and saves Private Key in local storage.
      *
      * To start execution of the current function, please see [Completable] description.
      *
-     * @throws RegistrationException
-     * @throws CryptoException
+     * @param keyPair `VirgilKeyPair` to publish Card with. Will generate if not specified.
      */
-    @Synchronized internal fun register() = object : Completable {
+    @Synchronized internal fun register(keyPair: VirgilKeyPair? = null) = object : Completable {
         override fun execute() {
-            if (cardManager.searchCards(currentIdentity()).isNotEmpty())
-                throw RegistrationException("Card with identity " +
-                                            "${currentIdentity()} already exists")
+            if (keyStorageLocal.exists())
+                throw EThreeException("Private key already exists in local key storage")
 
-            if (localKeyStorage.exists())
-                throw PrivateKeyExistsException("You already have a Private Key on this device" +
-                                                "for identity: ${currentIdentity()}. Please, use" +
-                                                "\'cleanup()\' function first.")
+            val cards = cardManager.searchCards(this@AuthorizationWorker.identity)
+            if (cards.isNotEmpty()) throw EThreeException("User is already registered")
 
-            virgilCrypto.generateKeyPair().run {
-                cardManager.publishCard(this.privateKey, this.publicKey, currentIdentity())
-                localKeyStorage.store(virgilCrypto.exportPrivateKey(this.privateKey))
-            }
+            publishCardThenSaveLocal(keyPair, null)
         }
     }
 
     /**
-     * Revokes the public key for current *identity* in Virgil's Cards Service. After this operation
-     * you can call [EThreeCore.register] again.
+     * Revokes Card from Virgil Cards Service, deletes Private Key from local storage
      *
      * To start execution of the current function, please see [Completable] description.
-     *
-     * @throws UnRegistrationException if there's no public key published yet, or if there's more
-     * than one public key is published.
      */
     @Synchronized internal fun unregister() = object : Completable {
         override fun execute() {
-            val foundCards = cardManager.searchCards(currentIdentity())
-            if (foundCards.isEmpty())
-                throw UnRegistrationException("Card with identity " +
-                                              "${currentIdentity()} does not exist.")
+            val cards = cardManager.searchCards(this@AuthorizationWorker.identity)
+            val card = cards.firstOrNull() ?: throw EThreeException("User is not registered")
 
-            if (foundCards.size > 1)
-                throw UnRegistrationException("Too many cards with identity: " +
-                                              "${currentIdentity()}.")
-
-            cardManager.revokeCard(foundCards.first().identifier).run {
-                if (hasLocalPrivateKey()) cleanup()
-            }
+            cardManager.revokeCard(card.identifier)
+            keyStorageLocal.delete()
+            privateKeyDeleted()
         }
     }
 
     /**
-     * Generates new key pair, publishes new public key for current identity and deprecating old
-     * public key, saves private key to the local storage. All data that was encrypted earlier
-     * will become undecryptable.
+     * Generates new Private Key, publishes new Card to replace the current one on Virgil Cards
+     * Service and saves new Private Key in local storage
      *
      * To start execution of the current function, please see [Completable] description.
-     *
-     * @throws PrivateKeyExistsException
-     * @throws CardNotFoundException
-     * @throws CryptoException
      */
     @Synchronized internal fun rotatePrivateKey() = object : Completable {
         override fun execute() {
-            if (localKeyStorage.exists())
-                throw PrivateKeyExistsException("You already have a Private Key on this device" +
-                                                "for identity: ${currentIdentity()}. Please, use" +
-                                                "\'cleanup()\' function first.")
+            if (keyStorageLocal.exists())
+                throw PrivateKeyExistsException("Private key already exists in local key storage.")
 
-            val cards = cardManager.searchCards(currentIdentity())
-            if (cards.isEmpty())
-                throw CardNotFoundException("No cards was found " +
-                                            "with identity: ${currentIdentity()}")
-            if (cards.size > 1)
-                throw IllegalStateException("${cards.size} cards was found " +
-                                            "with identity: ${currentIdentity()}. How? (: " +
-                                            "Should be <= 1. Please, contact developers if " +
-                                            "it was not an intended behaviour.")
+            val cards = cardManager.searchCards(this@AuthorizationWorker.identity)
+            val card = cards.firstOrNull() ?: throw EThreeException("User is not registered")
 
-            (cards.first() to virgilCrypto.generateKeyPair()).run {
-                val rawCard = cardManager.generateRawCard(this.second.privateKey,
-                                                          this.second.publicKey,
-                                                          currentIdentity(),
-                                                          this.first.identifier)
-                cardManager.publishCard(rawCard)
-
-                localKeyStorage.store(virgilCrypto.exportPrivateKey(this.second.privateKey))
-            }
+            publishCardThenSaveLocal(null, card.identifier)
         }
     }
 
     /**
-     * Checks whether the private key is present in the local storage of current device.
+     * Checks existence of private key in local key storage.
      * Returns *true* if the key is present in the local key storage otherwise *false*.
      */
-    internal fun hasLocalPrivateKey() = localKeyStorage.exists()
+    internal fun hasLocalPrivateKey() = keyStorageLocal.exists()
 
     /**
      * ! *WARNING* ! If you call this function after [register] without using [backupPrivateKey]
-     * then you loose private key permanently, as well you won't be able to use identity that
+     * then you will loose private key permanently, as well you won't be able to use identity that
      * was used with that private key no more.
      *
-     * Cleans up user's private key from a device - call this function when you want to log your
-     * user out of the device.
+     * Deletes Private Key from local storage, cleans local cards storage.
      *
-     * Can be called only if private key is on the device otherwise [PrivateKeyNotFoundException]
+     * Can be called only if private key is on the device otherwise [PrivateKeyNotFoundException] // TODO check exception type
      * exception will be thrown.
-     *
-     * @throws PrivateKeyNotFoundException
      */
     internal fun cleanup() {
-        checkPrivateKeyOrThrow()
-
-        localKeyStorage.delete()
+        keyStorageLocal.delete()
+        privateKeyDeleted()
     }
 }
