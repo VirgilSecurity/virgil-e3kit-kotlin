@@ -31,26 +31,22 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.common.storage.local
+package com.virgilsecurity.android.common.storage
 
-import com.virgilsecurity.common.model.Data
-import com.virgilsecurity.sdk.crypto.VirgilKeyPair
+import com.virgilsecurity.sdk.cards.Card
 
 /**
- * KeyStorageLocal
+ * Virgil Cards storage.
  */
-interface KeyStorageLocal {
+interface CardStorage {
 
-    val identity: String
+    fun storeCard(card: Card)
 
-    fun exists() : Boolean
+    fun getCard(cardId: String): Card?
 
-    fun store(privateKey: Data)
+    fun searchCards(identities: List<String>): List<Card>
 
-    /**
-     * Retrieves current user's [VirgilKeyPair] with
-     */
-    fun load(): VirgilKeyPair
+    fun getNewestCardIds(): List<String>
 
-    fun delete()
+    fun reset()
 }

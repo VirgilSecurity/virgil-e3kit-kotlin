@@ -42,12 +42,12 @@ import com.virgilsecurity.android.common.manager.LookupManager
 import com.virgilsecurity.android.common.storage.cloud.KeyManagerCloud
 import com.virgilsecurity.android.common.storage.cloud.TicketStorageCloud
 import com.virgilsecurity.android.common.storage.local.GroupStorageFile
-import com.virgilsecurity.android.common.storage.local.KeyStorageLocal
+import com.virgilsecurity.android.common.storage.local.LocalKeyStorage
+import com.virgilsecurity.android.common.storage.sql.SQLCardStorage
 import com.virgilsecurity.android.common.util.Const
 import com.virgilsecurity.android.common.util.Const.VIRGIL_BASE_URL
 import com.virgilsecurity.android.common.util.Const.VIRGIL_CARDS_SERVICE_PATH
 import com.virgilsecurity.android.common.worker.*
-import com.virgilsecurity.common.model.Completable
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.keyknox.build.VersionVirgilAgent
 import com.virgilsecurity.sdk.cards.Card
@@ -86,7 +86,7 @@ constructor(identity: String,
 
     private val keyManagerCloud: KeyManagerCloud
     private val lookupManager: LookupManager
-    protected abstract val keyStorageLocal: KeyStorageLocal
+    protected val localKeyStorage: LocalKeyStorage
 
     private val authorizationWorker: AuthorizationWorker
     private val backupWorker: BackupWorker
@@ -99,6 +99,7 @@ constructor(identity: String,
     val identity: String
 
     init {
+        this.identity = identity
         val cardCrypto = VirgilCardCrypto(crypto)
         val virgilCardVerifier = VirgilCardVerifier(cardCrypto)
         val httpClient = HttpClient(Const.ETHREE_NAME, VersionVirgilAgent.VERSION)
@@ -115,18 +116,19 @@ constructor(identity: String,
                                           accessTokenProvider,
                                           VersionVirgilAgent.VERSION)
 
-        val cardStorageSqlite: CardStorageSQLiteStub // TODO virgilCardVerifier goes here
+        AndroidKeyStorage
+        //TODO path Android context
+        val cardStorageSqlite = SQLCardStorage(context, this.identity, crypto, virgilCardVerifier)
 
         this.lookupManager = LookupManager(cardStorageSqlite, cardManager, keyChangedCallback)
-        this.identity = identity
         this.rootPath = context.filesDir.absolutePath
-        this.authorizationWorker = AuthorizationWorker(cardManager, crypto, keyStorageLocal)
+        this.authorizationWorker = AuthorizationWorker(cardManager, crypto, localKeyStorage)
         this.backupWorker = BackupWorker()
         this.groupWorker = GroupWorker(identity, crypto, ::getGroupManager, ::computeSessionId)
-        this.p2pWorker = PeerToPeerWorker(::getGroupManager, keyStorageLocal, crypto)
+        this.p2pWorker = PeerToPeerWorker(::getGroupManager, localKeyStorage, crypto)
         this.searchWorker = SearchWorker(lookupManager)
 
-        if (keyStorageLocal.exists()) {
+        if (localKeyStorage.exists()) {
             privateKeyChanged()
         }
 
@@ -194,14 +196,14 @@ constructor(identity: String,
     fun cleanup() = authorizationWorker.cleanup()
 
     internal fun privateKeyChanged(newCard: Card? = null) {
-        val selfKeyPair = keyStorageLocal.load()
+        val selfKeyPair = localKeyStorage.load()
 
         val localGroupStorage = GroupStorageFile(identity, crypto, selfKeyPair, rootPath)
-        val ticketStorageCloud = TicketStorageCloud(acc, keyStorageLocal)
+        val ticketStorageCloud = TicketStorageCloud(accessTokenProvider, localKeyStorage)
 
         this.groupManager = GroupManager(localGroupStorage,
                                          ticketStorageCloud,
-                                         this.keyStorageLocal,
+                                         this.localKeyStorage,
                                          this.lookupManager,
                                          this.crypto)
 
@@ -242,8 +244,9 @@ constructor(identity: String,
         }
 
         val privateKeyData = Data(crypto.exportPrivateKey(virgilKeyPair.privateKey))
-        keyStorageLocal.store(privateKeyData)
-        privateKeyChanged(card)
+        //FIXME
+        //localKeyStorage.store(privateKeyData)
+        //privateKeyChanged(card)
     }
 
     companion object {

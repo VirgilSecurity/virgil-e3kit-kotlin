@@ -31,30 +31,33 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.ethreeenclave.interaction
+package com.virgilsecurity.android.common.storage.sql.dao
 
-import com.virgilsecurity.android.common.storage.local.KeyStorageLocal
-import com.virgilsecurity.sdk.androidutils.storage.AndroidKeyStorage
-import com.virgilsecurity.sdk.storage.JsonKeyEntry
-import com.virgilsecurity.sdk.storage.KeyEntry
+import androidx.room.*
+import com.virgilsecurity.android.common.storage.sql.model.CardEntity
+import com.virgilsecurity.sdk.cards.Card
 
-/**
- * KeyManagerLocalEnclave
- */
-class KeyManagerLocalEnclave(
-        private val keyStorage: AndroidKeyStorage,
-        private val identity: String
-) : KeyStorageLocal {
+@Dao
+interface CardDao {
 
-    override fun exists() = keyStorage.exists(identity)
+    @Insert
+    fun insert(card: CardEntity)
 
-    override fun store(privateKey: ByteArray) = keyStorage.store(JsonKeyEntry(identity, privateKey))
+    @Query("SELECT * FROM ethree_cards WHERE id = :cardId LIMIT 1")
+    fun load(cardId: String): CardEntity?
 
-    override fun load(): KeyEntry = keyStorage.load(identity)
+    @Query("SELECT * FROM ethree_cards WHERE identity IN (:identities)")
+    fun loadAllByIdentity(identities: List<String>): List<CardEntity>
 
-    override fun delete() = keyStorage.delete(identity)
+    @Query("SELECT id FROM ethree_cards WHERE is_outdated = 0")
+    fun getNewestCardIds(): List<String>
 
-    companion object {
-        private const val KEYSTORE_NAME = "virgil_android_keystore"
-    }
+    @Query("DELETE FROM ethree_cards")
+    fun deleteAll()
+
+    @Query("UPDATE ethree_cards SET is_outdated = 1 WHERE id = :cardId")
+    fun markOutdatedById(cardId: String)
+
+    @Query("UPDATE ethree_cards SET is_outdated = :isOutdated WHERE id = :cardId")
+    fun setOutdatedById(cardId: String, isOutdated: Boolean)
 }

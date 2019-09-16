@@ -38,7 +38,7 @@ import com.virgilsecurity.android.common.exception.PrivateKeyNotFoundException
 import com.virgilsecurity.android.common.manager.GroupManager
 import com.virgilsecurity.android.common.model.FindUsersResult
 import com.virgilsecurity.android.common.model.LookupResult
-import com.virgilsecurity.android.common.storage.local.KeyStorageLocal
+import com.virgilsecurity.android.common.storage.local.LocalKeyStorage
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
@@ -46,7 +46,6 @@ import com.virgilsecurity.sdk.crypto.VirgilPublicKey
 import com.virgilsecurity.sdk.crypto.exceptions.SignatureIsNotValidException
 import com.virgilsecurity.sdk.crypto.exceptions.VerificationException
 import com.virgilsecurity.sdk.exception.EmptyArgumentException
-import com.virgilsecurity.sdk.utils.ConvertionUtils
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.charset.StandardCharsets
@@ -57,7 +56,7 @@ import java.util.*
  */
 internal class PeerToPeerWorker(
         private val getGroupManager: () -> GroupManager,
-        private val keyStorageLocal: KeyStorageLocal,
+        private val localKeyStorage: LocalKeyStorage,
         private val crypto: VirgilCrypto
 ) {
 
@@ -151,7 +150,7 @@ internal class PeerToPeerWorker(
     internal fun decrypt(inputStream: InputStream, outputStream: OutputStream) {
         if (inputStream.available() == 0) throw EmptyArgumentException("inputStream")
 
-        val selfKeyPair = keyStorageLocal.load()
+        val selfKeyPair = localKeyStorage.load()
 
         crypto.decrypt(inputStream, outputStream, selfKeyPair.privateKey)
     }
@@ -267,7 +266,7 @@ internal class PeerToPeerWorker(
     internal fun encryptInternal(inputStream: InputStream,
                                  outputStream: OutputStream,
                                  publicKeys: List<VirgilPublicKey>?) {
-        val selfKeyPair = keyStorageLocal.load()
+        val selfKeyPair = localKeyStorage.load()
         val pubKeys = mutableListOf(selfKeyPair.publicKey)
 
         if (publicKeys != null) {
@@ -282,7 +281,7 @@ internal class PeerToPeerWorker(
     }
 
     internal fun encryptInternal(data: Data, publicKeys: List<VirgilPublicKey>?): Data { // TODO check for empty/null args
-        val selfKeyPair = keyStorageLocal.load()
+        val selfKeyPair = localKeyStorage.load()
         val pubKeys = mutableListOf(selfKeyPair.publicKey)
 
         if (publicKeys != null) {
@@ -297,7 +296,7 @@ internal class PeerToPeerWorker(
     }
 
     internal fun decryptInternal(data: Data, publicKey: VirgilPublicKey?): Data {
-        val selfKeyPair = keyStorageLocal.load()
+        val selfKeyPair = localKeyStorage.load()
         val pubKey = publicKey ?: selfKeyPair.publicKey
 
         return try {

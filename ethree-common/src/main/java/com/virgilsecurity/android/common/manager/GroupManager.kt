@@ -40,7 +40,7 @@ import com.virgilsecurity.android.common.model.RawGroup
 import com.virgilsecurity.android.common.model.Ticket
 import com.virgilsecurity.android.common.storage.cloud.TicketStorageCloud
 import com.virgilsecurity.android.common.storage.local.GroupStorageFile
-import com.virgilsecurity.android.common.storage.local.KeyStorageLocal
+import com.virgilsecurity.android.common.storage.local.LocalKeyStorage
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
@@ -51,7 +51,7 @@ import com.virgilsecurity.sdk.crypto.VirgilCrypto
 internal class GroupManager(
         internal val localGroupStorage: GroupStorageFile,
         private val ticketStorageCloud: TicketStorageCloud,
-        private val keyStorageLocal: KeyStorageLocal,
+        private val localKeyStorage: LocalKeyStorage,
         private val lookupManager: LookupManager,
         private val crypto: VirgilCrypto
 ) {
@@ -60,7 +60,7 @@ internal class GroupManager(
 
     private fun parse(rawGroup: RawGroup): Group = Group(rawGroup,
                                                          crypto,
-                                                         keyStorageLocal,
+                                                         localKeyStorage,
                                                          this,
                                                          lookupManager)
 

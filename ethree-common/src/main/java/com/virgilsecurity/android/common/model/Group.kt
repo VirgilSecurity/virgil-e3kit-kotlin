@@ -34,7 +34,7 @@
 package com.virgilsecurity.android.common.model
 
 import com.virgilsecurity.android.common.exception.GroupException
-import com.virgilsecurity.android.common.storage.local.KeyStorageLocal
+import com.virgilsecurity.android.common.storage.local.LocalKeyStorage
 import com.virgilsecurity.android.common.manager.GroupManager
 import com.virgilsecurity.android.common.manager.LookupManager
 import com.virgilsecurity.crypto.foundation.GroupSession
@@ -46,7 +46,7 @@ import com.virgilsecurity.sdk.crypto.VirgilCrypto
 internal class Group(
         rawGroup: RawGroup,
         private val crypto: VirgilCrypto,
-        keyStorageLocal: KeyStorageLocal,
+        localKeyStorage: LocalKeyStorage,
         groupManager: GroupManager,
         lookupManager: LookupManager
 ) {
@@ -56,7 +56,7 @@ internal class Group(
 
     internal val session: GroupSession
 
-    private val selfIdentity: String = keyStorageLocal.identity
+    private val selfIdentity: String = localKeyStorage.identity
 
     init {
         val tickets = rawGroup.tickets.sortedBy { it.groupMessage.epoch } // TODO check sort order matches $0.groupMessage.getEpoch() < $1.groupMessage.getEpoch()

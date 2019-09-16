@@ -37,7 +37,7 @@ import android.content.Context
 import com.virgilsecurity.android.common.util.Const.NO_CONTEXT
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.common.EThreeCore
-import com.virgilsecurity.android.common.storage.local.KeyStorageLocal
+import com.virgilsecurity.android.common.storage.local.LocalKeyStorage
 import com.virgilsecurity.sdk.jwt.Jwt
 import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
 import com.virgilsecurity.sdk.jwt.contract.AccessTokenProvider
@@ -52,11 +52,11 @@ private constructor(
         tokenProvider: AccessTokenProvider
 ) : EThreeCore(tokenProvider) {
 
-    val keyStorageLocal: KeyStorageLocal
+    val localKeyStorage: LocalKeyStorage
 
     init {
-        keyStorageLocal =
-                KeyManagerLocalDefault(tokenProvider.getToken(NO_CONTEXT).identity, context)
+        localKeyStorage =
+                DefaultLocalKeyStorage(tokenProvider.getToken(NO_CONTEXT).identity, context)
     }
 
     companion object {

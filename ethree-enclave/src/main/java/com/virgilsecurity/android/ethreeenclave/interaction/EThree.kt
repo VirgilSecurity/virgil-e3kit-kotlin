@@ -37,7 +37,7 @@ import android.content.Context
 import com.virgilsecurity.android.common.util.Const.NO_CONTEXT
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.common.EThreeCore
-import com.virgilsecurity.android.common.storage.local.KeyStorageLocal
+import com.virgilsecurity.android.common.storage.local.LocalKeyStorage
 import com.virgilsecurity.sdk.androidutils.storage.AndroidKeyEntry
 import com.virgilsecurity.sdk.androidutils.storage.AndroidKeyStorage
 import com.virgilsecurity.sdk.crypto.exceptions.KeyStorageException
@@ -59,7 +59,7 @@ private constructor(
         keyValidityDuration: Int
 ) : EThreeCore(tokenProvider) {
 
-    override val keyStorageLocal: KeyStorageLocal
+    override val localKeyStorage: LocalKeyStorage
 
     init {
         synchronized(this@EThree) {
@@ -69,7 +69,7 @@ private constructor(
                     .onPath(context.filesDir.absolutePath)
                     .build()
 
-            keyStorageLocal = KeyManagerLocalEnclave(keyStorageAndroid,
+            localKeyStorage = KeyManagerLocalKeyStorageEnclave(keyStorageAndroid,
                                                      tokenProvider.getToken(NO_CONTEXT).identity)
 
             // Migration from old storage to new

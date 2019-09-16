@@ -35,9 +35,8 @@ package com.virgilsecurity.android.common.worker
 
 import com.virgilsecurity.android.common.EThreeCore
 import com.virgilsecurity.android.common.exception.*
-import com.virgilsecurity.android.common.storage.local.KeyStorageLocal
+import com.virgilsecurity.android.common.storage.local.LocalKeyStorage
 import com.virgilsecurity.common.model.Completable
-import com.virgilsecurity.crypto.pythia.Pythia.cleanup
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 
@@ -47,7 +46,7 @@ import com.virgilsecurity.sdk.crypto.VirgilCrypto
 internal class AuthorizationWorker(
         private val cardManager: CardManager,
         private val virgilCrypto: VirgilCrypto,
-        private val keyStorageLocal: KeyStorageLocal
+        private val localKeyStorage: LocalKeyStorage
 ) {
 
     /**
@@ -65,14 +64,14 @@ internal class AuthorizationWorker(
                 throw RegistrationException("Card with identity " +
                                             "${currentIdentity()} already exists")
 
-            if (keyStorageLocal.exists())
+            if (localKeyStorage.exists())
                 throw PrivateKeyExistsException("You already have a Private Key on this device" +
                                                 "for identity: ${currentIdentity()}. Please, use" +
                                                 "\'cleanup()\' function first.")
 
             virgilCrypto.generateKeyPair().run {
                 cardManager.publishCard(this.privateKey, this.publicKey, currentIdentity())
-                keyStorageLocal.store(virgilCrypto.exportPrivateKey(this.privateKey))
+                localKeyStorage.store(virgilCrypto.exportPrivateKey(this.privateKey))
             }
         }
     }
@@ -116,7 +115,7 @@ internal class AuthorizationWorker(
      */
     @Synchronized internal fun rotatePrivateKey() = object : Completable {
         override fun execute() {
-            if (keyStorageLocal.exists())
+            if (localKeyStorage.exists())
                 throw PrivateKeyExistsException("You already have a Private Key on this device" +
                                                 "for identity: ${currentIdentity()}. Please, use" +
                                                 "\'cleanup()\' function first.")
@@ -138,7 +137,7 @@ internal class AuthorizationWorker(
                                                           this.first.identifier)
                 cardManager.publishCard(rawCard)
 
-                keyStorageLocal.store(virgilCrypto.exportPrivateKey(this.second.privateKey))
+                localKeyStorage.store(virgilCrypto.exportPrivateKey(this.second.privateKey))
             }
         }
     }
@@ -147,7 +146,7 @@ internal class AuthorizationWorker(
      * Checks whether the private key is present in the local storage of current device.
      * Returns *true* if the key is present in the local key storage otherwise *false*.
      */
-    internal fun hasLocalPrivateKey() = keyStorageLocal.exists()
+    internal fun hasLocalPrivateKey() = localKeyStorage.exists()
 
     /**
      * ! *WARNING* ! If you call this function after [register] without using [backupPrivateKey]
@@ -165,6 +164,6 @@ internal class AuthorizationWorker(
     internal fun cleanup() {
         checkPrivateKeyOrThrow()
 
-        keyStorageLocal.delete()
+        localKeyStorage.delete()
     }
 }

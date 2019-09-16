@@ -79,7 +79,9 @@ dependencies {
         exclude group: 'com.virgilsecurity.crypto', module: 'pythia'
     }
     androidTestImplementation "com.virgilsecurity.crypto:pythia-android:$versions.virgilCrypto"
-    androidTestImplementation("com.virgilsecurity.sdk:keyknox:$versions.virgilSdk") {
+    androidTestImplementation("com.virgilsecurity.sdk:keyknox:$versions.virgilSdk")
+
+    implementation("com.virgilsecurity.sdk:keyknox:$versions.virgilSdk") {
         exclude group: 'com.virgilsecurity.sdk', module: 'crypto'
         exclude group: 'com.virgilsecurity.sdk', module: 'sdk'
         exclude group: 'com.virgilsecurity.crypto', module: 'common'
@@ -91,4 +93,6 @@ dependencies {
     testImplementation "junit:junit:$versions.junit"
     androidTestImplementation "com.android.support.test:runner:$versions.testsRunner"
     androidTestImplementation "com.android.support.test.espresso:espresso-core:$versions.espresso"
+
+    testImplementation "androidx.room:room-testing:$versions.room"
 }

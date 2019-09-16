@@ -33,6 +33,7 @@
 
 package com.virgilsecurity.android.common.storage.cloud
 
+import com.virgilsecurity.android.common.exception.WrongPasswordException
 import com.virgilsecurity.android.common.util.Const
 import com.virgilsecurity.android.common.util.Const.VIRGIL_BASE_URL
 import com.virgilsecurity.keyknox.KeyknoxManager
@@ -47,6 +48,7 @@ import com.virgilsecurity.pythia.crypto.VirgilPythiaCrypto
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilPrivateKey
 import com.virgilsecurity.sdk.crypto.VirgilPublicKey
+import com.virgilsecurity.sdk.crypto.exceptions.DecryptionException
 import com.virgilsecurity.sdk.jwt.contract.AccessTokenProvider
 import java.net.URL
 
@@ -91,8 +93,7 @@ class KeyManagerCloud(
 
     fun delete(password: String) = initCloudKeyStorage(password).delete(identity)
 
-    fun deleteAll() =
-            keyknoxClient.resetValue(tokenProvider.getToken(Const.NO_CONTEXT).stringRepresentation())
+    fun deleteAll() = keyknoxClient.resetValue()
 
     fun updateRecipients(password: String,
                          publicKeys: List<VirgilPublicKey>,
@@ -103,17 +104,17 @@ class KeyManagerCloud(
      * Initializes [SyncKeyStorage] with default settings, [tokenProvider] and provided
      * [password] after that returns initialized [SyncKeyStorage] object.
      */
-    private fun initCloudKeyStorage(password: String): CloudKeyStorage =
-            BrainKey(brainKeyContext).generateKeyPair(password)
-                    .let { keyPair ->
-                        val keyknoxManager = KeyknoxManager(tokenProvider,
-                                                            keyknoxClient,
-                                                            listOf(keyPair.publicKey),
-                                                            keyPair.privateKey,
-                                                            KeyknoxCrypto())
-                        val cloudKeyStorage = CloudKeyStorage(keyknoxManager).also { cloudKeyStorage ->
-                            cloudKeyStorage.retrieveCloudEntries()
-                        }
-                        cloudKeyStorage
-                    }
+    private fun initCloudKeyStorage(password: String): CloudKeyStorage {
+        val brainKeyPair = this.brainKey.generateKeyPair(password)
+
+        val cloudKeyStorage = CloudKeyStorage(this.keyknoxManager, listOf(brainKeyPair.publicKey), brainKeyPair.privateKey)
+
+        try {
+            cloudKeyStorage.retrieveCloudEntries()
+        } catch (e: DecryptionException) {
+            throw WrongPasswordException()
+        }
+
+        return  cloudKeyStorage
+    }
 }

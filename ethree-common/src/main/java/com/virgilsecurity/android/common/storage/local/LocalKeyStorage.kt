@@ -31,32 +31,43 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.ethree.interaction
+package com.virgilsecurity.android.common.storage.local
 
-import android.content.Context
-import com.virgilsecurity.android.common.storage.local.KeyStorageLocal
-import com.virgilsecurity.sdk.storage.DefaultKeyStorage
-import com.virgilsecurity.sdk.storage.JsonKeyEntry
-import com.virgilsecurity.sdk.storage.KeyEntry
+import com.virgilsecurity.android.common.exception.PrivateKeyNotFoundException
+import com.virgilsecurity.common.model.Data
+import com.virgilsecurity.sdk.crypto.VirgilCrypto
+import com.virgilsecurity.sdk.crypto.VirgilKeyPair
+import com.virgilsecurity.sdk.crypto.exceptions.CryptoException
 import com.virgilsecurity.sdk.storage.KeyStorage
 
 /**
- * KeyManagerLocalDefault
+ * Local KeyStorage.
  */
-class KeyManagerLocalDefault(val identity: String, context: Context) : KeyStorageLocal { // TODO change context with rootPath
+open class LocalKeyStorage(val identity: String, private val crypto: VirgilCrypto, private val keyStorage: KeyStorage) {
 
-    private val keyStorage: KeyStorage = DefaultKeyStorage(context.filesDir.absolutePath,
-                                                           KEYSTORE_NAME)
+    fun exists() : Boolean {
+        return this.keyStorage.exists(this.identity)
+    }
 
-    override fun exists() = keyStorage.exists(identity)
+    fun store(privateKeyData: Data) {
+        return this.keyStorage.store(this.keyStorage.createEntry(this.identity, privateKeyData.data))
+    }
 
-    override fun store(privateKey: ByteArray) = keyStorage.store(JsonKeyEntry(identity, privateKey))
+    /**
+     * Retrieves current user's [VirgilKeyPair] with
+     */
+    fun load(): VirgilKeyPair {
+        val keyEntry = this.keyStorage.load(this.identity)
+        try {
+            val keyPair = this.crypto.importPrivateKey(keyEntry.value)
+            return keyPair
+        }
+        catch (e: CryptoException) {
+            throw PrivateKeyNotFoundException()
+        }
+    }
 
-    override fun load(): KeyEntry = keyStorage.load(identity)
-
-    override fun delete() = keyStorage.delete(identity)
-
-    companion object {
-        private const val KEYSTORE_NAME = "virgil.keystore"
+    fun delete() {
+        this.keyStorage.delete(this.identity)
     }
 }

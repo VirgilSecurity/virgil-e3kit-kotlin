@@ -31,60 +31,24 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-buildscript {
-    ext.versions = [
-            // Virgil
-            virgilSdk   : '6.0-SNAPSHOT',
-            virgilCrypto: '0.10.2',
-            pythia      : '0.3.1',
+package com.virgilsecurity.android.ethree.interaction
 
-            // Kotlin
-            kotlin      : '1.3.50',
-            coroutines  : '1.3.0-M1',
+import android.content.Context
+import com.virgilsecurity.android.common.storage.local.LocalKeyStorage
+import com.virgilsecurity.sdk.crypto.VirgilCrypto
+import com.virgilsecurity.sdk.storage.DefaultKeyStorage
+import com.virgilsecurity.sdk.storage.JsonKeyEntry
+import com.virgilsecurity.sdk.storage.KeyEntry
+import com.virgilsecurity.sdk.storage.KeyStorage
 
-            // Gradle
-            gradle      : '3.5.0',
+/**
+ * DefaultLocalKeyStorage
+ */
+class DefaultLocalKeyStorage(val identity: String, context: Context, crypto: VirgilCrypto, keyStorage: KeyStorage):
+        LocalKeyStorage(identity, crypto, DefaultKeyStorage(context.filesDir.absolutePath,
+                KEYSTORE_NAME)) { // TODO change context with rootPath
 
-            // Maven
-            mavenPublish: '3.6.2',
-
-            // Android
-            android     : '4.1.1.4',
-            appCompat   : '28.0.0',
-
-            // Room
-            room        : '2.2.0-rc01',
-
-            // Docs
-            dokka       : '0.9.18',
-
-            // Tests
-            junit       : '4.12',
-            testsRunner : '1.0.2',
-            espresso    : '3.0.2',
-    ]
-    repositories {
-        google()
-        jcenter()
-        mavenCentral()
+    companion object {
+        private const val KEYSTORE_NAME = "virgil.keystore"
     }
-    dependencies {
-        classpath "com.android.tools.build:gradle:$versions.gradle"
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$versions.kotlin"
-        classpath "org.jetbrains.dokka:dokka-gradle-plugin:$versions.dokka"
-        classpath "digital.wup:android-maven-publish:$versions.mavenPublish"
-    }
-}
-
-allprojects {
-    repositories {
-        mavenLocal()
-        google()
-        jcenter()
-        mavenCentral()
-    }
-}
-
-task clean(type: Delete) {
-    delete rootProject.buildDir
 }

@@ -38,6 +38,8 @@ plugins {
 
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
 
 apply plugin: 'digital.wup.android-maven-publish'
 apply plugin: 'org.jetbrains.dokka'
@@ -53,6 +55,15 @@ android {
         minSdkVersion 23
         targetSdkVersion 28
         consumerProguardFiles 'proguard-rules.txt'
+
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments = [
+                        "room.schemaLocation":"$projectDir/schemas".toString(),
+                        "room.incremental":"true",
+                        "room.expandProjection":"true"]
+            }
+        }
     }
 }
 
@@ -62,29 +73,25 @@ dependencies {
     compileOnly "org.jetbrains.kotlinx:kotlinx-coroutines-core:$versions.coroutines"
 
     // Virgil
-    api ("com.virgilsecurity.sdk:sdk:$versions.virgilSdk") {
-        exclude group: 'com.virgilsecurity.sdk', module: 'crypto'
-    }
     implementation "com.virgilsecurity.sdk:crypto-android:$versions.virgilSdk"
-    implementation ("com.virgilsecurity:common:$versions.virgilSdk") {
-        exclude group: 'com.virgilsecurity.crypto', module: 'foundation'
-    }
-    implementation "com.virgilsecurity.crypto:foundation-android:$versions.virgilCrypto"
 
-    implementation("com.virgilsecurity:pythia:$versions.pythia") {
-        exclude group: 'com.virgilsecurity.sdk', module: 'crypto'
-        exclude group: 'com.virgilsecurity.crypto', module: 'common'
-        exclude group: 'com.virgilsecurity.crypto', module: 'foundation'
-        exclude group: 'com.virgilsecurity.crypto', module: 'pythia'
+    implementation ("com.virgilsecurity:pythia:$versions.pythia") {
+        exclude group: 'com.virgilsecurity.crypto'
+//        exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
     }
-    implementation "com.virgilsecurity.crypto:pythia-android:$versions.virgilCrypto"
+
     implementation("com.virgilsecurity.sdk:keyknox:$versions.virgilSdk") {
-        exclude group: 'com.virgilsecurity.sdk', module: 'crypto'
-        exclude group: 'com.virgilsecurity.sdk', module: 'sdk'
-        exclude group: 'com.virgilsecurity.crypto', module: 'common'
-        exclude group: 'com.virgilsecurity.crypto', module: 'foundation'
-        exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
+        exclude group: 'com.virgilsecurity.crypto'
+//        exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
     }
+
+    // Android
+    compileOnly "com.google.android:android:$versions.android"
+
+    // Room
+    implementation "androidx.room:room-runtime:$versions.room"
+    implementation "androidx.room:room-ktx:$versions.room"
+    kapt "androidx.room:room-compiler:$versions.room"
 }
 
 sourceCompatibility = "8"

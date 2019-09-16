@@ -31,22 +31,19 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.common
+package com.virgilsecurity.android.common.storage.sql.model
 
-import com.virgilsecurity.sdk.cards.Card
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.Index
+import androidx.room.PrimaryKey
 
-/**
- * CardStorageSQLiteStub
- */
-interface CardStorageSQLiteStub {
-
-    fun storeCard(card: Card)
-
-    fun getCard(cardId: String): Card?
-
-    fun searchCards(identities: List<String>): List<Card>
-
-    fun getNewestCardIds(): List<String>
-
-    fun reset()
-}
+@Entity(tableName = "ethree_cards",
+        indices = arrayOf(Index(value = ["id"], unique = true),
+                Index(value = ["identity"], unique = true)))
+data class CardEntity(
+        @PrimaryKey @ColumnInfo(name = "id") val identifier: String,
+        @ColumnInfo(name = "identity") val identity: String,
+        @ColumnInfo(name = "is_outdated") val isOutdated: Boolean,
+        @ColumnInfo(name = "model") val model: String
+)

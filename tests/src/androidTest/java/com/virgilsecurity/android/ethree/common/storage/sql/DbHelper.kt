@@ -31,60 +31,50 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-buildscript {
-    ext.versions = [
-            // Virgil
-            virgilSdk   : '6.0-SNAPSHOT',
-            virgilCrypto: '0.10.2',
-            pythia      : '0.3.1',
+package com.virgilsecurity.android.ethree.common.storage.sql
 
-            // Kotlin
-            kotlin      : '1.3.50',
-            coroutines  : '1.3.0-M1',
+import android.content.Context
+import android.database.sqlite.SQLiteDatabase
+import android.database.sqlite.SQLiteOpenHelper
+import java.io.File
+import java.io.FileOutputStream
 
-            // Gradle
-            gradle      : '3.5.0',
+class DbHelper(val context: Context, val dbName: String) : SQLiteOpenHelper(context, dbName, null, DATABASE_VERSION) {
 
-            // Maven
-            mavenPublish: '3.6.2',
-
-            // Android
-            android     : '4.1.1.4',
-            appCompat   : '28.0.0',
-
-            // Room
-            room        : '2.2.0-rc01',
-
-            // Docs
-            dokka       : '0.9.18',
-
-            // Tests
-            junit       : '4.12',
-            testsRunner : '1.0.2',
-            espresso    : '3.0.2',
-    ]
-    repositories {
-        google()
-        jcenter()
-        mavenCentral()
+    override fun onCreate(db: SQLiteDatabase?) {
+        // Nothing to do
     }
-    dependencies {
-        classpath "com.android.tools.build:gradle:$versions.gradle"
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$versions.kotlin"
-        classpath "org.jetbrains.dokka:dokka-gradle-plugin:$versions.dokka"
-        classpath "digital.wup:android-maven-publish:$versions.mavenPublish"
-    }
-}
 
-allprojects {
-    repositories {
-        mavenLocal()
-        google()
-        jcenter()
-        mavenCentral()
+    override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
+        // Nothing to do
     }
-}
 
-task clean(type: Delete) {
-    delete rootProject.buildDir
+    private fun installDatabaseFromAssets() {
+        val inputStream = context.assets.open("$ASSETS_PATH/$dbName.sqlite3")
+
+        try {
+            val outputFile = File(context.getDatabasePath(dbName).path)
+            val outputStream = FileOutputStream(outputFile)
+
+            inputStream.copyTo(outputStream)
+            inputStream.close()
+
+            outputStream.flush()
+            outputStream.close()
+        } catch (exception: Throwable) {
+            throw RuntimeException("The $dbName database couldn't be installed.", exception)
+        }
+    }
+
+    @Synchronized
+    fun installDatabase() {
+        context.deleteDatabase(dbName)
+        installDatabaseFromAssets()
+    }
+
+    companion object {
+        const val DATABASE_VERSION = 1
+        const val ASSETS_PATH = "databases"
+    }
+
 }
