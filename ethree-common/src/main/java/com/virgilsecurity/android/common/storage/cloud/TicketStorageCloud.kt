@@ -33,7 +33,7 @@
 
 package com.virgilsecurity.android.common.storage.cloud
 
-import com.virgilsecurity.android.common.storage.local.LocalKeyStorage
+import com.virgilsecurity.android.common.storage.local.KeyStorageLocal
 import com.virgilsecurity.android.common.model.Ticket
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.common.util.toHexString
@@ -49,14 +49,14 @@ import com.virgilsecurity.sdk.jwt.contract.AccessTokenProvider
  */
 internal class TicketStorageCloud(
         accessTokenProvider: AccessTokenProvider,
-        private val localKeyStorage: LocalKeyStorage
+        private val keyStorageLocal: KeyStorageLocal
 ) {
 
     private val keyknoxManager: KeyknoxManager = KeyknoxManager(KeyknoxClient(accessTokenProvider))
-    private var identity: String = localKeyStorage.identity
+    private var identity: String = keyStorageLocal.identity
 
     internal fun store(ticket: Ticket, cards: List<Card>) {
-        val selfKeyPair = localKeyStorage.load()
+        val selfKeyPair = keyStorageLocal.load()
 
         val groupMessage = ticket.groupMessage
 
@@ -82,7 +82,7 @@ internal class TicketStorageCloud(
     internal fun retrieve(sessionId: Data,
                           identity: String,
                           identityPublicKey: VirgilPublicKey): List<Ticket> {
-        val selfKeyPair = localKeyStorage.load()
+        val selfKeyPair = keyStorageLocal.load()
 
         val sessionIdHex = sessionId.toHexString()
 
@@ -113,7 +113,7 @@ internal class TicketStorageCloud(
     }
 
     internal fun addRecipients(cards: List<Card>, sessionId: Data) {
-        val selfKeyPair = localKeyStorage.load()
+        val selfKeyPair = keyStorageLocal.load()
 
         val sessionIdHex = sessionId.toHexString()
 
@@ -149,7 +149,7 @@ internal class TicketStorageCloud(
     }
 
     internal fun reAddRecipient(card: Card, sessionId: Data) {
-        val selfKeyPair = localKeyStorage.load()
+        val selfKeyPair = keyStorageLocal.load()
 
         val path = sessionId.toHexString()
 

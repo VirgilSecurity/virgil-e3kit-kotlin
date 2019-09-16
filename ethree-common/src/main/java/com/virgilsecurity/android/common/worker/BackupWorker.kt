@@ -33,24 +33,24 @@
 
 package com.virgilsecurity.android.common.worker
 
-import com.virgilsecurity.android.common.EThreeCore
+import com.virgilsecurity.android.common.KeyManagerCloudStub
 import com.virgilsecurity.android.common.exception.BackupKeyException
 import com.virgilsecurity.android.common.exception.PrivateKeyNotFoundException
 import com.virgilsecurity.android.common.exception.RestoreKeyException
 import com.virgilsecurity.android.common.exception.WrongPasswordException
-import com.virgilsecurity.android.common.util.Const
+import com.virgilsecurity.android.common.storage.local.KeyStorageLocal
 import com.virgilsecurity.common.model.Completable
-import com.virgilsecurity.keyknox.exception.DecryptionFailedException
-import com.virgilsecurity.keyknox.exception.EntryAlreadyExistsException
-import com.virgilsecurity.pythia.brainkey.BrainKey
-import com.virgilsecurity.pythia.brainkey.BrainKeyContext
-import com.virgilsecurity.pythia.client.VirgilPythiaClient
-import com.virgilsecurity.pythia.crypto.VirgilPythiaCrypto
+import com.virgilsecurity.common.model.Data
+import com.virgilsecurity.sdk.cards.Card
 
 /**
  * BackupWorker
  */
-class BackupWorker {
+internal class BackupWorker(
+        private val keyStorageLocal: KeyStorageLocal,
+        private val keyManagerCloud: KeyManagerCloudStub, // FIXME to actual KeyManagerCloud
+        private val privateKeyChanged: (Card?) -> Unit
+) {
 
     /**
      * Encrypts the user's private key using the user's [password] and backs up the encrypted
@@ -69,23 +69,10 @@ class BackupWorker {
      * @throws PrivateKeyNotFoundException
      * @throws BackupKeyException
      */
-    fun backupPrivateKey(password: String) = object : Completable {
+    internal fun backupPrivateKey(password: String): Completable = object : Completable {
         override fun execute() {
-            try {
-                checkPrivateKeyOrThrow()
-
-                require(!password.isBlank()) { "\'password\' should not be empty" }
-
-                with(keyStorageLocal.load()) {
-                    keyManagerCloud.store(password, this.value, this.meta)
-                }
-            } catch (throwable: Throwable) {
-                if (throwable is EntryAlreadyExistsException)
-                    throw BackupKeyException("Key with identity ${currentIdentity()} " +
-                                             "already backed up.")
-                else
-                    throw throwable
-            }
+            val identityKeyPair = keyStorageLocal.load()
+            keyManagerCloud.store(identityKeyPair.privateKey, password)
         }
     }
 
@@ -99,34 +86,16 @@ class BackupWorker {
      * @throws WrongPasswordException
      * @throws RestoreKeyException
      */
-    fun restorePrivateKey(password: String) = object : Completable {
+    internal fun restorePrivateKey(password: String): Completable = object : Completable {
         override fun execute() {
-            try {
-                if (keyStorageLocal.exists())
-                    throw RestoreKeyException("You already have a Private Key on this device" +
-                                              "for identity: ${currentIdentity()}. Please, use" +
-                                              "\'cleanup()\' function first.")
-
-                if (keyManagerCloud.exists(password)) {
-                    Thread.sleep(EThreeCore.THROTTLE_TIMEOUT) // To avoid next request been throttled
-
-                    val keyEntry = keyManagerCloud.retrieve(password)
-                    keyStorageLocal.store(keyEntry.data)
-                } else {
-                    throw RestoreKeyException("There is no key backup with " +
-                                              "identity: ${currentIdentity()}")
-                }
-            } catch (throwable: Throwable) {
-                if (throwable is DecryptionFailedException)
-                    throw WrongPasswordException("Specified password is not valid.")
-                else
-                    throw throwable
-            }
+            val entry = keyManagerCloud.retrieve(password)
+            keyStorageLocal.store(Data(entry.data))
+            privateKeyChanged(null)
         }
     }
 
     /**
-     * Changes the password of the private key backup.
+     * Changes the password on a backed-up private key.
      *
      * Pulls user's private key from the Virgil's cloud storage, decrypts it with *Private key*
      * that is generated based on provided [oldPassword] after that encrypts user's *Private key*
@@ -140,36 +109,16 @@ class BackupWorker {
      *
      * @throws PrivateKeyNotFoundException
      */
-    fun changePassword(oldPassword: String,
-                       newPassword: String) = object : Completable {
+    internal fun changePassword(oldPassword: String,
+                       newPassword: String): Completable = object : Completable {
         override fun execute() {
-            checkPrivateKeyOrThrow()
-
-            if (oldPassword.isBlank())
-                throw IllegalArgumentException("\'oldPassword\' should not be empty")
-            if (newPassword.isBlank())
-                throw IllegalArgumentException("\'newPassword\' should not be empty")
-            if (newPassword == oldPassword)
-                throw IllegalArgumentException("\'newPassword\' can't be the same as the old one")
-
-            val brainKeyContext = BrainKeyContext.Builder()
-                    .setAccessTokenProvider(tokenProvider)
-                    .setPythiaClient(VirgilPythiaClient(Const.VIRGIL_BASE_URL))
-                    .setPythiaCrypto(VirgilPythiaCrypto())
-                    .build()
-
-            val keyPair = BrainKey(brainKeyContext).generateKeyPair(newPassword)
-
-            Thread.sleep(EThreeCore.THROTTLE_TIMEOUT) // To avoid next request been throttled
-
-            keyManagerCloud.updateRecipients(oldPassword,
-                                             listOf(keyPair.publicKey),
-                                             keyPair.privateKey)
+            keyManagerCloud.changePassword(oldPassword, newPassword)
         }
     }
 
     /**
-     * Deletes the user's private key from Virgil's cloud.
+     * Deletes Private Key stored on Virgil's cloud. This will disable user to log in from
+     * other devices.
      *
      * Deletes private key backup using specified [password] and provides [onCompleteListener]
      * callback that will notify you with successful completion or with a [Throwable] if
@@ -183,25 +132,13 @@ class BackupWorker {
      * @throws PrivateKeyNotFoundException
      * @throws WrongPasswordException
      */
-    @JvmOverloads fun resetPrivateKeyBackup(password: String? = null) = object : Completable {
+    @JvmOverloads
+    internal fun resetPrivateKeyBackup(password: String? = null): Completable = object : Completable {
         override fun execute() {
-            try {
-                checkPrivateKeyOrThrow()
-
-                if (password == null) {
-                    keyManagerCloud.deleteAll()
-                } else {
-                    if (password.isBlank())
-                        throw IllegalArgumentException("\'password\' should not be empty")
-
-                    keyManagerCloud.delete(password)
-                }
-            } catch (throwable: Throwable) {
-                if (throwable is DecryptionFailedException)
-                    throw WrongPasswordException("Specified password is not valid.")
-                else
-                    throw throwable
-            }
+            if (password != null)
+                keyManagerCloud.delete(password)
+            else
+                keyManagerCloud.deleteAll()
         }
 
     }

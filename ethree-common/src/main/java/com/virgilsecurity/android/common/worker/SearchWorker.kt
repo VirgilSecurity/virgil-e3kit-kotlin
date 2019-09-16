@@ -51,7 +51,11 @@ internal class SearchWorker(
 ) {
 
     /**
-     * Returns cards from local storage for given [identities].
+     * Returns cards from local storage for given [identities]. // TODO add Result/Completable reference in all fun's descriptions
+     *
+     * @param identities Identities.
+     *
+     * @return [FindUsersResult] with found users.
      */
     internal fun findCachedUsers(identities: List<String>): Result<FindUsersResult> =
             object : Result<FindUsersResult> {
@@ -62,6 +66,10 @@ internal class SearchWorker(
 
     /**
      * Returns card from local storage for given [identity].
+     *
+     * @param identity Identity.
+     *
+     * @return [Card] if it exists, *null* otherwise.
      */
     internal fun findCachedUser(identity: String): Result<Card?> = object : Result<Card?> {
         override fun get(): Card? {
@@ -70,8 +78,12 @@ internal class SearchWorker(
     }
 
     /**
-     * Retrieves users Cards from the Virgil Cloud or local storage if exists for [identities].
-     * If [forceReload] is *true* local cached cards won't be used.
+     * Retrieves users Cards from the Virgil Cloud or local storage if exists.
+     *
+     * @param identities Array of identities to find.
+     * @param forceReload Will not use local cached cards if *true*.
+     *
+     * @return [FindUsersResult] with found users.
      */
     internal fun findUsers(identities: List<String>,
                            forceReload: Boolean): Result<FindUsersResult> =
@@ -82,8 +94,12 @@ internal class SearchWorker(
             }
 
     /**
-     * Retrieves users Card from the Virgil Cloud or local storage if exists for [identity].
-     * If [forceReload] is *true* local cached card won't be used.
+     * Retrieves user Card from the Virgil Cloud or local storage if exists.
+     *
+     * @param identity Identity to find.
+     * @param forceReload Will not use local cached card if *true*.
+     *
+     * @return [Card] that corresponds to provided [identity].
      */
     internal fun findUser(identity: String,
                           forceReload: Boolean): Result<Card> = object : Result<Card> {
@@ -106,6 +122,7 @@ internal class SearchWorker(
      * @throws PrivateKeyNotFoundException
      * @throws PublicKeyDuplicateException
      */
+    @Deprecated("Use findUser instead.") // TODO add replaceWith
     internal fun lookupPublicKey(identity: String): Result<LookupResult> =
             lookupPublicKeys(listOf(identity))
 
@@ -126,7 +143,8 @@ internal class SearchWorker(
      * @throws PrivateKeyNotFoundException
      * @throws PublicKeyDuplicateException
      */
-    internal fun lookupPublicKeys(identities: List<String>) =
+    @Deprecated("Use findUsers instead.") // TODO add replaceWith
+    internal fun lookupPublicKeys(identities: List<String>): Result<LookupResult> =
             object : Result<LookupResult> {
                 override fun get(): LookupResult {
                     require(identities.isEmpty()) { "\'identities\' should not be empty" }
