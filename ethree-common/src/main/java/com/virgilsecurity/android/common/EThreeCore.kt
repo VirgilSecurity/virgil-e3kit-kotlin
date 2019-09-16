@@ -50,6 +50,7 @@ import com.virgilsecurity.android.common.util.Const.VIRGIL_CARDS_SERVICE_PATH
 import com.virgilsecurity.android.common.worker.*
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.keyknox.build.VersionVirgilAgent
+import com.virgilsecurity.sdk.androidutils.storage.AndroidKeyStorage
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
@@ -116,8 +117,8 @@ constructor(identity: String,
                                           accessTokenProvider,
                                           VersionVirgilAgent.VERSION)
 
-        AndroidKeyStorage
-        //TODO path Android context
+        val keyStorage = AndroidKeyStorage.Builder(identity).isAuthenticationRequired(false).build()
+        localKeyStorage = LocalKeyStorage(identity, crypto, keyStorage)
         val cardStorageSqlite = SQLCardStorage(context, this.identity, crypto, virgilCardVerifier)
 
         this.lookupManager = LookupManager(cardStorageSqlite, cardManager, keyChangedCallback)

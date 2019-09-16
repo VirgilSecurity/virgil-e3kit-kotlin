@@ -44,7 +44,7 @@ import com.virgilsecurity.sdk.storage.KeyStorage
 /**
  * DefaultLocalKeyStorage
  */
-class DefaultLocalKeyStorage(val identity: String, context: Context, crypto: VirgilCrypto, keyStorage: KeyStorage):
+class DefaultLocalKeyStorage(identity: String, context: Context, crypto: VirgilCrypto, keyStorage: KeyStorage):
         LocalKeyStorage(identity, crypto, DefaultKeyStorage(context.filesDir.absolutePath,
                 KEYSTORE_NAME)) { // TODO change context with rootPath
 
