@@ -36,8 +36,15 @@ package com.virgilsecurity.android.common.model
 import com.virgilsecurity.sdk.cards.Card
 
 /**
- * FindUserResult
+ * FindUsersResult is used for the result of findUsers call.
  */
+class FindUsersResult : HashMap<String, Card> {
 
-// Type alias for the result of findUsers call
-typealias FindUsersResult = Map<String, Card>
+    constructor(initialCapacity: Int, loadFactor: Float) : super(initialCapacity, loadFactor)
+
+    constructor(initialCapacity: Int) : super(initialCapacity)
+
+    constructor()
+
+    constructor(map: MutableMap<out String, out Card>)
+}

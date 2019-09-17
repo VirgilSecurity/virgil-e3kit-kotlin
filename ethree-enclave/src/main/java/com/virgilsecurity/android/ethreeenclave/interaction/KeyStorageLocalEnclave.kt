@@ -34,27 +34,30 @@
 package com.virgilsecurity.android.ethreeenclave.interaction
 
 import com.virgilsecurity.android.common.storage.local.KeyStorageLocal
+import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.sdk.androidutils.storage.AndroidKeyStorage
+import com.virgilsecurity.sdk.crypto.VirgilCrypto
+import com.virgilsecurity.sdk.crypto.VirgilKeyPair
 import com.virgilsecurity.sdk.storage.JsonKeyEntry
-import com.virgilsecurity.sdk.storage.KeyEntry
 
 /**
- * KeyManagerLocalKeyStorageEnclave
+ * KeyStorageLocalEnclave
  */
-class KeyManagerLocalKeyStorageEnclave(
+class KeyStorageLocalEnclave(
+        override val identity: String,
         private val keyStorage: AndroidKeyStorage,
-        private val identity: String
+        private val crypto: VirgilCrypto
 ) : KeyStorageLocal {
 
     override fun exists() = keyStorage.exists(identity)
 
-    override fun store(privateKey: ByteArray) = keyStorage.store(JsonKeyEntry(identity, privateKey))
+    override fun store(privateKeyData: Data) =
+            keyStorage.store(JsonKeyEntry(identity, privateKeyData.data))
 
-    override fun load(): KeyEntry = keyStorage.load(identity)
+    override fun load(): VirgilKeyPair {
+        val privateKeyData = keyStorage.load(identity)
+        return crypto.importPrivateKey(privateKeyData.value)
+    }
 
     override fun delete() = keyStorage.delete(identity)
-
-    companion object {
-        private const val KEYSTORE_NAME = "virgil_android_keystore"
-    }
 }

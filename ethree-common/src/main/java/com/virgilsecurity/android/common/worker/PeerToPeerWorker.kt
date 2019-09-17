@@ -35,7 +35,6 @@ package com.virgilsecurity.android.common.worker
 
 import com.virgilsecurity.android.common.exception.EThreeException
 import com.virgilsecurity.android.common.exception.PrivateKeyNotFoundException
-import com.virgilsecurity.android.common.manager.GroupManager
 import com.virgilsecurity.android.common.model.FindUsersResult
 import com.virgilsecurity.android.common.model.LookupResult
 import com.virgilsecurity.android.common.model.toPublicKeys
@@ -56,7 +55,6 @@ import java.util.*
  * PeerToPeerWorker
  */
 internal class PeerToPeerWorker(
-        private val getGroupManager: () -> GroupManager,
         private val keyStorageLocal: KeyStorageLocal,
         private val crypto: VirgilCrypto
 ) {
@@ -233,7 +231,7 @@ internal class PeerToPeerWorker(
      * @return Encrypted data.
      */
     internal fun encrypt(data: Data, user: Card): Data =
-            encrypt(data, mapOf(user.identity to user))
+            encrypt(data, FindUsersResult(mutableMapOf(user.identity to user)))
 
     /**
      * Signs and encrypts string for user.
@@ -248,7 +246,7 @@ internal class PeerToPeerWorker(
      * @return Encrypted String.
      */
     internal fun encrypt(text: String, user: Card): String =
-            encrypt(text, mapOf(user.identity to user))
+            encrypt(text, FindUsersResult(mutableMapOf(user.identity to user)))
 
     /**
      * Encrypts data stream.
@@ -262,7 +260,7 @@ internal class PeerToPeerWorker(
      * @param user User Card to encrypt for.
      */
     internal fun encrypt(inputStream: InputStream, outputStream: OutputStream, user: Card) =
-            encrypt(inputStream, outputStream, mapOf(user.identity to user))
+            encrypt(inputStream, outputStream, FindUsersResult(mutableMapOf(user.identity to user)))
 
     internal fun encryptInternal(inputStream: InputStream,
                                  outputStream: OutputStream,
@@ -333,7 +331,7 @@ internal class PeerToPeerWorker(
      * @throws CryptoException
      */
     @Deprecated("Use encryptForUsers method instead.") // TODO change to actual fun name
-    internal fun encryptOld(text: String, lookupResult: LookupResult): String {
+    internal fun encrypt(text: String, lookupResult: LookupResult): String {
         val data = Data(text.toByteArray(StandardCharsets.UTF_8)) // TODO check exception type
 
         return encryptInternal(data, lookupResult.toPublicKeys()).toBase64String()
@@ -358,7 +356,7 @@ internal class PeerToPeerWorker(
      * @throws CryptoException
      */
     @Deprecated("Use encryptForUsers method instead.")
-    internal fun encryptOld(data: ByteArray, lookupResult: LookupResult): ByteArray =
+    internal fun encrypt(data: ByteArray, lookupResult: LookupResult): ByteArray =
             encryptInternal(Data(data), lookupResult.toPublicKeys()).data
 
     /**
@@ -379,9 +377,9 @@ internal class PeerToPeerWorker(
      * @throws CryptoException
      */
     @Deprecated("Use encryptForUsers method instead.") // TODO change to actual methods signature
-    internal fun encryptOld(inputStream: InputStream,
-                            outputStream: OutputStream,
-                            lookupResult: LookupResult) =
+    internal fun encrypt(inputStream: InputStream,
+                         outputStream: OutputStream,
+                         lookupResult: LookupResult) =
             encryptInternal(inputStream, outputStream, lookupResult.toPublicKeys())
 
     /**
@@ -402,7 +400,7 @@ internal class PeerToPeerWorker(
      * @throws CryptoException
      */
     @Deprecated("Use decryptFromUser method instead.")
-    internal fun decryptOld(base64String: String, sendersKey: VirgilPublicKey): String {
+    internal fun decrypt(base64String: String, sendersKey: VirgilPublicKey): String {
         val data = Data.fromBase64String(base64String) // TODO check exception type
 
         val decryptedData = decryptInternal(data, sendersKey)
@@ -422,6 +420,6 @@ internal class PeerToPeerWorker(
      * @throws CryptoException
      */
     @Deprecated("Use decryptFromUser method instead.")
-    internal fun decryptOld(data: ByteArray, sendersKey: VirgilPublicKey): ByteArray =
+    internal fun decrypt(data: ByteArray, sendersKey: VirgilPublicKey): ByteArray =
             decryptInternal(Data(data), sendersKey).data
 }

@@ -34,16 +34,17 @@
 package com.virgilsecurity.android.ethreeenclave.interaction
 
 import android.content.Context
-import com.virgilsecurity.android.common.util.Const.NO_CONTEXT
-import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.common.EThreeCore
+import com.virgilsecurity.android.common.callback.OnGetTokenCallback
+import com.virgilsecurity.android.common.callback.OnKeyChangedCallback
 import com.virgilsecurity.android.common.storage.local.KeyStorageLocal
+import com.virgilsecurity.android.common.util.Const.NO_CONTEXT
+import com.virgilsecurity.common.model.Result
 import com.virgilsecurity.sdk.androidutils.storage.AndroidKeyEntry
 import com.virgilsecurity.sdk.androidutils.storage.AndroidKeyStorage
 import com.virgilsecurity.sdk.crypto.exceptions.KeyStorageException
 import com.virgilsecurity.sdk.jwt.Jwt
 import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
-import com.virgilsecurity.sdk.jwt.contract.AccessTokenProvider
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
 
 /**
@@ -51,15 +52,17 @@ import com.virgilsecurity.sdk.storage.DefaultKeyStorage
  * communication.
  */
 class EThree
-private constructor(
+@JvmOverloads constructor(
+        identity: String,
+        tokenCallback: OnGetTokenCallback,
+        keyChangedCallback: OnKeyChangedCallback? = null,
         context: Context,
-        tokenProvider: AccessTokenProvider,
-        alias: String,
-        isAuthenticationRequired: Boolean,
-        keyValidityDuration: Int
-) : EThreeCore(tokenProvider) {
+        alias: String = "VirgilAndroidKeyStorage",
+        isAuthenticationRequired: Boolean = true,
+        keyValidityDuration: Int = 60 * 5 // 5 min
+) : EThreeCore(identity, tokenCallback, keyChangedCallback, context) {
 
-    val keyStorageLocal: KeyStorageLocal
+    override val keyStorageLocal: KeyStorageLocal
 
     init {
         synchronized(this@EThree) {
@@ -69,8 +72,7 @@ private constructor(
                     .onPath(context.filesDir.absolutePath)
                     .build()
 
-            keyStorageLocal = KeyManagerLocalKeyStorageEnclave(keyStorageAndroid,
-                                                               tokenProvider.getToken(NO_CONTEXT).identity)
+            keyStorageLocal = KeyStorageLocalEnclave(keyStorageAndroid, identity, crypto)
 
             // Migration from old storage to new
             val keyStorageDefault = DefaultKeyStorage(context.filesDir.absolutePath, KEYSTORE_NAME)
@@ -89,7 +91,7 @@ private constructor(
                         keyStorageAndroid.names().forEach { keyStorageAndroid.delete(it) }
 
                         throw KeyStorageException("Error while migrating keys from legacy key "
-                        + "storage to the new one. All keys are restored in legacy key storage.")
+                                                  + "storage to the new one. All keys are restored in legacy key storage.")
                     }
                 }
             }
@@ -113,11 +115,15 @@ private constructor(
          * or on keys migration failure.
          */
         @Throws(KeyStorageException::class)
-        @JvmStatic fun initialize(context: Context,
-                                  onGetTokenCallback: OnGetTokenCallback,
-                                  alias: String = "VirgilAndroidKeyStorage",
-                                  isAuthenticationRequired: Boolean = true,
-                                  keyValidityDuration: Int = 60 * 5 // 5 min
+        @JvmOverloads
+        @JvmStatic
+        @Deprecated("Use constructor instead")
+        fun initialize(context: Context,
+                       onGetTokenCallback: OnGetTokenCallback,
+                       alias: String = "VirgilAndroidKeyStorage",
+                       isAuthenticationRequired: Boolean = true,
+                       keyValidityDuration: Int = 60 * 5, // 5 min
+                       keyChangedCallback: OnKeyChangedCallback? = null
         ) = object : Result<EThree> {
             override fun get(): EThree {
                 val tokenProvider = CachingJwtProvider(CachingJwtProvider.RenewJwtCallback {
@@ -127,9 +133,11 @@ private constructor(
                 // Just check whether we can get token, otherwise there's no reasons to
                 // initialize EThree. We have caching JWT provider, so sequential calls
                 // won't take much time, as token will be cached after first call.
-                tokenProvider.getToken(NO_CONTEXT)
-                return EThree(context,
-                              tokenProvider,
+                val token = tokenProvider.getToken(NO_CONTEXT)
+                return EThree(token.identity,
+                              onGetTokenCallback,
+                              keyChangedCallback,
+                              context,
                               alias,
                               isAuthenticationRequired,
                               keyValidityDuration)

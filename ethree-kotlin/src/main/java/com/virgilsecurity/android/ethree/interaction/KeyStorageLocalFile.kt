@@ -33,18 +33,37 @@
 
 package com.virgilsecurity.android.ethree.interaction
 
-import android.content.Context
 import com.virgilsecurity.android.common.storage.local.KeyStorageLocal
+import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
+import com.virgilsecurity.sdk.crypto.VirgilKeyPair
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
+import com.virgilsecurity.sdk.storage.JsonKeyEntry
 import com.virgilsecurity.sdk.storage.KeyStorage
 
 /**
- * DefaultLocalKeyStorage
+ * KeyStorageLocalFile
  */
-class DefaultLocalKeyStorage(identity: String, context: Context, crypto: VirgilCrypto, keyStorage: KeyStorage):
-        KeyStorageLocal(identity, crypto, DefaultKeyStorage(context.filesDir.absolutePath,
-                KEYSTORE_NAME)) { // TODO change context with rootPath
+class KeyStorageLocalFile(
+        override val identity: String,
+        private val crypto: VirgilCrypto,
+        rootPath: String
+) : KeyStorageLocal {
+
+    private val keyStorage: KeyStorage = DefaultKeyStorage(rootPath, KEYSTORE_NAME)
+
+    override fun exists() = keyStorage.exists(identity)
+
+    override fun store(privateKeyData: Data) =
+            keyStorage.store(JsonKeyEntry(identity, privateKeyData.data))
+
+    override fun load(): VirgilKeyPair {
+        val privateKeyData = keyStorage.load(identity)
+
+        return crypto.importPrivateKey(privateKeyData.value)
+    }
+
+    override fun delete() = keyStorage.delete(identity)
 
     companion object {
         private const val KEYSTORE_NAME = "virgil.keystore"

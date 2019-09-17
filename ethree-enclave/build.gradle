@@ -62,6 +62,7 @@ dependencies {
     api project(':ethree-common')
 
     // Virgil
+    api "com.virgilsecurity.sdk:sdk:$versions.virgilSdk"
     api "com.virgilsecurity.sdk:android-utils:$versions.virgilSdk"
 
     // Kotlin

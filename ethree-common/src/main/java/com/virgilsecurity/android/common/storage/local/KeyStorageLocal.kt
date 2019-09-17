@@ -33,41 +33,24 @@
 
 package com.virgilsecurity.android.common.storage.local
 
-import com.virgilsecurity.android.common.exception.PrivateKeyNotFoundException
 import com.virgilsecurity.common.model.Data
-import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilKeyPair
-import com.virgilsecurity.sdk.crypto.exceptions.CryptoException
-import com.virgilsecurity.sdk.storage.KeyStorage
 
 /**
  * Local KeyStorage.
  */
-open class KeyStorageLocal(val identity: String, private val crypto: VirgilCrypto, private val keyStorage: KeyStorage) {
+interface KeyStorageLocal {
 
-    fun exists() : Boolean {
-        return this.keyStorage.exists(this.identity)
-    }
+    val identity: String
 
-    fun store(privateKeyData: Data) {
-        return this.keyStorage.store(this.keyStorage.createEntry(this.identity, privateKeyData.data))
-    }
+    fun exists() : Boolean
+
+    fun store(privateKeyData: Data)
 
     /**
      * Retrieves current user's [VirgilKeyPair] with
      */
-    fun load(): VirgilKeyPair {
-        val keyEntry = this.keyStorage.load(this.identity)
-        try {
-            val keyPair = this.crypto.importPrivateKey(keyEntry.value)
-            return keyPair
-        }
-        catch (e: CryptoException) { // TODO check whether this is the only one exception we should catch
-            throw PrivateKeyNotFoundException()
-        }
-    }
+    fun load(): VirgilKeyPair
 
-    fun delete() {
-        this.keyStorage.delete(this.identity)
-    }
+    fun delete()
 }

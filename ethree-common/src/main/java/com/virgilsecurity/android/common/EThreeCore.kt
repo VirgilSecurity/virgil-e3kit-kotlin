@@ -55,7 +55,6 @@ import com.virgilsecurity.common.model.Completable
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.common.model.Result
 import com.virgilsecurity.keyknox.build.VersionVirgilAgent
-import com.virgilsecurity.sdk.androidutils.storage.AndroidKeyStorage
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
@@ -82,11 +81,10 @@ abstract class EThreeCore
  */
 constructor(identity: String,
             getTokenCallback: OnGetTokenCallback,
-            keyChangedCallback: OnKeyChangedCallback,
+            keyChangedCallback: OnKeyChangedCallback?,
             context: Context) {
 
     private var accessTokenProvider: AccessTokenProvider
-    private val crypto: VirgilCrypto = VirgilCrypto()
     private val cardManager: CardManager
     private val rootPath: String
 
@@ -101,7 +99,9 @@ constructor(identity: String,
 
     private var groupManager: GroupManager? = null
 
-    protected val keyStorageLocal: KeyStorageLocal
+    protected val crypto: VirgilCrypto = VirgilCrypto()
+
+    protected abstract val keyStorageLocal: KeyStorageLocal
 
     val identity: String
 
@@ -122,8 +122,6 @@ constructor(identity: String,
                                           crypto,
                                           accessTokenProvider)
 
-        val keyStorage = AndroidKeyStorage.Builder(identity).isAuthenticationRequired(false).build()
-        keyStorageLocal = KeyStorageLocal(identity, crypto, keyStorage)
         val cardStorageSqlite = SQLCardStorage(context, this.identity, crypto, virgilCardVerifier)
 
         this.lookupManager = LookupManager(cardStorageSqlite, cardManager, keyChangedCallback)
@@ -144,7 +142,7 @@ constructor(identity: String,
                                                        ::privateKeyDeleted)
         this.backupWorker = BackupWorker(keyStorageLocal, cloudKeyManager, ::privateKeyChanged)
         this.groupWorker = GroupWorker(identity, crypto, ::getGroupManager, ::computeSessionId)
-        this.p2pWorker = PeerToPeerWorker(::getGroupManager, keyStorageLocal, crypto)
+        this.p2pWorker = PeerToPeerWorker(keyStorageLocal, crypto)
         this.searchWorker = SearchWorker(lookupManager)
 
         if (keyStorageLocal.exists()) {
@@ -271,7 +269,7 @@ constructor(identity: String,
      * @throws PublicKeyDuplicateException
      */
     @Deprecated("Use findUser instead.") // TODO add replaceWith
-    fun lookupPublicKey(identity: String): Result<LookupResult> =
+    fun lookupPublicKeys(identity: String): Result<LookupResult> =
             searchWorker.lookupPublicKey(identity)
 
     /**
@@ -627,8 +625,8 @@ constructor(identity: String,
      * @throws CryptoException
      */
     @Deprecated("Use encryptForUsers method instead.") // TODO change to actual fun name
-    fun encryptOld(text: String, lookupResult: LookupResult): String =
-            p2pWorker.encryptOld(text, lookupResult)
+    fun encrypt(text: String, lookupResult: LookupResult): String =
+            p2pWorker.encrypt(text, lookupResult)
 
     /**
      * Signs then encrypts data for a group of users.
@@ -649,8 +647,8 @@ constructor(identity: String,
      * @throws CryptoException
      */
     @Deprecated("Use encryptForUsers method instead.")
-    fun encryptOld(data: ByteArray, lookupResult: LookupResult): ByteArray =
-            p2pWorker.encryptOld(data, lookupResult)
+    fun encrypt(data: ByteArray, lookupResult: LookupResult): ByteArray =
+            p2pWorker.encrypt(data, lookupResult)
 
     /**
      * Encrypts data stream for a group of users.
@@ -670,10 +668,10 @@ constructor(identity: String,
      * @throws CryptoException
      */
     @Deprecated("Use encryptForUsers method instead.") // TODO change to actual methods signature
-    fun encryptOld(inputStream: InputStream,
+    fun encrypt(inputStream: InputStream,
                    outputStream: OutputStream,
                    lookupResult: LookupResult) =
-            p2pWorker.encryptOld(inputStream, outputStream, lookupResult)
+            p2pWorker.encrypt(inputStream, outputStream, lookupResult)
 
     /**
      * Decrypts and verifies encrypted text that is in base64 [String] format.
@@ -693,8 +691,8 @@ constructor(identity: String,
      * @throws CryptoException
      */
     @Deprecated("Use decryptFromUser method instead.")
-    fun decryptOld(base64String: String, sendersKey: VirgilPublicKey): String =
-            p2pWorker.decryptOld(base64String, sendersKey)
+    fun decrypt(base64String: String, sendersKey: VirgilPublicKey): String =
+            p2pWorker.decrypt(base64String, sendersKey)
 
     /**
      * Decrypts and verifies encrypted data.
@@ -708,8 +706,8 @@ constructor(identity: String,
      * @throws CryptoException
      */
     @Deprecated("Use decryptFromUser method instead.")
-    fun decryptOld(data: ByteArray, sendersKey: VirgilPublicKey): ByteArray =
-            p2pWorker.decryptOld(data, sendersKey) // FIXME check how this methods can work in Swift (they got similar signature as new ones)
+    fun decrypt(data: ByteArray, sendersKey: VirgilPublicKey): ByteArray =
+            p2pWorker.decrypt(data, sendersKey) // FIXME check how this methods can work in Swift (they got similar signature as new ones)
 
     internal fun privateKeyChanged(newCard: Card? = null) {
         val selfKeyPair = keyStorageLocal.load()
