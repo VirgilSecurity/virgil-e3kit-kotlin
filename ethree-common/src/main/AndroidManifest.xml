@@ -32,4 +32,7 @@
   ~ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   -->
 
-<manifest package="com.virgilsecurity.android.common" />
+<manifest package="com.virgilsecurity.android.common"
+    xmlns:tools="http://schemas.android.com/tools">
+    <uses-sdk tools:overrideLibrary="com.virgilsecurity.android.common" />
+</manifest>

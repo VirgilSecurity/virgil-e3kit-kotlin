@@ -38,9 +38,9 @@ import com.virgilsecurity.android.common.exception.RawGroupException
 /**
  * RawGroup
  */
-internal class RawGroup(
-        internal val info: GroupInfo,
-        internal val tickets: List<Ticket>
+class RawGroup(
+        val info: GroupInfo,
+        val tickets: List<Ticket>
 ) {
 
     init {

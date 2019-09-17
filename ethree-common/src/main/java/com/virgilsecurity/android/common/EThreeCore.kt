@@ -42,8 +42,8 @@ import com.virgilsecurity.android.common.manager.LookupManager
 import com.virgilsecurity.android.common.model.FindUsersResult
 import com.virgilsecurity.android.common.model.Group
 import com.virgilsecurity.android.common.model.LookupResult
-import com.virgilsecurity.android.common.storage.cloud.KeyManagerCloud
-import com.virgilsecurity.android.common.storage.cloud.TicketStorageCloud
+import com.virgilsecurity.android.common.storage.cloud.CloudKeyManager
+import com.virgilsecurity.android.common.storage.cloud.CloudTicketStorage
 import com.virgilsecurity.android.common.storage.local.GroupStorageFile
 import com.virgilsecurity.android.common.storage.local.KeyStorageLocal
 import com.virgilsecurity.android.common.storage.sql.SQLCardStorage
@@ -90,7 +90,7 @@ constructor(identity: String,
     private val cardManager: CardManager
     private val rootPath: String
 
-    private val keyManagerCloud: KeyManagerCloud
+    private val cloudKeyManager: CloudKeyManager
     private val lookupManager: LookupManager
 
     private lateinit var authorizationWorker: AuthorizationWorker
@@ -101,7 +101,7 @@ constructor(identity: String,
 
     private var groupManager: GroupManager? = null
 
-    protected abstract val keyStorageLocal: KeyStorageLocal
+    protected val keyStorageLocal: KeyStorageLocal
 
     val identity: String
 
@@ -118,13 +118,12 @@ constructor(identity: String,
                                   VirgilCardClient(VIRGIL_BASE_URL + VIRGIL_CARDS_SERVICE_PATH,
                                                    httpClient))
 
-        keyManagerCloud = KeyManagerCloud(identity,
+        cloudKeyManager = CloudKeyManager(identity,
                                           crypto,
-                                          accessTokenProvider,
-                                          VersionVirgilAgent.VERSION)
+                                          accessTokenProvider)
 
         val keyStorage = AndroidKeyStorage.Builder(identity).isAuthenticationRequired(false).build()
-        localKeyStorage = LocalKeyStorage(identity, crypto, keyStorage)
+        keyStorageLocal = KeyStorageLocal(identity, crypto, keyStorage)
         val cardStorageSqlite = SQLCardStorage(context, this.identity, crypto, virgilCardVerifier)
 
         this.lookupManager = LookupManager(cardStorageSqlite, cardManager, keyChangedCallback)
@@ -143,7 +142,7 @@ constructor(identity: String,
                                                        identity,
                                                        ::publishCardThenSaveLocal,
                                                        ::privateKeyDeleted)
-        this.backupWorker = BackupWorker(keyStorageLocal, keyManagerCloud, ::privateKeyChanged)
+        this.backupWorker = BackupWorker(keyStorageLocal, cloudKeyManager, ::privateKeyChanged)
         this.groupWorker = GroupWorker(identity, crypto, ::getGroupManager, ::computeSessionId)
         this.p2pWorker = PeerToPeerWorker(::getGroupManager, keyStorageLocal, crypto)
         this.searchWorker = SearchWorker(lookupManager)
@@ -716,7 +715,7 @@ constructor(identity: String,
         val selfKeyPair = keyStorageLocal.load()
 
         val localGroupStorage = GroupStorageFile(identity, crypto, selfKeyPair, rootPath)
-        val ticketStorageCloud = TicketStorageCloud(accessTokenProvider, keyStorageLocal)
+        val ticketStorageCloud = CloudTicketStorage(accessTokenProvider, keyStorageLocal)
 
         this.groupManager = GroupManager(localGroupStorage,
                                          ticketStorageCloud,

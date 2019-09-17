@@ -35,6 +35,7 @@ package com.virgilsecurity.android.common.storage.cloud
 
 import com.virgilsecurity.android.common.storage.local.KeyStorageLocal
 import com.virgilsecurity.android.common.model.Ticket
+import com.virgilsecurity.android.common.util.Const
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.common.util.toHexString
 import com.virgilsecurity.crypto.foundation.GroupSessionMessage
@@ -43,19 +44,26 @@ import com.virgilsecurity.keyknox.client.*
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.crypto.VirgilPublicKey
 import com.virgilsecurity.sdk.jwt.contract.AccessTokenProvider
+import java.net.URL
 
 /**
- * TicketStorageCloud
+ * CloudTicketStorage
  */
-internal class TicketStorageCloud(
+internal class CloudTicketStorage(
         accessTokenProvider: AccessTokenProvider,
-        private val keyStorageLocal: KeyStorageLocal
+        private val keyStorageLocal: KeyStorageLocal,
+        baseUrl: String? = Const.VIRGIL_BASE_URL
 ) {
 
-    private val keyknoxManager: KeyknoxManager = KeyknoxManager(KeyknoxClient(accessTokenProvider))
-    private var identity: String = keyStorageLocal.identity
+    private val identity: String get() = keyStorageLocal.identity
+    private val keyknoxManager: KeyknoxManager
 
-    internal fun store(ticket: Ticket, cards: List<Card>) {
+    init {
+        val keyknoxClient = KeyknoxClient(accessTokenProvider, URL(baseUrl))
+        this.keyknoxManager = KeyknoxManager(keyknoxClient)
+    }
+
+    internal fun store(ticket: Ticket, cards: Collection<Card>) {
         val selfKeyPair = keyStorageLocal.load()
 
         val groupMessage = ticket.groupMessage
@@ -75,7 +83,7 @@ internal class TicketStorageCloud(
         keyknoxManager.pushValue(params,
                                  ticketData,
                                  null,
-                                 publicKeys,
+                                 publicKeys + selfKeyPair.publicKey,
                                  selfKeyPair.privateKey)
     }
 
@@ -112,7 +120,7 @@ internal class TicketStorageCloud(
         return tickets
     }
 
-    internal fun addRecipients(cards: List<Card>, sessionId: Data) {
+    internal fun addRecipients(cards: Collection<Card>, sessionId: Data) {
         val selfKeyPair = keyStorageLocal.load()
 
         val sessionIdHex = sessionId.toHexString()

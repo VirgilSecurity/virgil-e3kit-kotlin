@@ -38,7 +38,7 @@ import com.virgilsecurity.android.common.model.Group
 import com.virgilsecurity.android.common.model.GroupInfo
 import com.virgilsecurity.android.common.model.RawGroup
 import com.virgilsecurity.android.common.model.Ticket
-import com.virgilsecurity.android.common.storage.cloud.TicketStorageCloud
+import com.virgilsecurity.android.common.storage.cloud.CloudTicketStorage
 import com.virgilsecurity.android.common.storage.local.GroupStorageFile
 import com.virgilsecurity.android.common.storage.local.KeyStorageLocal
 import com.virgilsecurity.common.model.Data
@@ -50,7 +50,7 @@ import com.virgilsecurity.sdk.crypto.VirgilCrypto
  */
 internal class GroupManager(
         internal val localGroupStorage: GroupStorageFile,
-        private val ticketStorageCloud: TicketStorageCloud,
+        private val cloudTicketStorage: CloudTicketStorage,
         private val keyStorageLocal: KeyStorageLocal,
         private val lookupManager: LookupManager,
         private val crypto: VirgilCrypto
@@ -67,14 +67,14 @@ internal class GroupManager(
     internal fun store(ticket: Ticket, cards: List<Card>): Group {
         val rawGroup = RawGroup(GroupInfo(this.identity), listOf(ticket))
 
-        ticketStorageCloud.store(ticket, cards)
+        cloudTicketStorage.store(ticket, cards)
         localGroupStorage.store(rawGroup)
 
         return parse(rawGroup)
     }
 
     internal fun pull(sessionId: Data, card: Card): Group {
-        val tickets = ticketStorageCloud.retrieve(sessionId,
+        val tickets = cloudTicketStorage.retrieve(sessionId,
                                                   card.identity,
                                                   card.publicKey)
 
@@ -92,10 +92,10 @@ internal class GroupManager(
     }
 
     internal fun addAccess(cards: List<Card>, sessionId: Data) =
-        ticketStorageCloud.addRecipients(cards, sessionId)
+        cloudTicketStorage.addRecipients(cards, sessionId)
 
     internal fun reAddAccess(card: Card, sessionId: Data) =
-            ticketStorageCloud.reAddRecipient(card, sessionId)
+            cloudTicketStorage.reAddRecipient(card, sessionId)
 
     internal fun retrieve(sessionId: Data): Group? {
         val rawGroup = localGroupStorage.retrieve(sessionId, MAX_TICKETS_IN_GROUP)
@@ -111,12 +111,12 @@ internal class GroupManager(
 
     internal fun removeAccess(identities: Set<String>, sessionId: Data) {
         identities.forEach {
-            ticketStorageCloud.removeRecipient(it, sessionId)
+            cloudTicketStorage.removeRecipient(it, sessionId)
         }
     }
 
     internal fun delete(sessionId: Data) {
-        ticketStorageCloud.delete(sessionId)
+        cloudTicketStorage.delete(sessionId)
         localGroupStorage.delete(sessionId)
     }
 

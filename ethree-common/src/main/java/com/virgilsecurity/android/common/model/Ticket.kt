@@ -46,12 +46,12 @@ import java.io.Serializable
 /**
  * Ticket
  */
-internal class Ticket : Parcelable { // TODO test parcelable implementation
+class Ticket : Parcelable { // TODO test parcelable implementation
 
     internal val groupMessage: GroupSessionMessage
     internal val participants: Set<String>
 
-    internal constructor(parcel: Parcel) {
+    constructor(parcel: Parcel) {
         val groupMessageDataLength = parcel.readInt()
         val serializedGroupMessage = ByteArray(groupMessageDataLength)
         parcel.readByteArray(serializedGroupMessage)

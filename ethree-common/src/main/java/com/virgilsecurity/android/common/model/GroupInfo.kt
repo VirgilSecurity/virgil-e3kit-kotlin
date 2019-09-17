@@ -39,7 +39,7 @@ import com.virgilsecurity.common.util.SerializeUtils
 /**
  * GroupInfo
  */
-internal class GroupInfo(internal val initiator: String) {
+class GroupInfo(internal val initiator: String) {
 
     internal fun serialize(): Data {
         return SerializeUtils.serialize(this)

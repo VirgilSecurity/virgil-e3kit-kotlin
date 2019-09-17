@@ -33,11 +33,11 @@
 
 package com.virgilsecurity.android.common.worker
 
-import com.virgilsecurity.android.common.KeyManagerCloudStub
 import com.virgilsecurity.android.common.exception.BackupKeyException
 import com.virgilsecurity.android.common.exception.PrivateKeyNotFoundException
 import com.virgilsecurity.android.common.exception.RestoreKeyException
 import com.virgilsecurity.android.common.exception.WrongPasswordException
+import com.virgilsecurity.android.common.storage.cloud.CloudKeyManager
 import com.virgilsecurity.android.common.storage.local.KeyStorageLocal
 import com.virgilsecurity.common.model.Completable
 import com.virgilsecurity.common.model.Data
@@ -48,7 +48,7 @@ import com.virgilsecurity.sdk.cards.Card
  */
 internal class BackupWorker(
         private val keyStorageLocal: KeyStorageLocal,
-        private val keyManagerCloud: KeyManagerCloudStub, // FIXME to actual KeyManagerCloud
+        private val keyManagerCloud: CloudKeyManager,
         private val privateKeyChanged: (Card?) -> Unit
 ) {
 

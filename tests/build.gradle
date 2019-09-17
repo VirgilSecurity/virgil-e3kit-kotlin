@@ -45,11 +45,21 @@ android {
     compileSdkVersion 28
     defaultConfig {
         applicationId "com.virgilsecurity.android.ethree"
-        minSdkVersion 21
+        minSdkVersion 23
         targetSdkVersion 28
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        //testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        multiDexEnabled true
     }
     buildTypes {
+        debug {
+            minifyEnabled false
+            useProguard false
+        }
+        release {
+            minifyEnabled false
+            useProguard false
+        }
         buildTypes.each {
             it.buildConfigField "String", "APP_ID", "$APP_ID"
             it.buildConfigField "String", "API_PRIVATE_KEY", "$API_PRIVATE_KEY"
@@ -94,5 +104,8 @@ dependencies {
     androidTestImplementation "com.android.support.test:runner:$versions.testsRunner"
     androidTestImplementation "com.android.support.test.espresso:espresso-core:$versions.espresso"
 
+    // Room
+    implementation "androidx.room:room-runtime:$versions.room"
+    implementation "androidx.room:room-ktx:$versions.room"
     testImplementation "androidx.room:room-testing:$versions.room"
 }

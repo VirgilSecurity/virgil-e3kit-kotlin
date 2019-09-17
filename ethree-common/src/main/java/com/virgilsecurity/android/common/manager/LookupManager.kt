@@ -79,7 +79,7 @@ internal class LookupManager(
             throw EmptyArgumentException("identities")
         }
 
-        val result: FindUsersResult = mutableMapOf()
+        val result: MutableMap<String, Card> = mutableMapOf()
         val cards = cardStorage.searchCards(identities)
 
         for (identity in identities) {
@@ -110,7 +110,7 @@ internal class LookupManager(
             throw EmptyArgumentException("identities")
         }
 
-        val result: FindUsersResult = mutableMapOf()
+        val result: MutableMap<String, Card> = mutableMapOf()
         val identitiesDistincted: MutableList<String> = identities.distinct().toMutableList()
 
         if (!forceReload) {

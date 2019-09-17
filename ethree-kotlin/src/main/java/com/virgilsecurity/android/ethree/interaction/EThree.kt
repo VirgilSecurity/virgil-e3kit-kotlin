@@ -33,55 +33,55 @@
 
 package com.virgilsecurity.android.ethree.interaction
 
-import android.content.Context
-import com.virgilsecurity.android.common.util.Const.NO_CONTEXT
-import com.virgilsecurity.android.common.callback.OnGetTokenCallback
-import com.virgilsecurity.android.common.EThreeCore
-import com.virgilsecurity.android.common.storage.local.KeyStorageLocal
-import com.virgilsecurity.sdk.jwt.Jwt
-import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
-import com.virgilsecurity.sdk.jwt.contract.AccessTokenProvider
-
-/**
- * [EThree] class simplifies work with Virgil Services to easily implement End to End Encrypted
- * communication.
- */
-class EThree
-private constructor(
-        context: Context,
-        tokenProvider: AccessTokenProvider
-) : EThreeCore() {
-
-    val keyStorageLocal: KeyStorageLocal
-
-    init {
-        keyStorageLocal =
-                DefaultLocalKeyStorage(tokenProvider.getToken(NO_CONTEXT).identity, context)
-    }
-
-    companion object {
-        /**
-         * Current method allows you to initialize EThree helper class. To do this you
-         * should provide [onGetTokenCallback] that must return Json Web Token string
-         * representation with identity of the user which will use this class.
-         * In [onResultListener] you will receive instance of [EThreeCore] class or an [Throwable]
-         * if something went wrong.
-         *
-         * To start execution of the current function, please see [Result] description.
-         */
-        @JvmStatic fun initialize(context: Context,
-                                  onGetTokenCallback: OnGetTokenCallback) = object : Result<EThree> {
-            override fun get(): EThree {
-                val tokenProvider = CachingJwtProvider(CachingJwtProvider.RenewJwtCallback {
-                    Jwt(onGetTokenCallback.onGetToken())
-                })
-
-                // Just check whether we can get token, otherwise there's no reasons to
-                // initialize EThree. We have caching JWT provider, so sequential calls
-                // won't take much time, as token will be cached after first call.
-                tokenProvider.getToken(NO_CONTEXT)
-                return EThree(context, tokenProvider)
-            }
-        }
-    }
-}
+//import android.content.Context
+//import com.virgilsecurity.android.common.util.Const.NO_CONTEXT
+//import com.virgilsecurity.android.common.callback.OnGetTokenCallback
+//import com.virgilsecurity.android.common.EThreeCore
+//import com.virgilsecurity.android.common.storage.local.KeyStorageLocal
+//import com.virgilsecurity.sdk.jwt.Jwt
+//import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
+//import com.virgilsecurity.sdk.jwt.contract.AccessTokenProvider
+//
+///**
+// * [EThree] class simplifies work with Virgil Services to easily implement End to End Encrypted
+// * communication.
+// */
+//class EThree
+//private constructor(
+//        context: Context,
+//        tokenProvider: AccessTokenProvider
+//) : EThreeCore() {
+//
+//    val keyStorageLocal: KeyStorageLocal
+//
+//    init {
+//        keyStorageLocal =
+//                DefaultLocalKeyStorage(tokenProvider.getToken(NO_CONTEXT).identity, context)
+//    }
+//
+//    companion object {
+//        /**
+//         * Current method allows you to initialize EThree helper class. To do this you
+//         * should provide [onGetTokenCallback] that must return Json Web Token string
+//         * representation with identity of the user which will use this class.
+//         * In [onResultListener] you will receive instance of [EThreeCore] class or an [Throwable]
+//         * if something went wrong.
+//         *
+//         * To start execution of the current function, please see [Result] description.
+//         */
+//        @JvmStatic fun initialize(context: Context,
+//                                  onGetTokenCallback: OnGetTokenCallback) = object : Result<EThree> {
+//            override fun get(): EThree {
+//                val tokenProvider = CachingJwtProvider(CachingJwtProvider.RenewJwtCallback {
+//                    Jwt(onGetTokenCallback.onGetToken())
+//                })
+//
+//                // Just check whether we can get token, otherwise there's no reasons to
+//                // initialize EThree. We have caching JWT provider, so sequential calls
+//                // won't take much time, as token will be cached after first call.
+//                tokenProvider.getToken(NO_CONTEXT)
+//                return EThree(context, tokenProvider)
+//            }
+//        }
+//    }
+//}

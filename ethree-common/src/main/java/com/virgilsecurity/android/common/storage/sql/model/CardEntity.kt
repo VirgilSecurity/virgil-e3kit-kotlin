@@ -33,6 +33,7 @@
 
 package com.virgilsecurity.android.common.storage.sql.model
 
+import androidx.annotation.NonNull
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
@@ -43,7 +44,7 @@ import androidx.room.PrimaryKey
                 Index(value = ["identity"], unique = true)))
 data class CardEntity(
         @PrimaryKey @ColumnInfo(name = "id") val identifier: String,
-        @ColumnInfo(name = "identity") val identity: String,
-        @ColumnInfo(name = "is_outdated") val isOutdated: Boolean,
-        @ColumnInfo(name = "model") val model: String
+        @ColumnInfo(name = "identity") @NonNull val identity: String,
+        @ColumnInfo(name = "is_outdated") @NonNull val isOutdated: Boolean,
+        @ColumnInfo(name = "card") @NonNull val card: String
 )

@@ -39,7 +39,7 @@ import android.database.sqlite.SQLiteOpenHelper
 import java.io.File
 import java.io.FileOutputStream
 
-class DbHelper(val context: Context, val dbName: String) : SQLiteOpenHelper(context, dbName, null, DATABASE_VERSION) {
+class DbHelper(val context: Context, val assetName: String, val dbName: String) : SQLiteOpenHelper(context, dbName, null, DATABASE_VERSION) {
 
     override fun onCreate(db: SQLiteDatabase?) {
         // Nothing to do
@@ -50,7 +50,7 @@ class DbHelper(val context: Context, val dbName: String) : SQLiteOpenHelper(cont
     }
 
     private fun installDatabaseFromAssets() {
-        val inputStream = context.assets.open("$ASSETS_PATH/$dbName.sqlite3")
+        val inputStream = context.assets.open("$ASSETS_PATH/$assetName")
 
         try {
             val outputFile = File(context.getDatabasePath(dbName).path)

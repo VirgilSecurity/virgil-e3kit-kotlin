@@ -33,14 +33,20 @@
 
 package com.virgilsecurity.android.ethree.common.storage.sql
 
-import android.content.Context
-import android.support.test.InstrumentationRegistry
-import android.support.test.runner.AndroidJUnit4
+import android.hardware.camera2.CameraManager
+import androidx.room.Room
+import androidx.test.runner.AndroidJUnit4
+import com.google.gson.Gson
 import com.virgilsecurity.android.common.storage.CardStorage
+import com.virgilsecurity.android.common.storage.sql.ETheeDatabase
 import com.virgilsecurity.android.common.storage.sql.SQLCardStorage
+import com.virgilsecurity.android.ethree.utils.TestConfig
+import com.virgilsecurity.sdk.cards.Card
+import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
 import com.virgilsecurity.sdk.crypto.VirgilCardCrypto
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
+import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
@@ -63,25 +69,26 @@ class SQLCardStorageTest {
     private lateinit var storage: CardStorage
     private lateinit var crypto: VirgilCrypto
     private lateinit var verifier: VirgilCardVerifier
-    private lateinit var appContext: Context
-//    private lateinit var db: ETheeDatabase
+    private lateinit var dbName: String
 
     @Before
     fun setup() {
         identity = UUID.randomUUID().toString()
         crypto = VirgilCrypto()
         verifier = VirgilCardVerifier(VirgilCardCrypto(crypto))
-        appContext = InstrumentationRegistry.getInstrumentation().targetContext
 
-        val dbName = String.format("ethree-database-%s", identity)
-        DbHelper(appContext, dbName).installDatabase()
-//        db = Room.databaseBuilder(appContext, ETheeDatabase::class.java, dbName).build()
+        dbName = String.format("ethree-database-%s", identity)
+//        DbHelper(TestConfig.context, "cards.sqlite3", dbName).installDatabase()
+        val db = Room.databaseBuilder(TestConfig.context, ETheeDatabase::class.java, dbName)
+                .createFromAsset("databases/cards.sqlite3")
+                .build()
 
-        this.storage = SQLCardStorage(appContext, identity, crypto, verifier)
+        this.storage = SQLCardStorage(TestConfig.context, identity, crypto, verifier)
     }
 
     @After
     fun tearDown() {
+        TestConfig.context.deleteDatabase(this.dbName)
     }
 
     @Test
@@ -100,7 +107,7 @@ class SQLCardStorageTest {
     fun storeCard() {
         // Cards predefined in database should match
         val identity2 = UUID.randomUUID().toString()
-        val storage2 = SQLCardStorage(appContext, identity2, crypto, verifier)
+        val storage2 = SQLCardStorage(TestConfig.context, identity2, crypto, verifier)
 
         val cards = storage.searchCards(listOf(this.cIdentity1, this.cIdentity2))
 
@@ -115,7 +122,7 @@ class SQLCardStorageTest {
     fun storeCard_rotate_card() {
         // Rotate card should update both cards
         val identity2 = UUID.randomUUID().toString()
-        val storage2 = SQLCardStorage(appContext, identity2, crypto, verifier)
+        val storage2 = SQLCardStorage(TestConfig.context, identity2, crypto, verifier)
 
         val card1 = storage.getCard(this.cCardId1)
         assertNotNull(card1)
@@ -137,9 +144,10 @@ class SQLCardStorageTest {
     fun getNewestCardIds() {
         // Cards predefined in database should match
         val identity2 = UUID.randomUUID().toString()
-        val storage2 = SQLCardStorage(appContext, identity2, crypto, verifier)
+        val storage2 = SQLCardStorage(TestConfig.context, identity2, crypto, verifier)
 
         val cards = storage.searchCards(listOf(this.cIdentity1, this.cIdentity2))
+        assertEquals(2, cards.size)
 
         storage2.storeCard(cards[0])
         storage2.storeCard(cards[1])
@@ -155,7 +163,7 @@ class SQLCardStorageTest {
     fun reset() {
         // Predefined database should be empty
         val identity2 = UUID.randomUUID().toString()
-        val storage2 = SQLCardStorage(appContext, identity2, crypto, verifier)
+        val storage2 = SQLCardStorage(TestConfig.context, identity2, crypto, verifier)
 
         val cards = storage.searchCards(listOf(this.cIdentity1, this.cIdentity2))
 
@@ -167,6 +175,20 @@ class SQLCardStorageTest {
         assertNull(storage2.getCard(this.cCardId1))
         assertNull(storage2.getCard(this.cCardId2))
         assertNull(storage2.getCard(this.cCardId3))
+    }
+
+    @Test
+    fun store_load() {
+        val tokenProvider = CachingJwtProvider(CachingJwtProvider.RenewJwtCallback(function = {
+            return@RenewJwtCallback null
+        }))
+        val cardManager = CardManager(VirgilCardCrypto(VirgilCrypto()), tokenProvider, VirgilCardVerifier(VirgilCardCrypto(VirgilCrypto())))
+        val card1 = cardManager.importCardAsJson("{\"content_snapshot\":\"eyJ2ZXJzaW9uIjoiNS4wIiwicHVibGljX2tleSI6Ik1Db3dCUVlESzJWd0F5RUFkV2ZBWXowNnNoQUNjeFdUVWlhZkRIcE9PcHBrUkdrNWdCZjllUzQ0SlM0PSIsImlkZW50aXR5IjoiRDRFOEU0Q0EtNkZCNC00MkI2LUEzRkYtREJCQzE5MjAxREQ2IiwiY3JlYXRlZF9hdCI6MTU2NDU4NTYwOX0=\",\"signatures\":[{\"signature\":\"MFEwDQYJYIZIAWUDBAIDBQAEQIR0PND1Yic36leh\\/vQ+oMXmR8vJX+Vm6pRF4C6z52IP5PK4TMWobPcymrkY+lOllxQNG1ORROoXBfcKSWxkWAw=\",\"signer\":\"self\"}\n,{\"signature\":\"MFEwDQYJYIZIAWUDBAIDBQAEQDFlyBswkrCV3+NSGwn67KFLwU\\/FznY\\/5o+wThgdCzliCP7oMjMe8uGSq4A1GNOEcNoMZhPz7Tku24dncXA0cgk=\",\"signer\":\"virgil\"}]}")
+
+        storage.storeCard(card1)
+
+        val importedCard1 = storage.getCard(this.cCardId3)
+        assertNotNull(importedCard1)
     }
 
     private fun checkCardsById(storage: CardStorage = this.storage) {

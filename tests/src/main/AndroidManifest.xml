@@ -32,7 +32,9 @@
   -->
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="com.virgilsecurity.android.ethree">
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.virgilsecurity.android.ethree">
+    <uses-sdk tools:overrideLibrary="com.virgilsecurity.android.common" />
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application android:allowBackup="true"

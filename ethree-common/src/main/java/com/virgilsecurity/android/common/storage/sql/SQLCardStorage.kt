@@ -44,6 +44,7 @@ import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.validation.CardVerifier
 import com.virgilsecurity.sdk.crypto.VirgilCardCrypto
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
+import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
 import com.virgilsecurity.sdk.utils.ConvertionUtils
 
 /**
@@ -70,7 +71,10 @@ class SQLCardStorage(context: Context,
             db = database
         }
 
-        cardManager = CardManager(VirgilCardCrypto(crypto), null, verifier)
+        val tokenProvider = CachingJwtProvider(CachingJwtProvider.RenewJwtCallback(function = {
+            return@RenewJwtCallback null
+        }))
+        cardManager = CardManager(VirgilCardCrypto(crypto), tokenProvider, verifier)
     }
 
     override fun storeCard(card: Card) {
@@ -89,7 +93,7 @@ class SQLCardStorage(context: Context,
     override fun getCard(cardId: String): Card? {
         val cardEntity = db.cardDao().load(cardId) ?: return null
 
-        val card = cardManager.importCardAsJson(cardEntity.model)
+        val card = cardManager.importCardAsJson(cardEntity.card)
         card.isOutdated = cardEntity.isOutdated
 
         if (cardId != card.identifier) {
@@ -108,7 +112,7 @@ class SQLCardStorage(context: Context,
         val entities = db.cardDao().loadAllByIdentity(identities)
 
         for (entity in entities) {
-            val card = cardManager.importCardAsJson(entity.model)
+            val card = cardManager.importCardAsJson(entity.card)
             cards.add(card)
         }
 
