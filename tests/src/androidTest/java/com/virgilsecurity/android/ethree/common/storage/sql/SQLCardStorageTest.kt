@@ -33,15 +33,12 @@
 
 package com.virgilsecurity.android.ethree.common.storage.sql
 
-import android.hardware.camera2.CameraManager
+import android.support.test.runner.AndroidJUnit4
 import androidx.room.Room
-import androidx.test.runner.AndroidJUnit4
-import com.google.gson.Gson
 import com.virgilsecurity.android.common.storage.CardStorage
 import com.virgilsecurity.android.common.storage.sql.ETheeDatabase
 import com.virgilsecurity.android.common.storage.sql.SQLCardStorage
 import com.virgilsecurity.android.ethree.utils.TestConfig
-import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
 import com.virgilsecurity.sdk.crypto.VirgilCardCrypto

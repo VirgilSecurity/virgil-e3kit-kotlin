@@ -356,7 +356,7 @@ internal class PeerToPeerWorker(
      * @throws CryptoException
      */
     @Deprecated("Use encryptForUsers method instead.")
-    internal fun encrypt(data: ByteArray, lookupResult: LookupResult): ByteArray =
+    @JvmOverloads internal fun encrypt(data: ByteArray, lookupResult: LookupResult? = null): ByteArray =
             encryptInternal(Data(data), lookupResult.toPublicKeys()).data
 
     /**
@@ -420,6 +420,6 @@ internal class PeerToPeerWorker(
      * @throws CryptoException
      */
     @Deprecated("Use decryptFromUser method instead.")
-    internal fun decrypt(data: ByteArray, sendersKey: VirgilPublicKey): ByteArray =
+    @JvmOverloads internal fun decrypt(data: ByteArray, sendersKey: VirgilPublicKey? = null): ByteArray =
             decryptInternal(Data(data), sendersKey).data
 }

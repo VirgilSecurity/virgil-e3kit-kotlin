@@ -90,7 +90,7 @@ internal class LookupManager(
             result[identity] = card
         }
 
-        return result
+        return FindUsersResult(result)
     }
 
     internal fun lookupCachedCard(identity: String): Card {
@@ -147,7 +147,7 @@ internal class LookupManager(
             throw FindUsersException("Card for one or more of provided identities was not found")
         }
 
-        return result
+        return FindUsersResult(result)
     }
 
     internal fun lookupCard(identity: String, forceReload: Boolean = false): Card {

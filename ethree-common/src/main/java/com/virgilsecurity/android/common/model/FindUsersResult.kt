@@ -44,7 +44,7 @@ class FindUsersResult : HashMap<String, Card> {
 
     constructor(initialCapacity: Int) : super(initialCapacity)
 
-    constructor()
+    constructor() : super()
 
-    constructor(map: MutableMap<out String, out Card>)
+    constructor(map: Map<out String, Card>) : super(map)
 }

@@ -86,7 +86,7 @@ internal class SearchWorker(
      * @return [FindUsersResult] with found users.
      */
     internal fun findUsers(identities: List<String>,
-                           forceReload: Boolean): Result<FindUsersResult> =
+                           forceReload: Boolean = false): Result<FindUsersResult> =
             object : Result<FindUsersResult> {
                 override fun get(): FindUsersResult {
                     return lookupManager.lookupCards(identities, forceReload)
@@ -102,7 +102,7 @@ internal class SearchWorker(
      * @return [Card] that corresponds to provided [identity].
      */
     internal fun findUser(identity: String,
-                          forceReload: Boolean): Result<Card> = object : Result<Card> {
+                          forceReload: Boolean = false): Result<Card> = object : Result<Card> {
         override fun get(): Card {
             return lookupManager.lookupCard(identity, forceReload)
         }

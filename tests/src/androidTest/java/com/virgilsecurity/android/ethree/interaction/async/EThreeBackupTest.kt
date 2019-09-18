@@ -33,11 +33,11 @@
 
 package com.virgilsecurity.android.ethree.interaction.async
 
+import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.common.exception.BackupKeyException
 import com.virgilsecurity.android.common.exception.PrivateKeyNotFoundException
 import com.virgilsecurity.android.common.exception.RestoreKeyException
 import com.virgilsecurity.android.common.exception.WrongPasswordException
-import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.ethree.interaction.EThree
 import com.virgilsecurity.android.ethree.utils.TestConfig
 import com.virgilsecurity.android.ethree.utils.TestConfig.Companion.virgilBaseUrl
@@ -160,18 +160,18 @@ class EThreeBackupTest {
                 .build()
         val keyPair = BrainKey(brainKeyContext).generateKeyPair(passwordBrainKey)
 
-        val syncKeyStorage =
-                SyncKeyStorage(
-                    identity, keyStorage, CloudKeyStorage(
-                        KeyknoxManager(
-                            tokenProvider,
-                            KeyknoxClient(URL(virgilBaseUrl)),
-                            listOf(keyPair.publicKey),
-                            keyPair.privateKey,
-                            KeyknoxCrypto()
-                        )
-                    )
-                )
+        val syncKeyStorage = SyncKeyStorage(
+            identity,
+            keyStorage,
+            CloudKeyStorage(
+                KeyknoxManager(
+                    KeyknoxClient(tokenProvider, URL(virgilBaseUrl)),
+                    KeyknoxCrypto()
+                ),
+                listOf(keyPair.publicKey),
+                keyPair.privateKey
+            )
+        )
 
         syncKeyStorage.sync()
 

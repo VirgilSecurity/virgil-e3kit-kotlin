@@ -85,7 +85,6 @@ constructor(identity: String,
             context: Context) {
 
     private var accessTokenProvider: AccessTokenProvider
-    private val cardManager: CardManager
     private val rootPath: String
 
     private val cloudKeyManager: CloudKeyManager
@@ -103,6 +102,7 @@ constructor(identity: String,
 
     protected abstract val keyStorageLocal: KeyStorageLocal
 
+    val cardManager: CardManager
     val identity: String
 
     init {
@@ -165,7 +165,9 @@ constructor(identity: String,
      * @throws RegistrationException
      * @throws CryptoException
      */
-    @Synchronized fun register() = authorizationWorker.register()
+    @Synchronized
+    @JvmOverloads
+    fun register(keyPair: VirgilKeyPair? = null) = authorizationWorker.register(keyPair)
 
     /**
      * Revokes the public key for current *identity* in Virgil's Cards Service. After this operation
@@ -240,7 +242,7 @@ constructor(identity: String,
      *
      * @return [FindUsersResult] with found users.
      */
-    fun findUsers(identities: List<String>, forceReload: Boolean): Result<FindUsersResult> =
+    fun findUsers(identities: List<String>, forceReload: Boolean = false): Result<FindUsersResult> =
             searchWorker.findUsers(identities, forceReload)
 
     /**
@@ -251,7 +253,7 @@ constructor(identity: String,
      *
      * @return [Card] that corresponds to provided [identity].
      */
-    fun findUser(identity: String, forceReload: Boolean): Result<Card> =
+    fun findUser(identity: String, forceReload: Boolean = false): Result<Card> =
             searchWorker.findUser(identity, forceReload)
 
     /**
@@ -647,7 +649,7 @@ constructor(identity: String,
      * @throws CryptoException
      */
     @Deprecated("Use encryptForUsers method instead.")
-    fun encrypt(data: ByteArray, lookupResult: LookupResult): ByteArray =
+    @JvmOverloads fun encrypt(data: ByteArray, lookupResult: LookupResult? = null): ByteArray =
             p2pWorker.encrypt(data, lookupResult)
 
     /**
@@ -669,8 +671,8 @@ constructor(identity: String,
      */
     @Deprecated("Use encryptForUsers method instead.") // TODO change to actual methods signature
     fun encrypt(inputStream: InputStream,
-                   outputStream: OutputStream,
-                   lookupResult: LookupResult) =
+                outputStream: OutputStream,
+                lookupResult: LookupResult) =
             p2pWorker.encrypt(inputStream, outputStream, lookupResult)
 
     /**
@@ -706,8 +708,8 @@ constructor(identity: String,
      * @throws CryptoException
      */
     @Deprecated("Use decryptFromUser method instead.")
-    fun decrypt(data: ByteArray, sendersKey: VirgilPublicKey): ByteArray =
-            p2pWorker.decrypt(data, sendersKey) // FIXME check how this methods can work in Swift (they got similar signature as new ones)
+    @JvmOverloads fun decrypt(data: ByteArray, sendersKey: VirgilPublicKey? = null): ByteArray =
+            p2pWorker.decrypt(data, sendersKey)
 
     internal fun privateKeyChanged(newCard: Card? = null) {
         val selfKeyPair = keyStorageLocal.load()

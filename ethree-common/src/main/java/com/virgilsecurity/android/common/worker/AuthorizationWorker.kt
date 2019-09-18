@@ -59,7 +59,9 @@ internal class AuthorizationWorker(
      *
      * @param keyPair `VirgilKeyPair` to publish Card with. Will generate if not specified.
      */
-    @Synchronized internal fun register(keyPair: VirgilKeyPair? = null) = object : Completable {
+    @Synchronized
+    @JvmOverloads
+    internal fun register(keyPair: VirgilKeyPair? = null) = object : Completable {
         override fun execute() {
             if (keyStorageLocal.exists())
                 throw EThreeException("Private key already exists in local key storage")

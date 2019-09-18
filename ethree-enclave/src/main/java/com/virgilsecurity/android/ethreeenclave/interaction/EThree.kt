@@ -55,11 +55,11 @@ class EThree
 @JvmOverloads constructor(
         identity: String,
         tokenCallback: OnGetTokenCallback,
-        keyChangedCallback: OnKeyChangedCallback? = null,
         context: Context,
         alias: String = "VirgilAndroidKeyStorage",
         isAuthenticationRequired: Boolean = true,
-        keyValidityDuration: Int = 60 * 5 // 5 min
+        keyValidityDuration: Int = 60 * 5, // 5 min
+        keyChangedCallback: OnKeyChangedCallback? = null
 ) : EThreeCore(identity, tokenCallback, keyChangedCallback, context) {
 
     override val keyStorageLocal: KeyStorageLocal
@@ -72,7 +72,7 @@ class EThree
                     .onPath(context.filesDir.absolutePath)
                     .build()
 
-            keyStorageLocal = KeyStorageLocalEnclave(keyStorageAndroid, identity, crypto)
+            keyStorageLocal = KeyStorageLocalEnclave(identity, keyStorageAndroid, crypto)
 
             // Migration from old storage to new
             val keyStorageDefault = DefaultKeyStorage(context.filesDir.absolutePath, KEYSTORE_NAME)
@@ -136,11 +136,11 @@ class EThree
                 val token = tokenProvider.getToken(NO_CONTEXT)
                 return EThree(token.identity,
                               onGetTokenCallback,
-                              keyChangedCallback,
                               context,
                               alias,
                               isAuthenticationRequired,
-                              keyValidityDuration)
+                              keyValidityDuration,
+                              keyChangedCallback)
             }
         }
 

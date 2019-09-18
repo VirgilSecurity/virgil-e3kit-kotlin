@@ -50,8 +50,8 @@ import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
 class EThree(
         identity: String,
         tokenCallback: OnGetTokenCallback,
-        keyChangedCallback: OnKeyChangedCallback? = null,
-        context: Context
+        context: Context,
+        keyChangedCallback: OnKeyChangedCallback? = null
 ) : EThreeCore(identity, tokenCallback, keyChangedCallback, context) {
 
     override val keyStorageLocal: KeyStorageLocal
@@ -70,9 +70,12 @@ class EThree(
          *
          * To start execution of the current function, please see [Result] description.
          */
-        @JvmStatic fun initialize(context: Context,
-                                  onGetTokenCallback: OnGetTokenCallback,
-                                  keyChangedCallback: OnKeyChangedCallback? = null) =
+        @JvmStatic
+        @JvmOverloads
+        @Deprecated("Use constructor instead")
+        fun initialize(context: Context,
+                       onGetTokenCallback: OnGetTokenCallback,
+                       keyChangedCallback: OnKeyChangedCallback? = null) =
                 object : Result<EThree> {
                     override fun get(): EThree {
                         val tokenProvider = CachingJwtProvider(CachingJwtProvider.RenewJwtCallback {
@@ -85,8 +88,8 @@ class EThree(
                         val token = tokenProvider.getToken(NO_CONTEXT)
                         return EThree(token.identity,
                                       onGetTokenCallback,
-                                      keyChangedCallback,
-                                      context)
+                                      context,
+                                      keyChangedCallback)
                     }
                 }
     }
