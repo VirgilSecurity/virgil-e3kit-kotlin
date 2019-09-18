@@ -58,6 +58,8 @@ class EThree(
 
     init {
         keyStorageLocal = KeyStorageLocalFile(identity, crypto, context.filesDir.absolutePath)
+
+        initializeCore()
     }
 
     companion object {
@@ -86,10 +88,13 @@ class EThree(
                         // initialize EThree. We have caching JWT provider, so sequential calls
                         // won't take much time, as token will be cached after first call.
                         val token = tokenProvider.getToken(NO_CONTEXT)
-                        return EThree(token.identity,
-                                      onGetTokenCallback,
-                                      context,
-                                      keyChangedCallback)
+                        val ethree = EThree(token.identity,
+                                            onGetTokenCallback,
+                                            context,
+                                            keyChangedCallback)
+                        ethree.initializeCore()
+
+                        return ethree
                     }
                 }
     }

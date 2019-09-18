@@ -99,6 +99,8 @@ class EThree
             // If migration was successful - remove keys from old storage.
             keyStorageDefault.names().forEach { keyStorageDefault.delete(it) }
         }
+
+        initializeCore()
     }
 
     companion object {
@@ -134,13 +136,17 @@ class EThree
                 // initialize EThree. We have caching JWT provider, so sequential calls
                 // won't take much time, as token will be cached after first call.
                 val token = tokenProvider.getToken(NO_CONTEXT)
-                return EThree(token.identity,
-                              onGetTokenCallback,
-                              context,
-                              alias,
-                              isAuthenticationRequired,
-                              keyValidityDuration,
-                              keyChangedCallback)
+
+                val eThree = EThree(token.identity,
+                                    onGetTokenCallback,
+                                    context,
+                                    alias,
+                                    isAuthenticationRequired,
+                                    keyValidityDuration,
+                                    keyChangedCallback)
+                eThree.initializeCore()
+
+                return eThree
             }
         }
 

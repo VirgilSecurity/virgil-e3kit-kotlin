@@ -54,13 +54,11 @@ import java.util.*
 class PeerToPeerTest {
 
     private lateinit var identity: String
-    private lateinit var password: String
     private lateinit var crypto: VirgilCrypto
     private lateinit var ethree: EThree
 
     @Before fun setup() {
         this.identity = UUID.randomUUID().toString()
-        this.password = UUID.randomUUID().toString()
         this.crypto = VirgilCrypto()
         this.ethree = EThree(identity,
                              object : OnGetTokenCallback {
