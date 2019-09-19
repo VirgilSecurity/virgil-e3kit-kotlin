@@ -111,7 +111,7 @@ constructor(identity: String,
         this.identity = identity
         val cardCrypto = VirgilCardCrypto(crypto)
         val virgilCardVerifier = VirgilCardVerifier(cardCrypto)
-        val httpClient = HttpClient(Const.ETHREE_NAME, VersionVirgilAgent.VERSION)
+        val httpClient = HttpClient(Const.ETHREE_NAME, VersionVirgilAgent.VERSION) // FIXME wrong VersionVirgilAgent - from keyknox
         this.accessTokenProvider = CachingJwtProvider { Jwt(getTokenCallback.onGetToken()) }
 
         cardManager = CardManager(cardCrypto,

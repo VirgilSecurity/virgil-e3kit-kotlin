@@ -77,12 +77,16 @@ dependencies {
 
     api ("com.virgilsecurity:pythia:$versions.pythia") {
         exclude group: 'com.virgilsecurity.crypto'
-//        exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
+        exclude group: 'com.virgilsecurity.sdk'
     }
-
+    implementation "com.virgilsecurity.crypto:pythia-android:$versions.virgilCrypto"
+    implementation ("com.virgilsecurity.sdk:sdk:$versions.virgilSdk") {
+        exclude group: 'com.virgilsecurity.crypto'
+    }
+    implementation "com.virgilsecurity.crypto:common-android:$versions.virgilCrypto"
+    implementation "com.virgilsecurity:common:$versions.virgilSdk"
     api("com.virgilsecurity.sdk:keyknox:$versions.virgilSdk") {
         exclude group: 'com.virgilsecurity.crypto'
-//        exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
     }
 
     // Android

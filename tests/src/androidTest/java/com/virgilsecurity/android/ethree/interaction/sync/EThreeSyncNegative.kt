@@ -38,6 +38,7 @@ import com.virgilsecurity.android.common.exception.*
 import com.virgilsecurity.android.ethree.interaction.EThree
 import com.virgilsecurity.android.ethree.utils.TestConfig
 import com.virgilsecurity.android.ethree.utils.TestUtils
+import com.virgilsecurity.keyknox.exception.EntryNotFoundException
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.model.RawSignedModel
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
@@ -125,7 +126,7 @@ class EThreeSyncNegative {
         try {
             eThree.register().execute()
         } catch (throwable: Throwable) {
-            assertTrue(throwable is RegistrationException)
+            assertTrue(throwable is EThreeException)
         }
     }
 
@@ -135,7 +136,7 @@ class EThreeSyncNegative {
         try {
             eThree.unregister().execute()
         } catch (throwable: Throwable) {
-            assertTrue(throwable is UnRegistrationException)
+            assertTrue(throwable is EThreeException)
         }
     }
 
@@ -147,7 +148,7 @@ class EThreeSyncNegative {
         try {
             eThree.backupPrivateKey(password).execute()
         } catch (throwable: Throwable) {
-            assertTrue(throwable is PrivateKeyNotFoundException)
+            assertTrue(throwable is EThreeException)
         }
     }
 
@@ -161,7 +162,7 @@ class EThreeSyncNegative {
         try {
             eThreeWithPass.resetPrivateKeyBackup(password).execute()
         } catch (throwable: Throwable) {
-            assertTrue(throwable is PrivateKeyNotFoundException)
+            assertTrue(throwable is EntryNotFoundException)
         }
     }
 
@@ -173,7 +174,7 @@ class EThreeSyncNegative {
         try {
             eThree.restorePrivateKey(password).execute()
         } catch (throwable: Throwable) {
-            assertTrue(throwable is RestoreKeyException)
+            assertTrue(throwable is EntryNotFoundException)
         }
     }
 
@@ -184,7 +185,7 @@ class EThreeSyncNegative {
         try {
             eThree.rotatePrivateKey().execute()
         } catch (throwable: Throwable) {
-            assertTrue(throwable is CardNotFoundException)
+            assertTrue(throwable is EThreeException)
         }
     }
 
@@ -208,7 +209,7 @@ class EThreeSyncNegative {
         try {
             eThree.lookupPublicKeys(listOf()).get()
         } catch (throwable: Throwable) {
-            assertTrue(throwable is EmptyArgumentException)
+            assertTrue(throwable is IllegalArgumentException)
         }
     }
 }

@@ -136,6 +136,6 @@ class CloudKeyManager(
             throw WrongPasswordException()
         }
 
-        return  cloudKeyStorage
+        return cloudKeyStorage
     }
 }
