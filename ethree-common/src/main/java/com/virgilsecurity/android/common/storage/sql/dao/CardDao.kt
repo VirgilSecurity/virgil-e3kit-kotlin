@@ -35,12 +35,11 @@ package com.virgilsecurity.android.common.storage.sql.dao
 
 import androidx.room.*
 import com.virgilsecurity.android.common.storage.sql.model.CardEntity
-import com.virgilsecurity.sdk.cards.Card
 
 @Dao
 interface CardDao {
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insert(card: CardEntity)
 
     @Query("SELECT * FROM ethree_cards WHERE id = :cardId LIMIT 1")

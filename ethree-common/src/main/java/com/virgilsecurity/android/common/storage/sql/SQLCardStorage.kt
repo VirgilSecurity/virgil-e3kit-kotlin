@@ -78,15 +78,21 @@ class SQLCardStorage(context: Context,
     }
 
     override fun storeCard(card: Card) {
-        //TODO make CardManager.exportCardAsJson static and use it instead of serializeToJson
-        val cardEntity = CardEntity(card.identifier, card.identity, card.isOutdated,
-                ConvertionUtils.serializeToJson(card.rawCard))
-        db.cardDao().insert(cardEntity)
+        var currentCard: Card? = card
+        var previousCardId: String? = null
+        var isOutdated = card.isOutdated
+        while (currentCard != null) {
+            //TODO make CardManager.exportCardAsJson static and use it instead of serializeToJson
+            val cardEntity = CardEntity(currentCard.identifier, currentCard.identity, isOutdated,
+                    ConvertionUtils.serializeToJson(currentCard.rawCard))
+            db.cardDao().insert(cardEntity)
 
-        var previousCard = card.previousCard
-        while (previousCard != null) {
-            db.cardDao().markOutdatedById(previousCard.identifier)
-            previousCard = previousCard.previousCard
+            previousCardId = currentCard.previousCardId
+            currentCard = currentCard.previousCard
+            isOutdated = true
+        }
+        if (previousCardId != null) {
+            db.cardDao().markOutdatedById(previousCardId)
         }
     }
 
@@ -118,12 +124,16 @@ class SQLCardStorage(context: Context,
 
         val result = mutableListOf<Card>()
         for (card in cards) {
-            if (!identities.contains(card.identifier)) {
+            if (card.identity !in identities) {
                 throw InconsistentCardStorageException("Got wrong card from SQL storage")
             }
-            val nextCard = cards.first { it.previousCardId == card.identifier }
-            nextCard.previousCard = card
-            card.isOutdated = true
+            val nextCard = cards.firstOrNull() { it.previousCardId == card.identifier }
+            if (nextCard != null) {
+                nextCard.previousCard = card
+                card.isOutdated = true
+                continue
+            }
+            result.add(card)
         }
         return result
     }

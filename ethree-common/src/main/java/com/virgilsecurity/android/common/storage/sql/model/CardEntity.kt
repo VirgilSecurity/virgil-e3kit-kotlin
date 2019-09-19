@@ -41,7 +41,7 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "ethree_cards",
         indices = arrayOf(Index(value = ["id"], unique = true),
-                Index(value = ["identity"], unique = true)))
+                Index(value = ["identity"], unique = false)))
 data class CardEntity(
         @PrimaryKey @ColumnInfo(name = "id") val identifier: String,
         @ColumnInfo(name = "identity") @NonNull val identity: String,

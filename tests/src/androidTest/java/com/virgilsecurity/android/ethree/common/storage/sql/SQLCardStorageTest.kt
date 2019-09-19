@@ -33,12 +33,16 @@
 
 package com.virgilsecurity.android.ethree.common.storage.sql
 
-import android.support.test.runner.AndroidJUnit4
 import androidx.room.Room
+import androidx.test.runner.AndroidJUnit4
+import com.google.gson.JsonObject
+import com.google.gson.JsonParser
 import com.virgilsecurity.android.common.storage.CardStorage
 import com.virgilsecurity.android.common.storage.sql.ETheeDatabase
 import com.virgilsecurity.android.common.storage.sql.SQLCardStorage
+import com.virgilsecurity.android.common.storage.sql.model.CardEntity
 import com.virgilsecurity.android.ethree.utils.TestConfig
+import com.virgilsecurity.android.ethree.utils.TestConfig.Companion.context
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
 import com.virgilsecurity.sdk.crypto.VirgilCardCrypto
@@ -49,6 +53,7 @@ import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.io.InputStreamReader
 import java.util.*
 
 
@@ -66,26 +71,27 @@ class SQLCardStorageTest {
     private lateinit var storage: CardStorage
     private lateinit var crypto: VirgilCrypto
     private lateinit var verifier: VirgilCardVerifier
-    private lateinit var dbName: String
+    private lateinit var cardManager: CardManager
+    private lateinit var db: ETheeDatabase
 
     @Before
     fun setup() {
         identity = UUID.randomUUID().toString()
         crypto = VirgilCrypto()
         verifier = VirgilCardVerifier(VirgilCardCrypto(crypto))
+        val tokenProvider = CachingJwtProvider(CachingJwtProvider.RenewJwtCallback(function = {
+            return@RenewJwtCallback null
+        }))
+        cardManager = CardManager(VirgilCardCrypto(VirgilCrypto()), tokenProvider, VirgilCardVerifier(VirgilCardCrypto(VirgilCrypto())))
 
-        dbName = String.format("ethree-database-%s", identity)
-//        DbHelper(TestConfig.context, "cards.sqlite3", dbName).installDatabase()
-        val db = Room.databaseBuilder(TestConfig.context, ETheeDatabase::class.java, dbName)
-                .createFromAsset("databases/cards.sqlite3")
-                .build()
+        db = Room.inMemoryDatabaseBuilder(TestConfig.context, ETheeDatabase::class.java).build()
+        prePopulateDatabase()
 
-        this.storage = SQLCardStorage(TestConfig.context, identity, crypto, verifier)
+        this.storage = SQLCardStorage(TestConfig.context, identity, crypto, verifier, db)
     }
 
     @After
     fun tearDown() {
-        TestConfig.context.deleteDatabase(this.dbName)
     }
 
     @Test
@@ -107,6 +113,7 @@ class SQLCardStorageTest {
         val storage2 = SQLCardStorage(TestConfig.context, identity2, crypto, verifier)
 
         val cards = storage.searchCards(listOf(this.cIdentity1, this.cIdentity2))
+        assertEquals(2, cards.size)
 
         storage2.storeCard(cards[0])
         storage2.storeCard(cards[1])
@@ -174,27 +181,13 @@ class SQLCardStorageTest {
         assertNull(storage2.getCard(this.cCardId3))
     }
 
-    @Test
-    fun store_load() {
-        val tokenProvider = CachingJwtProvider(CachingJwtProvider.RenewJwtCallback(function = {
-            return@RenewJwtCallback null
-        }))
-        val cardManager = CardManager(VirgilCardCrypto(VirgilCrypto()), tokenProvider, VirgilCardVerifier(VirgilCardCrypto(VirgilCrypto())))
-        val card1 = cardManager.importCardAsJson("{\"content_snapshot\":\"eyJ2ZXJzaW9uIjoiNS4wIiwicHVibGljX2tleSI6Ik1Db3dCUVlESzJWd0F5RUFkV2ZBWXowNnNoQUNjeFdUVWlhZkRIcE9PcHBrUkdrNWdCZjllUzQ0SlM0PSIsImlkZW50aXR5IjoiRDRFOEU0Q0EtNkZCNC00MkI2LUEzRkYtREJCQzE5MjAxREQ2IiwiY3JlYXRlZF9hdCI6MTU2NDU4NTYwOX0=\",\"signatures\":[{\"signature\":\"MFEwDQYJYIZIAWUDBAIDBQAEQIR0PND1Yic36leh\\/vQ+oMXmR8vJX+Vm6pRF4C6z52IP5PK4TMWobPcymrkY+lOllxQNG1ORROoXBfcKSWxkWAw=\",\"signer\":\"self\"}\n,{\"signature\":\"MFEwDQYJYIZIAWUDBAIDBQAEQDFlyBswkrCV3+NSGwn67KFLwU\\/FznY\\/5o+wThgdCzliCP7oMjMe8uGSq4A1GNOEcNoMZhPz7Tku24dncXA0cgk=\",\"signer\":\"virgil\"}]}")
-
-        storage.storeCard(card1)
-
-        val importedCard1 = storage.getCard(this.cCardId3)
-        assertNotNull(importedCard1)
-    }
-
     private fun checkCardsById(storage: CardStorage = this.storage) {
         val card1 = storage.getCard(this.cCardId1)
         assertNotNull(card1)
         val card2 = storage.getCard(this.cCardId2)
         assertNotNull(card2)
         val card3 = storage.getCard(this.cCardId3)
-        assertNotNull(card2)
+        assertNotNull(card3)
 
         assertEquals(this.cIdentity1, card1!!.identity)
         assertEquals(this.cIdentity1, card2!!.identity)
@@ -217,9 +210,8 @@ class SQLCardStorageTest {
         val cards = storage.searchCards(listOf(this.cIdentity1, this.cIdentity2))
         assertEquals(2, cards.size)
 
-
-        val card1 = cards.first{ it.identity == this.cIdentity1}
-        val card2 = cards.first{ it.identity == this.cIdentity2}
+        val card1 = cards.first { it.identity == this.cIdentity1 }
+        val card2 = cards.first { it.identity == this.cIdentity2 }
 
         assertNotNull(card1.previousCardId)
         assertNull(card2.previousCardId)
@@ -231,5 +223,18 @@ class SQLCardStorageTest {
         assertFalse(card1.isOutdated)
         assertTrue(card1.previousCard.isOutdated)
         assertFalse(card2.isOutdated)
+    }
+
+    private fun prePopulateDatabase() {
+        val sampleJson = JsonParser().parse(InputStreamReader(context.assets.open("databases/cards.json"))) as JsonObject
+        sampleJson.entrySet().forEach {
+            val cardId = it.key
+            val identity = (it.value as JsonObject)["identity"].asString
+            val isOutdated = (it.value as JsonObject)["is_outdated"].asBoolean
+            val cardData = (it.value as JsonObject)["card"].asString
+
+            val cardEntity = CardEntity(cardId, identity, isOutdated, cardData)
+            db.cardDao().insert(cardEntity)
+        }
     }
 }

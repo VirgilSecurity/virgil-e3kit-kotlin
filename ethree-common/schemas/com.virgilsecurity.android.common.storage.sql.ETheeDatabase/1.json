@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "4212544335da779dbbf1ff4e6db35efb",
+    "identityHash": "8dcd33dbd4adb92d67a256cf63a8ec45",
     "entities": [
       {
         "tableName": "ethree_cards",
@@ -50,11 +50,11 @@
           },
           {
             "name": "index_ethree_cards_identity",
-            "unique": true,
+            "unique": false,
             "columnNames": [
               "identity"
             ],
-            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_ethree_cards_identity` ON `${TABLE_NAME}` (`identity`)"
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_ethree_cards_identity` ON `${TABLE_NAME}` (`identity`)"
           }
         ],
         "foreignKeys": []
@@ -63,7 +63,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '4212544335da779dbbf1ff4e6db35efb')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '8dcd33dbd4adb92d67a256cf63a8ec45')"
     ]
   }
 }

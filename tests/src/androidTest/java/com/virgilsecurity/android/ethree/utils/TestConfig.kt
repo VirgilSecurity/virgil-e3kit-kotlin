@@ -33,7 +33,7 @@
 
 package com.virgilsecurity.android.ethree.utils
 
-import android.support.test.InstrumentationRegistry
+import androidx.test.InstrumentationRegistry
 import com.virgilsecurity.android.ethree.BuildConfig
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilPrivateKey

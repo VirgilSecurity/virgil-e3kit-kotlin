@@ -105,9 +105,21 @@ class FindUsersException @JvmOverloads constructor(
         override val message: String? = null, throwable: Throwable? = null
 ) : EThreeException(message, throwable)
 
-class GroupException @JvmOverloads constructor(
+open class GroupException @JvmOverloads constructor(
         override val message: String? = null, throwable: Throwable? = null
 ) : EThreeException(message, throwable)
+
+class InvalidParticipantsCountGroupException @JvmOverloads constructor(
+        override val message: String? = null, throwable: Throwable? = null
+) : GroupException(message, throwable)
+
+class ShortGroupIdGroupException @JvmOverloads constructor(
+        override val message: String? = null, throwable: Throwable? = null
+) : GroupException(message, throwable)
+
+class GroupNotFoundGroupException @JvmOverloads constructor(
+        override val message: String? = null, throwable: Throwable? = null
+) : GroupException(message, throwable)
 
 open class CardStorageException @JvmOverloads constructor(
         override val message: String? = null, throwable: Throwable? = null
