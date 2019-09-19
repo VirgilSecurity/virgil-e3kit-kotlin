@@ -149,7 +149,7 @@ class SearchTests {
             var called = false
 
             override fun keyChanged(identity: String) {
-                assertEquals(this@SearchTests.identity, identity)
+                assertEquals(card.identity, identity)
                 called = true
             }
         }

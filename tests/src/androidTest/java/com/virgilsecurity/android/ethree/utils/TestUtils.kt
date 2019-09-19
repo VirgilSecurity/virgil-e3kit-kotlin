@@ -65,7 +65,7 @@ class TestUtils {
                     TestConfig.apiKey,
                     TestConfig.apiPublicKeyId,
                     TimeSpan.fromTime(600, TimeUnit.SECONDS),
-                    VirgilAccessTokenSigner(TestConfig.virgilCrypto)
+                    VirgilAccessTokenSigner(virgilCrypto)
                 ).generateToken(identity).stringRepresentation()
 
         fun generateToken(identity: String): Jwt =
@@ -74,17 +74,18 @@ class TestUtils {
                     TestConfig.apiKey,
                     TestConfig.apiPublicKeyId,
                     TimeSpan.fromTime(600, TimeUnit.SECONDS),
-                    VirgilAccessTokenSigner(TestConfig.virgilCrypto)
+                    VirgilAccessTokenSigner(virgilCrypto)
                 ).generateToken(identity)
 
         fun publishCard(identity: String? = null, previousCardId: String? = null): Card {
             val keyPair = virgilCrypto.generateKeyPair()
             val exportedPublicKey = virgilCrypto.exportPublicKey(keyPair.publicKey)
             val identityNew = identity ?: UUID.randomUUID().toString()
-            val content = RawCardContent(identity,
+            val content = RawCardContent(identityNew,
                                          ConvertionUtils.toBase64String(exportedPublicKey),
-                                         previousCardId,
-                                         Date())
+                                         "5.0",
+                                         Date(),
+                                         previousCardId)
             val snapshot = content.snapshot()
             val rawCard = RawSignedModel(snapshot)
             val token = generateToken(identityNew)

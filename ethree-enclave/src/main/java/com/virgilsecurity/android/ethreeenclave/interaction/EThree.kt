@@ -37,7 +37,6 @@ import android.content.Context
 import com.virgilsecurity.android.common.EThreeCore
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.common.callback.OnKeyChangedCallback
-import com.virgilsecurity.android.common.storage.local.KeyStorageLocal
 import com.virgilsecurity.android.common.util.Const.NO_CONTEXT
 import com.virgilsecurity.common.model.Result
 import com.virgilsecurity.sdk.androidutils.storage.AndroidKeyEntry
@@ -46,6 +45,7 @@ import com.virgilsecurity.sdk.crypto.exceptions.KeyStorageException
 import com.virgilsecurity.sdk.jwt.Jwt
 import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
+import com.virgilsecurity.sdk.storage.KeyStorage
 
 /**
  * [EThree] class simplifies work with Virgil Services to easily implement End to End Encrypted
@@ -62,17 +62,15 @@ class EThree
         keyChangedCallback: OnKeyChangedCallback? = null
 ) : EThreeCore(identity, tokenCallback, keyChangedCallback, context) {
 
-    override val keyStorageLocal: KeyStorageLocal
+    override val keyStorage: KeyStorage
 
     init {
         synchronized(this@EThree) {
-            val keyStorageAndroid = AndroidKeyStorage.Builder(alias)
+            keyStorage = AndroidKeyStorage.Builder(alias)
                     .isAuthenticationRequired(isAuthenticationRequired)
                     .withKeyValidityDuration(keyValidityDuration)
                     .onPath(context.filesDir.absolutePath)
                     .build()
-
-            keyStorageLocal = KeyStorageLocalEnclave(identity, keyStorageAndroid, crypto)
 
             // Migration from old storage to new
             val keyStorageDefault = DefaultKeyStorage(context.filesDir.absolutePath, KEYSTORE_NAME)
@@ -86,9 +84,9 @@ class EThree
 
                     // If any error happens - restore state of storages.
                     try {
-                        keyStorageAndroid.store(keyEntryAndroid)
+                        keyStorage.store(keyEntryAndroid)
                     } catch (throwable: Throwable) {
-                        keyStorageAndroid.names().forEach { keyStorageAndroid.delete(it) }
+                        keyStorage.names().forEach { keyStorage.delete(it) }
 
                         throw KeyStorageException("Error while migrating keys from legacy key "
                                                   + "storage to the new one. All keys are restored in legacy key storage.")

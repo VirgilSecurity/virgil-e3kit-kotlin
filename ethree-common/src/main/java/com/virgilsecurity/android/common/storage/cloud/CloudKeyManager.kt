@@ -41,6 +41,7 @@ import com.virgilsecurity.keyknox.build.VersionVirgilAgent
 import com.virgilsecurity.keyknox.client.HttpClient
 import com.virgilsecurity.keyknox.client.KeyknoxClient
 import com.virgilsecurity.keyknox.cloud.CloudKeyStorage
+import com.virgilsecurity.keyknox.exception.DecryptionFailedException
 import com.virgilsecurity.keyknox.exception.KeyknoxCryptoException
 import com.virgilsecurity.keyknox.model.CloudEntry
 import com.virgilsecurity.pythia.brainkey.BrainKey
@@ -131,7 +132,7 @@ class CloudKeyManager(
 
         try {
             cloudKeyStorage.retrieveCloudEntries()
-        } catch (e: DecryptionException) {
+        } catch (e: DecryptionFailedException) {
             throw WrongPasswordException()
         }
 

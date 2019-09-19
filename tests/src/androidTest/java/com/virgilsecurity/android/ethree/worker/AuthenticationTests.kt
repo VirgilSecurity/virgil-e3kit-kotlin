@@ -40,9 +40,9 @@ import com.virgilsecurity.android.ethree.utils.TestConfig
 import com.virgilsecurity.android.ethree.utils.TestConfig.Companion.virgilCrypto
 import com.virgilsecurity.android.ethree.utils.TestUtils
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
+import com.virgilsecurity.sdk.crypto.exceptions.KeyEntryNotFoundException
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
 import com.virgilsecurity.sdk.storage.JsonKeyEntry
-import org.junit.Assert
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
@@ -76,7 +76,7 @@ class AuthenticationTests {
     }
 
     // test01 STE_8
-    @Test fun store_retrieve_key() {
+    @Test fun cleanup() {
         val keyPair = virgilCrypto.generateKeyPair()
         val data = virgilCrypto.exportPrivateKey(keyPair.privateKey)
 
@@ -84,9 +84,12 @@ class AuthenticationTests {
 
         ethree.cleanup()
 
-        val retrievedEntry = keyStorage.load(ethree.identity)
-        assertNotNull(retrievedEntry)
-        assertArrayEquals(data, retrievedEntry.value)
+        try {
+            keyStorage.load(ethree.identity)
+        } catch (throwable: Throwable) {
+            if (throwable !is KeyEntryNotFoundException)
+                fail()
+        }
     }
 
     // test02 STE_9
@@ -165,8 +168,10 @@ class AuthenticationTests {
 
         val keyOne = crypto.exportPublicKey(card.publicKey)
         val keyTwo = crypto.exportPublicKey(keyPair.publicKey)
+        val keyThree = crypto.exportPublicKey(cards.first().publicKey)
 
-        assertArrayEquals(keyOne, keyTwo)
+        assertFalse(Arrays.equals(keyOne, keyTwo))
+        assertTrue(Arrays.equals(keyTwo, keyThree))
     }
 
     // test08 STE_20
@@ -181,11 +186,15 @@ class AuthenticationTests {
         ethree.register().execute()
         ethree.unregister().execute()
 
-        val retrievedEntry = keyStorage.load(ethree.identity)
-        assertNotNull(retrievedEntry)
+        try {
+            keyStorage.load(ethree.identity)
+        } catch (throwable: Throwable) {
+            if (throwable !is KeyEntryNotFoundException)
+                fail()
+        }
 
         val cards = ethree.cardManager.searchCards(ethree.identity)
-        assertTrue(cards.isNotEmpty())
+        assertTrue(cards.isEmpty())
     }
 
     // test09 STE_44

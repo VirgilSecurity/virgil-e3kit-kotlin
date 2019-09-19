@@ -65,6 +65,7 @@ import com.virgilsecurity.sdk.jwt.Jwt
 import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
 import com.virgilsecurity.sdk.jwt.contract.AccessTokenProvider
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
+import com.virgilsecurity.sdk.storage.KeyStorage
 import java.io.InputStream
 import java.io.OutputStream
 import java.util.*
@@ -90,6 +91,7 @@ constructor(identity: String,
     private val cloudKeyManager: CloudKeyManager
     private val lookupManager: LookupManager
 
+    private lateinit var keyStorageLocal: KeyStorageLocal
     private lateinit var authorizationWorker: AuthorizationWorker
     private lateinit var backupWorker: BackupWorker
     private lateinit var groupWorker: GroupWorker
@@ -100,7 +102,7 @@ constructor(identity: String,
 
     protected val crypto: VirgilCrypto = VirgilCrypto()
 
-    protected abstract val keyStorageLocal: KeyStorageLocal
+    protected abstract val keyStorage: KeyStorage
 
     val cardManager: CardManager
     val identity: String
@@ -135,6 +137,7 @@ constructor(identity: String,
      * is available only after child object of `EThreeCore` is constructed.
      */
     protected fun initializeCore() {
+        this.keyStorageLocal = KeyStorageLocal(identity, keyStorage, crypto)
         this.authorizationWorker = AuthorizationWorker(cardManager,
                                                        keyStorageLocal,
                                                        identity,

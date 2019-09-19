@@ -37,11 +37,12 @@ import android.content.Context
 import com.virgilsecurity.android.common.EThreeCore
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.common.callback.OnKeyChangedCallback
-import com.virgilsecurity.android.common.storage.local.KeyStorageLocal
 import com.virgilsecurity.android.common.util.Const.NO_CONTEXT
 import com.virgilsecurity.common.model.Result
 import com.virgilsecurity.sdk.jwt.Jwt
 import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
+import com.virgilsecurity.sdk.storage.DefaultKeyStorage
+import com.virgilsecurity.sdk.storage.KeyStorage
 
 /**
  * [EThree] class simplifies work with Virgil Services to easily implement End to End Encrypted
@@ -54,10 +55,10 @@ class EThree(
         keyChangedCallback: OnKeyChangedCallback? = null
 ) : EThreeCore(identity, tokenCallback, keyChangedCallback, context) {
 
-    override val keyStorageLocal: KeyStorageLocal
+    override val keyStorage: KeyStorage
 
     init {
-        keyStorageLocal = KeyStorageLocalFile(identity, crypto, context.filesDir.absolutePath)
+        keyStorage = DefaultKeyStorage(context.filesDir.absolutePath, KEYSTORE_NAME)
 
         initializeCore()
     }
@@ -97,5 +98,7 @@ class EThree(
                         return ethree
                     }
                 }
+
+        private const val KEYSTORE_NAME = "virgil.keystore"
     }
 }

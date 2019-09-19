@@ -34,10 +34,12 @@
 package com.virgilsecurity.android.ethree.worker
 
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
+import com.virgilsecurity.android.common.exception.EThreeException
 import com.virgilsecurity.android.common.model.FindUsersResult
 import com.virgilsecurity.android.ethree.interaction.EThree
 import com.virgilsecurity.android.ethree.utils.TestConfig
 import com.virgilsecurity.android.ethree.utils.TestUtils
+import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
 import com.virgilsecurity.sdk.utils.ConvertionUtils
@@ -96,7 +98,12 @@ class PeerToPeerTest {
 
         val otherCard = TestUtils.publishCard()
 
-        val decrypted = ethreeTwo.decrypt(encrypted, otherCard) //FIXME check exception type
+        try {
+            ethreeTwo.decrypt(encrypted, otherCard)
+            fail()
+        } catch (throwable: Throwable) {
+            // We're good
+        }
 
         val cardTwo = ethreeTwo.findUser(ethree.identity).get()
         val decryptedTwo = ethreeTwo.decrypt(encrypted, cardTwo)
@@ -104,10 +111,10 @@ class PeerToPeerTest {
     }
 
     // test02 STE_4
-    @Test fun encrypt_empty_keys() {
+    @Test(expected = IllegalArgumentException::class) fun encrypt_empty_keys() {
         ethree.register().execute()
 
-        val encrypted = ethree.encrypt(TEXT, FindUsersResult()) //FIXME check exception type
+        ethree.encrypt(TEXT, FindUsersResult()) //FIXME check exception type
     }
 
     // test03 STE_5
@@ -121,20 +128,35 @@ class PeerToPeerTest {
 
         val otherCard = TestUtils.publishCard()
 
-        ethree.decrypt(encryptedString, otherCard) //FIXME check exception type
+        try {
+            ethree.decrypt(encryptedString, otherCard)
+            fail()
+        } catch (throwable: Throwable) {
+            // We're food
+        }
     }
 
     // test04 STE_6
-    @Test fun encrypt_without_private_key() {
+    @Test fun encrypt_decrypt_without_private_key() {
         val keyStorage = DefaultKeyStorage(TestConfig.DIRECTORY_PATH, TestConfig.KEYSTORE_NAME)
-        keyStorage.delete(ethree.identity)
+        assertFalse(keyStorage.exists(ethree.identity))
+//        keyStorage.delete(ethree.identity) // FIXME check why we delete key in swift
 
         val card = TestUtils.publishCard()
 
-        ethree.encrypt(TEXT,
-                       FindUsersResult(mutableMapOf(ethree.identity to card))) //FIXME check exception type
+        try {
+            ethree.encrypt(TEXT, FindUsersResult(mapOf(ethree.identity to card)))
+        } catch (throwable: Throwable) {
+            if (throwable !is EThreeException)
+                fail()
+        }
 
-        val decrypted = ethree.decrypt("", card) //FIXME check exception type
+        try {
+            ethree.decrypt(Data(TEXT.toByteArray()).toBase64String(), card)
+        } catch (throwable: Throwable) {
+            if (throwable !is EThreeException)
+                fail()
+        }
     }
 
     // test05 STE_22
@@ -196,16 +218,31 @@ class PeerToPeerTest {
         val cardTwo = ethreeTwo.findUser(ethree.identity).get()
         assertNotNull(cardTwo)
 
-        ethreeTwo.decrypt(encrypted, card) // FIXME exception type
+        try {
+            ethreeTwo.decrypt(encrypted, cardTwo)
+            fail()
+        } catch (throwable: Throwable) {
+            // We're good
+        }
 
-        ethreeTwo.decrypt(encrypted, card, dateTwo) // FIXME exception type
+        try {
+            ethreeTwo.decrypt(encrypted, cardTwo, dateTwo)
+            fail()
+        } catch (throwable: Throwable) {
+            // We're good
+        }
 
-        val decrypted = ethreeTwo.decrypt(encrypted, card, dateOne)
+        val decrypted = ethreeTwo.decrypt(encrypted, cardTwo, dateOne)
         assertEquals(TEXT, decrypted)
 
-        ethreeTwo.decrypt(encryptedTwo, card, dateOne) // FIXME exception type
+        try {
+            ethreeTwo.decrypt(encryptedTwo, cardTwo, dateOne)
+            fail()
+        } catch (throwable: Throwable) {
+            // We're good
+        }
 
-        val decryptedTwo = ethreeTwo.decrypt(encryptedTwo, card, dateTwo)
+        val decryptedTwo = ethreeTwo.decrypt(encryptedTwo, cardTwo, dateTwo)
         assertEquals(TEXT + TEXT, decryptedTwo)
     }
 
@@ -232,7 +269,7 @@ class PeerToPeerTest {
         val lookupResultTwo = ethreeTwo.lookupPublicKeys(ethree.identity).get()
         assertTrue(lookupResultTwo.isNotEmpty())
 
-        val publicKey = lookupResult[ethree.identity]
+        val publicKey = lookupResultTwo[ethree.identity]
                         ?: error("publicKey should not be null")
 
         val decrypted = ethreeTwo.decrypt(encrypted, publicKey)

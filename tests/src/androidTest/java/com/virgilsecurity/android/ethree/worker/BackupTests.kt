@@ -34,24 +34,28 @@
 package com.virgilsecurity.android.ethree.worker
 
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
+import com.virgilsecurity.android.common.exception.EThreeException
+import com.virgilsecurity.android.common.exception.WrongPasswordException
 import com.virgilsecurity.android.ethree.interaction.EThree
+import com.virgilsecurity.android.ethree.interaction.async.EThreeBackupTest.Companion.WRONG_PASSWORD
 import com.virgilsecurity.android.ethree.utils.TestConfig
 import com.virgilsecurity.android.ethree.utils.TestUtils
 import com.virgilsecurity.keyknox.KeyknoxManager
 import com.virgilsecurity.keyknox.client.KeyknoxClient
 import com.virgilsecurity.keyknox.cloud.CloudKeyStorage
 import com.virgilsecurity.keyknox.crypto.KeyknoxCrypto
+import com.virgilsecurity.keyknox.exception.EntryNotFoundException
 import com.virgilsecurity.keyknox.storage.SyncKeyStorage
 import com.virgilsecurity.pythia.brainkey.BrainKey
 import com.virgilsecurity.pythia.brainkey.BrainKeyContext
 import com.virgilsecurity.pythia.client.VirgilPythiaClient
 import com.virgilsecurity.pythia.crypto.VirgilPythiaCrypto
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
+import com.virgilsecurity.sdk.crypto.exceptions.KeyEntryNotFoundException
 import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
 import com.virgilsecurity.sdk.storage.JsonKeyEntry
-import org.junit.Assert.assertArrayEquals
-import org.junit.Assert.assertNotNull
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import java.net.URL
@@ -115,7 +119,12 @@ class BackupTests {
 
     // test01 STE_15
     @Test fun backup_private_key() {
-        ethree.backupPrivateKey(password).execute() // FIXME should throw EThreeException -> "missing private key" instead of KeyEntryNotFoundException
+        try {
+            ethree.backupPrivateKey(password).execute()
+        } catch (throwable: Throwable) {
+            if (throwable !is EThreeException)
+                fail()
+        }
 
         TestUtils.pause()
 
@@ -126,6 +135,8 @@ class BackupTests {
 
         ethree.backupPrivateKey(password).execute()
 
+        TestUtils.pause()
+
         val syncKeyStorage = initSyncKeyStorage(ethree.identity, password)
 
         val syncEntry = syncKeyStorage.retrieve(ethree.identity)
@@ -134,7 +145,12 @@ class BackupTests {
 
         TestUtils.pause()
 
-        ethree.backupPrivateKey(password).execute() // FIXME expect exception
+        try {
+            ethree.backupPrivateKey(password).execute()
+            fail()
+        } catch (throwable: Throwable) {
+            // We're good
+        }
     }
 
     // test02 STE_16
@@ -149,7 +165,13 @@ class BackupTests {
 
         TestUtils.pause()
 
-        ethree.restorePrivateKey(WRONG_PASSWORD).execute() // FIXME Expect EThreeException -> "Wrong password"
+        try {
+            ethree.restorePrivateKey(WRONG_PASSWORD).execute()
+        } catch (throwable: Throwable) {
+            if (throwable !is WrongPasswordException)
+                fail()
+        }
+
 
         TestUtils.pause()
 
@@ -161,7 +183,12 @@ class BackupTests {
 
         TestUtils.pause()
 
-        ethree.restorePrivateKey(password).execute() // FIXME Expect key already present exception
+        try {
+            ethree.restorePrivateKey(password).execute()
+            fail()
+        } catch (throwable: Throwable) {
+            // We're good
+        }
     }
 
     // test03 STE_17
@@ -182,7 +209,12 @@ class BackupTests {
 
         TestUtils.pause()
 
-        ethree.restorePrivateKey(password).execute() // FIXME Expect EThreeException -> "Wrong password"
+        try {
+            ethree.restorePrivateKey(password).execute()
+        } catch (throwable: Throwable) {
+            if (throwable !is WrongPasswordException)
+                fail()
+        }
 
         TestUtils.pause()
 
@@ -195,7 +227,12 @@ class BackupTests {
 
     // test04 STE_18
     @Test fun reset_private_key_backup() {
-        ethree.resetPrivateKeyBackup(password).execute() // FIXME expect EThreeException
+        try {
+            ethree.resetPrivateKeyBackup(password).execute()
+        } catch (throwable: Throwable) {
+            if (throwable !is EntryNotFoundException)
+                fail()
+        }
 
         val keyPair = TestConfig.virgilCrypto.generateKeyPair()
         val data = TestConfig.virgilCrypto.exportPrivateKey(keyPair.privateKey)
@@ -211,13 +248,22 @@ class BackupTests {
 
         syncKeyStorage.sync()
 
-        val entry = syncKeyStorage.retrieve(ethree.identity)
-        assertNotNull(entry)
+        try {
+            syncKeyStorage.retrieve(ethree.identity)
+            fail()
+        } catch (throwable: Throwable) {
+            // We're good
+        }
     }
 
     // test05 STE_19
     @Test fun reset_private_key_backup_no_password() {
-        ethree.resetPrivateKeyBackup(password).execute() // FIXME expect EThreeException
+        try {
+            ethree.resetPrivateKeyBackup(password).execute()
+        } catch (throwable: Throwable) {
+            if (throwable !is EntryNotFoundException)
+                fail()
+        }
 
         val keyPair = TestConfig.virgilCrypto.generateKeyPair()
         val data = TestConfig.virgilCrypto.exportPrivateKey(keyPair.privateKey)
@@ -233,8 +279,12 @@ class BackupTests {
 
         syncKeyStorage.sync()
 
-        val entry = syncKeyStorage.retrieve(ethree.identity)
-        assertNotNull(entry)
+        try {
+            syncKeyStorage.retrieve(ethree.identity)
+            fail()
+        } catch (throwable: Throwable) {
+            // We're good
+        }
     }
 
     companion object {

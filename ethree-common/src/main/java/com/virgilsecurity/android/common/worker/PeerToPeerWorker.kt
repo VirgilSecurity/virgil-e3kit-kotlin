@@ -171,6 +171,7 @@ internal class PeerToPeerWorker(
      */
     @JvmOverloads internal fun encrypt(text: String, users: FindUsersResult? = null): String {
         require(text.isNotEmpty()) { "\'text\' should not be empty" }
+        require(users?.isNotEmpty() == true) { "Passed empty FindUsersResult" }
 
         val data = Data(text.toByteArray(StandardCharsets.UTF_8)) // TODO check exception type and wrap with "String to Data failed" message
         return encrypt(data, users).toBase64String()
@@ -285,9 +286,8 @@ internal class PeerToPeerWorker(
         val pubKeys = mutableListOf(selfKeyPair.publicKey)
 
         if (publicKeys != null) {
-            if (publicKeys.isEmpty()) {
+            if (publicKeys.isEmpty())
                 throw EThreeException("Passed empty FindUsersResult")
-            }
 
             pubKeys += publicKeys
         }

@@ -66,7 +66,7 @@ internal class LookupManager(
 
                 onKeyChangedCallback?.keyChanged(outdatedCard.identity)
 
-                val newCard = lookupCard(outdatedCard.identity)
+                val newCard = lookupCard(outdatedCard.identity, true)
 
                 cardStorage.storeCard(newCard)
             }
@@ -143,7 +143,7 @@ internal class LookupManager(
             }
         }
 
-        if (result.keys.toList() != identities) { // TODO check equality of lists
+        if (result.keys.toList().sorted() != identities.distinct().sorted()) { // TODO check equality of lists
             throw FindUsersException("Card for one or more of provided identities was not found")
         }
 

@@ -33,7 +33,7 @@
 
 package com.virgilsecurity.android.ethree.java.interaction
 
-import androidx.test.runner.AndroidJUnit4
+import android.support.test.runner.AndroidJUnit4
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.common.exception.GroupNotFoundGroupException
 import com.virgilsecurity.android.common.exception.InvalidParticipantsCountGroupException

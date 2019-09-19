@@ -47,8 +47,8 @@ android {
         applicationId "com.virgilsecurity.android.ethree"
         minSdkVersion 23
         targetSdkVersion 28
-        //testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+//        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
     }
     buildTypes {
@@ -82,7 +82,11 @@ dependencies {
     androidTestImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$versions.coroutines"
 
     // Virgil
-
+    androidTestImplementation ("com.virgilsecurity:pythia:$versions.pythia") {
+        exclude group: 'com.virgilsecurity.crypto'
+    }
+    androidTestImplementation "com.virgilsecurity.crypto:pythia-android:$versions.virgilCrypto"
+    androidTestImplementation "com.virgilsecurity.sdk:sdk:$versions.virgilSdk"
 
     // Tests core
     testImplementation "junit:junit:$versions.junit"

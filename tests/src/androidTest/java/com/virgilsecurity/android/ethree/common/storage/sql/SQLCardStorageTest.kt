@@ -33,8 +33,8 @@
 
 package com.virgilsecurity.android.ethree.common.storage.sql
 
+import android.support.test.runner.AndroidJUnit4
 import androidx.room.Room
-import androidx.test.runner.AndroidJUnit4
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.virgilsecurity.android.common.storage.CardStorage

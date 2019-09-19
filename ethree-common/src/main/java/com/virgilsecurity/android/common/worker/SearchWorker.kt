@@ -147,7 +147,7 @@ internal class SearchWorker(
     internal fun lookupPublicKeys(identities: List<String>): Result<LookupResult> =
             object : Result<LookupResult> {
                 override fun get(): LookupResult {
-                    require(identities.isEmpty()) { "\'identities\' should not be empty" }
+                    require(identities.isNotEmpty()) { "\'identities\' should not be empty" }
 
                     val cards = findUsers(identities, true).get()
                     return cards.mapValues { it.component2().publicKey }
