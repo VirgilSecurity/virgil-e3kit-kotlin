@@ -44,7 +44,7 @@ import com.virgilsecurity.sdk.exception.EmptyArgumentException
 /**
  * LookupManager
  */
-internal class LookupManager(
+class LookupManager(
         internal val cardStorage: CardStorage,
         private val cardManager: CardManager,
         private val onKeyChangedCallback: OnKeyChangedCallback? = null

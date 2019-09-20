@@ -49,7 +49,7 @@ import java.net.URL
 /**
  * CloudTicketStorage
  */
-internal class CloudTicketStorage(
+class CloudTicketStorage(
         accessTokenProvider: AccessTokenProvider,
         private val keyStorageLocal: KeyStorageLocal,
         baseUrl: String? = Const.VIRGIL_BASE_URL

@@ -55,6 +55,10 @@ class BackupKeyException @JvmOverloads constructor(
         override val message: String? = null, throwable: Throwable? = null
 ) : EThreeException(message, throwable)
 
+class StringEncodingException @JvmOverloads constructor(
+        override val message: String? = null, throwable: Throwable? = null
+) : EThreeException(message, throwable)
+
 class RestoreKeyException @JvmOverloads constructor(
         override val message: String? = null, throwable: Throwable? = null
 ) : EThreeException(message, throwable)
@@ -109,6 +113,10 @@ open class GroupException @JvmOverloads constructor(
         override val message: String? = null, throwable: Throwable? = null
 ) : EThreeException(message, throwable)
 
+class InconsistentStateGroupException @JvmOverloads constructor(
+        override val message: String? = null, throwable: Throwable? = null
+) : GroupException(message, throwable)
+
 class InvalidParticipantsCountGroupException @JvmOverloads constructor(
         override val message: String? = null, throwable: Throwable? = null
 ) : GroupException(message, throwable)
@@ -118,6 +126,30 @@ class ShortGroupIdGroupException @JvmOverloads constructor(
 ) : GroupException(message, throwable)
 
 class GroupNotFoundGroupException @JvmOverloads constructor(
+        override val message: String? = null, throwable: Throwable? = null
+) : GroupException(message, throwable)
+
+class PermissionDeniedGroupException @JvmOverloads constructor(
+        override val message: String? = null, throwable: Throwable? = null
+) : GroupException(message, throwable)
+
+class VerificationFailedGroupException @JvmOverloads constructor(
+        override val message: String? = null, throwable: Throwable? = null
+) : GroupException(message, throwable)
+
+class GroupIsOutdatedGroupException @JvmOverloads constructor(
+        override val message: String? = null, throwable: Throwable? = null
+) : GroupException(message, throwable)
+
+class MessageNotFromThisGroupException @JvmOverloads constructor(
+        override val message: String? = null, throwable: Throwable? = null
+) : GroupException(message, throwable)
+
+class MissingCachedGroupException @JvmOverloads constructor(
+        override val message: String? = null, throwable: Throwable? = null
+) : GroupException(message, throwable)
+
+class InvalidChangeParticipantsGroupException @JvmOverloads constructor(
         override val message: String? = null, throwable: Throwable? = null
 ) : GroupException(message, throwable)
 

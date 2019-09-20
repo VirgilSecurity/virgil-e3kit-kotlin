@@ -33,28 +33,37 @@
 
 package com.virgilsecurity.android.common.model
 
-import com.virgilsecurity.android.common.exception.GroupException
+import com.virgilsecurity.android.common.exception.*
 import com.virgilsecurity.android.common.storage.local.KeyStorageLocal
 import com.virgilsecurity.android.common.manager.GroupManager
 import com.virgilsecurity.android.common.manager.LookupManager
+import com.virgilsecurity.common.model.Data
+import com.virgilsecurity.common.model.Result
+import com.virgilsecurity.crypto.foundation.FoundationException
 import com.virgilsecurity.crypto.foundation.GroupSession
+import com.virgilsecurity.crypto.foundation.GroupSessionMessage
+import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
+import com.virgilsecurity.sdk.utils.ConvertionUtils
+import java.lang.Exception
+import java.util.*
 
 /**
  * Group
  */
-class Group internal constructor(
+class Group constructor(
         rawGroup: RawGroup,
         private val crypto: VirgilCrypto,
-        keyStorageLocal: KeyStorageLocal,
-        groupManager: GroupManager,
-        lookupManager: LookupManager
+        private val keyStorageLocal: KeyStorageLocal,
+        private val groupManager: GroupManager,
+        private val lookupManager: LookupManager
 ) {
 
     val initiator: String = rawGroup.info.initiator
-    val participants: Set<String>
+    var participants: Set<String>
+        private set
 
-    internal val session: GroupSession
+    internal var session: GroupSession
 
     private val selfIdentity: String = keyStorageLocal.identity
 
@@ -70,7 +79,7 @@ class Group internal constructor(
 
     internal fun checkPermissions() {
         if (selfIdentity != initiator) {
-            throw GroupException("Only group initiator can do changed on group")
+            throw PermissionDeniedGroupException("Only group initiator can do changed on group")
         }
     }
 
@@ -85,11 +94,156 @@ class Group internal constructor(
         return session
     }
 
+    /**
+     * Signs and encrypts data for group.
+     *
+     * @param string string to encrypt.
+     *
+     * @return encrypted base64String.
+     *
+     * @notice Requires private key in local storage.
+     */
+    fun encrypt(string: String): String {
+        return ConvertionUtils.toBase64String(encrypt(string.toByteArray()))
+    }
+
+    /**
+     * Signs and encrypts data for group.
+     *
+     * @param data byte array to encrypt.
+     *
+     * @return encrypted byte array.
+     *
+     * @notice Requires private key in local storage.
+     */
+    fun encrypt(data: ByteArray): ByteArray {
+        val selfKeyPair = this.keyStorageLocal.load()
+        val encrypted = this.session.encrypt(data, selfKeyPair.privateKey.privateKey)
+        return encrypted.serialize()
+    }
+
+    /**
+     * Decrypts and verifies data from group participant.
+     *
+     * @param data encrypted byte array.
+     * @param senderCard sender Card to verify with.
+     * @param date date of message. Use it to prevent verifying new messages with old card.
+     *
+     * @return decrypted byte array.
+     */
+    fun decrypt(data: ByteArray, senderCard: Card, date: Date? = null): ByteArray {
+        val encrypted = GroupSessionMessage.deserialize(data)
+        var card = senderCard
+
+        if (date != null) {
+            // Find a card which is actual for the date
+            var previousCard = card.previousCard
+            while (previousCard != null) {
+                if (!date.before(card.createdAt)) {
+                    break
+                }
+                previousCard = card.previousCard
+                card = previousCard
+            }
+        }
+
+        if (!Arrays.equals(this.session.sessionId, encrypted.sessionId)) {
+            throw MessageNotFromThisGroupException()
+        }
+
+        val messageEpoch = encrypted.epoch
+        val currentEpoch = this.session.currentEpoch
+
+        if (currentEpoch < messageEpoch) {
+            throw GroupIsOutdatedGroupException()
+        }
+
+        try {
+            return if (currentEpoch - messageEpoch < GroupManager.MAX_TICKETS_IN_GROUP) {
+                this.session.decrypt(encrypted, card.publicKey.publicKey)
+            } else {
+                val sessionId = encrypted.sessionId
+                val messageEpoch = encrypted.epoch
+
+                //FIXME val tempGroup = this.groupManager.retrieve(Data(sessionId), messageEpoch)
+                val tempGroup = this.groupManager.retrieve(Data(sessionId), UInt.MAX_VALUE)
+                        ?: throw MissingCachedGroupException()
+
+                tempGroup.decrypt(data, senderCard)
+            }
+        } catch (e: FoundationException) {
+            throw VerificationFailedGroupException()
+        }
+    }
+
+    /**
+     * Decrypts and verifies base64 string from group participant.
+     *
+     * @param text encryted String.
+     * @param senderCard sender Card to verify with.
+     * @param date date of message. Use it to prevent verifying new messages with old card.
+     *
+     * @return decrypted String.
+     */
+    fun decrypt(text: String, senderCard: Card, date: Date? = null): String {
+        val data: ByteArray
+        try {
+            data = ConvertionUtils.base64ToBytes(text)
+        } catch (e: Exception) {
+            throw StringEncodingException()
+        }
+
+        val decryptedData = this.decrypt(data, senderCard, date)
+        return ConvertionUtils.toBase64String(decryptedData)
+    }
+
+    /**
+     * Adds new participants to group.
+     *
+     * @param participants Cards of users to add. Result of findUsers call.
+     *
+     * @notice New participant will be able to decrypt all history
+     */
+    fun add(participants: FindUsersResult) {
+        this.checkPermissions()
+
+        val oldSet = this.participants
+        val newSet = oldSet.union(participants.keys)
+
+        Group.validateParticipantsCount(newSet.size)
+
+        if (newSet.equals(oldSet)) {
+            throw InvalidChangeParticipantsGroupException()
+        }
+
+        val addSet = newSet.subtract(oldSet)
+
+        var addedCards = mutableListOf<Card>()
+        addSet.forEach {
+            val card = participants[it] ?: throw InconsistentStateGroupException()
+            addedCards.add(card)
+        }
+
+        this.shareTickets(addedCards)
+    }
+
+    /**
+     * Updates group.
+     */
+    fun update() {
+        //TODO Result
+        val sessionId = session.sessionId
+        val card = lookupManager.lookupCard(initiator)
+        val group = groupManager.pull(Data(sessionId), card)
+        session = group.session
+        participants = group.participants
+    }
+
     companion object {
         internal fun validateParticipantsCount(count: Int) {
             if (count !in VALID_PARTICIPANTS_COUNT_RANGE) {
                 throw GroupException("Please check valid participants count range in " +
-                                     "Group.VALID_PARTICIPANTS_COUNT_RANGE")
+                        "Group.VALID_PARTICIPANTS_COUNT_RANGE")
             }
         }
 

@@ -73,7 +73,7 @@ class Ticket : Parcelable { // TODO test parcelable implementation
         this.participants = participants
     }
 
-    internal constructor(crypto: VirgilCrypto,
+    constructor(crypto: VirgilCrypto,
                          sessionId: Data,
                          participants: Set<String>) {
         val ticket = GroupSessionTicket()

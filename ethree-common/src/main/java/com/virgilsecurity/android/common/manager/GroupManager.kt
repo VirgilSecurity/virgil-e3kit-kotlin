@@ -48,7 +48,7 @@ import com.virgilsecurity.sdk.crypto.VirgilCrypto
 /**
  * GroupManager
  */
-internal class GroupManager(
+class GroupManager(
         internal val localGroupStorage: GroupStorageFile,
         private val cloudTicketStorage: CloudTicketStorage,
         private val keyStorageLocal: KeyStorageLocal,
@@ -121,6 +121,6 @@ internal class GroupManager(
     }
 
     companion object {
-        private const val MAX_TICKETS_IN_GROUP = 50
+        const val MAX_TICKETS_IN_GROUP = 50
     }
 }

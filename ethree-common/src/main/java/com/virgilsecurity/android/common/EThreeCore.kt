@@ -89,16 +89,17 @@ constructor(identity: String,
     private val rootPath: String
 
     private val cloudKeyManager: CloudKeyManager
-    private val lookupManager: LookupManager
-
-    private lateinit var keyStorageLocal: KeyStorageLocal
+    val lookupManager: LookupManager
+    lateinit var keyStorageLocal: KeyStorageLocal
+        private set
     private lateinit var authorizationWorker: AuthorizationWorker
     private lateinit var backupWorker: BackupWorker
     private lateinit var groupWorker: GroupWorker
     private lateinit var p2pWorker: PeerToPeerWorker
     private lateinit var searchWorker: SearchWorker
 
-    private var groupManager: GroupManager? = null
+    var groupManager: GroupManager? = null
+        private set
 
     protected val crypto: VirgilCrypto = VirgilCrypto()
 
