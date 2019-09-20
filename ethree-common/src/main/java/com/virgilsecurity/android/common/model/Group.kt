@@ -34,19 +34,19 @@
 package com.virgilsecurity.android.common.model
 
 import com.virgilsecurity.android.common.exception.*
-import com.virgilsecurity.android.common.storage.local.KeyStorageLocal
 import com.virgilsecurity.android.common.manager.GroupManager
 import com.virgilsecurity.android.common.manager.LookupManager
+import com.virgilsecurity.android.common.storage.local.KeyStorageLocal
+import com.virgilsecurity.common.model.Completable
 import com.virgilsecurity.common.model.Data
-import com.virgilsecurity.common.model.Result
 import com.virgilsecurity.crypto.foundation.FoundationException
 import com.virgilsecurity.crypto.foundation.GroupSession
 import com.virgilsecurity.crypto.foundation.GroupSessionMessage
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.utils.ConvertionUtils
-import java.lang.Exception
 import java.util.*
+import kotlin.collections.HashSet
 
 /**
  * Group
@@ -60,7 +60,7 @@ class Group constructor(
 ) {
 
     val initiator: String = rawGroup.info.initiator
-    var participants: Set<String>
+    var participants: MutableSet<String>
         private set
 
     internal var session: GroupSession
@@ -73,7 +73,7 @@ class Group constructor(
 
         validateParticipantsCount(lastTicket.participants.size)
 
-        this.participants = lastTicket.participants
+        this.participants = lastTicket.participants.toMutableSet()
         this.session = generateSession(tickets)
     }
 
@@ -163,11 +163,12 @@ class Group constructor(
                 this.session.decrypt(encrypted, card.publicKey.publicKey)
             } else {
                 val sessionId = encrypted.sessionId
-                val messageEpoch = encrypted.epoch
+//                val messageEpoch = encrypted.epoch // FIXME do we need this?
 
-                //FIXME val tempGroup = this.groupManager.retrieve(Data(sessionId), messageEpoch)
-                val tempGroup = this.groupManager.retrieve(Data(sessionId), UInt.MAX_VALUE)
-                        ?: throw MissingCachedGroupException()
+                val tempGroup = this.groupManager.retrieve(Data(sessionId), messageEpoch)
+                                ?: throw MissingCachedGroupException()
+//                val tempGroup = this.groupManager.retrieve(Data(sessionId), UInt.MAX_VALUE)
+//                        ?: throw MissingCachedGroupException()
 
                 tempGroup.decrypt(data, senderCard)
             }
@@ -198,52 +199,120 @@ class Group constructor(
     }
 
     /**
+     * Updates group.
+     */
+    fun update(): Completable = object : Completable {
+        override fun execute() {
+            val sessionId = this@Group.session.sessionId
+            val card = lookupManager.lookupCard(this@Group.initiator)
+            val group = groupManager.pull(Data(sessionId), card)
+            this@Group.session = group.session
+            this@Group.participants = group.participants
+        }
+    }
+
+    /**
      * Adds new participants to group.
      *
      * @param participants Cards of users to add. Result of findUsers call.
      *
      * @notice New participant will be able to decrypt all history
      */
-    fun add(participants: FindUsersResult) {
-        this.checkPermissions()
+    fun add(participants: FindUsersResult): Completable = object : Completable {
+        override fun execute() {
+            checkPermissions()
 
-        val oldSet = this.participants
-        val newSet = oldSet.union(participants.keys)
+            val oldSet = this@Group.participants
+            val newSet = oldSet.union(participants.keys)
 
-        Group.validateParticipantsCount(newSet.size)
+            validateParticipantsCount(newSet.size)
 
-        if (newSet.equals(oldSet)) {
-            throw InvalidChangeParticipantsGroupException()
+            if (newSet == oldSet) throw InvalidChangeParticipantsGroupException()
+
+            val addSet = newSet.subtract(oldSet)
+
+            val addedCards = mutableListOf<Card>()
+            addSet.forEach {
+                val card = participants[it] ?: throw InconsistentStateGroupException()
+                addedCards.add(card)
+            }
+
+            this@Group.shareTickets(addedCards)
         }
-
-        val addSet = newSet.subtract(oldSet)
-
-        var addedCards = mutableListOf<Card>()
-        addSet.forEach {
-            val card = participants[it] ?: throw InconsistentStateGroupException()
-            addedCards.add(card)
-        }
-
-        this.shareTickets(addedCards)
     }
 
     /**
-     * Updates group.
+     * Share group access and history on new Card of existing participant.
+     *
+     * @param Participant Card.
      */
-    fun update() {
-        //TODO Result
-        val sessionId = session.sessionId
-        val card = lookupManager.lookupCard(initiator)
-        val group = groupManager.pull(Data(sessionId), card)
-        session = group.session
-        participants = group.participants
+    fun reAdd(participant: Card): Completable = object : Completable {
+        override fun execute() {
+            checkPermissions()
+
+            groupManager.reAddAccess(participant, Data(this@Group.session.sessionId))
+        }
+    }
+
+    /**
+     * Removes participants from group.
+     *
+     * *Note* Removed participant will not be able to decrypt previous history again after group
+     * update.
+     *
+     * @param Cards of users to remove. Result of findUsers call.
+     */
+    fun remove(participants: FindUsersResult): Completable = object : Completable {
+        override fun execute() {
+            checkPermissions()
+
+            val oldSet = this@Group.participants
+            val newSet = oldSet.subtract(participants.keys)
+
+            validateParticipantsCount(newSet.size)
+
+            if (newSet == oldSet) throw InvalidChangeParticipantsGroupException()
+
+            val newSetLookup = lookupManager.lookupCards(newSet.toList())
+            addNewTicket(newSetLookup)
+
+            val removedSet = oldSet.subtract(newSet)
+            groupManager.removeAccess(removedSet, Data(this@Group.session.sessionId))
+        }
+    }
+
+    fun add(participant: Card): Completable =
+            add(FindUsersResult(mapOf(participant.identity to participant)))
+
+    fun remove(participant: Card): Completable =
+            remove(FindUsersResult(mapOf(participant.identity to participant)))
+
+    private fun shareTickets(cards: List<Card>) {
+        val sessionId = this.session.sessionId
+        groupManager.addAccess(cards, Data(sessionId))
+        val newParticipants = cards.map { it.identity }
+        this.participants.addAll(newParticipants.toSet())
+    }
+
+    private fun addNewTicket(participants: FindUsersResult) {
+        val newSet = HashSet(participants.keys)
+
+        val ticketMessage = this.session.createGroupTicket().ticketMessage
+        val ticket = Ticket(ticketMessage, newSet)
+
+        groupManager.store(ticket, participants.values.toList())
+        this.session.addEpoch(ticket.groupMessage)
+
+        newSet.add(this.initiator)
+
+        this.participants = newSet
     }
 
     companion object {
         internal fun validateParticipantsCount(count: Int) {
             if (count !in VALID_PARTICIPANTS_COUNT_RANGE) {
                 throw GroupException("Please check valid participants count range in " +
-                        "Group.VALID_PARTICIPANTS_COUNT_RANGE")
+                                     "Group.VALID_PARTICIPANTS_COUNT_RANGE")
             }
         }
 

@@ -48,7 +48,6 @@ import java.io.File
 /**
  * GroupStorageFile
  */
-@ExperimentalUnsignedTypes
 class GroupStorageFile internal constructor(
         internal val identity: String,
         crypto: VirgilCrypto,
@@ -91,7 +90,7 @@ class GroupStorageFile internal constructor(
         return RawGroup(groupInfo, tickets)
     }
 
-    internal fun retrieve(sessionId: Data, epoch: UInt): RawGroup {
+    internal fun retrieve(sessionId: Data, epoch: Long): RawGroup {
         val ticket = retrieveTicket(sessionId, epoch)
         val groupInfo = retrieveGroupInfo(sessionId)
 
@@ -102,7 +101,7 @@ class GroupStorageFile internal constructor(
 
     internal fun reset() = fileSystemEncrypted.delete()
 
-    private fun retrieveTicket(sessionId: Data, epoch: UInt): Ticket {
+    private fun retrieveTicket(sessionId: Data, epoch: Long): Ticket {
         val subdir = sessionId.toHexString() + File.separator + TICKETS_SUBDIR
         val name = epoch.toString()
 
@@ -119,7 +118,7 @@ class GroupStorageFile internal constructor(
         val epochs = fileSystemEncrypted
                 .listFileNames(subdir).map { name ->
                     try {
-                        name.toUInt()
+                        name.toLong()
                     } catch (exception: NumberFormatException) {
                         throw FileGroupStorageException("Invalid file name")
                     }

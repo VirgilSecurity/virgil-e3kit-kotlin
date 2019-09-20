@@ -103,7 +103,7 @@ class GroupManager(
         return if (rawGroup == null) rawGroup else parse(rawGroup)
     }
 
-    internal fun retrieve(sessionId: Data, epoch: UInt): Group? {
+    internal fun retrieve(sessionId: Data, epoch: Long): Group? {
         val rawGroup = localGroupStorage.retrieve(sessionId, epoch)
 
         return if (rawGroup == null) rawGroup else parse(rawGroup)

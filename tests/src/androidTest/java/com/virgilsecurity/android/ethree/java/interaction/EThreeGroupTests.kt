@@ -34,6 +34,8 @@
 package com.virgilsecurity.android.ethree.java.interaction
 
 import android.support.test.runner.AndroidJUnit4
+import com.google.gson.JsonObject
+import com.google.gson.JsonParser
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.common.exception.*
 import com.virgilsecurity.android.common.model.*
@@ -41,12 +43,20 @@ import com.virgilsecurity.android.ethree.interaction.EThree
 import com.virgilsecurity.android.ethree.utils.TestConfig
 import com.virgilsecurity.android.ethree.utils.TestUtils
 import com.virgilsecurity.common.model.Data
+import com.virgilsecurity.crypto.foundation.Base64
+import com.virgilsecurity.sdk.common.TimeSpan
+import com.virgilsecurity.sdk.crypto.VirgilAccessTokenSigner
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
+import com.virgilsecurity.sdk.jwt.JwtGenerator
+import com.virgilsecurity.sdk.storage.DefaultKeyStorage
+import com.virgilsecurity.sdk.storage.JsonKeyEntry
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.io.InputStreamReader
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 @RunWith(AndroidJUnit4::class)
 class EThreeGroupTests {
@@ -212,7 +222,7 @@ class EThreeGroupTests {
         }
 
         try {
-            group2.update().get()
+            group2.update().execute()
             fail()
         } catch (e: GroupNotFoundGroupException) {
         }
@@ -243,12 +253,12 @@ class EThreeGroupTests {
 
         assertNotNull(this.ethree.groupManager)
         val group = Group(rawGroup, this.crypto, ethree.keyStorageLocal,
-                this.ethree.groupManager!!, this.ethree.lookupManager)
+                          this.ethree.groupManager!!, this.ethree.lookupManager)
 
         val card = TestUtils.publishCard()
 
         try {
-            group.add(card).get()
+            group.add(card).execute()
             fail()
         } catch (e: InvalidParticipantsCountGroupException) {
         }
@@ -266,7 +276,7 @@ class EThreeGroupTests {
         val group1 = this.ethree.createGroup(groupId, lookup).get()
 
         try {
-            group1.remove(card!!).get()
+            group1.remove(card!!).execute()
             fail()
         } catch (e: InvalidParticipantsCountGroupException) {
         }
@@ -288,14 +298,14 @@ class EThreeGroupTests {
         val group2 = ethree2.loadGroup(groupId, card1).get()
         val group3 = ethree3.loadGroup(groupId, card1).get()
 
-        group1.remove(card2!!).get()
+        group1.remove(card2!!).execute()
         assertFalse(group1.participants.contains(ethree2.identity))
 
-        group3.update().get()
+        group3.update().execute()
         assertFalse(group3.participants.contains(ethree2.identity))
 
         try {
-            group2.update().get()
+            group2.update().execute()
             fail()
         } catch (e: GroupNotFoundGroupException) {
         }
@@ -360,12 +370,12 @@ class EThreeGroupTests {
         val group2 = ethree2.loadGroup(this.groupId, card1).get()
 
         val card3 = this.ethree.findUser(ethree3.identity).get()
-        group1.add(card3).get()
+        group1.add(card3).execute()
 
         val participants = setOf(this.ethree.identity, ethree2.identity, ethree3.identity)
         assertEquals(participants, group1.participants)
 
-        group2.update().get()
+        group2.update().execute()
 
         val group3 = ethree3.loadGroup(this.groupId, card1).get()
 
@@ -424,7 +434,7 @@ class EThreeGroupTests {
 
         // Add User3, encrypts
         val card3 = this.ethree.findUser(ethree3.identity).get()
-        group1.add(card3).get()
+        group1.add(card3).execute()
 
         val message2 = UUID.randomUUID().toString()
         val encrypted2 = group1.encrypt(message2)
@@ -433,7 +443,7 @@ class EThreeGroupTests {
 
         // Other updates, decrypts
         group2.update()
-        val group3 = ethree3.loadGroup(groupId, card1)
+        val group3 = ethree3.loadGroup(groupId, card1).get()
 
         val decrypted22 = group2.decrypt(encrypted2, card1)
         assertEquals(message2, decrypted22)
@@ -482,7 +492,7 @@ class EThreeGroupTests {
         val message4 = UUID.randomUUID().toString()
         val encrypted4 = group1.encrypt(message4)
 
-        val newCard3 = this.ethree.findUser(ethree3.identity, true)
+        val newCard3 = this.ethree.findUser(ethree3.identity, true).get()
         group1.reAdd(newCard3)
 
         val newGroup3 = ethree3.loadGroup(this.groupId, card1).get()
@@ -570,8 +580,54 @@ class EThreeGroupTests {
 
     @Test
     fun ste45() {
-        // compatibility
-        //FIXME
+        val compatDataStream =
+                this.javaClass.classLoader?.getResourceAsStream("compat_data.json")
+        val compatJson = JsonParser().parse(InputStreamReader(compatDataStream)) as JsonObject
+        val groupCompatJson = compatJson.getAsJsonObject("Group")
+
+        val keyStorage = DefaultKeyStorage(TestConfig.DIRECTORY_PATH, TestConfig.KEYSTORE_NAME)
+        if (keyStorage.exists(groupCompatJson.get("Identity").asString)) {
+            keyStorage.delete(groupCompatJson.get("Identity").asString)
+        }
+
+        val privateKeyData = Base64.decode(groupCompatJson.get("PrivateKey").asString.toByteArray())
+        keyStorage.store(JsonKeyEntry(groupCompatJson.get("Identity").asString, privateKeyData))
+
+        val privateKeyCompat = crypto.importPrivateKey(Base64.decode(compatJson.get("ApiPrivateKey").asString.toByteArray()))
+        val jwtGenerator = JwtGenerator(
+            compatJson.get("AppId").asString,
+            privateKeyCompat.privateKey,
+            compatJson.get("ApiKeyId").asString,
+            TimeSpan.fromTime(600, TimeUnit.SECONDS),
+            VirgilAccessTokenSigner(TestConfig.virgilCrypto)
+        )
+
+        val tokenCallback = object : OnGetTokenCallback {
+            override fun onGetToken(): String {
+                return jwtGenerator
+                        .generateToken(groupCompatJson.get("Identity").asString)
+                        .stringRepresentation()
+            }
+        }
+
+        val ethree = EThree(groupCompatJson.get("Identity").asString,
+                            tokenCallback,
+                            TestConfig.context)
+
+        // Load group
+        val initiatorCard = ethree.findUser(groupCompatJson.get("Initiator").asString).get()
+
+        val groupIdData = groupCompatJson.get("GroupId").asString
+        val group = ethree.loadGroup(groupIdData, initiatorCard).get()
+
+        val compatParticipants =
+                groupCompatJson.get("GroupId").asJsonArray.map { it.asString }.toSet().sorted()
+        assertTrue(group.participants.sorted() == compatParticipants)
+
+        val decrypted = group.decrypt(groupCompatJson.get("EncryptedText").asString, initiatorCard)
+        val originCompatText = groupCompatJson.get("OriginText").asString
+
+        assertEquals(originCompatText, decrypted)
     }
 
     @Test

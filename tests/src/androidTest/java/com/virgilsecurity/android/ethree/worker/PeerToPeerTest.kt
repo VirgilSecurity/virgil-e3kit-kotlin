@@ -114,7 +114,7 @@ class PeerToPeerTest {
     @Test(expected = IllegalArgumentException::class) fun encrypt_empty_keys() {
         ethree.register().execute()
 
-        ethree.encrypt(TEXT, FindUsersResult()) //FIXME check exception type
+        ethree.encrypt(TEXT, FindUsersResult())
     }
 
     // test03 STE_5
