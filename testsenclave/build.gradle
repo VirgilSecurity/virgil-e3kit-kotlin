@@ -42,12 +42,13 @@ def API_PUBLIC_KEY_ID = hasProperty('API_PUBLIC_KEY_ID') ? API_PUBLIC_KEY_ID : S
 def VIRGIL_BASE_URL = hasProperty('VIRGIL_BASE_URL') ? VIRGIL_BASE_URL : System.getenv('VIRGIL_BASE_URL')
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion androidOptions.compileSdkVersion
     defaultConfig {
         applicationId "com.virgilsecurity.android.testsenclave"
-        minSdkVersion 23
-        targetSdkVersion 28
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        minSdkVersion androidOptions.minSdkVersion
+        targetSdkVersion androidOptions.targetSdkVersion
+//        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
         buildTypes.each {
@@ -71,6 +72,6 @@ dependencies {
 
     // Tests core
     testImplementation "junit:junit:$versions.junit"
-    androidTestImplementation "com.android.support.test:runner:$versions.testsRunner"
-    androidTestImplementation "com.android.support.test.espresso:espresso-core:$versions.espresso"
+    androidTestImplementation "androidx.test:runner:$versions.testsRunner"
+    androidTestImplementation "androidx.test:rules:$versions.testsRunner"
 }

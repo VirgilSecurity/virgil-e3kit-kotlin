@@ -33,6 +33,7 @@
 
 package com.virgilsecurity.android.ethree.interaction.async
 
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.common.exception.PrivateKeyNotFoundException
 import com.virgilsecurity.android.common.model.LookupResult
@@ -60,6 +61,7 @@ import com.virgilsecurity.sdk.utils.Tuple
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.util.*
@@ -73,6 +75,7 @@ import java.util.concurrent.TimeUnit
  * 10/9/18
  * at Virgil Security
  */
+@RunWith(AndroidJUnit4::class)
 class EThreeEncryptionTest {
 
     private val identity = UUID.randomUUID().toString()

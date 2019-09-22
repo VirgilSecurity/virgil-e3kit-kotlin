@@ -48,12 +48,12 @@ group 'com.virgilsecurity'
 version '0.4.1'
 
 android {
-    compileSdkVersion 28
-    buildToolsVersion "28.0.3"
+    compileSdkVersion androidOptions.compileSdkVersion
+    buildToolsVersion androidOptions.buildToolsVersion
 
     defaultConfig {
-        minSdkVersion 23
-        targetSdkVersion 28
+        minSdkVersion androidOptions.minSdkVersion
+        targetSdkVersion androidOptions.targetSdkVersion
         consumerProguardFiles 'proguard-rules.txt'
 
         javaCompileOptions {
@@ -72,21 +72,22 @@ dependencies {
     compileOnly "org.jetbrains.kotlin:kotlin-stdlib:$versions.kotlin"
     compileOnly "org.jetbrains.kotlinx:kotlinx-coroutines-core:$versions.coroutines"
 
-    // Virgil
-    implementation "com.virgilsecurity.sdk:crypto-android:$versions.virgilSdk"
+    // Virgil Crypto
+    implementation "com.virgilsecurity.crypto:pythia-android:$versions.virgilCrypto"
 
+    // Virgil SDK
+    api "com.virgilsecurity.sdk:crypto-android:$versions.virgilSdk"
+
+    api "com.virgilsecurity:common:$versions.virgilSdk"
+    api ("com.virgilsecurity.sdk:sdk:$versions.virgilSdk") {
+        exclude group: 'com.virgilsecurity.crypto'
+    }
+    api ("com.virgilsecurity.sdk:keyknox:$versions.virgilSdk") {
+        exclude group: 'com.virgilsecurity.sdk', module: "sdk"
+    }
     api ("com.virgilsecurity:pythia:$versions.pythia") {
         exclude group: 'com.virgilsecurity.crypto'
         exclude group: 'com.virgilsecurity.sdk'
-    }
-    implementation "com.virgilsecurity.crypto:pythia-android:$versions.virgilCrypto"
-    implementation ("com.virgilsecurity.sdk:sdk:$versions.virgilSdk") {
-        exclude group: 'com.virgilsecurity.crypto'
-    }
-    implementation "com.virgilsecurity.crypto:common-android:$versions.virgilCrypto"
-    implementation "com.virgilsecurity:common:$versions.virgilSdk"
-    api("com.virgilsecurity.sdk:keyknox:$versions.virgilSdk") {
-        exclude group: 'com.virgilsecurity.crypto'
     }
 
     // Android

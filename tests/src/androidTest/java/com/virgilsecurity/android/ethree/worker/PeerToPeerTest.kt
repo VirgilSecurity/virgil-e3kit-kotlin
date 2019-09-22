@@ -33,6 +33,7 @@
 
 package com.virgilsecurity.android.ethree.worker
 
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.common.exception.EThreeException
 import com.virgilsecurity.android.common.model.FindUsersResult
@@ -46,6 +47,7 @@ import com.virgilsecurity.sdk.utils.ConvertionUtils
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.util.*
@@ -53,6 +55,7 @@ import java.util.*
 /**
  * PeerToPeerTest
  */
+@RunWith(AndroidJUnit4::class)
 class PeerToPeerTest {
 
     private lateinit var identity: String

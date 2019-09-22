@@ -121,7 +121,7 @@ class InvalidParticipantsCountGroupException @JvmOverloads constructor(
         override val message: String? = null, throwable: Throwable? = null
 ) : GroupException(message, throwable)
 
-class ShortGroupIdGroupException @JvmOverloads constructor(
+class GroupIdTooShortException @JvmOverloads constructor(
         override val message: String? = null, throwable: Throwable? = null
 ) : GroupException(message, throwable)
 

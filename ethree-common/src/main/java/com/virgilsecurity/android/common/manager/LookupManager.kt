@@ -116,13 +116,15 @@ class LookupManager(
         if (!forceReload) {
             val cards = cardStorage.searchCards(identitiesDistincted)
 
+            val identitiesToRemove = mutableSetOf<String>()
             for (identity in identitiesDistincted) {
                 val card = cards.firstOrNull { it.identity == identity }
                 if (card != null) {
-                    identitiesDistincted.remove(identity)
+                    identitiesToRemove.add(identity)
                     result[identity] = card
                 }
             }
+            identitiesDistincted.removeAll(identitiesToRemove)
         }
 
         if (identitiesDistincted.isNotEmpty()) {

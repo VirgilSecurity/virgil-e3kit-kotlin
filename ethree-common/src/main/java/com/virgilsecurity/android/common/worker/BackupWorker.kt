@@ -41,7 +41,10 @@ import com.virgilsecurity.android.common.storage.cloud.CloudKeyManager
 import com.virgilsecurity.android.common.storage.local.KeyStorageLocal
 import com.virgilsecurity.common.model.Completable
 import com.virgilsecurity.common.model.Data
+import com.virgilsecurity.keyknox.exception.EntryAlreadyExistsException
+import com.virgilsecurity.keyknox.exception.EntryNotFoundException
 import com.virgilsecurity.sdk.cards.Card
+import com.virgilsecurity.sdk.crypto.exceptions.KeyEntryAlreadyExistsException
 
 /**
  * BackupWorker
@@ -71,8 +74,13 @@ internal class BackupWorker(
      */
     internal fun backupPrivateKey(password: String): Completable = object : Completable {
         override fun execute() {
-            val identityKeyPair = keyStorageLocal.load()
-            keyManagerCloud.store(identityKeyPair.privateKey, password)
+            try {
+                val identityKeyPair = keyStorageLocal.load()
+                keyManagerCloud.store(identityKeyPair.privateKey, password)
+            }
+            catch (e: EntryAlreadyExistsException) {
+                throw BackupKeyException("Can't backup private key", e)
+            }
         }
     }
 
@@ -88,9 +96,14 @@ internal class BackupWorker(
      */
     internal fun restorePrivateKey(password: String): Completable = object : Completable {
         override fun execute() {
-            val entry = keyManagerCloud.retrieve(password)
-            keyStorageLocal.store(Data(entry.data))
-            privateKeyChanged(null)
+            try {
+                val entry = keyManagerCloud.retrieve(password)
+                keyStorageLocal.store(Data(entry.data))
+                privateKeyChanged(null)
+            }
+            catch (e: KeyEntryAlreadyExistsException) {
+                throw RestoreKeyException("Can't restore private key", e)
+            }
         }
     }
 
@@ -136,7 +149,12 @@ internal class BackupWorker(
     internal fun resetPrivateKeyBackup(password: String? = null): Completable = object : Completable {
         override fun execute() {
             if (password != null)
-                keyManagerCloud.delete(password)
+                try {
+                    keyManagerCloud.delete(password)
+                }
+                catch (e: EntryNotFoundException) {
+                    throw PrivateKeyNotFoundException("Can't reset private key: private key not found", e)
+                }
             else
                 keyManagerCloud.deleteAll()
         }

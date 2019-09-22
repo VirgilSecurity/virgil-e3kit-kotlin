@@ -33,6 +33,7 @@
 
 package com.virgilsecurity.android.ethree.interaction.async
 
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.virgilsecurity.android.common.exception.PrivateKeyNotFoundException
 import com.virgilsecurity.android.common.exception.PublicKeyDuplicateException
 import com.virgilsecurity.android.common.exception.PublicKeyNotFoundException
@@ -59,6 +60,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 import java.util.*
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
@@ -70,6 +72,7 @@ import java.util.concurrent.TimeUnit
  * 10/24/18
  * at Virgil Security
  */
+@RunWith(AndroidJUnit4::class)
 class EThreeNegativeTest {
 
     private lateinit var jwtGenerator: JwtGenerator

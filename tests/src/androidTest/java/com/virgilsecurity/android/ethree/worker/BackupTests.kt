@@ -33,8 +33,10 @@
 
 package com.virgilsecurity.android.ethree.worker
 
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.common.exception.EThreeException
+import com.virgilsecurity.android.common.exception.PrivateKeyNotFoundException
 import com.virgilsecurity.android.common.exception.WrongPasswordException
 import com.virgilsecurity.android.ethree.interaction.EThree
 import com.virgilsecurity.android.ethree.interaction.async.EThreeBackupTest.Companion.WRONG_PASSWORD
@@ -58,12 +60,14 @@ import com.virgilsecurity.sdk.storage.JsonKeyEntry
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 import java.net.URL
 import java.util.*
 
 /**
  * BackupTests
  */
+@RunWith(AndroidJUnit4::class)
 class BackupTests {
 
     private lateinit var identity: String
@@ -230,7 +234,7 @@ class BackupTests {
         try {
             ethree.resetPrivateKeyBackup(password).execute()
         } catch (throwable: Throwable) {
-            if (throwable !is EntryNotFoundException)
+            if (throwable !is PrivateKeyNotFoundException)
                 fail()
         }
 
@@ -261,7 +265,7 @@ class BackupTests {
         try {
             ethree.resetPrivateKeyBackup(password).execute()
         } catch (throwable: Throwable) {
-            if (throwable !is EntryNotFoundException)
+            if (throwable !is PrivateKeyNotFoundException)
                 fail()
         }
 

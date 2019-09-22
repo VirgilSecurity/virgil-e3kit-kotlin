@@ -740,7 +740,9 @@ constructor(identity: String,
     }
 
     internal fun computeSessionId(identifier: Data): Data {
-        require(identifier.data.size > 10) { "Group Id length should be > 10" }
+        if (identifier.data.size <= 10) {
+            throw GroupIdTooShortException("Group Id length should be > 10")
+        }
 
         val hash = crypto.computeHash(identifier.data, HashAlgorithm.SHA512)
                 .sliceArray(IntRange(0, 31))

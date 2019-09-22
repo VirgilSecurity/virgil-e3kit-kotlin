@@ -33,6 +33,7 @@
 
 package com.virgilsecurity.android.ethree.worker
 
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.common.exception.EThreeException
 import com.virgilsecurity.android.ethree.interaction.EThree
@@ -46,11 +47,13 @@ import com.virgilsecurity.sdk.storage.JsonKeyEntry
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 import java.util.*
 
 /**
  * AuthenticationTests
  */
+@RunWith(AndroidJUnit4::class)
 class AuthenticationTests {
 
     private lateinit var identity: String

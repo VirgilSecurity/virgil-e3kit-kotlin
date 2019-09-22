@@ -41,8 +41,11 @@ import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.common.util.toHexString
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilKeyPair
+import com.virgilsecurity.sdk.storage.FileSystem
 import com.virgilsecurity.sdk.storage.FileSystemEncrypted
 import com.virgilsecurity.sdk.storage.FileSystemEncryptedCredentials
+import com.virgilsecurity.sdk.storage.exceptions.DirectoryNotExistsException
+import com.virgilsecurity.sdk.utils.ConvertionUtils
 import java.io.File
 
 /**
@@ -55,13 +58,13 @@ class GroupStorageFile internal constructor(
         rootPath: String
 ) { // TODO use internal everywhere possible
 
-    private val fileSystemEncrypted: FileSystemEncrypted
+    private val fileSystemEncrypted: FileSystem
 
     init {
         val credentials = FileSystemEncryptedCredentials(crypto, identityKeyPair)
         val fullPath: String = rootPath +
                                File.separator +
-                               identityKeyPair +
+                               ConvertionUtils.toHex(identityKeyPair.privateKey.identifier) +
                                File.separator +
                                STORAGE_POSTFIX_E3KIT +
                                File.separator +
@@ -115,16 +118,22 @@ class GroupStorageFile internal constructor(
 
         val subdir = sessionId.toHexString() + File.separator + TICKETS_SUBDIR
 
-        val epochs = fileSystemEncrypted
-                .listFileNames(subdir).map { name ->
-                    try {
-                        name.toLong()
-                    } catch (exception: NumberFormatException) {
-                        throw FileGroupStorageException("Invalid file name")
+        var epochs = listOf<Long>()
+        try {
+            epochs = fileSystemEncrypted
+                    .listFiles(subdir).map { name ->
+                        try {
+                            name.toLong()
+                        } catch (exception: NumberFormatException) {
+                            throw FileGroupStorageException("Invalid file name")
+                        }
                     }
-                }
-                .sorted()
-                .takeLast(count)
+                    .sorted()
+                    .takeLast(count)
+        }
+        catch (e: DirectoryNotExistsException) {
+            // No tickets for this session
+        }
 
         epochs.forEach { epoch ->
             try {

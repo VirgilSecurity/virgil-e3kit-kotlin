@@ -33,6 +33,7 @@
 
 package com.virgilsecurity.android.ethree.worker
 
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.common.callback.OnKeyChangedCallback
 import com.virgilsecurity.android.common.exception.FindUsersException
@@ -45,11 +46,13 @@ import com.virgilsecurity.sdk.storage.DefaultKeyStorage
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 import java.util.*
 
 /**
  * SearchTests
  */
+@RunWith(AndroidJUnit4::class)
 class SearchTests {
 
     private lateinit var identity: String

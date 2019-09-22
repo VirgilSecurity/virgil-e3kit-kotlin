@@ -163,12 +163,9 @@ class Group constructor(
                 this.session.decrypt(encrypted, card.publicKey.publicKey)
             } else {
                 val sessionId = encrypted.sessionId
-//                val messageEpoch = encrypted.epoch // FIXME do we need this?
 
                 val tempGroup = this.groupManager.retrieve(Data(sessionId), messageEpoch)
-                                ?: throw MissingCachedGroupException()
-//                val tempGroup = this.groupManager.retrieve(Data(sessionId), UInt.MAX_VALUE)
-//                        ?: throw MissingCachedGroupException()
+                        ?: throw MissingCachedGroupException()
 
                 tempGroup.decrypt(data, senderCard)
             }
@@ -311,8 +308,8 @@ class Group constructor(
     companion object {
         internal fun validateParticipantsCount(count: Int) {
             if (count !in VALID_PARTICIPANTS_COUNT_RANGE) {
-                throw GroupException("Please check valid participants count range in " +
-                                     "Group.VALID_PARTICIPANTS_COUNT_RANGE")
+                throw InvalidParticipantsCountGroupException("Please check valid participants count range in " +
+                        "Group.VALID_PARTICIPANTS_COUNT_RANGE")
             }
         }
 

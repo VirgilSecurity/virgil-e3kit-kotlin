@@ -44,12 +44,12 @@ apply plugin: 'digital.wup.android-maven-publish'
 apply plugin: 'org.jetbrains.dokka'
 
 android {
-    compileSdkVersion 28
-    buildToolsVersion "28.0.3"
+    compileSdkVersion androidOptions.compileSdkVersion
+    buildToolsVersion androidOptions.buildToolsVersion
 
     defaultConfig {
-        minSdkVersion 21
-        targetSdkVersion 28
+        minSdkVersion androidOptions.minSdkVersion
+        targetSdkVersion androidOptions.targetSdkVersion
         consumerProguardFiles 'proguard-rules.txt'
     }
 }

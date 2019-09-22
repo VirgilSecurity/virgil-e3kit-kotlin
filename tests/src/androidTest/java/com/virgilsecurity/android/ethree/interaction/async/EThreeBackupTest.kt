@@ -33,6 +33,8 @@
 
 package com.virgilsecurity.android.ethree.interaction.async
 
+import android.util.Log
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.common.exception.BackupKeyException
 import com.virgilsecurity.android.common.exception.PrivateKeyNotFoundException
@@ -62,6 +64,7 @@ import com.virgilsecurity.sdk.storage.KeyStorage
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 import java.net.URL
 import java.util.*
 import java.util.concurrent.CountDownLatch
@@ -74,6 +77,7 @@ import java.util.concurrent.TimeUnit
  * 10/9/18
  * at Virgil Security
  */
+@RunWith(AndroidJUnit4::class)
 class EThreeBackupTest {
 
     private lateinit var jwtGenerator: JwtGenerator
@@ -311,6 +315,7 @@ class EThreeBackupTest {
             }
 
             override fun onError(throwable: Throwable) {
+                Log.d(TAG, "Exception type is: " + throwable.javaClass.canonicalName)
                 if (throwable is RestoreKeyException)
                     failedToRestore = true
 
@@ -558,6 +563,7 @@ class EThreeBackupTest {
     }
 
     companion object {
+        const val TAG = "EThreeBackupTest"
         const val WRONG_PASSWORD = "WRONG_PASSWORD"
     }
 }

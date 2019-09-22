@@ -33,10 +33,11 @@
 
 package com.virgilsecurity.android.common.storage.local
 
-import com.virgilsecurity.android.common.exception.EThreeException
+import com.virgilsecurity.android.common.exception.PrivateKeyNotFoundException
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilKeyPair
+import com.virgilsecurity.sdk.crypto.exceptions.KeyEntryNotFoundException
 import com.virgilsecurity.sdk.storage.JsonKeyEntry
 import com.virgilsecurity.sdk.storage.KeyStorage
 
@@ -52,14 +53,13 @@ class KeyStorageLocal(
     fun exists() = keyStorage.exists(identity)
 
     fun store(privateKeyData: Data) =
-    keyStorage.store(JsonKeyEntry(identity, privateKeyData.data))
+            keyStorage.store(JsonKeyEntry(identity, privateKeyData.data))
 
     fun load(): VirgilKeyPair = try {
         val privateKeyData = keyStorage.load(identity)
         crypto.importPrivateKey(privateKeyData.value)
-    } catch (throwable: Throwable) {
-        throw EThreeException("No private key on device. You should call register() or " +
-                              "retrievePrivateKey()")
+    } catch (e: KeyEntryNotFoundException) {
+        throw PrivateKeyNotFoundException("No private key on device. You should call register() or retrievePrivateKey()")
     }
 
     fun delete() = keyStorage.delete(identity)

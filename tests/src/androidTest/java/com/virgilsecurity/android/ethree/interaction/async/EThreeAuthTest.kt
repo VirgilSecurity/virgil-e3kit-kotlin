@@ -33,7 +33,7 @@
 
 package com.virgilsecurity.android.ethree.interaction.async
 
-import android.support.test.runner.AndroidJUnit4
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.virgilsecurity.android.common.exception.CardNotFoundException
 import com.virgilsecurity.android.common.exception.PrivateKeyExistsException
 import com.virgilsecurity.android.common.exception.RegistrationException

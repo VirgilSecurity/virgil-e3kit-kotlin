@@ -33,7 +33,7 @@
 
 package com.virgilsecurity.android.ethree.java.interaction
 
-import android.support.test.runner.AndroidJUnit4
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
@@ -60,15 +60,12 @@ import java.util.concurrent.TimeUnit
 
 @RunWith(AndroidJUnit4::class)
 class EThreeGroupTests {
-
-    private lateinit var identity: String
     private lateinit var crypto: VirgilCrypto
     private lateinit var ethree: EThree
     private lateinit var groupId: Data
 
     @Before
     fun setup() {
-        this.identity = UUID.randomUUID().toString()
         this.crypto = TestConfig.virgilCrypto
 
         this.ethree = createEThree()
@@ -83,7 +80,7 @@ class EThreeGroupTests {
         try {
             val users = FindUsersResult()
             users[ethree.identity] = card
-            this.ethree.createGroup(groupId, users)
+            this.ethree.createGroup(groupId, users).get()
             fail()
         } catch (e: InvalidParticipantsCountGroupException) {
         }
@@ -94,7 +91,7 @@ class EThreeGroupTests {
             users[identity] = card
         }
         try {
-            this.ethree.createGroup(groupId, users)
+            this.ethree.createGroup(groupId, users).get()
             fail()
         } catch (e: InvalidParticipantsCountGroupException) {
         }
@@ -134,13 +131,14 @@ class EThreeGroupTests {
     fun ste28() {
         // groupId should not be short
         val ethree2 = createEThree()
+        val invalidGroupId = Data(this.crypto.generateRandomData(5))
 
         val lookup = this.ethree.findUsers(listOf(ethree2.identity)).get()
 
         try {
-            this.ethree.createGroup(groupId, lookup).get()
+            this.ethree.createGroup(invalidGroupId, lookup).get()
             fail()
-        } catch (e: ShortGroupIdGroupException) {
+        } catch (e: GroupIdTooShortException) {
         }
     }
 
@@ -650,14 +648,15 @@ class EThreeGroupTests {
     }
 
     private fun createEThree(): EThree {
+        val identity = UUID.randomUUID().toString()
         val tokenCallback = object : OnGetTokenCallback {
             override fun onGetToken(): String {
                 return TestUtils.generateTokenString(identity)
             }
         }
 
-        val ethree = EThree(this.identity, tokenCallback, TestConfig.context)
-        ethree.register()
+        val ethree = EThree(identity, tokenCallback, TestConfig.context)
+        ethree.register().execute()
         return ethree
     }
 }

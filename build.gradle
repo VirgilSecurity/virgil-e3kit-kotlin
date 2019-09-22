@@ -60,8 +60,14 @@ buildscript {
 
             // Tests
             junit       : '4.12',
-            testsRunner : '1.0.2',
+            testsRunner : '1.1.1',
             espresso    : '3.0.2',
+    ]
+    ext.androidOptions = [
+            compileSdkVersion : 28,
+            minSdkVersion     : 23,
+            targetSdkVersion  : 28,
+            buildToolsVersion : "28.0.3"
     ]
     repositories {
         google()
