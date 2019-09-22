@@ -40,32 +40,23 @@ import com.virgilsecurity.common.util.SerializeUtils
 import com.virgilsecurity.crypto.foundation.GroupSessionMessage
 import com.virgilsecurity.crypto.foundation.GroupSessionTicket
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
-import java.io.IOException
 import java.io.Serializable
+
 
 /**
  * Ticket
  */
 class Ticket : Parcelable { // TODO test parcelable implementation
 
-    internal val groupMessage: GroupSessionMessage
-    internal val participants: Set<String>
+    val groupMessage: GroupSessionMessage
+    val participants: Set<String>
 
     constructor(parcel: Parcel) {
         val groupMessageDataLength = parcel.readInt()
         val serializedGroupMessage = ByteArray(groupMessageDataLength)
         parcel.readByteArray(serializedGroupMessage)
         this.groupMessage = GroupSessionMessage.deserialize(serializedGroupMessage)
-
-        this.participants = try {
-             parcel.readSerializable() as Set<String>
-        } catch (exception: IOException) { // TODO check exception type when not serializable
-//            val participantsArraySize = parcel.readInt()
-            val participantsArray = parcel.createStringArray()
-                                    ?: throw IllegalStateException("participantsArray cannot be null")
-
-            participantsArray.toSet()
-        }
+        this.participants = parcel.readSerializable() as Set<String>
     }
 
     internal constructor(groupMessage: GroupSessionMessage, participants: Set<String>) {
@@ -74,8 +65,8 @@ class Ticket : Parcelable { // TODO test parcelable implementation
     }
 
     constructor(crypto: VirgilCrypto,
-                         sessionId: Data,
-                         participants: Set<String>) {
+                sessionId: Data,
+                participants: Set<String>) {
         val ticket = GroupSessionTicket()
         ticket.setRng(crypto.rng)
 
@@ -95,10 +86,7 @@ class Ticket : Parcelable { // TODO test parcelable implementation
         if (participants is Serializable) {
             parcel.writeSerializable(participants as Serializable)
         } else {
-//            val participantsArray = participants.toTypedArray()
-//            parcel.writeInt(participantsArray.size)
-//            parcel.writeStringArray(participantsArray)
-            parcel.writeStringArray(participants.toTypedArray())
+            throw IllegalStateException("Please, use serializable Set for participants.")
         }
     }
 
@@ -128,7 +116,8 @@ class Ticket : Parcelable { // TODO test parcelable implementation
         @JvmStatic internal fun deserialize(data: Data): Ticket =
                 SerializeUtils.deserialize(data, Ticket::class.java)
 
-        @JvmField val CREATOR = object : Parcelable.Creator<Ticket> {
+        @JvmField
+        val CREATOR = object : Parcelable.Creator<Ticket> {
             override fun createFromParcel(parcel: Parcel): Ticket {
                 return Ticket(parcel)
             }
