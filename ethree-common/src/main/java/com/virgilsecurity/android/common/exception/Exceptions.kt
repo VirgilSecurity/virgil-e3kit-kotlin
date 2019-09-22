@@ -125,7 +125,7 @@ class GroupIdTooShortException @JvmOverloads constructor(
         override val message: String? = null, throwable: Throwable? = null
 ) : GroupException(message, throwable)
 
-class GroupNotFoundGroupException @JvmOverloads constructor(
+class GroupNotFoundException @JvmOverloads constructor(
         override val message: String? = null, throwable: Throwable? = null
 ) : GroupException(message, throwable)
 

@@ -151,6 +151,7 @@ class EThreeGroupTests {
         val lookup = this.ethree.findUsers(listOf(ethree2.identity)).get()
 
         val group = this.ethree.createGroup(groupId, lookup).get()
+        assertNotNull(group)
 
         val cachedGroup = this.ethree.getGroup(groupId)
         assertNotNull(cachedGroup)
@@ -186,7 +187,7 @@ class EThreeGroupTests {
         try {
             ethree2.loadGroup(groupId, card1).get()
             fail()
-        } catch (e: GroupNotFoundGroupException) {
+        } catch (e: GroupNotFoundException) {
         }
 
         val lookup = this.ethree.findUsers(listOf(ethree3.identity)).get()
@@ -196,7 +197,7 @@ class EThreeGroupTests {
         try {
             ethree2.loadGroup(groupId, card1).get()
             fail()
-        } catch (e: GroupNotFoundGroupException) {
+        } catch (e: GroupNotFoundException) {
         }
     }
 
@@ -210,25 +211,26 @@ class EThreeGroupTests {
         val card1 = ethree2.findUser(this.ethree.identity).get()
         val group2 = ethree2.loadGroup(groupId, card1).get()
 
-        this.ethree.deleteGroup(groupId)
-        assertNull(this.ethree.getGroup(groupId))
+        this.ethree.deleteGroup(groupId).execute()
+        val gr = this.ethree.getGroup(groupId)
+        assertNull(gr)
 
         try {
             this.ethree.loadGroup(groupId, card1).get()
             fail()
-        } catch (e: GroupNotFoundGroupException) {
+        } catch (e: GroupNotFoundException) {
         }
 
         try {
             group2.update().execute()
             fail()
-        } catch (e: GroupNotFoundGroupException) {
+        } catch (e: GroupNotFoundException) {
         }
 
         try {
             ethree2.loadGroup(groupId, card1).get()
             fail()
-        } catch (e: GroupNotFoundGroupException) {
+        } catch (e: GroupNotFoundException) {
         }
 
         assertNull(ethree2.getGroup(groupId))
@@ -305,13 +307,13 @@ class EThreeGroupTests {
         try {
             group2.update().execute()
             fail()
-        } catch (e: GroupNotFoundGroupException) {
+        } catch (e: GroupNotFoundException) {
         }
 
         try {
             ethree2.loadGroup(groupId, card1).get()
             fail()
-        } catch (e: GroupNotFoundGroupException) {
+        } catch (e: GroupNotFoundException) {
         }
 
         assertNull(ethree2.getGroup(groupId))
@@ -334,20 +336,20 @@ class EThreeGroupTests {
         val group2 = ethree2.loadGroup(this.groupId, ethree1Card).get()
 
         try {
-            ethree2.deleteGroup(groupId)
+            ethree2.deleteGroup(groupId).execute()
             fail()
         } catch (e: PermissionDeniedGroupException) {
         }
 
         try {
-            group2.remove(card3!!)
+            group2.remove(card3!!).execute()
             fail()
         } catch (e: PermissionDeniedGroupException) {
         }
 
         try {
             val ethree4Card = ethree2.findUser(ethree4.identity).get()
-            group2.add(ethree4Card)
+            group2.add(ethree4Card).execute()
             fail()
         } catch (e: PermissionDeniedGroupException) {
         }
@@ -395,7 +397,7 @@ class EThreeGroupTests {
         val card2 = this.ethree.findUser(ethree2.identity).get()
 
         ethree2.cleanup()
-        ethree2.rotatePrivateKey()
+        ethree2.rotatePrivateKey().execute()
 
         val encrypted = group2.encrypt("Some text")
 
@@ -450,7 +452,7 @@ class EThreeGroupTests {
         assertEquals(message2, decrypted23)
 
         // Remove User2
-        group1.remove(lookup)
+        group1.remove(lookup).execute()
 
         val message3 = UUID.randomUUID().toString()
         val encrypted3 = group1.encrypt(message3)
@@ -464,16 +466,16 @@ class EThreeGroupTests {
         } catch (e: GroupException) {
         }
 
-        group3.update()
+        group3.update().execute()
         val decrypted3 = group3.decrypt(encrypted3, card1)
         assertEquals(message3, decrypted3)
 
         // User3 rotates key
         ethree3.cleanup()
-        ethree3.rotatePrivateKey()
+        ethree3.rotatePrivateKey().execute()
 
         try {
-            group3.update()
+            group3.update().execute()
             fail()
         } catch (e: GroupException) {
         }
@@ -481,7 +483,7 @@ class EThreeGroupTests {
         assertNull(ethree3.getGroup(this.groupId))
 
         try {
-            ethree3.loadGroup(groupId, card1)
+            ethree3.loadGroup(groupId, card1).get()
             fail()
         } catch (e: GroupException) {
         }
@@ -513,7 +515,7 @@ class EThreeGroupTests {
         val card1 = ethree2.findUser(this.ethree.identity).get()
         val group2 = ethree2.loadGroup(this.groupId, card1).get()
 
-        group1.remove(card3!!)
+        group1.remove(card3!!).execute()
 
         val message = UUID.randomUUID().toString()
         val encrypted = group1.encrypt(message)
@@ -543,7 +545,7 @@ class EThreeGroupTests {
         Thread.sleep(1000)
 
         ethree2.cleanup()
-        ethree2.rotatePrivateKey()
+        ethree2.rotatePrivateKey().execute()
 
         val date2 = Date()
         val message2 = UUID.randomUUID().toString()

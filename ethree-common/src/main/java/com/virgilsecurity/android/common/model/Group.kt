@@ -192,7 +192,7 @@ class Group constructor(
         }
 
         val decryptedData = this.decrypt(data, senderCard, date)
-        return ConvertionUtils.toBase64String(decryptedData)
+        return ConvertionUtils.toString(decryptedData)
     }
 
     /**

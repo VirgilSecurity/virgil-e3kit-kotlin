@@ -34,6 +34,7 @@
 package com.virgilsecurity.android.common.manager
 
 import com.virgilsecurity.android.common.exception.GroupException
+import com.virgilsecurity.android.common.exception.GroupNotFoundException
 import com.virgilsecurity.android.common.model.Group
 import com.virgilsecurity.android.common.model.GroupInfo
 import com.virgilsecurity.android.common.model.RawGroup
@@ -81,7 +82,7 @@ class GroupManager(
         if (tickets.isEmpty()) {
             localGroupStorage.delete(sessionId)
 
-            throw GroupException("Group with provided id was not found")
+            throw GroupNotFoundException("Group with provided id was not found")
         }
 
         val rawGroup = RawGroup(GroupInfo(card.identity), tickets)

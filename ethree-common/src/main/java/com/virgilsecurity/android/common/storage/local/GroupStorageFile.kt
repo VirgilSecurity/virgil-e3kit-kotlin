@@ -78,24 +78,37 @@ class GroupStorageFile internal constructor(
 
         val subdir = ticket.groupMessage.sessionId.toHexString()
 
-        val name = ticket.groupMessage.epoch.toString() // TODO was it meant like that?
-        val data = ticket.serialize()
+        store(group.info, subdir)
+        group.tickets.forEach {
+            store(it, subdir)
+        }
+    }
 
+    private fun store(ticket: Ticket, subdir: String) {
+        val subdir = "$subdir/$TICKETS_SUBDIR"
+        val name = ticket.groupMessage.epoch.toString()
+
+        val data = ticket.serialize()
         fileSystemEncrypted.write(data, name, subdir)
     }
 
-    internal fun retrieveInfo(sessionId: Data): GroupInfo = retrieveGroupInfo(sessionId)
+    private fun store(info: GroupInfo, subdir: String) {
+        val data = info.serialize()
+        fileSystemEncrypted.write(data, GROUP_INFO_NAME, subdir)
+    }
 
-    internal fun retrieve(sessionId: Data, count: Int): RawGroup { // TODO return nullable?
+    internal fun retrieveInfo(sessionId: Data): GroupInfo? = retrieveGroupInfo(sessionId)
+
+    internal fun retrieve(sessionId: Data, count: Int): RawGroup? {
         val tickets = retrieveLastTickets(count, sessionId)
-        val groupInfo = retrieveGroupInfo(sessionId)
+        val groupInfo = retrieveGroupInfo(sessionId) ?: return null
 
         return RawGroup(groupInfo, tickets)
     }
 
-    internal fun retrieve(sessionId: Data, epoch: Long): RawGroup {
+    internal fun retrieve(sessionId: Data, epoch: Long): RawGroup? {
         val ticket = retrieveTicket(sessionId, epoch)
-        val groupInfo = retrieveGroupInfo(sessionId)
+        val groupInfo = retrieveGroupInfo(sessionId) ?: return null
 
         return RawGroup(groupInfo, listOf(ticket))
     }
@@ -148,8 +161,12 @@ class GroupStorageFile internal constructor(
         return result
     }
 
-    private fun retrieveGroupInfo(sessionId: Data): GroupInfo {
+    private fun retrieveGroupInfo(sessionId: Data): GroupInfo? {
         val subdir = sessionId.toHexString()
+
+        if (!fileSystemEncrypted.exists(GROUP_INFO_NAME, subdir)) {
+            return null
+        }
 
         val data = fileSystemEncrypted.read(GROUP_INFO_NAME, subdir)
 

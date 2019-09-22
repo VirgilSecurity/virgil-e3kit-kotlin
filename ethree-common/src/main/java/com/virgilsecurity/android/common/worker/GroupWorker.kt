@@ -34,6 +34,7 @@
 package com.virgilsecurity.android.common.worker
 
 import com.virgilsecurity.android.common.exception.GroupException
+import com.virgilsecurity.android.common.exception.GroupNotFoundException
 import com.virgilsecurity.android.common.manager.GroupManager
 import com.virgilsecurity.android.common.model.FindUsersResult
 import com.virgilsecurity.android.common.model.Group
@@ -115,7 +116,7 @@ internal class GroupWorker(
                 override fun execute() {
                     val sessionId = computeSessionId(identifier)
                     val group = getGroupManager().retrieve(sessionId)
-                                ?: throw GroupException("Group with provided id not found " +
+                                ?: throw GroupNotFoundException("Group with provided id not found " +
                                                         "locally. Try to call loadGroup first")
 
                     group.checkPermissions()
