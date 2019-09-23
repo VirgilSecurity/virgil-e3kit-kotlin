@@ -171,7 +171,7 @@ internal class PeerToPeerWorker(
      */
     @JvmOverloads internal fun encrypt(text: String, users: FindUsersResult? = null): String {
         require(text.isNotEmpty()) { "\'text\' should not be empty" }
-        require(users?.isNotEmpty() == true) { "Passed empty FindUsersResult" }
+        if (users != null) require(users.isNotEmpty()) { "Passed empty FindUsersResult" }
 
         val data = Data(text.toByteArray(StandardCharsets.UTF_8)) // TODO check exception type and wrap with "String to Data failed" message
         return encrypt(data, users).toBase64String()
@@ -356,7 +356,8 @@ internal class PeerToPeerWorker(
      * @throws CryptoException
      */
     @Deprecated("Use encryptForUsers method instead.")
-    @JvmOverloads internal fun encrypt(data: ByteArray, lookupResult: LookupResult? = null): ByteArray =
+    @JvmOverloads internal fun encrypt(data: ByteArray,
+                                       lookupResult: LookupResult? = null): ByteArray =
             encryptInternal(Data(data), lookupResult.toPublicKeys()).data
 
     /**
@@ -420,6 +421,7 @@ internal class PeerToPeerWorker(
      * @throws CryptoException
      */
     @Deprecated("Use decryptFromUser method instead.")
-    @JvmOverloads internal fun decrypt(data: ByteArray, sendersKey: VirgilPublicKey? = null): ByteArray =
+    @JvmOverloads internal fun decrypt(data: ByteArray,
+                                       sendersKey: VirgilPublicKey? = null): ByteArray =
             decryptInternal(Data(data), sendersKey).data
 }

@@ -34,7 +34,6 @@
 package com.virgilsecurity.android.common.worker
 
 import com.virgilsecurity.android.common.exception.EThreeException
-import com.virgilsecurity.android.common.exception.PrivateKeyExistsException
 import com.virgilsecurity.android.common.exception.PrivateKeyNotFoundException
 import com.virgilsecurity.android.common.storage.local.KeyStorageLocal
 import com.virgilsecurity.common.model.Completable
@@ -98,7 +97,7 @@ internal class AuthorizationWorker(
     @Synchronized internal fun rotatePrivateKey() = object : Completable {
         override fun execute() {
             if (keyStorageLocal.exists())
-                throw PrivateKeyExistsException("Private key already exists in local key storage.")
+                throw EThreeException("Private key already exists in local key storage.")
 
             val cards = cardManager.searchCards(this@AuthorizationWorker.identity)
             val card = cards.firstOrNull() ?: throw EThreeException("User is not registered")

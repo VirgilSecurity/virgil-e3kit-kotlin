@@ -81,18 +81,6 @@ class PublicKeyDuplicateException @JvmOverloads constructor(
         override val message: String? = null, throwable: Throwable? = null
 ) : EThreeException(message, throwable)
 
-class CardNotFoundException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : EThreeException(message, throwable)
-
-class RegistrationException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : EThreeException(message, throwable)
-
-class PrivateKeyExistsException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : EThreeException(message, throwable)
-
 class UnRegistrationException @JvmOverloads constructor(
         override val message: String? = null, throwable: Throwable? = null
 ) : EThreeException(message, throwable)

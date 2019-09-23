@@ -51,11 +51,12 @@ class Ticket : Parcelable { // TODO test parcelable implementation
     val groupMessage: GroupSessionMessage
     val participants: Set<String>
 
-    constructor(parcel: Parcel) {
+    private constructor(parcel: Parcel) {
         val groupMessageDataLength = parcel.readInt()
         val serializedGroupMessage = ByteArray(groupMessageDataLength)
         parcel.readByteArray(serializedGroupMessage)
         this.groupMessage = GroupSessionMessage.deserialize(serializedGroupMessage)
+
         this.participants = parcel.readSerializable() as Set<String>
     }
 
@@ -67,6 +68,8 @@ class Ticket : Parcelable { // TODO test parcelable implementation
     constructor(crypto: VirgilCrypto,
                 sessionId: Data,
                 participants: Set<String>) {
+        require(participants is Serializable) { "Please, use serializable Set for participants." }
+
         val ticket = GroupSessionTicket()
         ticket.setRng(crypto.rng)
 
@@ -83,11 +86,7 @@ class Ticket : Parcelable { // TODO test parcelable implementation
         parcel.writeInt(groupMessageData.size)
         parcel.writeByteArray(groupMessageData)
 
-        if (participants is Serializable) {
-            parcel.writeSerializable(participants as Serializable)
-        } else {
-            throw IllegalStateException("Please, use serializable Set for participants.")
-        }
+        parcel.writeSerializable(participants as Serializable)
     }
 
     override fun describeContents(): Int {

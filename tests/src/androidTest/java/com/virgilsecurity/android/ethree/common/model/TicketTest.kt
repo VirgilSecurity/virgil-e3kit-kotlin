@@ -73,7 +73,7 @@ class TicketTest {
         assertEquals(createdFromParcel.participants, participants)
     }
 
-    @Test(expected = IllegalStateException::class)
+    @Test(expected = IllegalArgumentException::class)
     fun ticket_parcelable_with_not_serializable_participants() {
         val crypto = VirgilCrypto()
         val identifierData = Data(UUID.randomUUID().toString().toByteArray())
@@ -81,10 +81,8 @@ class TicketTest {
 
         val participantsSet = NotSerializableSet("Bob", "Alice", "Jane")
 
-        val ticket = Ticket(crypto, sessionId, participantsSet)
-
-        val parcel = Parcel.obtain()
-        ticket.writeToParcel(parcel, ticket.describeContents())
+        // Only Serializable Set's are supported
+        Ticket(crypto, sessionId, participantsSet)
     }
 
     private fun computeSessionId(identifier: Data, crypto: VirgilCrypto): Data {

@@ -162,11 +162,10 @@ constructor(identity: String,
 
     /**
      * Publishes the public key in Virgil's Cards Service in case no public key for current
-     * identity is published yet. Otherwise [RegistrationException] will be thrown.
+     * identity is published yet.
      *
      * To start execution of the current function, please see [Completable] description.
      *
-     * @throws RegistrationException
      * @throws CryptoException
      */
     @Synchronized
@@ -191,8 +190,7 @@ constructor(identity: String,
      *
      * To start execution of the current function, please see [Completable] description.
      *
-     * @throws PrivateKeyExistsException
-     * @throws CardNotFoundException
+     * @throws EThreeException
      * @throws CryptoException
      */
     @Synchronized fun rotatePrivateKey() = authorizationWorker.rotatePrivateKey()
