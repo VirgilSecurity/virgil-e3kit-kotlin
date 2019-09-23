@@ -66,12 +66,16 @@ dependencies {
     implementation project(':ethree-kotlin')
     implementation project(':ethree-enclave')
 
+    // Virgil
+    androidTestImplementation "com.virgilsecurity.sdk:android-utils:$versions.virgilSdk"
+
     // Kotlin
     androidTestImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$versions.kotlin"
     implementation "com.android.support:appcompat-v7:$versions.appCompat"
 
     // Tests core
     testImplementation "junit:junit:$versions.junit"
+    androidTestImplementation "androidx.test.ext:junit:$versions.testsRunner"
     androidTestImplementation "androidx.test:runner:$versions.testsRunner"
     androidTestImplementation "androidx.test:rules:$versions.testsRunner"
 }
