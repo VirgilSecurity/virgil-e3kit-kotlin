@@ -494,7 +494,7 @@ class GroupTests {
         val encrypted4 = group1.encrypt(message4)
 
         val newCard3 = this.ethree.findUser(ethree3.identity, true).get()
-        group1.reAdd(newCard3)
+        group1.reAdd(newCard3).execute()
 
         val newGroup3 = ethree3.loadGroup(this.groupId, card1).get()
         val decrypted4 = newGroup3.decrypt(encrypted4, card1)
