@@ -768,8 +768,4 @@ constructor(identity: String,
         keyStorageLocal.store(privateKeyData)
         privateKeyChanged(card)
     }
-
-    companion object {
-        private const val THROTTLE_TIMEOUT = 2 * 1000L // 2 seconds
-    }
 }

@@ -34,11 +34,8 @@
 package com.virgilsecurity.android.ethree.interaction.async
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.virgilsecurity.android.common.exception.PrivateKeyNotFoundException
-import com.virgilsecurity.android.common.exception.PublicKeyDuplicateException
-import com.virgilsecurity.android.common.exception.PublicKeyNotFoundException
-import com.virgilsecurity.android.common.exception.UnRegistrationException
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
+import com.virgilsecurity.android.common.exception.*
 import com.virgilsecurity.android.common.model.LookupResult
 import com.virgilsecurity.android.ethree.interaction.EThree
 import com.virgilsecurity.android.ethree.utils.TestConfig
@@ -51,6 +48,7 @@ import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
 import com.virgilsecurity.sdk.client.VirgilCardClient
 import com.virgilsecurity.sdk.common.TimeSpan
 import com.virgilsecurity.sdk.crypto.*
+import com.virgilsecurity.sdk.crypto.exceptions.KeyEntryNotFoundException
 import com.virgilsecurity.sdk.jwt.JwtGenerator
 import com.virgilsecurity.sdk.jwt.accessProviders.GeneratorJwtProvider
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
@@ -161,7 +159,7 @@ class EThreeNegativeTest {
         return eThree
     }
 
-    @Test(expected = PrivateKeyNotFoundException::class)
+    @Test(expected = KeyEntryNotFoundException::class)
     fun cleanup_fail_without_bootstrap() {
         eThree.cleanup()
     }
@@ -218,23 +216,23 @@ class EThreeNegativeTest {
         assertTrue(failed)
     }
 
-    @Test(expected = PrivateKeyNotFoundException::class)
-    fun encrypt_text_fail_without_bootstrap() {
+    @Test(expected = IllegalArgumentException::class)
+    fun encrypt_text_empty() {
         eThree.encrypt("")
     }
 
-    @Test(expected = PrivateKeyNotFoundException::class)
-    fun encrypt_data_fail_without_bootstrap() {
+    @Test(expected = IllegalArgumentException::class)
+    fun encrypt_data_empty() {
         eThree.encrypt(ByteArray(0))
     }
 
-    @Test(expected = PrivateKeyNotFoundException::class)
-    fun decrypt_text_fail_without_bootstrap() {
+    @Test(expected = IllegalArgumentException::class)
+    fun decrypt_text_empty() {
         eThree.decrypt("")
     }
 
-    @Test(expected = PrivateKeyNotFoundException::class)
-    fun decrypt_data_fail_without_bootstrap() {
+    @Test(expected = IllegalArgumentException::class)
+    fun decrypt_data_empty() {
         eThree.decrypt(ByteArray(0))
     }
 
@@ -261,18 +259,15 @@ class EThreeNegativeTest {
 
         var failed = false
         val waiter = CountDownLatch(1)
-        eThree.lookupPublicKeys(listOf(identity,
-                                       WRONG_IDENTITY))
+        eThree.lookupPublicKeys(listOf(identity, WRONG_IDENTITY))
                 .addCallback(object : OnResultListener<Map<String, VirgilPublicKey>> {
                     override fun onSuccess(result: Map<String, VirgilPublicKey>) {
                         fail("Illegal State")
                     }
 
                     override fun onError(throwable: Throwable) {
-                        if (throwable is PublicKeyNotFoundException
-                            && throwable.identity == WRONG_IDENTITY) {
+                        if (throwable is FindUsersException)
                             failed = true
-                        }
 
                         waiter.countDown()
                     }
@@ -304,30 +299,6 @@ class EThreeNegativeTest {
         assertTrue(failed)
     }
 
-    @Test fun lookup_with_duplicate_identities() {
-        var failed = false
-        val waiter = CountDownLatch(1)
-        registerEThree(eThree)
-        eThree.lookupPublicKeys(listOf(identity, identity, identity,
-                                       WRONG_IDENTITY,
-                                       WRONG_IDENTITY,
-                                       WRONG_IDENTITY + identity))
-                .addCallback(object : OnResultListener<LookupResult> {
-                    override fun onSuccess(result: LookupResult) {
-                        fail("Illegal State")
-                    }
-
-                    override fun onError(throwable: Throwable) {
-                        if (throwable is PublicKeyDuplicateException)
-                            failed = true
-
-                        waiter.countDown()
-                    }
-                })
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
-        assertTrue(failed)
-    }
-
     @Test fun change_pass_with_same_new() {
         var failed = false
         val waiter = CountDownLatch(1)
@@ -338,7 +309,7 @@ class EThreeNegativeTest {
             }
 
             override fun onError(throwable: Throwable) {
-                if (throwable is IllegalArgumentException)
+                if (throwable is EThreeException)
                     failed = true
 
                 waiter.countDown()
@@ -366,7 +337,7 @@ class EThreeNegativeTest {
             }
 
             override fun onError(throwable: Throwable) {
-                if (throwable is UnRegistrationException)
+                if (throwable is EThreeException)
                     failed = true
 
                 waiter.countDown()
@@ -385,7 +356,7 @@ class EThreeNegativeTest {
             }
 
             override fun onError(throwable: Throwable) {
-                if (throwable is UnRegistrationException)
+                if (throwable is EThreeException)
                     failed = true
 
                 waiter.countDown()

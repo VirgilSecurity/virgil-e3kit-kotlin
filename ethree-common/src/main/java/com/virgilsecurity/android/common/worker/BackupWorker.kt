@@ -33,10 +33,7 @@
 
 package com.virgilsecurity.android.common.worker
 
-import com.virgilsecurity.android.common.exception.BackupKeyException
-import com.virgilsecurity.android.common.exception.PrivateKeyNotFoundException
-import com.virgilsecurity.android.common.exception.RestoreKeyException
-import com.virgilsecurity.android.common.exception.WrongPasswordException
+import com.virgilsecurity.android.common.exception.*
 import com.virgilsecurity.android.common.storage.cloud.CloudKeyManager
 import com.virgilsecurity.android.common.storage.local.KeyStorageLocal
 import com.virgilsecurity.common.model.Completable
@@ -125,6 +122,9 @@ internal class BackupWorker(
     internal fun changePassword(oldPassword: String,
                        newPassword: String): Completable = object : Completable {
         override fun execute() {
+            if (oldPassword == newPassword) throw EThreeException("To change password, please" +
+                                                                  "provide new password that " +
+                                                                  "differs from the old one.")
             keyManagerCloud.changePassword(oldPassword, newPassword)
         }
     }

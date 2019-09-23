@@ -31,7 +31,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.ethree.java.interaction
+package com.virgilsecurity.android.ethree.worker
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.gson.JsonObject
@@ -52,6 +52,7 @@ import com.virgilsecurity.sdk.storage.DefaultKeyStorage
 import com.virgilsecurity.sdk.storage.JsonKeyEntry
 import org.junit.Assert.*
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.InputStreamReader
@@ -59,7 +60,7 @@ import java.util.*
 import java.util.concurrent.TimeUnit
 
 @RunWith(AndroidJUnit4::class)
-class EThreeGroupTests {
+class GroupTests {
     private lateinit var crypto: VirgilCrypto
     private lateinit var ethree: EThree
     private lateinit var groupId: Data
@@ -477,7 +478,7 @@ class EThreeGroupTests {
         try {
             group3.update().execute()
             fail()
-        } catch (e: GroupException) {
+        } catch (e: Exception) { // TODO do we need GroupException here?
         }
 
         assertNull(ethree3.getGroup(this.groupId))
@@ -485,7 +486,7 @@ class EThreeGroupTests {
         try {
             ethree3.loadGroup(groupId, card1).get()
             fail()
-        } catch (e: GroupException) {
+        } catch (e: Exception) { // TODO do we need GroupException here?
         }
 
         // User 1 encrypts, reAdds User3
@@ -580,6 +581,7 @@ class EThreeGroupTests {
 
     @Test
     fun ste45() {
+        // Compatability test
         val compatDataStream =
                 this.javaClass.classLoader?.getResourceAsStream("compat_data.json")
         val compatJson = JsonParser().parse(InputStreamReader(compatDataStream)) as JsonObject
@@ -617,12 +619,12 @@ class EThreeGroupTests {
         // Load group
         val initiatorCard = ethree.findUser(groupCompatJson.get("Initiator").asString).get()
 
-        val groupIdData = groupCompatJson.get("GroupId").asString
+        val groupIdData = Data.fromBase64String(groupCompatJson.get("GroupId").asString)
         val group = ethree.loadGroup(groupIdData, initiatorCard).get()
 
         val compatParticipants =
-                groupCompatJson.get("GroupId").asJsonArray.map { it.asString }.toSet().sorted()
-        assertTrue(group.participants.sorted() == compatParticipants)
+                groupCompatJson.get("Participants").asJsonArray.map { it.asString }.toSet()
+        assertTrue(group.participants.sorted() == compatParticipants.sorted())
 
         val decrypted = group.decrypt(groupCompatJson.get("EncryptedText").asString, initiatorCard)
         val originCompatText = groupCompatJson.get("OriginText").asString

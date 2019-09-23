@@ -191,7 +191,11 @@ internal class PeerToPeerWorker(
     @JvmOverloads internal fun decrypt(text: String, user: Card? = null): String {
         require(text.isNotEmpty()) { "\'text\' should not be empty" }
 
-        val data = Data.fromBase64String(text) // TODO check exception type and wrap with "Data to String failed" message
+        val data = try {
+            Data.fromBase64String(text)
+        } catch (exception: IllegalArgumentException) {
+            throw EThreeException("Error while converting String to Data. Wrong base64 String.")
+        }
 
         val decryptedData = decrypt(data, user)
 
@@ -212,7 +216,11 @@ internal class PeerToPeerWorker(
     internal fun decrypt(text: String, user: Card, date: Date): String {
         require(text.isNotEmpty()) { "\'text\' should not be empty" }
 
-        val data = Data.fromBase64String(text) // TODO check exception type and wrap with "Data to String failed" message
+        val data = try {
+            Data.fromBase64String(text)
+        } catch (exception: IllegalArgumentException) {
+            throw EThreeException("Error while converting String to Data. Wrong base64 String.")
+        }
 
         val decryptedData = decrypt(data, user, date)
 
@@ -282,6 +290,8 @@ internal class PeerToPeerWorker(
 
     internal fun encryptInternal(data: Data,
                                  publicKeys: List<VirgilPublicKey>?): Data { // TODO check for empty/null args
+        require(data.data.isNotEmpty()) { "\'data\' should not be empty." }
+
         val selfKeyPair = keyStorageLocal.load()
         val pubKeys = mutableListOf(selfKeyPair.publicKey)
 
@@ -296,6 +306,8 @@ internal class PeerToPeerWorker(
     }
 
     internal fun decryptInternal(data: Data, publicKey: VirgilPublicKey?): Data {
+        require(data.data.isNotEmpty()) { "\'data\' should not be empty." }
+
         val selfKeyPair = keyStorageLocal.load()
         val pubKey = publicKey ?: selfKeyPair.publicKey
 
@@ -402,7 +414,11 @@ internal class PeerToPeerWorker(
      */
     @Deprecated("Use decryptFromUser method instead.")
     internal fun decrypt(base64String: String, sendersKey: VirgilPublicKey): String {
-        val data = Data.fromBase64String(base64String) // TODO check exception type
+        val data = try {
+            Data.fromBase64String(base64String)
+        } catch (exception: IllegalArgumentException) {
+            throw EThreeException("Error while converting String to Data. Wrong base64 String.")
+        }
 
         val decryptedData = decryptInternal(data, sendersKey)
 

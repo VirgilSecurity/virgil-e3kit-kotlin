@@ -75,9 +75,7 @@ class LookupManager(
     }
 
     internal fun lookupCachedCards(identities: List<String>): FindUsersResult {
-        if (identities.isEmpty()) {
-            throw EmptyArgumentException("identities")
-        }
+        if (identities.isEmpty()) throw EmptyArgumentException("identities")
 
         val result: MutableMap<String, Card> = mutableMapOf()
         val cards = cardStorage.searchCards(identities)
@@ -96,19 +94,17 @@ class LookupManager(
     internal fun lookupCachedCard(identity: String): Card {
         val cards = cardStorage.searchCards(listOf(identity))
 
-        if (cards.size >= 2) {
+        if (cards.size >= 2)
             throw FindUsersException("Found duplicated Cards for identity: $identity")
-        }
 
         return cards.firstOrNull()
                ?: throw FindUsersException("Card with identity: $identity was not found " +
-                                               "locally. Try to call findUsers first")
+                                           "locally. Try to call findUsers first")
     }
 
-    internal fun lookupCards(identities: List<String>, forceReload: Boolean = false): FindUsersResult {
-        if (identities.isEmpty()) {
-            throw EmptyArgumentException("identities")
-        }
+    internal fun lookupCards(identities: List<String>,
+                             forceReload: Boolean = false): FindUsersResult {
+        if (identities.isEmpty()) throw EmptyArgumentException("identities")
 
         val result: MutableMap<String, Card> = mutableMapOf()
         val identitiesDistincted: MutableList<String> = identities.distinct().toMutableList()
@@ -145,7 +141,7 @@ class LookupManager(
             }
         }
 
-        if (result.keys.toList().sorted() != identities.distinct().sorted()) { // TODO check equality of lists
+        if (result.keys.toList().sorted() != identities.distinct().sorted()) {
             throw FindUsersException("Card for one or more of provided identities was not found")
         }
 
@@ -156,7 +152,8 @@ class LookupManager(
         val cards = lookupCards(listOf(identity), forceReload)
 
         return cards[identity]
-               ?: throw FindUsersException("Card for one or more of provided identities was not found")
+               ?: throw FindUsersException("Card for one or more of provided identities " +
+                                           "was not found")
     }
 
     companion object {

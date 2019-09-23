@@ -34,6 +34,7 @@
 package com.virgilsecurity.android.common.storage.local
 
 import com.virgilsecurity.android.common.exception.FileGroupStorageException
+import com.virgilsecurity.android.common.exception.RawGroupException
 import com.virgilsecurity.android.common.model.GroupInfo
 import com.virgilsecurity.android.common.model.RawGroup
 import com.virgilsecurity.android.common.model.Ticket
@@ -74,7 +75,7 @@ class GroupStorageFile internal constructor(
     }
 
     internal fun store(group: RawGroup) {
-        val ticket = group.tickets.last()
+        val ticket = group.tickets.lastOrNull() ?: throw RawGroupException("Empty tickets")
 
         val subdir = ticket.groupMessage.sessionId.toHexString()
 
@@ -113,7 +114,7 @@ class GroupStorageFile internal constructor(
         return RawGroup(groupInfo, listOf(ticket))
     }
 
-    internal fun delete(sessionId: Data) = fileSystemEncrypted.delete(sessionId.toHexString())
+    internal fun delete(sessionId: Data) = fileSystemEncrypted.deleteDirectory(sessionId.toHexString())
 
     internal fun reset() = fileSystemEncrypted.delete()
 

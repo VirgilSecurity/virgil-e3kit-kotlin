@@ -78,7 +78,7 @@ class CloudTicketStorage(
         val params = KeyknoxPushParams(identities + this.identity,
                                        GROUP_SESSION_ROOT,
                                        sessionId,
-                                       epoch.toString())
+                                       "\\$epoch")
 
         keyknoxManager.pushValue(params,
                                  ticketData,
@@ -212,6 +212,6 @@ class CloudTicketStorage(
     }
 
     companion object {
-        private const val GROUP_SESSION_ROOT = "group-session"
+        private const val GROUP_SESSION_ROOT = "group-sessions"
     }
 }

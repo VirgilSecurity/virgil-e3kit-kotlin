@@ -158,9 +158,11 @@ class EThreeScopesTest {
         delay(A_FEW_NETWORK_CALLS_DELAY)
         scope.cancel()
 
-        assertNotEquals(0, timesBeforeCancel)  // Called at least once
-        assertTrue(timesBeforeCancel < NUMBER_OF_REPEATS) // But cancelled before initialize has
-                                                          // been called NUMBER_OF_REPEATS times
+        // Called at least once But cancelled before initialize has been called NUMBER_OF_REPEATS times
+        assertNotEquals(0, timesBeforeCancel)
+        assertTrue("$timesBeforeCancel should be less than $NUMBER_OF_REPEATS",
+                   timesBeforeCancel < NUMBER_OF_REPEATS)
+        println("TIMES BEFORE: $timesBeforeCancel")
     }
 
     @Test fun get_result_without_waiting_callback() {
@@ -188,6 +190,6 @@ class EThreeScopesTest {
 
     companion object {
         const val NUMBER_OF_REPEATS = 100
-        const val A_FEW_NETWORK_CALLS_DELAY = 5000L // 5 sec
+        const val A_FEW_NETWORK_CALLS_DELAY = 1000L // 5 sec
     }
 }
