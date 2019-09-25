@@ -1,0 +1,71 @@
+<!--
+  ~ Copyright (c) 2015-2019, Virgil Security, Inc.
+  ~
+  ~ Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
+  ~
+  ~ All rights reserved.
+  ~
+  ~ Redistribution and use in source and binary forms, with or without
+  ~ modification, are permitted provided that the following conditions are met:
+  ~
+  ~     (1) Redistributions of source code must retain the above copyright notice, this
+  ~     list of conditions and the following disclaimer.
+  ~
+  ~     (2) Redistributions in binary form must reproduce the above copyright notice,
+  ~     this list of conditions and the following disclaimer in the documentation
+  ~     and/or other materials provided with the distribution.
+  ~
+  ~     (3) Neither the name of virgil nor the names of its
+  ~     contributors may be used to endorse or promote products derived from
+  ~     this software without specific prior written permission.
+  ~
+  ~ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  ~ AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  ~ IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+  ~ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+  ~ FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  ~ DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+  ~ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  ~ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+  ~ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  ~ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+  -->
+
+<resources>
+    <string name="app_name">VirgilBack4App</string>
+
+    <!-- Back4App -->
+    <string name="back4app_server_url">https://parseapi.back4app.com/</string>
+    <string name="back4app_live_query_url">wss://yourSubdomainName.back4app.io/</string>
+    <string name="back4app_app_id">your_back4app_app_id</string>
+    <string name="back4app_client_key">your_back4app_client_key</string>
+
+    <!-- General -->
+    <string name="no_internet">Please, check your internet state</string>
+    <string name="error_loading">Please, swipe from top to retry</string>
+    <string name="cancel">Cancel</string>
+    <string name="ok">OK</string>
+    <string name="press_exit_once_more">Press back once more to exit</string>
+
+    <!-- Login Screen -->
+    <string name="login">Log In</string>
+    <string name="signup">Sign Up</string>
+    <string name="username">Username</string>
+    <string name="username_empty">Please, enter username</string>
+    <string name="enter_your_message">Enter your message</string>
+    <string name="send">Send</string>
+
+    <!-- Threads List Screen -->
+    <string name="contacts">Contacts</string>
+    <string name="no_threads">No conversations yet.\nYou can start new conversation\nfrom navigation drawer.</string>
+    <string name="create_thread">Create thread</string>
+    <string name="enter_username">Enter username to start chat with</string>
+    <string name="creating_thread">Creating thread…</string>
+    <string name="no_chat_with_yourself">No chats with yourself, please</string>
+
+    <!-- Drawer -->
+    <string name="new_chat">New Conversation</string>
+    <string name="log_out">Log out</string>
+    <string name="no_messages">No messages yet.\nBut You can fix it (:</string>
+
+</resources>

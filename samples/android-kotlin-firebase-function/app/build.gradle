@@ -67,5 +67,5 @@ dependencies {
     implementation 'com.google.firebase:firebase-auth:16.1.0'
 
     // E3Kit
-    implementation "com.virgilsecurity:ethree-kotlin:0.3.4"
+    implementation "com.virgilsecurity:ethree-kotlin:0.5.0"
 }

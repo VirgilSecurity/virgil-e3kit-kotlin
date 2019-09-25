@@ -55,19 +55,21 @@ android {
 }
 
 group 'com.virgilsecurity'
-version '0.3.7'
+version '0.5.1'
 
 dependencies {
     // Inner dependencies
-    implementation project(':ethree-common')
+    api project(':ethree-common')
 
     // Virgil
-    compileOnly "com.virgilsecurity.sdk:crypto:$versions.virgilSdk"
-    implementation "com.virgilsecurity.sdk:crypto-android:$versions.virgilSdk@aar"
-    implementation "com.virgilsecurity.sdk:sdk:$versions.virgilSdk"
+    api "com.virgilsecurity.sdk:crypto-android:$versions.virgilSdk"
     implementation("com.virgilsecurity:pythia:$versions.pythia") {
         exclude group: 'com.virgilsecurity.sdk', module: 'crypto'
+        exclude group: 'com.virgilsecurity.crypto', module: 'common'
+        exclude group: 'com.virgilsecurity.crypto', module: 'foundation'
+        exclude group: 'com.virgilsecurity.crypto', module: 'pythia'
     }
+    implementation "com.virgilsecurity.crypto:pythia-android:$versions.virgilCrypto"
     implementation("com.virgilsecurity:keyknox:$versions.keyknox") {
         exclude group: 'com.virgilsecurity.sdk', module: 'crypto'
         exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
@@ -81,16 +83,40 @@ dependencies {
     compileOnly "com.google.android:android:$versions.android"
 }
 
+task generateVersionVirgilAgent {
+    outputs.dir "$buildDir/generated"
+    doFirst {
+        def versionFile = file("$buildDir/generated/release/com/virgilsecurity/android/ethree/build/VersionVirgilAgent.kt")
+        versionFile.parentFile.mkdirs()
+        versionFile.text =
+                """
+package com.virgilsecurity.android.ethree.build;
+
+object VersionVirgilAgent {
+    const val VERSION = "$project.version"
+}
+"""
+    }
+}
+
+
+
+project.android.sourceSets.main.java.srcDirs = ["${buildDir}/generated/release/", "src/main/java"]
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
+    dependsOn(generateVersionVirgilAgent)
+}
+
 sourceCompatibility = "8"
 targetCompatibility = "8"
 
 task sourcesJar(type: Jar) {
-    from android.sourceSets.main.java.srcDirs
+    from(project.android.sourceSets.main.java.srcDirs)
     classifier = 'sources'
 }
 
 task javadocJar(type: Jar, dependsOn: 'dokka') {
-    from "$buildDir/javadoc"
+    from("$buildDir/javadoc")
     classifier = 'javadoc'
 }
 
@@ -100,7 +126,7 @@ def authentication_password = hasProperty('authentication_password') ? authentic
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            artifactId = 'ethree-kotlin'
+            artifactId = 'ethree'
             artifact javadocJar
             artifact sourcesJar
             from components.android

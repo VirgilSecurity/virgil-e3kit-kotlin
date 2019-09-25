@@ -35,14 +35,17 @@ package com.android.virgilsecurity.ethreesamplejava;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.virgilsecurity.android.ethree.kotlin.interaction.EThree;
-import com.virgilsecurity.sdk.crypto.PublicKey;
+import com.virgilsecurity.android.ethree.kotlin.callback.OnCompleteListener;
+import com.virgilsecurity.android.ethree.kotlin.callback.OnGetTokenCallback;
+import com.virgilsecurity.android.ethree.kotlin.callback.OnResultListener;
+import com.virgilsecurity.android.ethree.interaction.EThree;
+import com.virgilsecurity.sdk.crypto.VirgilPublicKey;
 import com.virgilsecurity.sdk.utils.ConvertionUtils;
 
-import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -52,8 +55,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
 
@@ -88,22 +89,22 @@ public class EThreeActivity extends AppCompatActivity {
 
     // This callback exchanges authToken for a Virgil JWT. So user now authenticated and is able to
     // interact with Virgil Services (through the E3Kit).
-    private final EThree.OnGetTokenCallback onGetTokenUserOneCallback = new EThree.OnGetTokenCallback() {
-        @NotNull @Override public String onGetToken() {
+    private final OnGetTokenCallback onGetTokenUserOneCallback = new OnGetTokenCallback() {
+        @Override public String onGetToken() {
             return getVirgilJwt(authTokenUserOne);
         }
     };
 
     // This callback will be called when first user is successfully registered (Her public key is published to Virgil
     // Cards Service).
-    private final EThree.OnCompleteListener onRegisterUserOneListener = new EThree.OnCompleteListener() {
+    private final OnCompleteListener onRegisterUserOneListener = new OnCompleteListener() {
         @Override public void onSuccess() {
             // First user is registered successfully. Starting work with main user - second (She will encrypt data
             // for the first user).
             initUserTwo();
         }
 
-        @Override public void onError(@NotNull final Throwable throwable) {
+        @Override public void onError(final Throwable throwable) {
             // Error handling
             runOnUiThread(new Runnable() {
                 @Override public void run() {
@@ -113,17 +114,17 @@ public class EThreeActivity extends AppCompatActivity {
         }
     };
 
-    private final EThree.OnResultListener<EThree> onInitUserOneListener = new EThree.OnResultListener<EThree>() {
+    private final OnResultListener<EThree> onInitUserOneListener = new OnResultListener<EThree>() {
         @Override public void onSuccess(EThree result) {
             // So now you have fully initialized and ready to use EThree instance!
             eThreeUserOne = result;
 
             // First user's EThree is initialized. Let's register her so the second user will be able to encrypt
             // something for her.
-            eThreeUserOne.register(onRegisterUserOneListener);
+            eThreeUserOne.register().addCallback(onRegisterUserOneListener);
         }
 
-        @Override public void onError(@NotNull final Throwable throwable) {
+        @Override public void onError(final Throwable throwable) {
             // Error handling
             runOnUiThread(new Runnable() {
                 @Override public void run() {
@@ -133,21 +134,21 @@ public class EThreeActivity extends AppCompatActivity {
         }
     };
 
-    private final EThree.OnGetTokenCallback onGetTokenUserTwoCallback = new EThree.OnGetTokenCallback() {
-        @NotNull @Override public String onGetToken() {
+    private final OnGetTokenCallback onGetTokenUserTwoCallback = new OnGetTokenCallback() {
+        @Override public String onGetToken() {
             return getVirgilJwt(authTokenUserTwo);
         }
     };
 
-    private final EThree.OnResultListener<Map<String, PublicKey>> onLookupUserTwoListener =
-            new EThree.OnResultListener<Map<String, PublicKey>>() {
-                @Override public void onSuccess(Map<String, PublicKey> result) {
+    private final OnResultListener<Map<String, VirgilPublicKey>> onLookupUserTwoListener =
+            new OnResultListener<Map<String, VirgilPublicKey>>() {
+                @Override public void onSuccess(Map<String, VirgilPublicKey> result) {
                     // Now you have public key of first user, so it's possible to encrypt data for her.
                     String text = "Hello $username";
                     byte[] data = "Some Data, possibly photo".getBytes();
 
                     // encrypt method encrypts provided text and converts it to Base64 String format.
-                    final String encryptedText = eThreeUserTwo.encrypt(text, new ArrayList<>(result.values()));
+                    final String encryptedText = eThreeUserTwo.encrypt(text, result);
 
                     EThreeActivity.this.runOnUiThread(new Runnable() {
                         @Override public void run() {
@@ -156,7 +157,7 @@ public class EThreeActivity extends AppCompatActivity {
                     });
 
                     // encrypts provided text and returns encrypted byte array.
-                    byte[] encryptedData = eThreeUserTwo.encrypt(data, new ArrayList<>(result.values()));
+                    byte[] encryptedData = eThreeUserTwo.encrypt(data, result);
 
                     Log.d("EThreeTag", "encryptedText: \n" + encryptedText);
                     // You can convert byte[] to Base64 String to easily transfer it to the server, or to print, etc.
@@ -170,7 +171,7 @@ public class EThreeActivity extends AppCompatActivity {
                     // callbacks - for one current user.
                 }
 
-                @Override public void onError(@NotNull final Throwable throwable) {
+                @Override public void onError(final Throwable throwable) {
                     // Error handling
                     runOnUiThread(new Runnable() {
                         @Override public void run() {
@@ -180,13 +181,13 @@ public class EThreeActivity extends AppCompatActivity {
                 }
             };
 
-    private final EThree.OnCompleteListener onRegisterUserTwoListener = new EThree.OnCompleteListener() {
+    private final OnCompleteListener onRegisterUserTwoListener = new OnCompleteListener() {
         @Override public void onSuccess() {
             // Searching for the public key of first user to be able to encrypt.
-            eThreeUserTwo.lookupPublicKeys(Collections.singletonList(identityOne), onLookupUserTwoListener);
+            eThreeUserTwo.lookupPublicKeys(identityOne).addCallback(onLookupUserTwoListener);
         }
 
-        @Override public void onError(@NotNull final Throwable throwable) {
+        @Override public void onError(final Throwable throwable) {
             // Error handling
             runOnUiThread(new Runnable() {
                 @Override public void run() {
@@ -196,15 +197,15 @@ public class EThreeActivity extends AppCompatActivity {
         }
     };
 
-    private final EThree.OnResultListener<EThree> onInitUserTwoListener = new EThree.OnResultListener<EThree>() {
+    private final OnResultListener<EThree> onInitUserTwoListener = new OnResultListener<EThree>() {
         @Override public void onSuccess(EThree result) {
             // So now you have fully initialized and ready to use EThree instance for second user.
             eThreeUserTwo = result;
 
-            eThreeUserTwo.register(onRegisterUserTwoListener);
+            eThreeUserTwo.register().addCallback(onRegisterUserTwoListener);
         }
 
-        @Override public void onError(@NotNull final Throwable throwable) {
+        @Override public void onError(final Throwable throwable) {
             // Error handling
             runOnUiThread(new Runnable() {
                 @Override public void run() {
@@ -226,7 +227,7 @@ public class EThreeActivity extends AppCompatActivity {
                 try {
                     JSONObject object = new JSONObject(value);
                     authTokenUserOne = (String) object.get("authToken");
-                } catch (JSONException e) {
+                } catch (final JSONException e) {
                     runOnUiThread(new Runnable() {
                         @Override public void run() {
                             Toast.makeText(EThreeActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -239,8 +240,7 @@ public class EThreeActivity extends AppCompatActivity {
                 // OnGetTokenCallback should exchange recently received authToken for a Virgil JWT.
                 // OnResultListener<EThree> will give you initialized instance of EThree SDK in onSuccess method.
                 EThree.initialize(EThreeActivity.this,
-                                  onGetTokenUserOneCallback,
-                                  onInitUserOneListener);
+                                  onGetTokenUserOneCallback).addCallback(onInitUserOneListener);
             }
 
             @Override public void onError(final Throwable throwable) {
@@ -265,7 +265,7 @@ public class EThreeActivity extends AppCompatActivity {
                 try {
                     JSONObject object = new JSONObject(value);
                     authTokenUserTwo = (String) object.get("authToken");
-                } catch (JSONException e) {
+                } catch (final JSONException e) {
                     runOnUiThread(new Runnable() {
                         @Override public void run() {
                             Toast.makeText(EThreeActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -274,8 +274,7 @@ public class EThreeActivity extends AppCompatActivity {
                 }
 
                 EThree.initialize(EThreeActivity.this,
-                                  onGetTokenUserTwoCallback,
-                                  onInitUserTwoListener);
+                                  onGetTokenUserTwoCallback).addCallback(onInitUserTwoListener);
             }
 
             @Override public void onError(final Throwable throwable) {
@@ -377,12 +376,5 @@ public class EThreeActivity extends AppCompatActivity {
         } catch (JSONException e) {
             throw new RuntimeException("Parsing virgil jwt json error");
         }
-    }
-
-    private interface OnResultListener<T> {
-
-        void onSuccess(T value);
-
-        void onError(Throwable throwable);
     }
 }

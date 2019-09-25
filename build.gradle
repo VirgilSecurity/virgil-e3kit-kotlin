@@ -1,55 +1,3 @@
-buildscript {
-    ext.versions = [
-            // Virgil
-            virgilSdk  : '5.0.9',
-            pythia     : '0.2.1',
-            keyknox    : '0.1.1',
-
-            // Kotlin
-            kotlin     : '1.3.21',
-            coroutines : '1.0.1',
-
-            // Gradle
-            gardle     : '3.3.2',
-
-            // Android
-            android    : '4.1.1.4',
-
-            // Docs
-            dokka      : '0.9.17',
-
-            // Tests
-            junit      : '4.12',
-            testsRunner: '1.0.2',
-            espresso   : '3.0.2',
-    ]
-    repositories {
-        google()
-        jcenter()
-        mavenLocal()
-        mavenCentral()
-    }
-    dependencies {
-        classpath "com.android.tools.build:gradle:$versions.gardle"
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$versions.kotlin"
-        classpath "org.jetbrains.dokka:dokka-gradle-plugin:$versions.dokka"
-        classpath 'digital.wup:android-maven-publish:3.6.2'
-    }
-}
-
-allprojects {
-    repositories {
-        google()
-        jcenter()
-        mavenLocal()
-        mavenCentral()
-    }
-}
-
-task clean(type: Delete) {
-    delete rootProject.buildDir
-}
-
 /*
  * Copyright (c) 2015-2019, Virgil Security, Inc.
  *
@@ -83,12 +31,66 @@ task clean(type: Delete) {
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+buildscript {
+    ext.versions = [
+            // Virgil
+            virgilSdk   : '5.1.2',
+            virgilCrypto: '0.8.0',
+            pythia      : '0.3.1',
+            keyknox     : '0.2.1',
+
+            // Kotlin
+            kotlin      : '1.3.40',
+            coroutines  : '1.3.0-M1',
+
+            // Gradle
+            gradle      : '3.4.2',
+
+            // Maven
+            mavenPublish: '3.6.2',
+
+            // Android
+            android     : '4.1.1.4',
+
+            // Docs
+            dokka       : '0.9.18',
+
+            // Tests
+            junit       : '4.12',
+            testsRunner : '1.0.2',
+            espresso    : '3.0.2',
+    ]
+    repositories {
+        google()
+        jcenter()
+        mavenCentral()
+    }
+    dependencies {
+        classpath "com.android.tools.build:gradle:$versions.gradle"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$versions.kotlin"
+        classpath "org.jetbrains.dokka:dokka-gradle-plugin:$versions.dokka"
+        classpath "digital.wup:android-maven-publish:$versions.mavenPublish"
+    }
+}
+
+allprojects {
+    repositories {
+        mavenLocal()
+        google()
+        jcenter()
+        mavenCentral()
+    }
+}
+
+task clean(type: Delete) {
+    delete rootProject.buildDir
+}
+
 // Default value is ALL
 enum ArtifactType {
     ALL,
-    ALL_WITHOUT_COMMON,
-    STANDARD,
-    COROUTINES
+    COMMON,
+    STANDARD
 }
 
 static String getArtifactType(Project project) {
@@ -117,13 +119,11 @@ task installEthree() {
     }
 
     if (artifactType == ArtifactType.STANDARD) {
-        dependsOn ':ethree-common:install', ':ethree-kotlin:install'
-    } else if (artifactType == ArtifactType.COROUTINES) {
-        dependsOn ':ethree-common:install', ':ethree-kotlin-coroutines:install'
+        dependsOn ':ethree-kotlin:publishToMavenLocal'
     } else if (artifactType == ArtifactType.ALL) {
-        dependsOn ':ethree-common:install', ':ethree-kotlin:install', ':ethree-kotlin-coroutines:install'
-    } else if (artifactType == ArtifactType.ALL_WITHOUT_COMMON) {
-        dependsOn ':ethree-kotlin:install', ':ethree-kotlin-coroutines:install'
+        dependsOn ':ethree-common:publishToMavenLocal', ':ethree-kotlin:publishToMavenLocal'
+    } else if (artifactType == ArtifactType.COMMON) {
+        dependsOn ':ethree-common:publishToMavenLocal'
     } else {
         throw new IllegalArgumentException("Please, choose one of artifacts type: " + ArtifactType.values())
     }
@@ -139,13 +139,11 @@ task publishEthree() {
     }
 
     if (artifactType == ArtifactType.STANDARD) {
-        dependsOn ':ethree-common:publish', ':ethree-kotlin:publish'
-    } else if (artifactType == ArtifactType.COROUTINES) {
-        dependsOn ':ethree-common:publish', ':ethree-kotlin-coroutines:publish'
+        dependsOn ':ethree-kotlin:publish'
     } else if (artifactType == ArtifactType.ALL) {
-        dependsOn ':ethree-common:publish', ':ethree-kotlin:publish', ':ethree-kotlin-coroutines:publish'
-    } else if (artifactType == ArtifactType.ALL_WITHOUT_COMMON) {
-        dependsOn ':ethree-kotlin:publish', ':ethree-kotlin-coroutines:publish'
+        dependsOn ':ethree-common:publish', ':ethree-kotlin:publish'
+    } else if (artifactType == ArtifactType.COMMON) {
+        dependsOn ':ethree-common:publish'
     } else {
         throw new IllegalArgumentException("Please, choose one of artifacts type: " + ArtifactType.values())
     }

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright (c) 2015-2019, Virgil Security, Inc.
+  ~
+  ~ Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
+  ~
+  ~ All rights reserved.
+  ~
+  ~ Redistribution and use in source and binary forms, with or without
+  ~ modification, are permitted provided that the following conditions are met:
+  ~
+  ~     (1) Redistributions of source code must retain the above copyright notice, this
+  ~     list of conditions and the following disclaimer.
+  ~
+  ~     (2) Redistributions in binary form must reproduce the above copyright notice,
+  ~     this list of conditions and the following disclaimer in the documentation
+  ~     and/or other materials provided with the distribution.
+  ~
+  ~     (3) Neither the name of virgil nor the names of its
+  ~     contributors may be used to endorse or promote products derived from
+  ~     this software without specific prior written permission.
+  ~
+  ~ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+  ~ AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  ~ IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+  ~ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+  ~ FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+  ~ DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+  ~ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+  ~ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+  ~ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+  ~ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+  -->
+
+<resources>
+    <color name="colorPrimary">#154FD6</color>
+    <color name="colorPrimaryDark">#0033C7</color>
+    <color name="colorPrimaryNight">#64000000</color>
+    <color name="colorAccentLight">#d36562</color>
+    <color name="colorAccent">#9E3621</color>
+    <color name="colorAccentDark">#4F1B11</color>
+
+    <color name="snow">#ffffffff</color>
+    <color name="yesterdaySnow">#c6ffffff</color>
+    <color name="black">#ff000000</color>
+    <color name="timberwolf">#dbd7d2</color>
+    <color name="oxfordBlue">#002147</color>
+    <color name="blackCoral">#54626F</color>
+    <color name="chineseSilver">#CCCCCC</color>
+    <color name="blackOlive">#3B3C36</color>
+    <color name="babyPinkTrans">#e0f1e2e2</color>
+    <color name="virgilLight">#ae4244</color>
+    <color name="virgilLightTrans">#97ae4244</color>
+    <color name="virgilGray">#1effffff</color>
+    <color name="virgilGrayDeepTrans">#94000000</color>
+    <color name="virgilGrayTrans">#0fffffff</color>
+    <color name="virgilGrayMiddle">#42ffffff</color>
+    <color name="virgilGrayLight">#64ffffff</color>
+    <color name="grayLight">#94ffffff</color>
+    <color name="aqua">#80CBC4</color>
+    <color name="wetPaper">#E2E2E2</color>
+    <color name="water">#6AC7FF</color>
+    <color name="waterDark">#009DFF</color>
+    <color name="seaWave">#21999E</color>
+    <color name="seaWaveDark">#135F5F</color>
+    <color name="illToad">#E4E4E4</color>
+    <color name="virgilShine">#DD3918</color>
+</resources>
