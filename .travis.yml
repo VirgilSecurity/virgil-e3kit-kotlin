@@ -4,10 +4,9 @@ jdk: oraclejdk8
 
 # Include branches
 branches:
-  only:
+ only:
   - dev
   - master
-  - travis-setup
 
 before_cache:
  - rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
@@ -15,60 +14,60 @@ before_cache:
 
 cache:
  directories:
- - $HOME/.gradle/caches/
- - $HOME/.gradle/wrapper/
- - $HOME/.android/build-cache
+  - $HOME/.gradle/caches/
+  - $HOME/.gradle/wrapper/
+  - $HOME/.android/build-cache
 
 env:
  global:
- - ANDROID_BUILD_API=28
- - ANDROID_BUILD_TOOLS=28.0.3
- - ANDROID_EMULATOR_API=24
- - ADB_INSTALL_TIMEOUT=5 # minutes
- - ANDROID_ABI=default/armeabi-v7a
- - secure: Nz/+LNm9NO3PgvrwLIKDVjlJTskzZPKYXWnNe1T8kUflcQp6dygc9M3tqOgXVRTb33DPhZFZoM04fHJ7iAAyOydH0uNt3nI8zujFiQg7wGOm4vUczk6PYQrWNe/uAyrov+KjLbjNElBxZPDgMDTRD2e3j+UG0X+Xzjm3LqrWChpDjS037EuCpEILNdNETkHeAMVwAvcHrWkXiFMO6aYCHV+teo0zivrELbo6MCaxfMOKY0eMckgxJFtQbAF3hshr98325cczvIzQt5J/bFBkMaBx0IkSDAktDk++jVnoqIfpQVkM6x4mSjz64Q22BW5wIHsgfkT/Cjm7vn1LNpQsPO28p1Ja/W3TqVCeU1XR6sm7Zn+3b7ecSfGjh7p8L6gu9rzpsGIHOG88aWZuqpnF5Vgxjs4l2AXd/luAjv0ATLY45A9SMllLgzixrV4R0xn/DWUlKHsZ4KjiZZipFRXHYvxI/iB8BJR+fRSPKqWWtVxB44mHN7zBS5PvRfu/L7AugF3C2+5OgU+r15u+hQYdHxOrQhWEUKObSJ42MKjEzwaH6oioYKee0ImdB1iPu0IP1jvcImtWanPGU/wxP4ssjTdEOAZepJg90gNes/Hx2gdal6iRtvN2G1xpCJXty4EBLbK2lIfXP6//IiQG0EDLAJfw5npRBluiDvG/tcDxW1E=
- - secure: C7b6XlTt+gqr3O4avm7CwgheSi0o0Hn0SQPZHa1Fs9+xbcNLI5EAE6BMNIDH/70aOl/DygJptxmr7Fx8NwAiU+dGWKqe6NhIqpZiizGz9o1J3FpoF5+v+r0777b2oHrqnUiBT7MO//3R1kFL4WmEyoEKzkwT5yMz3qnCI1feKCvKXtLdoyDt3E9w9fMz83lWSXIp0YYpaMyUDKBVwdkbPFbfvr9Ew2spWjTrUkb0gVTbz+GHzdX0Y0PrKHusdZiLQSd3MqmXP7y4VcIafzKEWgXaxe94GBc/r5v9RLBwhqORIhtcu0GJMq9KuWH2uROspgJ9jzgAAJcrTWxaNJ02oarRQF7QdJPdfuIq5XLGqOaMCLKAFjAaogyPacfbUmcfeFokbPW9I7LoHIDcCydSdYC3K3Iw725FoPoNhVncOuwxouMnaWECXLQVlxCQmNN8QSlTBC6bFrgQ/2NwkMPSkMKr+/dKxnPvnWmo6uzqGSZwnLoGlnIryNPzIf8CZTsSWcl6dWxw7LYNMuPOVZGz4AMN8NKFqIrbl0sE3cr00z8N1FHwX2hD2D6dYRMpnv5l6N6ZxxKQT4BwmmpnFIIiKJyoNodUlgYtZX3iJICLQcpmHTrTle+h6XT24biUFF/uPO2TUGmhCEVzLgdlPvbiCePlAg1oytJIxmXjrmCJx/A=
+  - ANDROID_BUILD_API=28
+  - ANDROID_BUILD_TOOLS=28.0.3
+  - ANDROID_EMULATOR_API=24
+  - ADB_INSTALL_TIMEOUT=5 # minutes
+  - ANDROID_ABI=default/armeabi-v7a
+  - secure: Nz/+LNm9NO3PgvrwLIKDVjlJTskzZPKYXWnNe1T8kUflcQp6dygc9M3tqOgXVRTb33DPhZFZoM04fHJ7iAAyOydH0uNt3nI8zujFiQg7wGOm4vUczk6PYQrWNe/uAyrov+KjLbjNElBxZPDgMDTRD2e3j+UG0X+Xzjm3LqrWChpDjS037EuCpEILNdNETkHeAMVwAvcHrWkXiFMO6aYCHV+teo0zivrELbo6MCaxfMOKY0eMckgxJFtQbAF3hshr98325cczvIzQt5J/bFBkMaBx0IkSDAktDk++jVnoqIfpQVkM6x4mSjz64Q22BW5wIHsgfkT/Cjm7vn1LNpQsPO28p1Ja/W3TqVCeU1XR6sm7Zn+3b7ecSfGjh7p8L6gu9rzpsGIHOG88aWZuqpnF5Vgxjs4l2AXd/luAjv0ATLY45A9SMllLgzixrV4R0xn/DWUlKHsZ4KjiZZipFRXHYvxI/iB8BJR+fRSPKqWWtVxB44mHN7zBS5PvRfu/L7AugF3C2+5OgU+r15u+hQYdHxOrQhWEUKObSJ42MKjEzwaH6oioYKee0ImdB1iPu0IP1jvcImtWanPGU/wxP4ssjTdEOAZepJg90gNes/Hx2gdal6iRtvN2G1xpCJXty4EBLbK2lIfXP6//IiQG0EDLAJfw5npRBluiDvG/tcDxW1E=
+  - secure: C7b6XlTt+gqr3O4avm7CwgheSi0o0Hn0SQPZHa1Fs9+xbcNLI5EAE6BMNIDH/70aOl/DygJptxmr7Fx8NwAiU+dGWKqe6NhIqpZiizGz9o1J3FpoF5+v+r0777b2oHrqnUiBT7MO//3R1kFL4WmEyoEKzkwT5yMz3qnCI1feKCvKXtLdoyDt3E9w9fMz83lWSXIp0YYpaMyUDKBVwdkbPFbfvr9Ew2spWjTrUkb0gVTbz+GHzdX0Y0PrKHusdZiLQSd3MqmXP7y4VcIafzKEWgXaxe94GBc/r5v9RLBwhqORIhtcu0GJMq9KuWH2uROspgJ9jzgAAJcrTWxaNJ02oarRQF7QdJPdfuIq5XLGqOaMCLKAFjAaogyPacfbUmcfeFokbPW9I7LoHIDcCydSdYC3K3Iw725FoPoNhVncOuwxouMnaWECXLQVlxCQmNN8QSlTBC6bFrgQ/2NwkMPSkMKr+/dKxnPvnWmo6uzqGSZwnLoGlnIryNPzIf8CZTsSWcl6dWxw7LYNMuPOVZGz4AMN8NKFqIrbl0sE3cr00z8N1FHwX2hD2D6dYRMpnv5l6N6ZxxKQT4BwmmpnFIIiKJyoNodUlgYtZX3iJICLQcpmHTrTle+h6XT24biUFF/uPO2TUGmhCEVzLgdlPvbiCePlAg1oytJIxmXjrmCJx/A=
 
 android:
  components:
- - tools # to get the new `repository-11.xml`
- - tools # to install Android SDK tools
- - platform-tools
- - build-tools-$ANDROID_BUILD_TOOLS
- - android-$ANDROID_BUILD_API
- - android-$ANDROID_EMULATOR_API
- - extra-android-m2repository # for design library
- - extra-google-m2repository
- - extra-google-google_play_services
- - addon-google_apis-google-28 # google play services
- - sys-img-armeabi-v7a-addon-google_apis-google-$ANDROID_BUILD_API
- - sys-img-armeabi-v7a-android-$ANDROID_EMULATOR_API
+  - tools # to get the new `repository-11.xml`
+  - tools # to install Android SDK tools
+  - platform-tools
+  - build-tools-$ANDROID_BUILD_TOOLS
+  - android-$ANDROID_BUILD_API
+  - android-$ANDROID_EMULATOR_API
+  - extra-android-m2repository # for design library
+  - extra-google-m2repository
+  - extra-google-google_play_services
+  - addon-google_apis-google-28 # google play services
+  - sys-img-armeabi-v7a-addon-google_apis-google-$ANDROID_BUILD_API
+  - sys-img-armeabi-v7a-android-$ANDROID_EMULATOR_API
 
  licenses:
-   - 'android-sdk-preview-license-52d11cd2'
-   - 'android-sdk-license-.+'
-   - 'google-gdk-license-.+'
+  - 'android-sdk-preview-license-52d11cd2'
+  - 'android-sdk-license-.+'
+  - 'google-gdk-license-.+'
 
 before_install:
-  - yes | sdkmanager "platforms;android-28"
-  - mkdir -p "$ANDROID_HOME/licenses"
-  - echo -e "\n8933bad161af4178b1185d1a37fbf41ea5269c55" > "$ANDROID_HOME/licenses/android-sdk-license"
-  - echo -e "\n84831b9409646a918e30573bab4c9c91346d8abd" > "$ANDROID_HOME/licenses/android-sdk-preview-license"
-  - chmod +x gradlew
-  - ./gradlew dependencies || true
-  - openssl aes-256-cbc -K $encrypted_62e1b1822e5d_key -iv $encrypted_62e1b1822e5d_iv -in compat_data.json.enc -out compat_data.json -d
+ - yes | sdkmanager "platforms;android-28"
+ - mkdir -p "$ANDROID_HOME/licenses"
+ - echo -e "\n8933bad161af4178b1185d1a37fbf41ea5269c55" > "$ANDROID_HOME/licenses/android-sdk-license"
+ - echo -e "\n84831b9409646a918e30573bab4c9c91346d8abd" > "$ANDROID_HOME/licenses/android-sdk-preview-license"
+ - chmod +x gradlew
+ - ./gradlew dependencies || true
+ - openssl aes-256-cbc -K $encrypted_62e1b1822e5d_key -iv $encrypted_62e1b1822e5d_iv -in tests/src/androidTest/resources/compat_data.json.enc -out tests/src/androidTest/resources/compat_data.json -d
 
 before_script:
-- android list targets
-- android list sdk --extended --no-ui --all
-- echo "y" | android update sdk -a --no-ui --filter sys-img-armeabi-v7a-android-$ANDROID_EMULATOR_API,sys-img-x86_64-android-$ANDROID_EMULATOR_API
-- echo no | android create avd --force -n test -t android-$ANDROID_EMULATOR_API --abi $ANDROID_ABI
-- QEMU_AUDIO_DRV=none emulator -avd test -no-window &
-- android-wait-for-emulator
-- adb shell input keyevent 82 &
+ - android list targets
+ - android list sdk --extended --no-ui --all
+ - echo "y" | android update sdk -a --no-ui --filter sys-img-armeabi-v7a-android-$ANDROID_EMULATOR_API,sys-img-x86_64-android-$ANDROID_EMULATOR_API
+ - echo no | android create avd --force -n test -t android-$ANDROID_EMULATOR_API --abi $ANDROID_ABI
+ - QEMU_AUDIO_DRV=none emulator -avd test -no-window &
+ - android-wait-for-emulator
+ - adb shell input keyevent 82 &
 
 script:
-- "./gradlew clean build connectedCheck -PdisablePreDex --stacktrace"
+ - "./gradlew clean build connectedCheck -PdisablePreDex --stacktrace"
 
 after_success:
-  .ci/push-javadoc-to-gh-pages.sh
+ .ci/push-javadoc-to-gh-pages.sh
