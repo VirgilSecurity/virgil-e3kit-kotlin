@@ -45,9 +45,8 @@ android {
     compileSdkVersion androidOptions.compileSdkVersion
     defaultConfig {
         applicationId "com.virgilsecurity.android.ethree"
-        minSdkVersion androidOptions.minSdkVersion
+        minSdkVersion androidOptions.minSdkVersionRegular
         targetSdkVersion androidOptions.targetSdkVersion
-//        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
     }

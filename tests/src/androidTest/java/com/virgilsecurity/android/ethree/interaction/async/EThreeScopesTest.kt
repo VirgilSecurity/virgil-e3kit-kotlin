@@ -190,6 +190,6 @@ class EThreeScopesTest {
 
     companion object {
         const val NUMBER_OF_REPEATS = 100
-        const val A_FEW_NETWORK_CALLS_DELAY = 1000L // 5 sec
+        const val A_FEW_NETWORK_CALLS_DELAY = 5000L // 5 sec
     }
 }

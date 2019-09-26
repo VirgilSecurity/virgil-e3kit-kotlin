@@ -45,14 +45,14 @@ apply plugin: 'digital.wup.android-maven-publish'
 apply plugin: 'org.jetbrains.dokka'
 
 group 'com.virgilsecurity'
-version '0.4.1'
+version '0.4.2'
 
 android {
     compileSdkVersion androidOptions.compileSdkVersion
     buildToolsVersion androidOptions.buildToolsVersion
 
     defaultConfig {
-        minSdkVersion androidOptions.minSdkVersion
+        minSdkVersion androidOptions.minSdkVersionRegular
         targetSdkVersion androidOptions.targetSdkVersion
         consumerProguardFiles 'proguard-rules.txt'
 
@@ -63,6 +63,10 @@ android {
                         "room.incremental":"true",
                         "room.expandProjection":"true"]
             }
+        }
+    }
+    buildTypes {
+        buildTypes {
         }
     }
 }

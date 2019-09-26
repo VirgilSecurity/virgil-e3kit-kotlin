@@ -45,9 +45,8 @@ android {
     compileSdkVersion androidOptions.compileSdkVersion
     defaultConfig {
         applicationId "com.virgilsecurity.android.testsenclave"
-        minSdkVersion androidOptions.minSdkVersion
+        minSdkVersion androidOptions.minSdkVersionEnclave
         targetSdkVersion androidOptions.targetSdkVersion
-//        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {

@@ -48,14 +48,18 @@ android {
     buildToolsVersion androidOptions.buildToolsVersion
 
     defaultConfig {
-        minSdkVersion androidOptions.minSdkVersion
+        minSdkVersion androidOptions.minSdkVersionEnclave
         targetSdkVersion androidOptions.targetSdkVersion
         consumerProguardFiles 'proguard-rules.txt'
+    }
+    buildTypes {
+        buildTypes {
+        }
     }
 }
 
 group 'com.virgilsecurity'
-version '0.5.0'
+version '0.5.1'
 
 dependencies {
     // Inner dependencies
