@@ -44,12 +44,12 @@ apply plugin: 'digital.wup.android-maven-publish'
 apply plugin: 'org.jetbrains.dokka'
 
 android {
-    compileSdkVersion 28
-    buildToolsVersion "28.0.3"
+    compileSdkVersion androidOptions.compileSdkVersion
+    buildToolsVersion androidOptions.buildToolsVersion
 
     defaultConfig {
-        minSdkVersion 21
-        targetSdkVersion 28
+        minSdkVersion androidOptions.minSdkVersion
+        targetSdkVersion androidOptions.targetSdkVersion
         consumerProguardFiles 'proguard-rules.txt'
     }
 }
@@ -60,20 +60,6 @@ version '0.5.1'
 dependencies {
     // Inner dependencies
     api project(':ethree-common')
-
-    // Virgil
-    api "com.virgilsecurity.sdk:crypto-android:$versions.virgilSdk"
-    implementation("com.virgilsecurity:pythia:$versions.pythia") {
-        exclude group: 'com.virgilsecurity.sdk', module: 'crypto'
-        exclude group: 'com.virgilsecurity.crypto', module: 'common'
-        exclude group: 'com.virgilsecurity.crypto', module: 'foundation'
-        exclude group: 'com.virgilsecurity.crypto', module: 'pythia'
-    }
-    implementation "com.virgilsecurity.crypto:pythia-android:$versions.virgilCrypto"
-    implementation("com.virgilsecurity:keyknox:$versions.keyknox") {
-        exclude group: 'com.virgilsecurity.sdk', module: 'crypto'
-        exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
-    }
 
     // Kotlin
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$versions.kotlin"

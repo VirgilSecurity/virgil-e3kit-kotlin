@@ -34,20 +34,14 @@
 package com.virgilsecurity.android.common.callback
 
 /**
- * Interface that is intended to return *<T>* type result if some asynchronous process is
- * completed successfully, otherwise error will be returned.
+ * OnKeyChangedCallback can be used to track users keys rotations.
  */
-interface OnResultListener<T> {
+interface OnKeyChangedCallback {
 
     /**
-     * This method will be called if asynchronous process is completed successfully and
-     * provide *<T>* type [result].
+     * This function is called when some local card became outdated
+     *
+     * @param identity Identity, which key was changed.
      */
-    fun onSuccess(result: T)
-
-    /**
-     * This method will be called if asynchronous process is failed and provide [throwable]
-     * cause.
-     */
-    fun onError(throwable: Throwable)
+    fun keyChanged(identity: String)
 }

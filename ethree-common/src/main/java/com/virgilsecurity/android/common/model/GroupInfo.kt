@@ -31,16 +31,23 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.common
+package com.virgilsecurity.android.common.model
+
+import com.virgilsecurity.common.model.Data
+import com.virgilsecurity.common.util.SerializeUtils
 
 /**
- * Const
+ * GroupInfo
  */
-object Const {
+class GroupInfo(internal val initiator: String) {
 
-    const val VIRGIL_BASE_URL = "https://api.virgilsecurity.com"
-    const val VIRGIL_CARDS_SERVICE_PATH = "/card/v5/"
-    const val ETHREE_NAME = "e3kit"
+    internal fun serialize(): Data {
+        return SerializeUtils.serialize(this)
+    }
 
-    val NO_CONTEXT = null
+    companion object {
+        internal fun deserialize(data: Data): GroupInfo {
+            return SerializeUtils.deserialize(data, GroupInfo::class.java)
+        }
+    }
 }

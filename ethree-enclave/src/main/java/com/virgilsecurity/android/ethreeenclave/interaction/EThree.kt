@@ -34,44 +34,43 @@
 package com.virgilsecurity.android.ethreeenclave.interaction
 
 import android.content.Context
-import com.virgilsecurity.android.common.Const.NO_CONTEXT
+import com.virgilsecurity.android.common.EThreeCore
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
-import com.virgilsecurity.android.common.interaction.EThreeCore
-import com.virgilsecurity.android.common.interaction.KeyManagerLocal
-import com.virgilsecurity.android.common.model.Result
+import com.virgilsecurity.android.common.callback.OnKeyChangedCallback
+import com.virgilsecurity.android.common.util.Const.NO_CONTEXT
+import com.virgilsecurity.common.model.Result
 import com.virgilsecurity.sdk.androidutils.storage.AndroidKeyEntry
 import com.virgilsecurity.sdk.androidutils.storage.AndroidKeyStorage
 import com.virgilsecurity.sdk.crypto.exceptions.KeyStorageException
 import com.virgilsecurity.sdk.jwt.Jwt
 import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
-import com.virgilsecurity.sdk.jwt.contract.AccessTokenProvider
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
+import com.virgilsecurity.sdk.storage.KeyStorage
 
 /**
  * [EThree] class simplifies work with Virgil Services to easily implement End to End Encrypted
  * communication.
  */
 class EThree
-private constructor(
+@JvmOverloads constructor(
+        identity: String,
+        tokenCallback: OnGetTokenCallback,
         context: Context,
-        tokenProvider: AccessTokenProvider,
-        alias: String,
-        isAuthenticationRequired: Boolean,
-        keyValidityDuration: Int
-) : EThreeCore(tokenProvider) {
+        alias: String = "VirgilAndroidKeyStorage",
+        isAuthenticationRequired: Boolean = true,
+        keyValidityDuration: Int = 60 * 5, // 5 min
+        keyChangedCallback: OnKeyChangedCallback? = null
+) : EThreeCore(identity, tokenCallback, keyChangedCallback, context) {
 
-    override val keyManagerLocal: KeyManagerLocal
+    override val keyStorage: KeyStorage
 
     init {
         synchronized(this@EThree) {
-            val keyStorageAndroid = AndroidKeyStorage.Builder(alias)
+            keyStorage = AndroidKeyStorage.Builder(alias)
                     .isAuthenticationRequired(isAuthenticationRequired)
                     .withKeyValidityDuration(keyValidityDuration)
                     .onPath(context.filesDir.absolutePath)
                     .build()
-
-            keyManagerLocal = KeyManagerLocalEnclave(keyStorageAndroid,
-                                                     tokenProvider.getToken(NO_CONTEXT).identity)
 
             // Migration from old storage to new
             val keyStorageDefault = DefaultKeyStorage(context.filesDir.absolutePath, KEYSTORE_NAME)
@@ -85,12 +84,12 @@ private constructor(
 
                     // If any error happens - restore state of storages.
                     try {
-                        keyStorageAndroid.store(keyEntryAndroid)
+                        keyStorage.store(keyEntryAndroid)
                     } catch (throwable: Throwable) {
-                        keyStorageAndroid.names().forEach { keyStorageAndroid.delete(it) }
+                        keyStorage.names().forEach { keyStorage.delete(it) }
 
                         throw KeyStorageException("Error while migrating keys from legacy key "
-                        + "storage to the new one. All keys are restored in legacy key storage.")
+                                                  + "storage to the new one. All keys are restored in legacy key storage.")
                     }
                 }
             }
@@ -98,6 +97,8 @@ private constructor(
             // If migration was successful - remove keys from old storage.
             keyStorageDefault.names().forEach { keyStorageDefault.delete(it) }
         }
+
+        initializeCore()
     }
 
     companion object {
@@ -114,11 +115,15 @@ private constructor(
          * or on keys migration failure.
          */
         @Throws(KeyStorageException::class)
-        @JvmStatic fun initialize(context: Context,
-                                  onGetTokenCallback: OnGetTokenCallback,
-                                  alias: String = "VirgilAndroidKeyStorage",
-                                  isAuthenticationRequired: Boolean = true,
-                                  keyValidityDuration: Int = 60 * 5 // 5 min
+        @JvmOverloads
+        @JvmStatic
+        @Deprecated("Use constructor instead")
+        fun initialize(context: Context,
+                       onGetTokenCallback: OnGetTokenCallback,
+                       alias: String = "VirgilAndroidKeyStorage",
+                       isAuthenticationRequired: Boolean = true,
+                       keyValidityDuration: Int = 60 * 5, // 5 min
+                       keyChangedCallback: OnKeyChangedCallback? = null
         ) = object : Result<EThree> {
             override fun get(): EThree {
                 val tokenProvider = CachingJwtProvider(CachingJwtProvider.RenewJwtCallback {
@@ -128,12 +133,18 @@ private constructor(
                 // Just check whether we can get token, otherwise there's no reasons to
                 // initialize EThree. We have caching JWT provider, so sequential calls
                 // won't take much time, as token will be cached after first call.
-                tokenProvider.getToken(NO_CONTEXT)
-                return EThree(context,
-                              tokenProvider,
-                              alias,
-                              isAuthenticationRequired,
-                              keyValidityDuration)
+                val token = tokenProvider.getToken(NO_CONTEXT)
+
+                val eThree = EThree(token.identity,
+                                    onGetTokenCallback,
+                                    context,
+                                    alias,
+                                    isAuthenticationRequired,
+                                    keyValidityDuration,
+                                    keyChangedCallback)
+                eThree.initializeCore()
+
+                return eThree
             }
         }
 

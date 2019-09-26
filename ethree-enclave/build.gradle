@@ -33,23 +33,23 @@
 
 plugins {
     id 'signing'
+    id 'maven-publish'
 }
 
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
-apply plugin: 'maven-publish'
 apply plugin: 'digital.wup.android-maven-publish'
 apply plugin: 'org.jetbrains.dokka'
 
 android {
-    compileSdkVersion 28
-    buildToolsVersion "28.0.3"
+    compileSdkVersion androidOptions.compileSdkVersion
+    buildToolsVersion androidOptions.buildToolsVersion
 
     defaultConfig {
-        minSdkVersion 23
-        targetSdkVersion 28
+        minSdkVersion androidOptions.minSdkVersion
+        targetSdkVersion androidOptions.targetSdkVersion
         consumerProguardFiles 'proguard-rules.txt'
     }
 }
@@ -62,7 +62,7 @@ dependencies {
     api project(':ethree-common')
 
     // Virgil
-    api "com.virgilsecurity.sdk:android-utils:6.0.1-SNAPSHOT"
+    implementation "com.virgilsecurity.sdk:android-utils:$versions.virgilSdk"
 
     // Kotlin
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$versions.kotlin"

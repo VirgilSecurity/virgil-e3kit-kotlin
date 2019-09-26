@@ -31,33 +31,16 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.ethreeenclave.interaction
-
-import android.content.Context
-import com.virgilsecurity.android.common.interaction.KeyManagerLocal
-import com.virgilsecurity.sdk.androidutils.storage.AndroidKeyStorage
-import com.virgilsecurity.sdk.storage.JsonKeyEntry
-import com.virgilsecurity.sdk.storage.KeyEntry
-import com.virgilsecurity.sdk.storage.KeyStorage
-import java.time.Duration
+package com.virgilsecurity.android.common.util
 
 /**
- * KeyManagerLocalEnclave
+ * Const
  */
-class KeyManagerLocalEnclave(
-        private val keyStorage: AndroidKeyStorage,
-        private val identity: String
-) : KeyManagerLocal {
+object Const {
 
-    override fun exists() = keyStorage.exists(identity)
+    const val VIRGIL_BASE_URL = "https://api.virgilsecurity.com"
+    const val VIRGIL_CARDS_SERVICE_PATH = "/card/v5/"
+    const val ETHREE_NAME = "e3kit"
 
-    override fun store(privateKey: ByteArray) = keyStorage.store(JsonKeyEntry(identity, privateKey))
-
-    override fun load(): KeyEntry = keyStorage.load(identity)
-
-    override fun delete() = keyStorage.delete(identity)
-
-    companion object {
-        private const val KEYSTORE_NAME = "virgil_android_keystore"
-    }
+    val NO_CONTEXT = null
 }

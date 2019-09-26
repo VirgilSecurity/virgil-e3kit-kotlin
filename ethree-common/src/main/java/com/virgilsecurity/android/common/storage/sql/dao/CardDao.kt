@@ -31,22 +31,32 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.common.callback
+package com.virgilsecurity.android.common.storage.sql.dao
 
-/**
- * Interface that is intended to signal if some asynchronous process is completed successfully
- * or not.
- */
-interface OnCompleteListener {
+import androidx.room.*
+import com.virgilsecurity.android.common.storage.sql.model.CardEntity
 
-    /**
-     * This method will be called if asynchronous process is completed successfully.
-     */
-    fun onSuccess()
+@Dao
+interface CardDao {
 
-    /**
-     * This method will be called if asynchronous process is failed and provide [throwable]
-     * cause.
-     */
-    fun onError(throwable: Throwable)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    fun insert(card: CardEntity)
+
+    @Query("SELECT * FROM ethree_cards WHERE id = :cardId LIMIT 1")
+    fun load(cardId: String): CardEntity?
+
+    @Query("SELECT * FROM ethree_cards WHERE identity IN (:identities)")
+    fun loadAllByIdentity(identities: List<String>): List<CardEntity>
+
+    @Query("SELECT id FROM ethree_cards WHERE is_outdated = 0")
+    fun getNewestCardIds(): List<String>
+
+    @Query("DELETE FROM ethree_cards")
+    fun deleteAll()
+
+    @Query("UPDATE ethree_cards SET is_outdated = 1 WHERE id = :cardId")
+    fun markOutdatedById(cardId: String)
+
+    @Query("UPDATE ethree_cards SET is_outdated = :isOutdated WHERE id = :cardId")
+    fun setOutdatedById(cardId: String, isOutdated: Boolean)
 }

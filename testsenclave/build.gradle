@@ -42,12 +42,13 @@ def API_PUBLIC_KEY_ID = hasProperty('API_PUBLIC_KEY_ID') ? API_PUBLIC_KEY_ID : S
 def VIRGIL_BASE_URL = hasProperty('VIRGIL_BASE_URL') ? VIRGIL_BASE_URL : System.getenv('VIRGIL_BASE_URL')
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion androidOptions.compileSdkVersion
     defaultConfig {
         applicationId "com.virgilsecurity.android.testsenclave"
-        minSdkVersion 23
-        targetSdkVersion 28
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        minSdkVersion androidOptions.minSdkVersion
+        targetSdkVersion androidOptions.targetSdkVersion
+//        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
         buildTypes.each {
@@ -65,12 +66,16 @@ dependencies {
     implementation project(':ethree-kotlin')
     implementation project(':ethree-enclave')
 
+    // Virgil
+    androidTestImplementation "com.virgilsecurity.sdk:android-utils:$versions.virgilSdk"
+
     // Kotlin
     androidTestImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$versions.kotlin"
-    implementation 'com.android.support:appcompat-v7:28.0.0'
+    implementation "com.android.support:appcompat-v7:$versions.appCompat"
 
     // Tests core
     testImplementation "junit:junit:$versions.junit"
-    androidTestImplementation "com.android.support.test:runner:$versions.testsRunner"
-    androidTestImplementation "com.android.support.test.espresso:espresso-core:$versions.espresso"
+    androidTestImplementation "androidx.test.ext:junit:$versions.testsRunner"
+    androidTestImplementation "androidx.test:runner:$versions.testsRunner"
+    androidTestImplementation "androidx.test:rules:$versions.testsRunner"
 }

@@ -31,20 +31,19 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.common.interaction
+package com.virgilsecurity.android.common.model
 
-import com.virgilsecurity.sdk.storage.KeyEntry
+import com.virgilsecurity.android.common.exception.RawGroupException
 
 /**
- * KeyManagerLocal
+ * RawGroup
  */
-interface KeyManagerLocal {
+class RawGroup(
+        val info: GroupInfo,
+        val tickets: List<Ticket>
+) {
 
-    fun exists() : Boolean
-
-    fun store(privateKey: ByteArray)
-
-    fun load(): KeyEntry
-
-    fun delete()
+    init {
+        if (tickets.isEmpty()) throw RawGroupException("Tickets are empty")
+    }
 }

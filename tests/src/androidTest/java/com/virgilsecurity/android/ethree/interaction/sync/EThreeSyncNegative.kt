@@ -33,20 +33,12 @@
 
 package com.virgilsecurity.android.ethree.interaction.sync
 
-import com.virgilsecurity.android.common.exceptions.*
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
+import com.virgilsecurity.android.common.exception.*
 import com.virgilsecurity.android.ethree.interaction.EThree
 import com.virgilsecurity.android.ethree.utils.TestConfig
 import com.virgilsecurity.android.ethree.utils.TestUtils
-import com.virgilsecurity.keyknox.KeyknoxManager
-import com.virgilsecurity.keyknox.client.KeyknoxClient
-import com.virgilsecurity.keyknox.cloud.CloudKeyStorage
-import com.virgilsecurity.keyknox.crypto.KeyknoxCrypto
-import com.virgilsecurity.keyknox.storage.SyncKeyStorage
-import com.virgilsecurity.pythia.brainkey.BrainKey
-import com.virgilsecurity.pythia.brainkey.BrainKeyContext
-import com.virgilsecurity.pythia.client.VirgilPythiaClient
-import com.virgilsecurity.pythia.crypto.VirgilPythiaCrypto
+import com.virgilsecurity.keyknox.exception.EntryNotFoundException
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.model.RawSignedModel
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
@@ -58,7 +50,6 @@ import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilKeyPair
 import com.virgilsecurity.sdk.exception.EmptyArgumentException
 import com.virgilsecurity.sdk.jwt.JwtGenerator
-import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
 import com.virgilsecurity.sdk.jwt.accessProviders.GeneratorJwtProvider
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
 import com.virgilsecurity.sdk.storage.KeyStorage
@@ -66,7 +57,6 @@ import com.virgilsecurity.sdk.utils.Tuple
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import java.net.URL
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -121,35 +111,6 @@ class EThreeSyncNegative {
         )
     }
 
-    private fun initSyncKeyStorage(identity: String, passwordBrainKey: String): SyncKeyStorage {
-        val tokenProvider = CachingJwtProvider(CachingJwtProvider.RenewJwtCallback {
-            jwtGenerator.generateToken(identity)
-        })
-        val brainKeyContext = BrainKeyContext.Builder()
-                .setAccessTokenProvider(tokenProvider)
-                .setPythiaClient(VirgilPythiaClient(TestConfig.virgilBaseUrl))
-                .setPythiaCrypto(VirgilPythiaCrypto())
-                .build()
-        val keyPair = BrainKey(brainKeyContext).generateKeyPair(passwordBrainKey)
-
-        val syncKeyStorage =
-                SyncKeyStorage(
-                    identity, keyStorage, CloudKeyStorage(
-                        KeyknoxManager(
-                            tokenProvider,
-                            KeyknoxClient(URL(TestConfig.virgilBaseUrl)),
-                            listOf(keyPair.publicKey),
-                            keyPair.privateKey,
-                            KeyknoxCrypto()
-                        )
-                    )
-                )
-
-        syncKeyStorage.sync()
-
-        return syncKeyStorage
-    }
-
     private fun generateRawCard(identity: String,
                                 cardManager: CardManager): Tuple<VirgilKeyPair, RawSignedModel> {
         return VirgilCrypto().generateKeyPair().let {
@@ -165,7 +126,7 @@ class EThreeSyncNegative {
         try {
             eThree.register().execute()
         } catch (throwable: Throwable) {
-            assertTrue(throwable is RegistrationException)
+            assertTrue(throwable is EThreeException)
         }
     }
 
@@ -175,7 +136,7 @@ class EThreeSyncNegative {
         try {
             eThree.unregister().execute()
         } catch (throwable: Throwable) {
-            assertTrue(throwable is UnRegistrationException)
+            assertTrue(throwable is EThreeException)
         }
     }
 
@@ -187,7 +148,7 @@ class EThreeSyncNegative {
         try {
             eThree.backupPrivateKey(password).execute()
         } catch (throwable: Throwable) {
-            assertTrue(throwable is PrivateKeyNotFoundException)
+            assertTrue(throwable is EThreeException)
         }
     }
 
@@ -213,7 +174,7 @@ class EThreeSyncNegative {
         try {
             eThree.restorePrivateKey(password).execute()
         } catch (throwable: Throwable) {
-            assertTrue(throwable is RestoreKeyException)
+            assertTrue(throwable is EntryNotFoundException)
         }
     }
 
@@ -224,7 +185,7 @@ class EThreeSyncNegative {
         try {
             eThree.rotatePrivateKey().execute()
         } catch (throwable: Throwable) {
-            assertTrue(throwable is CardNotFoundException)
+            assertTrue(throwable is EThreeException)
         }
     }
 
@@ -248,7 +209,7 @@ class EThreeSyncNegative {
         try {
             eThree.lookupPublicKeys(listOf()).get()
         } catch (throwable: Throwable) {
-            assertTrue(throwable is EmptyArgumentException)
+            assertTrue(throwable is IllegalArgumentException)
         }
     }
 }

@@ -7,7 +7,7 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *
+ *  
  *     (1) Redistributions of source code must retain the above copyright notice, this
  *     list of conditions and the following disclaimer.
  *
@@ -31,43 +31,22 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.common.model
+package com.virgilsecurity.android.common.storage
 
-import com.virgilsecurity.android.common.callback.OnResultListener
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import com.virgilsecurity.sdk.cards.Card
 
 /**
- * Result's class intent is to give possibility to call an operation that returns result in Success or Error in case of
- * error *synchronously* or *asynchronously*.
+ * Virgil Cards storage.
  */
-interface Result<T> {
+interface CardStorage {
 
-    /**
-     * Call this method to get result *synchronously*.
-     */
-    fun get(): T
+    fun storeCard(card: Card)
 
-    /**
-     * Call this method to get result *asynchronously*. You'll get the result of an operation in the
-     * [onResultListener]. Provided [scope] will be used to execute operation.
-     */
-    fun addCallback(onResultListener: OnResultListener<T>, scope: CoroutineScope = GlobalScope) {
-        scope.launch {
-            try {
-                val result = get()
-                onResultListener.onSuccess(result)
-            } catch (throwable: Throwable) {
-                onResultListener.onError(throwable)
-            }
-        }
-    }
+    fun getCard(cardId: String): Card?
 
-    /**
-     * Call this method to get result *asynchronously*. You'll get the result of an operation in the
-     * [onResultListener].
-     */
-    fun addCallback(onResultListener: OnResultListener<T>) =
-            addCallback(onResultListener, GlobalScope)
+    fun searchCards(identities: List<String>): List<Card>
+
+    fun getNewestCardIds(): List<String>
+
+    fun reset()
 }

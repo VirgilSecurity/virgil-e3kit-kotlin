@@ -33,14 +33,16 @@
 
 package com.virgilsecurity.android.ethree.interaction.async
 
-import com.virgilsecurity.android.common.model.LookupResult
-import com.virgilsecurity.android.common.exceptions.PrivateKeyNotFoundException
-import com.virgilsecurity.android.common.callback.OnCompleteListener
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
-import com.virgilsecurity.android.common.callback.OnResultListener
+import com.virgilsecurity.android.common.exception.EThreeException
+import com.virgilsecurity.android.common.exception.PrivateKeyNotFoundException
+import com.virgilsecurity.android.common.model.LookupResult
 import com.virgilsecurity.android.ethree.interaction.EThree
 import com.virgilsecurity.android.ethree.utils.TestConfig
 import com.virgilsecurity.android.ethree.utils.TestUtils
+import com.virgilsecurity.common.callback.OnCompleteListener
+import com.virgilsecurity.common.callback.OnResultListener
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.model.RawSignedModel
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
@@ -60,6 +62,7 @@ import com.virgilsecurity.sdk.utils.Tuple
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.util.*
@@ -73,6 +76,7 @@ import java.util.concurrent.TimeUnit
  * 10/9/18
  * at Virgil Security
  */
+@RunWith(AndroidJUnit4::class)
 class EThreeEncryptionTest {
 
     private val identity = UUID.randomUUID().toString()
@@ -228,16 +232,20 @@ class EThreeEncryptionTest {
 
     //STE-2
     @Test fun lookup_zero_users() {
+        val waiter = CountDownLatch(1)
         eThree.lookupPublicKeys(listOf())
                 .addCallback(object : OnResultListener<LookupResult> {
                     override fun onSuccess(result: LookupResult) {
                         fail("Illegal State")
+                        waiter.countDown()
                     }
 
                     override fun onError(throwable: Throwable) {
-                        assertTrue(throwable is EmptyArgumentException)
+                        assertTrue(throwable is IllegalArgumentException)
+                        waiter.countDown()
                     }
                 })
+        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
     }
 
     @Test fun encrypt_adding_owner_public_key() {
@@ -259,16 +267,15 @@ class EThreeEncryptionTest {
                     }
                 })
         waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
-        assertNotNull(eThreeKeys)
+        val lookupResult = eThreeKeys ?: error("")
         assertEquals(2, eThreeKeys?.size)
 
-        var failedEncrypt = false
         try {
-            eThree.encrypt(RAW_TEXT, eThreeKeys)
+            val encrypted = eThree.encrypt(RAW_TEXT, lookupResult)
+            assertNotNull(encrypted)
         } catch (e: IllegalArgumentException) {
-            failedEncrypt = true
+            fail(e.message)
         }
-        assertTrue(failedEncrypt)
     }
 
     // STE-3
@@ -291,11 +298,11 @@ class EThreeEncryptionTest {
                     }
                 })
         waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
-        assertNotNull(eThreeKeys)
+        val lookupResult = eThreeKeys ?: error("")
         assertEquals(2, eThreeKeys?.size)
 
         val lookupEntry =
-                eThreeKeys?.toMutableMap()?.apply { remove(identity) } // We need only identity
+                lookupResult.toMutableMap().apply { remove(identity) } // We need only identity
         val encryptedForOne = eThree.encrypt(RAW_TEXT, lookupEntry)
 
         val wrongPublicKey = TestConfig.virgilCrypto.generateKeyPair().publicKey
@@ -307,13 +314,14 @@ class EThreeEncryptionTest {
         }
         assertTrue(failedWithWrongKey)
 
-        val decryptedByTwo = eThreeTwo.decrypt(encryptedForOne, eThreeKeys!![identity])
+        val publicKey = lookupResult[identity] ?: error("")
+        val decryptedByTwo = eThreeTwo.decrypt(encryptedForOne, publicKey)
 
         assertEquals(RAW_TEXT, decryptedByTwo)
     }
 
     // STE-4
-    @Test(expected = EmptyArgumentException::class)
+    @Test(expected = EThreeException::class)
     fun encrypt_for_zero_users() {
         eThree.encrypt(RAW_TEXT, mapOf())
     }
@@ -331,54 +339,6 @@ class EThreeEncryptionTest {
             failedDecrypt = true
         }
         assertTrue(failedDecrypt)
-    }
-
-    // STE-6
-    @Test fun encrypt_decrypt_without_register() {
-        var eThreeTwo: EThree? = null
-        val identity = UUID.randomUUID().toString()
-
-        val waiter = CountDownLatch(1)
-        EThree.initialize(TestConfig.context,
-                          object : OnGetTokenCallback {
-                              override fun onGetToken(): String {
-                                  return jwtGenerator.generateToken(
-                                      identity)
-                                          .stringRepresentation()
-                              }
-                          })
-                .addCallback(object : OnResultListener<EThree> {
-                    override fun onSuccess(result: EThree) {
-                        eThreeTwo = result
-                        waiter.countDown()
-                    }
-
-                    override fun onError(throwable: Throwable) {
-                        fail(throwable.message)
-                    }
-
-                })
-
-
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
-
-        val keys = TestConfig.virgilCrypto.generateKeyPair()
-
-        var failedToEncrypt = false
-        try {
-            eThreeTwo!!.encrypt(RAW_TEXT, mapOf(identity to keys.publicKey))
-        } catch (exception: PrivateKeyNotFoundException) {
-            failedToEncrypt = true
-        }
-        assertTrue(failedToEncrypt)
-
-        var failedToDecrypt = false
-        try {
-            eThreeTwo!!.decrypt("fakeEncryptedText", keys.publicKey)
-        } catch (exception: PrivateKeyNotFoundException) {
-            failedToDecrypt = true
-        }
-        assertTrue(failedToDecrypt)
     }
 
     @Test fun encrypt_decrypt_without_register_for_owner() {
@@ -475,11 +435,11 @@ class EThreeEncryptionTest {
                     }
                 })
         waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
-        assertNotNull(eThreeKeys)
+        val lookupResult = eThreeKeys ?: error("")
         assertEquals(2, eThreeKeys?.size)
 
         val lookupEntry =
-                eThreeKeys?.toMutableMap()?.apply { remove(identity) } // We need only identityTwo
+                lookupResult.toMutableMap().apply { remove(identity) } // We need only identityTwo
 
         ByteArrayOutputStream().use {
             eThree.encrypt(ByteArrayInputStream(RAW_TEXT.toByteArray()), it, lookupEntry)

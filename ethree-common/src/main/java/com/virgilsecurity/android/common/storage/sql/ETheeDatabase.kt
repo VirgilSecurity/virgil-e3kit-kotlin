@@ -7,7 +7,7 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *
+ *  
  *     (1) Redistributions of source code must retain the above copyright notice, this
  *     list of conditions and the following disclaimer.
  *
@@ -31,32 +31,14 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.ethree.interaction
+package com.virgilsecurity.android.common.storage.sql
 
-import android.content.Context
-import com.virgilsecurity.android.common.interaction.KeyManagerLocal
-import com.virgilsecurity.sdk.storage.DefaultKeyStorage
-import com.virgilsecurity.sdk.storage.JsonKeyEntry
-import com.virgilsecurity.sdk.storage.KeyEntry
-import com.virgilsecurity.sdk.storage.KeyStorage
+import androidx.room.Database
+import androidx.room.RoomDatabase
+import com.virgilsecurity.android.common.storage.sql.dao.CardDao
+import com.virgilsecurity.android.common.storage.sql.model.CardEntity
 
-/**
- * KeyManagerLocalDefault
- */
-class KeyManagerLocalDefault(val identity: String, context: Context) : KeyManagerLocal {
-
-    private val keyStorage: KeyStorage = DefaultKeyStorage(context.filesDir.absolutePath,
-                                                           KEYSTORE_NAME)
-
-    override fun exists() = keyStorage.exists(identity)
-
-    override fun store(privateKey: ByteArray) = keyStorage.store(JsonKeyEntry(identity, privateKey))
-
-    override fun load(): KeyEntry = keyStorage.load(identity)
-
-    override fun delete() = keyStorage.delete(identity)
-
-    companion object {
-        private const val KEYSTORE_NAME = "virgil.keystore"
-    }
+@Database(entities = arrayOf(CardEntity::class), version = 1)
+abstract class ETheeDatabase: RoomDatabase() {
+    abstract fun cardDao(): CardDao
 }

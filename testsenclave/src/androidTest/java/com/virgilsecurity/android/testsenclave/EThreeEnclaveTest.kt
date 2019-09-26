@@ -33,7 +33,7 @@
 
 package com.virgilsecurity.android.testsenclave
 
-import android.support.test.runner.AndroidJUnit4
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.ethreeenclave.interaction.EThree
 import com.virgilsecurity.android.testsenclave.utils.TestConfig
