@@ -31,18 +31,16 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.ethree.common.storage.sql
+package com.virgilsecurity.android.common.storage.sql
 
 import androidx.room.Room
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.virgilsecurity.android.common.storage.CardStorage
-import com.virgilsecurity.android.common.storage.sql.ETheeDatabase
-import com.virgilsecurity.android.common.storage.sql.SQLCardStorage
 import com.virgilsecurity.android.common.storage.sql.model.CardEntity
-import com.virgilsecurity.android.ethree.utils.TestConfig
-import com.virgilsecurity.android.ethree.utils.TestConfig.Companion.context
+import com.virgilsecurity.android.common.utils.TestConfig
+import com.virgilsecurity.android.common.utils.TestConfig.Companion.context
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
 import com.virgilsecurity.sdk.crypto.VirgilCardCrypto

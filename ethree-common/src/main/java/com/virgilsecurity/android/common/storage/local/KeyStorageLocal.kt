@@ -50,17 +50,23 @@ class KeyStorageLocal(
         private val crypto: VirgilCrypto
 ) {
 
-    fun exists() = keyStorage.exists(identity)
+    internal fun exists() = keyStorage.exists(identity)
 
-    fun store(privateKeyData: Data) =
+    internal fun store(privateKeyData: Data) =
             keyStorage.store(JsonKeyEntry(identity, privateKeyData.data))
 
-    fun load(): VirgilKeyPair = try {
+    internal fun load(): VirgilKeyPair = try {
         val privateKeyData = keyStorage.load(identity)
         crypto.importPrivateKey(privateKeyData.value)
     } catch (e: KeyEntryNotFoundException) {
-        throw PrivateKeyNotFoundException("No private key on device. You should call register() or retrievePrivateKey()")
+        throw PrivateKeyNotFoundException("No private key on device. You should call register() " +
+                                          "or retrievePrivateKey()")
     }
 
-    fun delete() = keyStorage.delete(identity)
+    internal fun delete() = try {
+        keyStorage.delete(identity)
+    } catch (exception: KeyEntryNotFoundException) {
+        throw PrivateKeyNotFoundException("No private key on device. You should call register() " +
+                                          "or retrievePrivateKey()")
+    }
 }

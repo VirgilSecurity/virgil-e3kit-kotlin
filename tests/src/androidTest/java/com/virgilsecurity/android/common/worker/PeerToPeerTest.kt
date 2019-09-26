@@ -31,15 +31,15 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.ethree.worker
+package com.virgilsecurity.android.common.worker
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.common.exception.EThreeException
 import com.virgilsecurity.android.common.model.FindUsersResult
 import com.virgilsecurity.android.ethree.interaction.EThree
-import com.virgilsecurity.android.ethree.utils.TestConfig
-import com.virgilsecurity.android.ethree.utils.TestUtils
+import com.virgilsecurity.android.common.utils.TestConfig
+import com.virgilsecurity.android.common.utils.TestUtils
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
@@ -143,7 +143,6 @@ class PeerToPeerTest {
     @Test fun encrypt_decrypt_without_private_key() {
         val keyStorage = DefaultKeyStorage(TestConfig.DIRECTORY_PATH, TestConfig.KEYSTORE_NAME)
         assertFalse(keyStorage.exists(ethree.identity))
-//        keyStorage.delete(ethree.identity) // FIXME check why we delete key in swift
 
         val card = TestUtils.publishCard()
 
@@ -278,6 +277,37 @@ class PeerToPeerTest {
         val decrypted = ethreeTwo.decrypt(encrypted, publicKey)
 
         assertEquals(TEXT, decrypted)
+    }
+
+    @Test fun signature_invalid_test() {
+        ethree.register().execute()
+
+        val identityTwo = UUID.randomUUID().toString()
+        val ethreeTwo = EThree(identityTwo,
+                               object : OnGetTokenCallback {
+                                   override fun onGetToken(): String {
+                                       return TestUtils.generateTokenString(identityTwo)
+                                   }
+                               },
+                               TestConfig.context)
+        ethreeTwo.register().execute()
+
+        val cardTwo = ethree.findUser(ethreeTwo.identity).get()
+        val encrypted = ethree.encrypt(TEXT, cardTwo)
+
+        // Outdate ethree pub key
+        ethree.cleanup()
+        ethree.rotatePrivateKey().execute()
+
+        val cardOne = ethreeTwo.findUser(ethree.identity).get()
+
+        try {
+            ethreeTwo.decrypt(encrypted, cardOne)
+            fail()
+        } catch (throwable: Throwable) {
+            if (throwable !is EThreeException)
+                fail()
+        }
     }
 
     companion object {

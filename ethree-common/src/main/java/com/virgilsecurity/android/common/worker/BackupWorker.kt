@@ -33,7 +33,10 @@
 
 package com.virgilsecurity.android.common.worker
 
-import com.virgilsecurity.android.common.exception.*
+import com.virgilsecurity.android.common.exception.BackupKeyException
+import com.virgilsecurity.android.common.exception.EThreeException
+import com.virgilsecurity.android.common.exception.PrivateKeyNotFoundException
+import com.virgilsecurity.android.common.exception.RestoreKeyException
 import com.virgilsecurity.android.common.storage.cloud.CloudKeyManager
 import com.virgilsecurity.android.common.storage.local.KeyStorageLocal
 import com.virgilsecurity.common.model.Completable
@@ -52,108 +55,55 @@ internal class BackupWorker(
         private val privateKeyChanged: (Card?) -> Unit
 ) {
 
-    /**
-     * Encrypts the user's private key using the user's [password] and backs up the encrypted
-     * private key to Virgil's cloud. This enables users to log in from other devices and have
-     * access to their private key to decrypt data.
-     *
-     * Encrypts loaded from private keys local storage user's *Private key* using *Public key*
-     * that is generated based on provided [password] after that backs up encrypted user's
-     * *Private key* to the Virgil's cloud storage.
-     *
-     * Can be called only if private key is on the device otherwise [PrivateKeyNotFoundException]
-     * exception will be thrown.
-     *
-     * To start execution of the current function, please see [Completable] description.
-     *
-     * @throws PrivateKeyNotFoundException
-     * @throws BackupKeyException
-     */
     internal fun backupPrivateKey(password: String): Completable = object : Completable {
         override fun execute() {
             try {
+                require(password.isNotEmpty()) { "\'password\' should not be empty" }
+
                 val identityKeyPair = keyStorageLocal.load()
                 keyManagerCloud.store(identityKeyPair.privateKey, password)
-            }
-            catch (e: EntryAlreadyExistsException) {
+            } catch (e: EntryAlreadyExistsException) {
                 throw BackupKeyException("Can't backup private key", e)
             }
         }
     }
 
-    /**
-     * Pulls user's private key from the Virgil's cloud, decrypts it with *Private key* that
-     * is generated based on provided [password] and saves it to the current private keys
-     * local storage.
-     *
-     * To start execution of the current function, please see [Completable] description.
-     *
-     * @throws WrongPasswordException
-     * @throws RestoreKeyException
-     */
     internal fun restorePrivateKey(password: String): Completable = object : Completable {
         override fun execute() {
             try {
+                require(password.isNotEmpty()) { "\'password\' should not be empty" }
+
                 val entry = keyManagerCloud.retrieve(password)
                 keyStorageLocal.store(Data(entry.data))
                 privateKeyChanged(null)
-            }
-            catch (e: KeyEntryAlreadyExistsException) {
+            } catch (e: KeyEntryAlreadyExistsException) {
                 throw RestoreKeyException("Can't restore private key", e)
             }
         }
     }
 
-    /**
-     * Changes the password on a backed-up private key.
-     *
-     * Pulls user's private key from the Virgil's cloud storage, decrypts it with *Private key*
-     * that is generated based on provided [oldPassword] after that encrypts user's *Private key*
-     * using *Public key* that is generated based on provided [newPassword] and pushes encrypted
-     * user's *Private key* to the Virgil's cloud storage.
-     *
-     * Can be called only if private key is on the device otherwise [PrivateKeyNotFoundException]
-     * exception will be thrown.
-     *
-     * To start execution of the current function, please see [Completable] description.
-     *
-     * @throws PrivateKeyNotFoundException
-     */
     internal fun changePassword(oldPassword: String,
-                       newPassword: String): Completable = object : Completable {
+                                newPassword: String): Completable = object : Completable {
         override fun execute() {
+            require(oldPassword.isNotEmpty()) { "\'oldPassword\' should not be empty" }
+            require(newPassword.isNotEmpty()) { "\'newPassword\' should not be empty" }
             if (oldPassword == newPassword) throw EThreeException("To change password, please" +
                                                                   "provide new password that " +
                                                                   "differs from the old one.")
+
             keyManagerCloud.changePassword(oldPassword, newPassword)
         }
     }
 
-    /**
-     * Deletes Private Key stored on Virgil's cloud. This will disable user to log in from
-     * other devices.
-     *
-     * Deletes private key backup using specified [password] and provides [onCompleteListener]
-     * callback that will notify you with successful completion or with a [Throwable] if
-     * something went wrong.
-     *
-     * Can be called only if private key is on the device otherwise [PrivateKeyNotFoundException]
-     * exception will be thrown.
-     *
-     * To start execution of the current function, please see [Completable] description.
-     *
-     * @throws PrivateKeyNotFoundException
-     * @throws WrongPasswordException
-     */
     @JvmOverloads
     internal fun resetPrivateKeyBackup(password: String? = null): Completable = object : Completable {
         override fun execute() {
             if (password != null)
                 try {
                     keyManagerCloud.delete(password)
-                }
-                catch (e: EntryNotFoundException) {
-                    throw PrivateKeyNotFoundException("Can't reset private key: private key not found", e)
+                } catch (exception: EntryNotFoundException) {
+                    throw PrivateKeyNotFoundException("Can't reset private key: private key not " +
+                                                      "found", exception)
                 }
             else
                 keyManagerCloud.deleteAll()

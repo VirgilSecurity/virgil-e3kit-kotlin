@@ -55,17 +55,11 @@ internal class GroupWorker(
         private val computeSessionId: (Data) -> Data
 ) {
 
-    /**
-     * Creates group, saves in cloud and locally.
-     *
-     * @param identifier Identifier of group. Should be *> 10* length.
-     * @param users Cards of participants. Result of findUsers call.
-     *
-     * @return New [Group].
-     */
     internal fun createGroup(identifier: Data, users: FindUsersResult): Result<Group> =
             object : Result<Group> {
                 override fun get(): Group {
+                    require(identifier.data.isNotEmpty()) { "\'identifier\' should not be empty" }
+
                     val sessionId = computeSessionId(identifier)
                     val participants = users.keys + identity
 
@@ -77,46 +71,32 @@ internal class GroupWorker(
                 }
             }
 
-    /**
-     * Returns cached local group.
-     *
-     * @param identifier Identifier of group. Should be *> 10* length.
-     *
-     * @return [Group] if exists, null otherwise.
-     */
     internal fun getGroup(identifier: Data): Group? {
+        require(identifier.data.isNotEmpty()) { "\'identifier\' should not be empty" }
+
         val sessionId = computeSessionId(identifier)
         return getGroupManager().retrieve(sessionId)
     }
 
-    /**
-     * Loads group from cloud, saves locally.
-     *
-     * @param identifier Identifier of group. Should be *> 10* length.
-     * @param card Card of group initiator.
-     *
-     * @return Loaded [Group].
-     */
     internal fun loadGroup(identifier: Data, card: Card): Result<Group> =
             object : Result<Group> {
                 override fun get(): Group {
+                    require(identifier.data.isNotEmpty()) { "\'identifier\' should not be empty" }
+
                     val sessionId = computeSessionId(identifier)
                     return getGroupManager().pull(sessionId, card)
                 }
             }
 
-    /**
-     * Deletes group from cloud and local storage.
-     *
-     * @param identifier Identifier of group. Should be *> 10* length.
-     */
     internal fun deleteGroup(identifier: Data): Completable =
             object : Completable {
                 override fun execute() {
+                    require(identifier.data.isNotEmpty()) { "\'identifier\' should not be empty" }
+
                     val sessionId = computeSessionId(identifier)
                     val group = getGroupManager().retrieve(sessionId)
                                 ?: throw GroupNotFoundException("Group with provided id not found " +
-                                                        "locally. Try to call loadGroup first")
+                                                                "locally. Try to call loadGroup first")
 
                     group.checkPermissions()
 
@@ -124,53 +104,33 @@ internal class GroupWorker(
                 }
             }
 
-    /**
-     * Creates group, saves in cloud and locally.
-     *
-     * @param identifier Identifier of group. Should be *> 10* length.
-     * @param users Cards of participants. Result of findUsers call.
-     *
-     * @return New [Group].
-     */
     internal fun createGroup(identifier: String, users: FindUsersResult): Result<Group> {
+        require(identifier.isNotEmpty()) { "\'identifier\' should not be empty" }
+
         val identifierData = Data(identifier.toByteArray(StandardCharsets.UTF_8))
 
         return createGroup(identifierData, users)
     }
 
-    /**
-     * Returns cached local group.
-     *
-     * @param identifier Identifier of group. Should be *> 10* length.
-     *
-     * @return [Group] if exists, null otherwise.
-     */
     internal fun getGroup(identifier: String): Group? {
+        require(identifier.isNotEmpty()) { "\'identifier\' should not be empty" }
+
         val identifierData = Data(identifier.toByteArray(StandardCharsets.UTF_8))
 
         return getGroup(identifierData)
     }
 
-    /**
-     * Loads group from cloud, saves locally.
-     *
-     * @param identifier Identifier of group. Should be *> 10* length.
-     * @param card Card of group initiator.
-     *
-     * @return Loaded [Group].
-     */
     internal fun loadGroup(identifier: String, card: Card): Result<Group> {
+        require(identifier.isNotEmpty()) { "\'identifier\' should not be empty" }
+
         val identifierData = Data(identifier.toByteArray(StandardCharsets.UTF_8))
 
         return loadGroup(identifierData, card)
     }
 
-    /**
-     * Deletes group from cloud and local storage.
-     *
-     * @param identifier Identifier of group. Should be *> 10* length.
-     */
     internal fun deleteGroup(identifier: String): Completable {
+        require(identifier.isNotEmpty()) { "\'identifier\' should not be empty" }
+
         val identifierData = Data(identifier.toByteArray(StandardCharsets.UTF_8))
 
         return deleteGroup(identifierData)

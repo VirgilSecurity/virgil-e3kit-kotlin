@@ -31,12 +31,11 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.ethree.common.model
+package com.virgilsecurity.android.common.model
 
 import android.os.Parcel
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.virgilsecurity.android.common.exception.GroupIdTooShortException
-import com.virgilsecurity.android.common.model.Ticket
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.sdk.crypto.HashAlgorithm
 import com.virgilsecurity.sdk.crypto.VirgilCrypto

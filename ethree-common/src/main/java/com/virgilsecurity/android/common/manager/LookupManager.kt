@@ -37,9 +37,11 @@ import com.virgilsecurity.android.common.callback.OnKeyChangedCallback
 import com.virgilsecurity.android.common.exception.FindUsersException
 import com.virgilsecurity.android.common.model.FindUsersResult
 import com.virgilsecurity.android.common.storage.CardStorage
+import com.virgilsecurity.keyknox.utils.unwrapCompanionClass
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.exception.EmptyArgumentException
+import java.util.logging.Logger
 
 /**
  * LookupManager
@@ -51,27 +53,39 @@ class LookupManager(
 ) {
 
     internal fun startUpdateCachedCards() {
-        val cardIdsNewest = cardStorage.getNewestCardIds()
+        try {
+            logger.fine("Updating cached cards started")
 
-        val cardIdsChunked = cardIdsNewest.chunked(MAX_GET_OUTDATED_COUNT)
+            val cardIdsNewest = cardStorage.getNewestCardIds()
 
-        for (cardIds in cardIdsChunked) {
-            val outdatedIds = cardManager.getOutdated(cardIds)
+            val cardIdsChunked = cardIdsNewest.chunked(MAX_GET_OUTDATED_COUNT)
 
-            for (outdatedId in outdatedIds) {
-                val outdatedCard =
-                        cardStorage.getCard(outdatedId)
-                        ?: throw FindUsersException("Card with id: $outdatedId was not found " +
-                                                    "locally. Try to call findUsers first")
+            for (cardIds in cardIdsChunked) {
+                val outdatedIds = cardManager.getOutdated(cardIds)
 
-                onKeyChangedCallback?.keyChanged(outdatedCard.identity)
+                for (outdatedId in outdatedIds) {
+                    logger.fine("Cached card with id: $outdatedId expired")
 
-                val newCard = lookupCard(outdatedCard.identity, true)
+                    val outdatedCard =
+                            cardStorage.getCard(outdatedId)
+                            ?: throw FindUsersException("Card with id: $outdatedId was not found " +
+                                                        "locally. Try to call findUsers first")
 
-                cardStorage.storeCard(newCard)
+                    onKeyChangedCallback?.keyChanged(outdatedCard.identity)
+
+                    val newCard = lookupCard(outdatedCard.identity, true)
+
+                    cardStorage.storeCard(newCard)
+
+                    logger.fine("Cached card with id: $outdatedId updated to card " +
+                                "with id: ${newCard.identifier}")
+                }
             }
+
+            logger.fine("Updating cached card finished")
+        } catch (throwable: Throwable) {
+            logger.fine("Updating cached cards failed: ${throwable.message}")
         }
-        // TODO add exception handling for DB requests, etc
     }
 
     internal fun lookupCachedCards(identities: List<String>): FindUsersResult {
@@ -92,6 +106,8 @@ class LookupManager(
     }
 
     internal fun lookupCachedCard(identity: String): Card {
+        require(identity.isNotEmpty()) { "\'identity\' should not be empty" }
+
         val cards = cardStorage.searchCards(listOf(identity))
 
         if (cards.size >= 2)
@@ -149,6 +165,8 @@ class LookupManager(
     }
 
     internal fun lookupCard(identity: String, forceReload: Boolean = false): Card {
+        require(identity.isNotEmpty()) { "\'identity\' should not be empty" }
+
         val cards = lookupCards(listOf(identity), forceReload)
 
         return cards[identity]
@@ -159,5 +177,7 @@ class LookupManager(
     companion object {
         private const val MAX_SEARCH_COUNT = 50
         private const val MAX_GET_OUTDATED_COUNT = 1_000
+
+        private val logger = Logger.getLogger(unwrapCompanionClass(this.javaClass).name)
     }
 }

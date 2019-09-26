@@ -33,7 +33,6 @@
 
 package com.virgilsecurity.android.common.manager
 
-import com.virgilsecurity.android.common.exception.GroupException
 import com.virgilsecurity.android.common.exception.GroupNotFoundException
 import com.virgilsecurity.android.common.model.Group
 import com.virgilsecurity.android.common.model.GroupInfo
@@ -93,7 +92,7 @@ class GroupManager(
     }
 
     internal fun addAccess(cards: List<Card>, sessionId: Data) =
-        cloudTicketStorage.addRecipients(cards, sessionId)
+            cloudTicketStorage.addRecipients(cards, sessionId)
 
     internal fun reAddAccess(card: Card, sessionId: Data) =
             cloudTicketStorage.reAddRecipient(card, sessionId)

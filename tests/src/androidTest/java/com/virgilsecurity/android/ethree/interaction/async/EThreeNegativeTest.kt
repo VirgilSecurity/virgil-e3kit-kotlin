@@ -35,11 +35,13 @@ package com.virgilsecurity.android.ethree.interaction.async
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
-import com.virgilsecurity.android.common.exception.*
+import com.virgilsecurity.android.common.exception.EThreeException
+import com.virgilsecurity.android.common.exception.FindUsersException
+import com.virgilsecurity.android.common.exception.PrivateKeyNotFoundException
 import com.virgilsecurity.android.common.model.LookupResult
 import com.virgilsecurity.android.ethree.interaction.EThree
-import com.virgilsecurity.android.ethree.utils.TestConfig
-import com.virgilsecurity.android.ethree.utils.TestUtils
+import com.virgilsecurity.android.common.utils.TestConfig
+import com.virgilsecurity.android.common.utils.TestUtils
 import com.virgilsecurity.common.callback.OnCompleteListener
 import com.virgilsecurity.common.callback.OnResultListener
 import com.virgilsecurity.sdk.cards.CardManager
@@ -48,7 +50,6 @@ import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
 import com.virgilsecurity.sdk.client.VirgilCardClient
 import com.virgilsecurity.sdk.common.TimeSpan
 import com.virgilsecurity.sdk.crypto.*
-import com.virgilsecurity.sdk.crypto.exceptions.KeyEntryNotFoundException
 import com.virgilsecurity.sdk.jwt.JwtGenerator
 import com.virgilsecurity.sdk.jwt.accessProviders.GeneratorJwtProvider
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
@@ -159,7 +160,7 @@ class EThreeNegativeTest {
         return eThree
     }
 
-    @Test(expected = KeyEntryNotFoundException::class)
+    @Test(expected = PrivateKeyNotFoundException::class)
     fun cleanup_fail_without_bootstrap() {
         eThree.cleanup()
     }

@@ -31,7 +31,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.ethree.worker
+package com.virgilsecurity.android.common.worker
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.gson.JsonObject
@@ -40,8 +40,8 @@ import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.common.exception.*
 import com.virgilsecurity.android.common.model.*
 import com.virgilsecurity.android.ethree.interaction.EThree
-import com.virgilsecurity.android.ethree.utils.TestConfig
-import com.virgilsecurity.android.ethree.utils.TestUtils
+import com.virgilsecurity.android.common.utils.TestConfig
+import com.virgilsecurity.android.common.utils.TestUtils
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.crypto.foundation.Base64
 import com.virgilsecurity.sdk.common.TimeSpan
@@ -52,7 +52,6 @@ import com.virgilsecurity.sdk.storage.DefaultKeyStorage
 import com.virgilsecurity.sdk.storage.JsonKeyEntry
 import org.junit.Assert.*
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.InputStreamReader

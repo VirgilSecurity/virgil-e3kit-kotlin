@@ -34,7 +34,6 @@
 package com.virgilsecurity.android.common.worker
 
 import com.virgilsecurity.android.common.exception.EThreeException
-import com.virgilsecurity.android.common.exception.PrivateKeyNotFoundException
 import com.virgilsecurity.android.common.storage.local.KeyStorageLocal
 import com.virgilsecurity.common.model.Completable
 import com.virgilsecurity.sdk.cards.CardManager
@@ -51,13 +50,6 @@ internal class AuthorizationWorker(
         private val privateKeyDeleted: () -> Unit
 ) {
 
-    /** // TODO check throws for all functions
-     * Publishes Card on Virgil Cards Service and saves Private Key in local storage.
-     *
-     * To start execution of the current function, please see [Completable] description.
-     *
-     * @param keyPair `VirgilKeyPair` to publish Card with. Will generate if not specified.
-     */
     @Synchronized
     @JvmOverloads
     internal fun register(keyPair: VirgilKeyPair? = null) = object : Completable {
@@ -72,11 +64,6 @@ internal class AuthorizationWorker(
         }
     }
 
-    /**
-     * Revokes Card from Virgil Cards Service, deletes Private Key from local storage
-     *
-     * To start execution of the current function, please see [Completable] description.
-     */
     @Synchronized internal fun unregister() = object : Completable {
         override fun execute() {
             val cards = cardManager.searchCards(this@AuthorizationWorker.identity)
@@ -88,12 +75,6 @@ internal class AuthorizationWorker(
         }
     }
 
-    /**
-     * Generates new Private Key, publishes new Card to replace the current one on Virgil Cards
-     * Service and saves new Private Key in local storage
-     *
-     * To start execution of the current function, please see [Completable] description.
-     */
     @Synchronized internal fun rotatePrivateKey() = object : Completable {
         override fun execute() {
             if (keyStorageLocal.exists())
@@ -106,22 +87,8 @@ internal class AuthorizationWorker(
         }
     }
 
-    /**
-     * Checks existence of private key in local key storage.
-     * Returns *true* if the key is present in the local key storage otherwise *false*.
-     */
     internal fun hasLocalPrivateKey() = keyStorageLocal.exists()
 
-    /**
-     * ! *WARNING* ! If you call this function after [register] without using [backupPrivateKey]
-     * then you will loose private key permanently, as well you won't be able to use identity that
-     * was used with that private key no more.
-     *
-     * Deletes Private Key from local storage, cleans local cards storage.
-     *
-     * Can be called only if private key is on the device otherwise [PrivateKeyNotFoundException] // TODO check exception type
-     * exception will be thrown.
-     */
     internal fun cleanup() {
         keyStorageLocal.delete()
         privateKeyDeleted()

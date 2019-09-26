@@ -33,7 +33,10 @@
 
 package com.virgilsecurity.android.common.storage.sql.dao
 
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
 import com.virgilsecurity.android.common.storage.sql.model.CardEntity
 
 @Dao

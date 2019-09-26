@@ -34,6 +34,7 @@
 package com.virgilsecurity.android.common
 
 import android.content.Context
+import com.virgilsecurity.android.common.build.VersionVirgilAgent
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.common.callback.OnKeyChangedCallback
 import com.virgilsecurity.android.common.exception.*
@@ -54,7 +55,6 @@ import com.virgilsecurity.android.common.worker.*
 import com.virgilsecurity.common.model.Completable
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.common.model.Result
-import com.virgilsecurity.keyknox.build.VersionVirgilAgent
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
@@ -80,25 +80,25 @@ abstract class EThreeCore
  * [onGetTokenCallback] using [CachingJwtProvider] also initializing [DefaultKeyStorage] with
  * default settings.
  */
-constructor(identity: String,
+constructor(val identity: String,
             getTokenCallback: OnGetTokenCallback,
             keyChangedCallback: OnKeyChangedCallback?,
             context: Context) {
 
-    private var accessTokenProvider: AccessTokenProvider
     private val rootPath: String
-
     private val cloudKeyManager: CloudKeyManager
-    val lookupManager: LookupManager
-    lateinit var keyStorageLocal: KeyStorageLocal
+
+    private var accessTokenProvider: AccessTokenProvider
+    var groupManager: GroupManager? = null
         private set
+
     private lateinit var authorizationWorker: AuthorizationWorker
     private lateinit var backupWorker: BackupWorker
     private lateinit var groupWorker: GroupWorker
     private lateinit var p2pWorker: PeerToPeerWorker
     private lateinit var searchWorker: SearchWorker
 
-    var groupManager: GroupManager? = null
+    lateinit var keyStorageLocal: KeyStorageLocal
         private set
 
     protected val crypto: VirgilCrypto = VirgilCrypto()
@@ -106,13 +106,12 @@ constructor(identity: String,
     protected abstract val keyStorage: KeyStorage
 
     val cardManager: CardManager
-    val identity: String
+    val lookupManager: LookupManager
 
     init {
-        this.identity = identity
         val cardCrypto = VirgilCardCrypto(crypto)
         val virgilCardVerifier = VirgilCardVerifier(cardCrypto)
-        val httpClient = HttpClient(Const.ETHREE_NAME, VersionVirgilAgent.VERSION) // FIXME wrong VersionVirgilAgent - from keyknox
+        val httpClient = HttpClient(Const.ETHREE_NAME, VersionVirgilAgent.VERSION)
         this.accessTokenProvider = CachingJwtProvider { Jwt(getTokenCallback.onGetToken()) }
 
         cardManager = CardManager(cardCrypto,
@@ -166,11 +165,12 @@ constructor(identity: String,
      *
      * To start execution of the current function, please see [Completable] description.
      *
+     * @throws EThreeException
      * @throws CryptoException
      */
     @Synchronized
     @JvmOverloads
-    fun register(keyPair: VirgilKeyPair? = null) = authorizationWorker.register(keyPair)
+    fun register(keyPair: VirgilKeyPair? = null): Completable = authorizationWorker.register(keyPair)
 
     /**
      * Revokes the public key for current *identity* in Virgil's Cards Service. After this operation
@@ -178,10 +178,10 @@ constructor(identity: String,
      *
      * To start execution of the current function, please see [Completable] description.
      *
-     * @throws UnRegistrationException if there's no public key published yet, or if there's more
+     * @throws EThreeException if there's no public key published yet, or if there's more
      * than one public key is published.
      */
-    @Synchronized fun unregister() = authorizationWorker.unregister()
+    @Synchronized fun unregister(): Completable = authorizationWorker.unregister()
 
     /**
      * Generates new key pair, publishes new public key for current identity and deprecating old
@@ -193,13 +193,13 @@ constructor(identity: String,
      * @throws EThreeException
      * @throws CryptoException
      */
-    @Synchronized fun rotatePrivateKey() = authorizationWorker.rotatePrivateKey()
+    @Synchronized fun rotatePrivateKey(): Completable = authorizationWorker.rotatePrivateKey()
 
     /**
      * Checks whether the private key is present in the local storage of current device.
      * Returns *true* if the key is present in the local key storage otherwise *false*.
      */
-    fun hasLocalPrivateKey() = authorizationWorker.hasLocalPrivateKey()
+    fun hasLocalPrivateKey(): Boolean = authorizationWorker.hasLocalPrivateKey()
 
     /**
      * ! *WARNING* ! If you call this function after [register] without using [backupPrivateKey]
@@ -217,11 +217,15 @@ constructor(identity: String,
     fun cleanup() = authorizationWorker.cleanup()
 
     /**
-     * Returns cards from local storage for given [identities]. // TODO add Result/Completable reference in all fun's descriptions
+     * Returns cards from local storage for given [identities].
+     *
+     * To start execution of the current function, please see [Result] description.
      *
      * @param identities Identities.
      *
      * @return [FindUsersResult] with found users.
+     *
+     * @throws FindUsersException If no cached user was found.
      */
     fun findCachedUsers(identities: List<String>): Result<FindUsersResult> =
             searchWorker.findCachedUsers(identities)
@@ -229,9 +233,13 @@ constructor(identity: String,
     /**
      * Returns card from local storage for given [identity].
      *
+     * To start execution of the current function, please see [Result] description.
+     *
      * @param identity Identity.
      *
      * @return [Card] if it exists, *null* otherwise.
+     *
+     * @throws FindUsersException If card duplicates was found or card was not found at all.
      */
     fun findCachedUser(identity: String): Result<Card?> =
             searchWorker.findCachedUser(identity)
@@ -239,10 +247,14 @@ constructor(identity: String,
     /**
      * Retrieves users Cards from the Virgil Cloud or local storage if exists.
      *
+     * To start execution of the current function, please see [Result] description.
+     *
      * @param identities Array of identities to find.
      * @param forceReload Will not use local cached cards if *true*.
      *
      * @return [FindUsersResult] with found users.
+     *
+     * @throws FindUsersException If card duplicates was found or at least one card was not found.
      */
     fun findUsers(identities: List<String>, forceReload: Boolean = false): Result<FindUsersResult> =
             searchWorker.findUsers(identities, forceReload)
@@ -250,10 +262,14 @@ constructor(identity: String,
     /**
      * Retrieves user Card from the Virgil Cloud or local storage if exists.
      *
+     * To start execution of the current function, please see [Result] description.
+     *
      * @param identity Identity to find.
      * @param forceReload Will not use local cached card if *true*.
      *
      * @return [Card] that corresponds to provided [identity].
+     *
+     * @throws FindUsersException If card duplicates was found or at least one card was not found.
      */
     fun findUser(identity: String, forceReload: Boolean = false): Result<Card> =
             searchWorker.findUser(identity, forceReload)
@@ -264,15 +280,14 @@ constructor(identity: String,
      * Searches for public key with specified [identity] and returns map of [String] ->
      * [PublicKey] in [onResultListener] callback or [Throwable] if something went wrong.
      *
-     * [PublicKeyNotFoundException] will be thrown if public key wasn't found.
+     * [FindUsersException] will be thrown if public key wasn't found.
      *
-     * Can be called only if private key is on the device, otherwise [PrivateKeyNotFoundException]
-     * exception will be thrown.
+     * To start execution of the current function, please see [Result] description.
      *
-     * @throws PrivateKeyNotFoundException
-     * @throws PublicKeyDuplicateException
+     * @throws FindUsersException
      */
-    @Deprecated("Use findUser instead.") // TODO add replaceWith
+    @Deprecated("Check 'replace with' section.",
+                ReplaceWith("findUser(String)"))
     fun lookupPublicKeys(identity: String): Result<LookupResult> =
             searchWorker.lookupPublicKey(identity)
 
@@ -282,18 +297,14 @@ constructor(identity: String,
      * Searches for public keys with specified [identities] and returns map of [String] ->
      * [PublicKey] in [onResultListener] callback or [Throwable] if something went wrong.
      *
-     * [PublicKeyNotFoundException] will be thrown for the first not found public key.
-     * [EThreeCore.register]
-     *
-     * Can be called only if private key is on the device, otherwise [PrivateKeyNotFoundException]
-     * exception will be thrown.
+     * [FindUsersException] will be thrown if public key wasn't found.
      *
      * To start execution of the current function, please see [Result] description.
      *
-     * @throws PrivateKeyNotFoundException
-     * @throws PublicKeyDuplicateException
+     * @throws FindUsersException
      */
-    @Deprecated("Use findUsers instead.") // TODO add replaceWith
+    @Deprecated("Check 'replace with' section.",
+                ReplaceWith("findUsers(List<String>)"))
     fun lookupPublicKeys(identities: List<String>): Result<LookupResult> =
             searchWorker.lookupPublicKeys(identities)
 
@@ -338,12 +349,9 @@ constructor(identity: String,
      * using *Public key* that is generated based on provided [newPassword] and pushes encrypted
      * user's *Private key* to the Virgil's cloud storage.
      *
-     * Can be called only if private key is on the device otherwise [PrivateKeyNotFoundException]
-     * exception will be thrown.
-     *
      * To start execution of the current function, please see [Completable] description.
      *
-     * @throws PrivateKeyNotFoundException
+     * @throws WrongPasswordException If [oldPassword] is wrong.
      */
     fun changePassword(oldPassword: String,
                        newPassword: String): Completable =
@@ -357,13 +365,10 @@ constructor(identity: String,
      * callback that will notify you with successful completion or with a [Throwable] if
      * something went wrong.
      *
-     * Can be called only if private key is on the device otherwise [PrivateKeyNotFoundException]
-     * exception will be thrown.
-     *
      * To start execution of the current function, please see [Completable] description.
      *
+     * @throws WrongPasswordException If [password] is wrong.
      * @throws PrivateKeyNotFoundException
-     * @throws WrongPasswordException
      */
     @JvmOverloads
     fun resetPrivateKeyBackup(password: String? = null): Completable =
@@ -372,10 +377,15 @@ constructor(identity: String,
     /**
      * Creates group, saves in cloud and locally.
      *
+     * To start execution of the current function, please see [Result] description.
+     *
      * @param identifier Identifier of group. Should be *> 10* length.
      * @param users Cards of participants. Result of findUsers call.
      *
      * @return New [Group].
+     *
+     * @throws InvalidParticipantsCountGroupException If participants count is out of
+     * [Group.VALID_PARTICIPANTS_COUNT_RANGE] range.
      */
     fun createGroup(identifier: Data, users: FindUsersResult): Result<Group> =
             groupWorker.createGroup(identifier, users)
@@ -392,6 +402,8 @@ constructor(identity: String,
     /**
      * Loads group from cloud, saves locally.
      *
+     * To start execution of the current function, please see [Result] description.
+     *
      * @param identifier Identifier of group. Should be *> 10* length.
      * @param card Card of group initiator.
      *
@@ -403,12 +415,18 @@ constructor(identity: String,
     /**
      * Deletes group from cloud and local storage.
      *
+     * To start execution of the current function, please see [Completable] description.
+     *
      * @param identifier Identifier of group. Should be *> 10* length.
+     *
+     * @throws GroupNotFoundException If group was not found.
      */
     fun deleteGroup(identifier: Data): Completable = groupWorker.deleteGroup(identifier)
 
     /**
      * Creates group, saves in cloud and locally.
+     *
+     * To start execution of the current function, please see [Result] description.
      *
      * @param identifier Identifier of group. Should be *> 10* length.
      * @param users Cards of participants. Result of findUsers call.
@@ -430,6 +448,8 @@ constructor(identity: String,
     /**
      * Loads group from cloud, saves locally.
      *
+     * To start execution of the current function, please see [Result] description.
+     *
      * @param identifier Identifier of group. Should be *> 10* length.
      * @param card Card of group initiator.
      *
@@ -440,6 +460,8 @@ constructor(identity: String,
 
     /**
      * Deletes group from cloud and local storage.
+     *
+     * To start execution of the current function, please see [Completable] description.
      *
      * @param identifier Identifier of group. Should be *> 10* length.
      */
@@ -473,6 +495,8 @@ constructor(identity: String,
      * from self.
      *
      * @return Decrypted Data.
+     *
+     * @throws EThreeException If verification of message failed.
      */
     @JvmOverloads fun decrypt(data: Data, user: Card? = null): Data =
             p2pWorker.decrypt(data, user)
@@ -487,6 +511,8 @@ constructor(identity: String,
      * @param date Date of encryption to use proper card version.
      *
      * @return Decrypted Data.
+     *
+     * @throws EThreeException If verification of message failed.
      */
     fun decrypt(data: Data, user: Card, date: Date): Data = p2pWorker.decrypt(data, user, date)
 
@@ -628,7 +654,8 @@ constructor(identity: String,
      * @throws PrivateKeyNotFoundException
      * @throws CryptoException
      */
-    @Deprecated("Use encryptForUsers method instead.") // TODO change to actual fun name
+    @Deprecated("Check 'replace with' section.",
+                ReplaceWith("encrypt(String, FindUsersResult)"))
     fun encrypt(text: String, lookupResult: LookupResult): String =
             p2pWorker.encrypt(text, lookupResult)
 
@@ -650,7 +677,8 @@ constructor(identity: String,
      * @throws PrivateKeyNotFoundException
      * @throws CryptoException
      */
-    @Deprecated("Use encryptForUsers method instead.")
+    @Deprecated("Check 'replace with' section.",
+                ReplaceWith("encrypt(ByteArray, FindUsersResult)"))
     @JvmOverloads fun encrypt(data: ByteArray, lookupResult: LookupResult? = null): ByteArray =
             p2pWorker.encrypt(data, lookupResult)
 
@@ -671,7 +699,8 @@ constructor(identity: String,
      * @throws PrivateKeyNotFoundException
      * @throws CryptoException
      */
-    @Deprecated("Use encryptForUsers method instead.") // TODO change to actual methods signature
+    @Deprecated("Check \'replace with\' section.",
+                ReplaceWith("encrypt(InputStream, OutputStream, FindUsersResult)"))
     fun encrypt(inputStream: InputStream,
                 outputStream: OutputStream,
                 lookupResult: LookupResult) =
@@ -691,10 +720,12 @@ constructor(identity: String,
      *
      * @return Decrypted String.
      *
+     * @throws EThreeException If verification of message failed.
      * @throws PrivateKeyNotFoundException
      * @throws CryptoException
      */
-    @Deprecated("Use decryptFromUser method instead.")
+    @Deprecated("Check 'replace with' section.",
+                ReplaceWith("decrypt(String, Card)"))
     fun decrypt(base64String: String, sendersKey: VirgilPublicKey): String =
             p2pWorker.decrypt(base64String, sendersKey)
 
@@ -706,10 +737,12 @@ constructor(identity: String,
      * @param data Data to decrypt.
      * @param sendersKey Sender PublicKey to verify with.
      *
+     * @throws EThreeException If verification of message failed.
      * @throws PrivateKeyNotFoundException
      * @throws CryptoException
      */
-    @Deprecated("Use decryptFromUser method instead.")
+    @Deprecated("Check 'replace with' section.",
+                ReplaceWith("decrypt(Data, Card)"))
     @JvmOverloads fun decrypt(data: ByteArray, sendersKey: VirgilPublicKey? = null): ByteArray =
             p2pWorker.decrypt(data, sendersKey)
 

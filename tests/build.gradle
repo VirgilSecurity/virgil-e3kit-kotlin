@@ -67,6 +67,9 @@ android {
             it.buildConfigField "String", "VIRGIL_BASE_URL", "$VIRGIL_BASE_URL"
         }
     }
+    lintOptions {
+        abortOnError false
+    }
 }
 
 dependencies {

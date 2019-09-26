@@ -31,11 +31,10 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.ethree.utils
+package com.virgilsecurity.android.common.utils
 
-import com.virgilsecurity.android.ethree.utils.TestConfig.Companion.virgilCrypto
+import com.virgilsecurity.android.common.utils.TestConfig.Companion.virgilCrypto
 import com.virgilsecurity.sdk.cards.Card
-import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.ModelSigner
 import com.virgilsecurity.sdk.cards.model.RawCardContent
 import com.virgilsecurity.sdk.cards.model.RawSignedModel

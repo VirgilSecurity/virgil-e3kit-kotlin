@@ -46,7 +46,7 @@ import java.io.Serializable
 /**
  * Ticket
  */
-class Ticket : Parcelable { // TODO test parcelable implementation
+class Ticket : Parcelable {
 
     val groupMessage: GroupSessionMessage
     val participants: Set<String>

@@ -52,12 +52,12 @@ import java.io.File
 /**
  * GroupStorageFile
  */
-class GroupStorageFile internal constructor(
+class GroupStorageFile(
         internal val identity: String,
         crypto: VirgilCrypto,
         identityKeyPair: VirgilKeyPair,
         rootPath: String
-) { // TODO use internal everywhere possible
+) {
 
     private val fileSystemEncrypted: FileSystem
 
@@ -144,8 +144,7 @@ class GroupStorageFile internal constructor(
                     }
                     .sorted()
                     .takeLast(count)
-        }
-        catch (e: DirectoryNotExistsException) {
+        } catch (e: DirectoryNotExistsException) {
             // No tickets for this session
         }
 

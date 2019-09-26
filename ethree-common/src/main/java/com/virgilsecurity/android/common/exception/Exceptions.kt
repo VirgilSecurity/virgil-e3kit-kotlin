@@ -34,17 +34,6 @@
 package com.virgilsecurity.android.common.exception
 
 /**
- * . _  _
- * .| || | _
- * -| || || |   Created by:
- * .| || || |-  Danylo Oliinyk
- * ..\_  || |   on
- * ....|  _/    10/23/18
- * ...-| | \    at Virgil Security
- * ....|_|-
- */
-
-/**
  * Exceptions
  */
 open class EThreeException @JvmOverloads constructor(
@@ -68,20 +57,6 @@ class WrongPasswordException @JvmOverloads constructor(
 ) : EThreeException(message, throwable)
 
 class PrivateKeyNotFoundException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : EThreeException(message, throwable)
-
-class PublicKeyNotFoundException @JvmOverloads constructor(
-        val identity: String,
-        override val message: String? = null,
-        throwable: Throwable? = null
-) : EThreeException(message, throwable)
-
-class PublicKeyDuplicateException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : EThreeException(message, throwable)
-
-class UnRegistrationException @JvmOverloads constructor(
         override val message: String? = null, throwable: Throwable? = null
 ) : EThreeException(message, throwable)
 

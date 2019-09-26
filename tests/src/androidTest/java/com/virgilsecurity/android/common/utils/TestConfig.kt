@@ -31,7 +31,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.ethree.utils
+package com.virgilsecurity.android.common.utils
 
 import androidx.test.platform.app.InstrumentationRegistry
 import com.virgilsecurity.android.ethree.BuildConfig

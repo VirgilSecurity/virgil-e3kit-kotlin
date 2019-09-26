@@ -45,7 +45,6 @@ import com.virgilsecurity.sdk.cards.validation.CardVerifier
 import com.virgilsecurity.sdk.crypto.VirgilCardCrypto
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
-import com.virgilsecurity.sdk.utils.ConvertionUtils
 
 /**
  * SQL-based Virgil Cards storage.
@@ -64,8 +63,8 @@ class SQLCardStorage(context: Context,
         if (database == null) {
             val dbName = String.format("ethree-database-%s", userIdentifier)
             this.db = Room.databaseBuilder(
-                    context,
-                    ETheeDatabase::class.java, dbName
+                context,
+                ETheeDatabase::class.java, dbName
             ).build()
         } else {
             db = database
@@ -82,9 +81,10 @@ class SQLCardStorage(context: Context,
         var previousCardId: String? = null
         var isOutdated = card.isOutdated
         while (currentCard != null) {
-            //TODO make CardManager.exportCardAsJson static and use it instead of serializeToJson
-            val cardEntity = CardEntity(currentCard.identifier, currentCard.identity, isOutdated,
-                    ConvertionUtils.serializeToJson(currentCard.rawCard))
+            val cardEntity = CardEntity(currentCard.identifier,
+                                        currentCard.identity,
+                                        isOutdated,
+                                        CardManager.exportCardAsJson(currentCard))
             db.cardDao().insert(cardEntity)
 
             previousCardId = currentCard.previousCardId

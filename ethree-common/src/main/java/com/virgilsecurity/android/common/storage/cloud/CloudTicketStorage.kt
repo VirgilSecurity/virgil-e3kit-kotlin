@@ -33,8 +33,8 @@
 
 package com.virgilsecurity.android.common.storage.cloud
 
-import com.virgilsecurity.android.common.storage.local.KeyStorageLocal
 import com.virgilsecurity.android.common.model.Ticket
+import com.virgilsecurity.android.common.storage.local.KeyStorageLocal
 import com.virgilsecurity.android.common.util.Const
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.common.util.toHexString
@@ -78,7 +78,7 @@ class CloudTicketStorage(
         val params = KeyknoxPushParams(identities + this.identity,
                                        GROUP_SESSION_ROOT,
                                        sessionId,
-                                       "\\$epoch")
+                                       "$epoch") // FIXME remove slash? check compat test
 
         keyknoxManager.pushValue(params,
                                  ticketData,
@@ -95,17 +95,17 @@ class CloudTicketStorage(
         val sessionIdHex = sessionId.toHexString()
 
         val getParams = KeyknoxGetKeysParams(identity,
-                                          GROUP_SESSION_ROOT,
-                                          sessionIdHex)
+                                             GROUP_SESSION_ROOT,
+                                             sessionIdHex)
 
         val epochs = keyknoxManager.getKeys(getParams)
 
         val tickets = mutableListOf<Ticket>()
         for (epoch in epochs) {
             val pullParams = KeyknoxPullParams(identity,
-                                           GROUP_SESSION_ROOT,
-                                           sessionIdHex,
-                                           epoch)
+                                               GROUP_SESSION_ROOT,
+                                               sessionIdHex,
+                                               epoch)
             val response = keyknoxManager.pullValue(pullParams,
                                                     listOf(identityPublicKey),
                                                     selfKeyPair.privateKey)

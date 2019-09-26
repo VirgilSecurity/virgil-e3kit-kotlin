@@ -68,7 +68,7 @@ class Group constructor(
     private val selfIdentity: String = keyStorageLocal.identity
 
     init {
-        val tickets = rawGroup.tickets.sortedBy { it.groupMessage.epoch } // TODO check sort order matches $0.groupMessage.getEpoch() < $1.groupMessage.getEpoch()
+        val tickets = rawGroup.tickets.sortedBy { it.groupMessage.epoch }
         val lastTicket = tickets.lastOrNull() ?: throw GroupException("Group is invalid")
 
         validateParticipantsCount(lastTicket.participants.size)
@@ -104,6 +104,8 @@ class Group constructor(
      * @notice Requires private key in local storage.
      */
     fun encrypt(string: String): String {
+        require(string.isNotEmpty()) { "\'string\' should not be empty" }
+
         return ConvertionUtils.toBase64String(encrypt(string.toByteArray()))
     }
 
@@ -117,6 +119,8 @@ class Group constructor(
      * @notice Requires private key in local storage.
      */
     fun encrypt(data: ByteArray): ByteArray {
+        require(data.isNotEmpty()) { "\'data\' should not be empty" }
+
         val selfKeyPair = this.keyStorageLocal.load()
         val encrypted = this.session.encrypt(data, selfKeyPair.privateKey.privateKey)
         return encrypted.serialize()
@@ -132,6 +136,8 @@ class Group constructor(
      * @return decrypted byte array.
      */
     fun decrypt(data: ByteArray, senderCard: Card, date: Date? = null): ByteArray {
+        require(data.isNotEmpty()) { "\'data\' should not be empty" }
+
         val encrypted = GroupSessionMessage.deserialize(data)
         var card = senderCard
 
@@ -165,7 +171,7 @@ class Group constructor(
                 val sessionId = encrypted.sessionId
 
                 val tempGroup = this.groupManager.retrieve(Data(sessionId), messageEpoch)
-                        ?: throw MissingCachedGroupException()
+                                ?: throw MissingCachedGroupException()
 
                 tempGroup.decrypt(data, senderCard)
             }
@@ -184,6 +190,8 @@ class Group constructor(
      * @return decrypted String.
      */
     fun decrypt(text: String, senderCard: Card, date: Date? = null): String {
+        require(text.isNotEmpty()) { "\'text\' should not be empty" }
+
         val data: ByteArray
         try {
             data = ConvertionUtils.base64ToBytes(text)
@@ -308,8 +316,9 @@ class Group constructor(
     companion object {
         internal fun validateParticipantsCount(count: Int) {
             if (count !in VALID_PARTICIPANTS_COUNT_RANGE) {
-                throw InvalidParticipantsCountGroupException("Please check valid participants count range in " +
-                        "Group.VALID_PARTICIPANTS_COUNT_RANGE")
+                throw InvalidParticipantsCountGroupException("Please check valid participants " +
+                                                             "count range in " +
+                                                             "Group.VALID_PARTICIPANTS_COUNT_RANGE")
             }
         }
 

@@ -76,28 +76,6 @@ dependencies {
     compileOnly "com.google.android:android:$versions.android"
 }
 
-task generateVersionVirgilAgent {
-    outputs.dir "$buildDir/generated"
-    doFirst {
-        def versionFile = file("$buildDir/generated/release/com/virgilsecurity/android/ethreeenclave/build/VersionVirgilAgent.kt")
-        versionFile.parentFile.mkdirs()
-        versionFile.text =
-                """
-package com.virgilsecurity.android.ethreeenclave.build;
-
-object VersionVirgilAgent {
-    const val VERSION = "$project.version"
-}
-"""
-    }
-}
-
-project.android.sourceSets.main.java.srcDirs = ["${buildDir}/generated/release/", "src/main/java"]
-
-tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
-    dependsOn(generateVersionVirgilAgent)
-}
-
 sourceCompatibility = "8"
 targetCompatibility = "8"
 
