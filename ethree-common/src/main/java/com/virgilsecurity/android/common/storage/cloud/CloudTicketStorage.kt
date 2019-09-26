@@ -78,7 +78,7 @@ class CloudTicketStorage(
         val params = KeyknoxPushParams(identities + this.identity,
                                        GROUP_SESSION_ROOT,
                                        sessionId,
-                                       "$epoch") // FIXME remove slash? check compat test
+                                       "$epoch")
 
         keyknoxManager.pushValue(params,
                                  ticketData,

@@ -477,7 +477,7 @@ class GroupTests {
         try {
             group3.update().execute()
             fail()
-        } catch (e: Exception) { // TODO do we need GroupException here?
+        } catch (e: Exception) {
         }
 
         assertNull(ethree3.getGroup(this.groupId))
@@ -485,7 +485,7 @@ class GroupTests {
         try {
             ethree3.loadGroup(groupId, card1).get()
             fail()
-        } catch (e: Exception) { // TODO do we need GroupException here?
+        } catch (e: Exception) {
         }
 
         // User 1 encrypts, reAdds User3
@@ -580,7 +580,7 @@ class GroupTests {
 
     @Test
     fun ste45() {
-        // Compatability test
+        // Compatibility test
         val compatDataStream =
                 this.javaClass.classLoader?.getResourceAsStream("compat_data.json")
         val compatJson = JsonParser().parse(InputStreamReader(compatDataStream)) as JsonObject
