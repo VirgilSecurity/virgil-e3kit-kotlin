@@ -353,8 +353,7 @@ class EThreeAuthTest {
 
         var rotateFailed = false
         val waiterTwo = CountDownLatch(1)
-        listOf(identity)
-        eThree.findUsers(List)
+        eThree.lookupPublicKeys(listOf(identity))
                 .addCallback(object : OnResultListener<Map<String, VirgilPublicKey>> {
                     override fun onSuccess(result: Map<String, VirgilPublicKey>) {
                         fail("Illegal state")

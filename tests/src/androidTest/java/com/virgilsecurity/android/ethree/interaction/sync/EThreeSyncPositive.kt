@@ -281,7 +281,7 @@ class EThreeSyncPositive {
         val publishedCardOne =
                 cardManager.publishCard(generateRawCard(identity, cardManager).right)
 
-        val lookupResult = findUser(String).get()
+        val lookupResult = eThree.lookupPublicKeys(identity).get()
 
         assertTrue(lookupResult.isNotEmpty() && lookupResult.size == 1)
         assertEquals(publishedCardOne.publicKey, lookupResult[identity])
@@ -309,9 +309,8 @@ class EThreeSyncPositive {
         val publishedCardThree =
                 cardManagerThree.publishCard(generateRawCard(identityThree, cardManagerThree).right)
 
-        listOf(identityOne, identityTwo, identityThree)
         val lookupResult =
-                eThree.findUsers(List).get()
+                eThree.lookupPublicKeys(listOf(identityOne, identityTwo, identityThree)).get()
 
         assertTrue(lookupResult.isNotEmpty() && lookupResult.size == 3)
 

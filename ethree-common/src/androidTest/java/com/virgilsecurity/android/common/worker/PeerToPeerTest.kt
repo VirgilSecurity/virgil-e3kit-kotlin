@@ -41,6 +41,7 @@ import com.virgilsecurity.android.common.utils.TestConfig
 import com.virgilsecurity.android.common.utils.TestUtils
 import com.virgilsecurity.android.ethree.interaction.EThree
 import com.virgilsecurity.common.model.Data
+import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
 import com.virgilsecurity.sdk.utils.ConvertionUtils
@@ -264,18 +265,18 @@ class PeerToPeerTest {
 
         ethreeTwo.register().execute()
 
-        val lookupResult = findUser(String).get()
+        val lookupResult = ethree.lookupPublicKeys(ethreeTwo.identity).get()
         assertTrue(lookupResult.isNotEmpty())
 
-        val encrypted = encrypt(String, FindUsersResult)
+        val encrypted = ethree.encrypt(TEXT, lookupResult)
 
-        val lookupResultTwo = findUser(String).get()
+        val lookupResultTwo = ethreeTwo.lookupPublicKeys(ethree.identity).get()
         assertTrue(lookupResultTwo.isNotEmpty())
 
         val publicKey = lookupResultTwo[ethree.identity]
                         ?: error("publicKey should not be null")
 
-        val decrypted = decrypt(String, Card)
+        val decrypted = ethreeTwo.decrypt(encrypted, publicKey)
 
         assertEquals(TEXT, decrypted)
     }

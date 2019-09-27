@@ -208,8 +208,7 @@ class EThreeSyncNegative {
     @Test fun lookup_zero_users() {
         val eThree = initEThree(identity)
         try {
-            listOf()
-            eThree.findUsers(List).get()
+            eThree.lookupPublicKeys(listOf()).get()
         } catch (throwable: Throwable) {
             assertTrue(throwable is IllegalArgumentException)
         }

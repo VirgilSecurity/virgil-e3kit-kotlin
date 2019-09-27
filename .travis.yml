@@ -7,6 +7,7 @@ branches:
   only:
     - dev
     - master
+    - travis-setup
 
 before_cache:
   - rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
@@ -55,7 +56,7 @@ before_install:
   - echo -e "\n84831b9409646a918e30573bab4c9c91346d8abd" > "$ANDROID_HOME/licenses/android-sdk-preview-license"
   - chmod +x gradlew
   - ./gradlew dependencies || true
-  - openssl aes-256-cbc -K $encrypted_62e1b1822e5d_key -iv $encrypted_62e1b1822e5d_iv -in tests/src/androidTest/resources/compat/compat_data.json.enc -out tests/src/androidTest/resources/compat/compat_data.json -d
+  - openssl aes-256-cbc -K $encrypted_62e1b1822e5d_key -iv $encrypted_62e1b1822e5d_iv -in ethree-common/src/androidTest/resources/compat/compat_data.json.enc -out ethree-common/src/androidTest/resources/compat/compat_data.json -d
 
 before_script:
   - android list targets
