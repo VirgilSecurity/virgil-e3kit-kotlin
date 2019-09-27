@@ -50,9 +50,9 @@ import com.virgilsecurity.sdk.utils.ConvertionUtils
 import java.io.File
 
 /**
- * GroupStorageFile
+ * FileGroupStorage
  */
-class GroupStorageFile(
+internal class FileGroupStorage internal constructor(
         internal val identity: String,
         crypto: VirgilCrypto,
         identityKeyPair: VirgilKeyPair,

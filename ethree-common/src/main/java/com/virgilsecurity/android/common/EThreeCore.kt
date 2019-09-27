@@ -45,8 +45,8 @@ import com.virgilsecurity.android.common.model.Group
 import com.virgilsecurity.android.common.model.LookupResult
 import com.virgilsecurity.android.common.storage.cloud.CloudKeyManager
 import com.virgilsecurity.android.common.storage.cloud.CloudTicketStorage
-import com.virgilsecurity.android.common.storage.local.GroupStorageFile
-import com.virgilsecurity.android.common.storage.local.KeyStorageLocal
+import com.virgilsecurity.android.common.storage.local.FileGroupStorage
+import com.virgilsecurity.android.common.storage.local.LocalKeyStorage
 import com.virgilsecurity.android.common.storage.sql.SQLCardStorage
 import com.virgilsecurity.android.common.util.Const
 import com.virgilsecurity.android.common.util.Const.VIRGIL_BASE_URL
@@ -86,11 +86,9 @@ constructor(val identity: String,
             context: Context) {
 
     private val rootPath: String
-    private val cloudKeyManager: CloudKeyManager
 
     private var accessTokenProvider: AccessTokenProvider
-    var groupManager: GroupManager? = null
-        private set
+    private var groupManager: GroupManager? = null
 
     private lateinit var authorizationWorker: AuthorizationWorker
     private lateinit var backupWorker: BackupWorker
@@ -98,15 +96,16 @@ constructor(val identity: String,
     private lateinit var p2pWorker: PeerToPeerWorker
     private lateinit var searchWorker: SearchWorker
 
-    lateinit var keyStorageLocal: KeyStorageLocal
-        private set
+    internal lateinit var localKeyStorage: LocalKeyStorage
+
+    internal val lookupManager: LookupManager
+    internal val cloudKeyManager: CloudKeyManager
 
     protected val crypto: VirgilCrypto = VirgilCrypto()
 
     protected abstract val keyStorage: KeyStorage
 
     val cardManager: CardManager
-    val lookupManager: LookupManager
 
     init {
         val cardCrypto = VirgilCardCrypto(crypto)
@@ -133,22 +132,22 @@ constructor(val identity: String,
     /**
      * Should be called on each new instance of `EThreeCore` child objects. Is up to developer.
      *
-     * Initialization of workers not in constructor, because they depend on `keyStorageLocal` that
+     * Initialization of workers not in constructor, because they depend on `localKeyStorage` that
      * is available only after child object of `EThreeCore` is constructed.
      */
     protected fun initializeCore() {
-        this.keyStorageLocal = KeyStorageLocal(identity, keyStorage, crypto)
+        this.localKeyStorage = LocalKeyStorage(identity, keyStorage, crypto)
         this.authorizationWorker = AuthorizationWorker(cardManager,
-                                                       keyStorageLocal,
+                                                       localKeyStorage,
                                                        identity,
                                                        ::publishCardThenSaveLocal,
                                                        ::privateKeyDeleted)
-        this.backupWorker = BackupWorker(keyStorageLocal, cloudKeyManager, ::privateKeyChanged)
+        this.backupWorker = BackupWorker(localKeyStorage, cloudKeyManager, ::privateKeyChanged)
         this.groupWorker = GroupWorker(identity, crypto, ::getGroupManager, ::computeSessionId)
-        this.p2pWorker = PeerToPeerWorker(keyStorageLocal, crypto)
+        this.p2pWorker = PeerToPeerWorker(localKeyStorage, crypto)
         this.searchWorker = SearchWorker(lookupManager)
 
-        if (keyStorageLocal.exists()) {
+        if (localKeyStorage.exists()) {
             privateKeyChanged()
         }
 
@@ -747,14 +746,14 @@ constructor(val identity: String,
             p2pWorker.decrypt(data, sendersKey)
 
     internal fun privateKeyChanged(newCard: Card? = null) {
-        val selfKeyPair = keyStorageLocal.load()
+        val selfKeyPair = localKeyStorage.load()
 
-        val localGroupStorage = GroupStorageFile(identity, crypto, selfKeyPair, rootPath)
-        val ticketStorageCloud = CloudTicketStorage(accessTokenProvider, keyStorageLocal)
+        val localGroupStorage = FileGroupStorage(identity, crypto, selfKeyPair, rootPath)
+        val ticketStorageCloud = CloudTicketStorage(accessTokenProvider, localKeyStorage)
 
         this.groupManager = GroupManager(localGroupStorage,
                                          ticketStorageCloud,
-                                         this.keyStorageLocal,
+                                         this.localKeyStorage,
                                          this.lookupManager,
                                          this.crypto)
 
@@ -798,7 +797,7 @@ constructor(val identity: String,
 
         val privateKeyData = Data(crypto.exportPrivateKey(virgilKeyPair.privateKey))
 
-        keyStorageLocal.store(privateKeyData)
+        localKeyStorage.store(privateKeyData)
         privateKeyChanged(card)
     }
 }

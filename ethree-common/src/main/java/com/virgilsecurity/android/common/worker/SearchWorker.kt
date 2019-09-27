@@ -42,7 +42,7 @@ import com.virgilsecurity.sdk.cards.Card
 /**
  * SearchWorker
  */
-internal class SearchWorker(
+internal class SearchWorker internal constructor(
         private val lookupManager: LookupManager
 ) {
 

@@ -38,8 +38,8 @@ import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.common.exception.EThreeException
 import com.virgilsecurity.android.common.model.LookupResult
 import com.virgilsecurity.android.ethree.interaction.EThree
-import com.virgilsecurity.android.common.utils.TestConfig
-import com.virgilsecurity.android.common.utils.TestUtils
+import com.virgilsecurity.android.ethree.utils.TestConfig
+import com.virgilsecurity.android.ethree.utils.TestUtils
 import com.virgilsecurity.common.callback.OnCompleteListener
 import com.virgilsecurity.common.callback.OnResultListener
 import com.virgilsecurity.sdk.cards.CardManager
@@ -66,6 +66,7 @@ import java.io.ByteArrayOutputStream
 import java.util.*
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import kotlin.String.Companion
 
 /**
  * Created by:
@@ -174,7 +175,7 @@ class EThreeEncryptionTest {
         val publishedCardOne = cardManagerOne.publishCard(generateRawCard(identityOne,
                                                                           cardManagerOne).right)
 
-        eThree.lookupPublicKeys(identityOne)
+        findUser(String)
                 .addCallback(object : OnResultListener<LookupResult> {
                     override fun onSuccess(result: LookupResult) {
                         assertTrue(result.isNotEmpty() && result.size == 1)
@@ -208,7 +209,8 @@ class EThreeEncryptionTest {
         val publishedCardThree = cardManagerThree.publishCard(generateRawCard(identityThree,
                                                                               cardManagerThree).right)
 
-        eThree.lookupPublicKeys(listOf(identityOne, identityTwo, identityThree))
+        listOf(identityOne, identityTwo, identityThree)
+        eThree.findUsers(List)
                 .addCallback(object : OnResultListener<LookupResult> {
 
                     override fun onSuccess(result: LookupResult) {
@@ -231,7 +233,8 @@ class EThreeEncryptionTest {
     //STE-2
     @Test fun lookup_zero_users() {
         val waiter = CountDownLatch(1)
-        eThree.lookupPublicKeys(listOf())
+        listOf()
+        eThree.findUsers(List)
                 .addCallback(object : OnResultListener<LookupResult> {
                     override fun onSuccess(result: LookupResult) {
                         fail("Illegal State")
@@ -253,7 +256,8 @@ class EThreeEncryptionTest {
         var eThreeKeys: LookupResult? = null
 
         val waiter = CountDownLatch(1)
-        eThree.lookupPublicKeys(listOf(identity, identityTwo))
+        listOf(identity, identityTwo)
+        eThree.findUsers(List)
                 .addCallback(object : OnResultListener<LookupResult> {
                     override fun onSuccess(result: LookupResult) {
                         eThreeKeys = result
@@ -269,7 +273,7 @@ class EThreeEncryptionTest {
         assertEquals(2, eThreeKeys?.size)
 
         try {
-            val encrypted = eThree.encrypt(RAW_TEXT, lookupResult)
+            val encrypted = encrypt(String, FindUsersResult)
             assertNotNull(encrypted)
         } catch (e: IllegalArgumentException) {
             fail(e.message)
@@ -284,7 +288,8 @@ class EThreeEncryptionTest {
         var eThreeKeys: LookupResult? = null
 
         val waiter = CountDownLatch(1)
-        eThree.lookupPublicKeys(listOf(identity, identityTwo))
+        listOf(identity, identityTwo)
+        eThree.findUsers(List)
                 .addCallback(object : OnResultListener<LookupResult> {
                     override fun onSuccess(result: LookupResult) {
                         eThreeKeys = result
@@ -301,19 +306,19 @@ class EThreeEncryptionTest {
 
         val lookupEntry =
                 lookupResult.toMutableMap().apply { remove(identity) } // We need only identity
-        val encryptedForOne = eThree.encrypt(RAW_TEXT, lookupEntry)
+        val encryptedForOne = encrypt(String, FindUsersResult)
 
         val wrongPublicKey = TestConfig.virgilCrypto.generateKeyPair().publicKey
         var failedWithWrongKey = false
         try {
-            eThreeTwo.decrypt(encryptedForOne, wrongPublicKey)
+            decrypt(String, Card)
         } catch (throwable: Throwable) {
             failedWithWrongKey = true
         }
         assertTrue(failedWithWrongKey)
 
         val publicKey = lookupResult[identity] ?: error("")
-        val decryptedByTwo = eThreeTwo.decrypt(encryptedForOne, publicKey)
+        val decryptedByTwo = decrypt(String, Card)
 
         assertEquals(RAW_TEXT, decryptedByTwo)
     }
@@ -321,7 +326,8 @@ class EThreeEncryptionTest {
     // STE-4
     @Test(expected = EThreeException::class)
     fun encrypt_for_zero_users() {
-        eThree.encrypt(RAW_TEXT, mapOf())
+        mapOf()
+        encrypt(String, FindUsersResult)
     }
 
     // STE-5
@@ -332,7 +338,7 @@ class EThreeEncryptionTest {
 
         var failedDecrypt = false
         try {
-            eThree.decrypt(encryptedWithoutSign, keyPair.publicKey)
+            decrypt(Data, Card)
         } catch (e: Exception) {
             failedDecrypt = true
         }
@@ -398,7 +404,7 @@ class EThreeEncryptionTest {
         var eThreeKeys: LookupResult? = null
 
         val waiter = CountDownLatch(1)
-        eThree.lookupPublicKeys(identity).addCallback(object : OnResultListener<LookupResult> {
+        findUser(String).addCallback(object : OnResultListener<LookupResult> {
             override fun onSuccess(result: LookupResult) {
                 eThreeKeys = result
                 waiter.countDown()
@@ -421,7 +427,8 @@ class EThreeEncryptionTest {
         var eThreeKeys: LookupResult? = null
 
         val waiter = CountDownLatch(1)
-        eThree.lookupPublicKeys(listOf(identity, identityTwo))
+        listOf(identity, identityTwo)
+        eThree.findUsers(List)
                 .addCallback(object : OnResultListener<LookupResult> {
                     override fun onSuccess(result: LookupResult) {
                         eThreeKeys = result
@@ -440,7 +447,8 @@ class EThreeEncryptionTest {
                 lookupResult.toMutableMap().apply { remove(identity) } // We need only identityTwo
 
         ByteArrayOutputStream().use {
-            eThree.encrypt(ByteArrayInputStream(RAW_TEXT.toByteArray()), it, lookupEntry)
+            ByteArrayInputStream(RAW_TEXT.toByteArray())
+            encrypt(InputStream, OutputStream, FindUsersResult)
             val encrypted = it.toByteArray()
 
             ByteArrayOutputStream().use { outputForDecrypted ->

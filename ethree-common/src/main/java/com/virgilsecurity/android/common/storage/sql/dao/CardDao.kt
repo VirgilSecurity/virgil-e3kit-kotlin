@@ -40,7 +40,7 @@ import androidx.room.Query
 import com.virgilsecurity.android.common.storage.sql.model.CardEntity
 
 @Dao
-interface CardDao {
+internal interface CardDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insert(card: CardEntity)

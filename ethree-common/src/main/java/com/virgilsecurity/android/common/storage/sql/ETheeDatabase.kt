@@ -39,6 +39,6 @@ import com.virgilsecurity.android.common.storage.sql.dao.CardDao
 import com.virgilsecurity.android.common.storage.sql.model.CardEntity
 
 @Database(entities = arrayOf(CardEntity::class), version = 1)
-abstract class ETheeDatabase : RoomDatabase() {
+internal abstract class ETheeDatabase : RoomDatabase() {
     abstract fun cardDao(): CardDao
 }

@@ -49,11 +49,13 @@ import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
 /**
  * SQL-based Virgil Cards storage.
  */
-class SQLCardStorage(context: Context,
-                     userIdentifier: String,
-                     crypto: VirgilCrypto,
-                     verifier: CardVerifier,
-                     database: ETheeDatabase? = null) : CardStorage {
+internal class SQLCardStorage internal constructor(
+        context: Context,
+        userIdentifier: String,
+        crypto: VirgilCrypto,
+        verifier: CardVerifier,
+        database: ETheeDatabase? = null
+) : CardStorage {
 
     private val db: ETheeDatabase
     private val cardManager: CardManager
@@ -127,7 +129,7 @@ class SQLCardStorage(context: Context,
             if (card.identity !in identities) {
                 throw InconsistentCardStorageException("Got wrong card from SQL storage")
             }
-            val nextCard = cards.firstOrNull() { it.previousCardId == card.identifier }
+            val nextCard = cards.firstOrNull { it.previousCardId == card.identifier }
             if (nextCard != null) {
                 nextCard.previousCard = card
                 card.isOutdated = true

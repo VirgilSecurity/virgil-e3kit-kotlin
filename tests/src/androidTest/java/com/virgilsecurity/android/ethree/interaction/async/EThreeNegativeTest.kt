@@ -40,8 +40,8 @@ import com.virgilsecurity.android.common.exception.FindUsersException
 import com.virgilsecurity.android.common.exception.PrivateKeyNotFoundException
 import com.virgilsecurity.android.common.model.LookupResult
 import com.virgilsecurity.android.ethree.interaction.EThree
-import com.virgilsecurity.android.common.utils.TestConfig
-import com.virgilsecurity.android.common.utils.TestUtils
+import com.virgilsecurity.android.ethree.utils.TestConfig
+import com.virgilsecurity.android.ethree.utils.TestUtils
 import com.virgilsecurity.common.callback.OnCompleteListener
 import com.virgilsecurity.common.callback.OnResultListener
 import com.virgilsecurity.sdk.cards.CardManager
@@ -224,7 +224,8 @@ class EThreeNegativeTest {
 
     @Test(expected = IllegalArgumentException::class)
     fun encrypt_data_empty() {
-        eThree.encrypt(ByteArray(0))
+        ByteArray(0)
+        encrypt(ByteArray, FindUsersResult)
     }
 
     @Test(expected = IllegalArgumentException::class)
@@ -234,13 +235,15 @@ class EThreeNegativeTest {
 
     @Test(expected = IllegalArgumentException::class)
     fun decrypt_data_empty() {
-        eThree.decrypt(ByteArray(0))
+        ByteArray(0)
+        decrypt(Data, Card)
     }
 
     @Test fun lookup_fail_without_bootstrap() {
         var failed = false
         val waiter = CountDownLatch(1)
-        eThree.lookupPublicKeys(listOf(""))
+        listOf("")
+        eThree.findUsers(List)
                 .addCallback(object : OnResultListener<LookupResult> {
                     override fun onSuccess(result: LookupResult) {
                         fail("Not Bootstrapped")
@@ -260,7 +263,8 @@ class EThreeNegativeTest {
 
         var failed = false
         val waiter = CountDownLatch(1)
-        eThree.lookupPublicKeys(listOf(identity, WRONG_IDENTITY))
+        listOf(identity, WRONG_IDENTITY)
+        eThree.findUsers(List)
                 .addCallback(object : OnResultListener<Map<String, VirgilPublicKey>> {
                     override fun onSuccess(result: Map<String, VirgilPublicKey>) {
                         fail("Illegal State")

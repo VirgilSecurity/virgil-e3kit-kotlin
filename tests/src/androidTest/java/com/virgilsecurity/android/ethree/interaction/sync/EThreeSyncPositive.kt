@@ -35,8 +35,8 @@ package com.virgilsecurity.android.ethree.interaction.sync
 
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.ethree.interaction.EThree
-import com.virgilsecurity.android.common.utils.TestConfig
-import com.virgilsecurity.android.common.utils.TestUtils
+import com.virgilsecurity.android.ethree.utils.TestConfig
+import com.virgilsecurity.android.ethree.utils.TestUtils
 import com.virgilsecurity.keyknox.KeyknoxManager
 import com.virgilsecurity.keyknox.client.KeyknoxClient
 import com.virgilsecurity.keyknox.cloud.CloudKeyStorage
@@ -70,6 +70,7 @@ import org.junit.Test
 import java.net.URL
 import java.util.*
 import java.util.concurrent.TimeUnit
+import kotlin.String.Companion
 
 /**
  * EThreeSyncPositive
@@ -280,7 +281,7 @@ class EThreeSyncPositive {
         val publishedCardOne =
                 cardManager.publishCard(generateRawCard(identity, cardManager).right)
 
-        val lookupResult = eThree.lookupPublicKeys(identity).get()
+        val lookupResult = findUser(String).get()
 
         assertTrue(lookupResult.isNotEmpty() && lookupResult.size == 1)
         assertEquals(publishedCardOne.publicKey, lookupResult[identity])
@@ -308,8 +309,9 @@ class EThreeSyncPositive {
         val publishedCardThree =
                 cardManagerThree.publishCard(generateRawCard(identityThree, cardManagerThree).right)
 
+        listOf(identityOne, identityTwo, identityThree)
         val lookupResult =
-                eThree.lookupPublicKeys(listOf(identityOne, identityTwo, identityThree)).get()
+                eThree.findUsers(List).get()
 
         assertTrue(lookupResult.isNotEmpty() && lookupResult.size == 3)
 

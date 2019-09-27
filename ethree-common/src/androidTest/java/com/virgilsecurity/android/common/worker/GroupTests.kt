@@ -36,18 +36,32 @@ package com.virgilsecurity.android.common.worker
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
+import com.virgilsecurity.android.common.build.VersionVirgilAgent
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.common.exception.*
+import com.virgilsecurity.android.common.manager.GroupManager
+import com.virgilsecurity.android.common.manager.LookupManager
 import com.virgilsecurity.android.common.model.*
-import com.virgilsecurity.android.ethree.interaction.EThree
+import com.virgilsecurity.android.common.storage.cloud.CloudTicketStorage
+import com.virgilsecurity.android.common.storage.local.FileGroupStorage
+import com.virgilsecurity.android.common.storage.local.LocalKeyStorage
+import com.virgilsecurity.android.common.storage.sql.SQLCardStorage
+import com.virgilsecurity.android.common.util.Const
 import com.virgilsecurity.android.common.utils.TestConfig
 import com.virgilsecurity.android.common.utils.TestUtils
+import com.virgilsecurity.android.ethree.interaction.EThree
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.crypto.foundation.Base64
+import com.virgilsecurity.sdk.cards.CardManager
+import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
+import com.virgilsecurity.sdk.client.HttpClient
+import com.virgilsecurity.sdk.client.VirgilCardClient
 import com.virgilsecurity.sdk.common.TimeSpan
 import com.virgilsecurity.sdk.crypto.VirgilAccessTokenSigner
+import com.virgilsecurity.sdk.crypto.VirgilCardCrypto
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.jwt.JwtGenerator
+import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
 import com.virgilsecurity.sdk.storage.JsonKeyEntry
 import org.junit.Assert.*
@@ -239,6 +253,39 @@ class GroupTests {
     @Test
     fun ste33() {
         // add more than max should throw error
+        val identity = UUID.randomUUID().toString()
+        val selfKeyPair = crypto.generateKeyPair()
+
+        val localGroupStorage = FileGroupStorage(identity,
+                                                 crypto,
+                                                 selfKeyPair,
+                                                 TestConfig.context.filesDir.absolutePath)
+        val accessTokenProvider = CachingJwtProvider {
+            TestUtils.generateToken(identity)
+        }
+        val keyStorage = DefaultKeyStorage(TestConfig.context.filesDir.absolutePath,
+                                           "virgil.keystore")
+        val localKeyStorage = LocalKeyStorage(identity, keyStorage, crypto)
+        val ticketStorageCloud = CloudTicketStorage(accessTokenProvider, localKeyStorage)
+        val virgilCardVerifier = VirgilCardVerifier(VirgilCardCrypto(crypto))
+        val cardStorageSqlite = SQLCardStorage(TestConfig.context,
+                                               identity,
+                                               crypto,
+                                               virgilCardVerifier)
+        val httpClient = HttpClient(Const.ETHREE_NAME, VersionVirgilAgent.VERSION)
+        val cardManager = CardManager(VirgilCardCrypto(crypto),
+                                      accessTokenProvider,
+                                      VirgilCardVerifier(VirgilCardCrypto(crypto), false, false),
+                                      VirgilCardClient(Const.VIRGIL_BASE_URL + Const.VIRGIL_CARDS_SERVICE_PATH,
+                                                       httpClient))
+        val lookupManager = LookupManager(cardStorageSqlite, cardManager, null)
+
+        val groupManager = GroupManager(localGroupStorage,
+                                        ticketStorageCloud,
+                                        localKeyStorage,
+                                        lookupManager,
+                                        this.crypto)
+
         val participants = mutableSetOf<String>()
 
         for (i in 0 until 100) {
@@ -249,11 +296,10 @@ class GroupTests {
         val sessionId = Data(this.crypto.generateRandomData(32))
 
         val ticket = Ticket(this.crypto, sessionId, participants)
-        val rawGroup = RawGroup(GroupInfo(this.ethree.identity), listOf(ticket))
+        val rawGroup = RawGroup(GroupInfo(identity), listOf(ticket))
 
-        assertNotNull(this.ethree.groupManager)
-        val group = Group(rawGroup, this.crypto, ethree.keyStorageLocal,
-                          this.ethree.groupManager!!, this.ethree.lookupManager)
+        assertNotNull(groupManager)
+        val group = Group(rawGroup, this.crypto, localKeyStorage, groupManager, lookupManager)
 
         val card = TestUtils.publishCard()
 
@@ -582,7 +628,7 @@ class GroupTests {
     fun ste45() {
         // Compatibility test
         val compatDataStream =
-                this.javaClass.classLoader?.getResourceAsStream("compat_data.json")
+                this.javaClass.classLoader?.getResourceAsStream("compat/compat_data.json")
         val compatJson = JsonParser().parse(InputStreamReader(compatDataStream)) as JsonObject
         val groupCompatJson = compatJson.getAsJsonObject("Group")
 

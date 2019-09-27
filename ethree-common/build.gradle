@@ -45,7 +45,13 @@ apply plugin: 'digital.wup.android-maven-publish'
 apply plugin: 'org.jetbrains.dokka'
 
 group 'com.virgilsecurity'
-version '0.4.2'
+version '0.5.0-beta1'
+
+def APP_ID = hasProperty('APP_ID') ? APP_ID : System.getenv('APP_ID')
+def API_PRIVATE_KEY = hasProperty('API_PRIVATE_KEY') ? API_PRIVATE_KEY : System.getenv('API_PRIVATE_KEY')
+def API_PUBLIC_KEY = hasProperty('API_PUBLIC_KEY') ? API_PUBLIC_KEY : System.getenv('API_PUBLIC_KEY')
+def API_PUBLIC_KEY_ID = hasProperty('API_PUBLIC_KEY_ID') ? API_PUBLIC_KEY_ID : System.getenv('API_PUBLIC_KEY_ID')
+def VIRGIL_BASE_URL = hasProperty('VIRGIL_BASE_URL') ? VIRGIL_BASE_URL : System.getenv('VIRGIL_BASE_URL')
 
 android {
     compileSdkVersion androidOptions.compileSdkVersion
@@ -59,14 +65,29 @@ android {
         javaCompileOptions {
             annotationProcessorOptions {
                 arguments = [
-                        "room.schemaLocation":"$projectDir/schemas".toString(),
-                        "room.incremental":"true",
-                        "room.expandProjection":"true"]
+                        "room.schemaLocation"  : "$projectDir/schemas".toString(),
+                        "room.incremental"     : "true",
+                        "room.expandProjection": "true"]
             }
         }
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
-        buildTypes {
+        debug {
+            minifyEnabled false
+            useProguard false
+        }
+        release {
+            minifyEnabled false
+            useProguard false
+        }
+        buildTypes.each {
+            it.buildConfigField "String", "APP_ID", "$APP_ID"
+            it.buildConfigField "String", "API_PRIVATE_KEY", "$API_PRIVATE_KEY"
+            it.buildConfigField "String", "API_PUBLIC_KEY", "$API_PUBLIC_KEY"
+            it.buildConfigField "String", "API_PUBLIC_KEY_ID", "$API_PUBLIC_KEY_ID"
+            it.buildConfigField "String", "VIRGIL_BASE_URL", "$VIRGIL_BASE_URL"
         }
     }
 }
@@ -83,13 +104,13 @@ dependencies {
     api "com.virgilsecurity.sdk:crypto-android:$versions.virgilSdk"
 
     api "com.virgilsecurity:common:$versions.virgilSdk"
-    api ("com.virgilsecurity.sdk:sdk:$versions.virgilSdk") {
+    api("com.virgilsecurity.sdk:sdk:$versions.virgilSdk") {
         exclude group: 'com.virgilsecurity.crypto'
     }
-    api ("com.virgilsecurity.sdk:keyknox:$versions.virgilSdk") {
+    api("com.virgilsecurity.sdk:keyknox:$versions.virgilSdk") {
         exclude group: 'com.virgilsecurity.sdk', module: "sdk"
     }
-    api ("com.virgilsecurity:pythia:$versions.pythia") {
+    api("com.virgilsecurity:pythia:$versions.pythia") {
         exclude group: 'com.virgilsecurity.crypto'
         exclude group: 'com.virgilsecurity.sdk'
     }
@@ -101,6 +122,14 @@ dependencies {
     implementation "androidx.room:room-runtime:$versions.room"
     implementation "androidx.room:room-ktx:$versions.room"
     kapt "androidx.room:room-compiler:$versions.room"
+
+    // Tests core
+    testImplementation "junit:junit:$versions.junit"
+    androidTestImplementation "androidx.test.ext:junit:$versions.testsRunner"
+    androidTestImplementation "androidx.test:runner:$versions.testsRunner"
+
+    // Test internal
+    androidTestImplementation project(':ethree-kotlin')
 }
 
 task generateVersionVirgilAgent {

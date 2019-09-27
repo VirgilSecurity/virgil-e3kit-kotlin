@@ -41,9 +41,9 @@ import com.virgilsecurity.android.common.exception.PrivateKeyNotFoundException
 import com.virgilsecurity.android.common.exception.RestoreKeyException
 import com.virgilsecurity.android.common.exception.WrongPasswordException
 import com.virgilsecurity.android.ethree.interaction.EThree
-import com.virgilsecurity.android.common.utils.TestConfig
-import com.virgilsecurity.android.common.utils.TestConfig.Companion.virgilBaseUrl
-import com.virgilsecurity.android.common.utils.TestUtils
+import com.virgilsecurity.android.ethree.utils.TestConfig
+import com.virgilsecurity.android.ethree.utils.TestConfig.Companion.virgilBaseUrl
+import com.virgilsecurity.android.ethree.utils.TestUtils
 import com.virgilsecurity.common.callback.OnCompleteListener
 import com.virgilsecurity.common.callback.OnResultListener
 import com.virgilsecurity.keyknox.KeyknoxManager

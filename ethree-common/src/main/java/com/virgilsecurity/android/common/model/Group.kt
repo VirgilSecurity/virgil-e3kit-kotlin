@@ -36,7 +36,7 @@ package com.virgilsecurity.android.common.model
 import com.virgilsecurity.android.common.exception.*
 import com.virgilsecurity.android.common.manager.GroupManager
 import com.virgilsecurity.android.common.manager.LookupManager
-import com.virgilsecurity.android.common.storage.local.KeyStorageLocal
+import com.virgilsecurity.android.common.storage.local.LocalKeyStorage
 import com.virgilsecurity.common.model.Completable
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.crypto.foundation.FoundationException
@@ -51,10 +51,10 @@ import kotlin.collections.HashSet
 /**
  * Group
  */
-class Group constructor(
+class Group internal constructor(
         rawGroup: RawGroup,
         private val crypto: VirgilCrypto,
-        private val keyStorageLocal: KeyStorageLocal,
+        private val localKeyStorage: LocalKeyStorage,
         private val groupManager: GroupManager,
         private val lookupManager: LookupManager
 ) {
@@ -65,7 +65,7 @@ class Group constructor(
 
     internal var session: GroupSession
 
-    private val selfIdentity: String = keyStorageLocal.identity
+    private val selfIdentity: String = localKeyStorage.identity
 
     init {
         val tickets = rawGroup.tickets.sortedBy { it.groupMessage.epoch }
@@ -77,13 +77,7 @@ class Group constructor(
         this.session = generateSession(tickets)
     }
 
-    internal fun checkPermissions() {
-        if (selfIdentity != initiator) {
-            throw PermissionDeniedGroupException("Only group initiator can do changed on group")
-        }
-    }
-
-    internal fun generateSession(tickets: List<Ticket>): GroupSession {
+    private fun generateSession(tickets: List<Ticket>, crypto: VirgilCrypto): GroupSession {
         val session = GroupSession()
         session.setRng(crypto.rng)
 
@@ -93,6 +87,36 @@ class Group constructor(
 
         return session
     }
+
+    private fun shareTickets(cards: List<Card>) {
+        val sessionId = this.session.sessionId
+        groupManager.addAccess(cards, Data(sessionId))
+        val newParticipants = cards.map { it.identity }
+        this.participants.addAll(newParticipants.toSet())
+    }
+
+    private fun addNewTicket(participants: FindUsersResult) {
+        val newSet = HashSet(participants.keys)
+
+        val ticketMessage = this.session.createGroupTicket().ticketMessage
+        val ticket = Ticket(ticketMessage, newSet)
+
+        groupManager.store(ticket, participants.values.toList())
+        this.session.addEpoch(ticket.groupMessage)
+
+        newSet.add(this.initiator)
+
+        this.participants = newSet
+    }
+
+    internal fun checkPermissions() {
+        if (selfIdentity != initiator) {
+            throw PermissionDeniedGroupException("Only group initiator can do changed on group")
+        }
+    }
+
+    internal fun generateSession(tickets: List<Ticket>): GroupSession =
+            generateSession(tickets, this.crypto)
 
     /**
      * Signs and encrypts data for group.
@@ -121,7 +145,7 @@ class Group constructor(
     fun encrypt(data: ByteArray): ByteArray {
         require(data.isNotEmpty()) { "\'data\' should not be empty" }
 
-        val selfKeyPair = this.keyStorageLocal.load()
+        val selfKeyPair = this.localKeyStorage.load()
         val encrypted = this.session.encrypt(data, selfKeyPair.privateKey.privateKey)
         return encrypted.serialize()
     }
@@ -291,27 +315,6 @@ class Group constructor(
 
     fun remove(participant: Card): Completable =
             remove(FindUsersResult(mapOf(participant.identity to participant)))
-
-    private fun shareTickets(cards: List<Card>) {
-        val sessionId = this.session.sessionId
-        groupManager.addAccess(cards, Data(sessionId))
-        val newParticipants = cards.map { it.identity }
-        this.participants.addAll(newParticipants.toSet())
-    }
-
-    private fun addNewTicket(participants: FindUsersResult) {
-        val newSet = HashSet(participants.keys)
-
-        val ticketMessage = this.session.createGroupTicket().ticketMessage
-        val ticket = Ticket(ticketMessage, newSet)
-
-        groupManager.store(ticket, participants.values.toList())
-        this.session.addEpoch(ticket.groupMessage)
-
-        newSet.add(this.initiator)
-
-        this.participants = newSet
-    }
 
     companion object {
         internal fun validateParticipantsCount(count: Int) {

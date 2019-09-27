@@ -46,10 +46,10 @@ import java.util.logging.Logger
 /**
  * LookupManager
  */
-class LookupManager(
+internal class LookupManager internal constructor(
         internal val cardStorage: CardStorage,
-        private val cardManager: CardManager,
-        private val onKeyChangedCallback: OnKeyChangedCallback? = null
+        internal val cardManager: CardManager,
+        internal val onKeyChangedCallback: OnKeyChangedCallback? = null
 ) {
 
     internal fun startUpdateCachedCards() {

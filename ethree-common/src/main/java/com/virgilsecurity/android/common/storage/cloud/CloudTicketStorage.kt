@@ -34,7 +34,7 @@
 package com.virgilsecurity.android.common.storage.cloud
 
 import com.virgilsecurity.android.common.model.Ticket
-import com.virgilsecurity.android.common.storage.local.KeyStorageLocal
+import com.virgilsecurity.android.common.storage.local.LocalKeyStorage
 import com.virgilsecurity.android.common.util.Const
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.common.util.toHexString
@@ -49,13 +49,13 @@ import java.net.URL
 /**
  * CloudTicketStorage
  */
-class CloudTicketStorage(
+internal class CloudTicketStorage internal constructor(
         accessTokenProvider: AccessTokenProvider,
-        private val keyStorageLocal: KeyStorageLocal,
+        private val localKeyStorage: LocalKeyStorage,
         baseUrl: String? = Const.VIRGIL_BASE_URL
 ) {
 
-    private val identity: String get() = keyStorageLocal.identity
+    private val identity: String get() = localKeyStorage.identity
     private val keyknoxManager: KeyknoxManager
 
     init {
@@ -64,7 +64,7 @@ class CloudTicketStorage(
     }
 
     internal fun store(ticket: Ticket, cards: Collection<Card>) {
-        val selfKeyPair = keyStorageLocal.load()
+        val selfKeyPair = localKeyStorage.load()
 
         val groupMessage = ticket.groupMessage
 
@@ -90,7 +90,7 @@ class CloudTicketStorage(
     internal fun retrieve(sessionId: Data,
                           identity: String,
                           identityPublicKey: VirgilPublicKey): List<Ticket> {
-        val selfKeyPair = keyStorageLocal.load()
+        val selfKeyPair = localKeyStorage.load()
 
         val sessionIdHex = sessionId.toHexString()
 
@@ -121,7 +121,7 @@ class CloudTicketStorage(
     }
 
     internal fun addRecipients(cards: Collection<Card>, sessionId: Data) {
-        val selfKeyPair = keyStorageLocal.load()
+        val selfKeyPair = localKeyStorage.load()
 
         val sessionIdHex = sessionId.toHexString()
 
@@ -157,7 +157,7 @@ class CloudTicketStorage(
     }
 
     internal fun reAddRecipient(card: Card, sessionId: Data) {
-        val selfKeyPair = keyStorageLocal.load()
+        val selfKeyPair = localKeyStorage.load()
 
         val path = sessionId.toHexString()
 

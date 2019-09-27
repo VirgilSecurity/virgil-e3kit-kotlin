@@ -39,8 +39,8 @@ import com.virgilsecurity.android.common.model.GroupInfo
 import com.virgilsecurity.android.common.model.RawGroup
 import com.virgilsecurity.android.common.model.Ticket
 import com.virgilsecurity.android.common.storage.cloud.CloudTicketStorage
-import com.virgilsecurity.android.common.storage.local.GroupStorageFile
-import com.virgilsecurity.android.common.storage.local.KeyStorageLocal
+import com.virgilsecurity.android.common.storage.local.FileGroupStorage
+import com.virgilsecurity.android.common.storage.local.LocalKeyStorage
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
@@ -48,19 +48,19 @@ import com.virgilsecurity.sdk.crypto.VirgilCrypto
 /**
  * GroupManager
  */
-class GroupManager(
-        internal val localGroupStorage: GroupStorageFile,
-        private val cloudTicketStorage: CloudTicketStorage,
-        private val keyStorageLocal: KeyStorageLocal,
+internal class GroupManager internal constructor(
+        internal val localGroupStorage: FileGroupStorage,
+        internal val cloudTicketStorage: CloudTicketStorage,
+        private val localKeyStorage: LocalKeyStorage,
         private val lookupManager: LookupManager,
         private val crypto: VirgilCrypto
 ) {
 
-    private val identity: String = localGroupStorage.identity
+    internal val identity: String = localGroupStorage.identity
 
     private fun parse(rawGroup: RawGroup): Group = Group(rawGroup,
                                                          crypto,
-                                                         keyStorageLocal,
+                                                         localKeyStorage,
                                                          this,
                                                          lookupManager)
 
@@ -121,6 +121,6 @@ class GroupManager(
     }
 
     companion object {
-        const val MAX_TICKETS_IN_GROUP = 50
+        internal const val MAX_TICKETS_IN_GROUP = 50
     }
 }

@@ -7,7 +7,7 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *  
+ *
  *     (1) Redistributions of source code must retain the above copyright notice, this
  *     list of conditions and the following disclaimer.
  *
@@ -31,20 +31,30 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.common.storage.sql.model
+package com.virgilsecurity.android.ethree.utils
 
-import androidx.annotation.NonNull
-import androidx.room.ColumnInfo
-import androidx.room.Entity
-import androidx.room.Index
-import androidx.room.PrimaryKey
+import androidx.test.platform.app.InstrumentationRegistry
+import com.virgilsecurity.android.common.BuildConfig
+import com.virgilsecurity.sdk.crypto.VirgilCrypto
+import com.virgilsecurity.sdk.crypto.VirgilPrivateKey
+import com.virgilsecurity.sdk.utils.ConvertionUtils
 
-@Entity(tableName = "ethree_cards",
-        indices = [Index(value = ["id"], unique = true), Index(value = ["identity"],
-                                                               unique = false)])
-internal data class CardEntity(
-        @PrimaryKey @ColumnInfo(name = "id") val identifier: String,
-        @ColumnInfo(name = "identity") @NonNull val identity: String,
-        @ColumnInfo(name = "is_outdated") @NonNull val isOutdated: Boolean,
-        @ColumnInfo(name = "card") @NonNull val card: String
-)
+class TestConfig {
+    companion object {
+        val virgilCrypto = VirgilCrypto(false)
+        val appId = BuildConfig.APP_ID
+        val apiKey: VirgilPrivateKey by lazy {
+            virgilCrypto.importPrivateKey(ConvertionUtils.base64ToBytes(BuildConfig.API_PRIVATE_KEY))
+                    .privateKey
+        }
+        val apiPublicKeyId = BuildConfig.API_PUBLIC_KEY_ID
+
+        val virgilBaseUrl = BuildConfig.VIRGIL_BASE_URL
+        const val VIRGIL_CARDS_SERVICE_PATH = "/card/v5/"
+
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val DIRECTORY_PATH = InstrumentationRegistry.getInstrumentation()
+                .targetContext.filesDir.absolutePath
+        val KEYSTORE_NAME = "virgil.keystore"
+    }
+}

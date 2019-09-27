@@ -36,8 +36,8 @@ package com.virgilsecurity.android.ethree.interaction.async
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.ethree.interaction.EThree
-import com.virgilsecurity.android.common.utils.TestConfig
-import com.virgilsecurity.android.common.utils.TestUtils
+import com.virgilsecurity.android.ethree.utils.TestConfig
+import com.virgilsecurity.android.ethree.utils.TestUtils
 import com.virgilsecurity.common.callback.OnCompleteListener
 import com.virgilsecurity.common.callback.OnResultListener
 import com.virgilsecurity.sdk.cards.CardManager

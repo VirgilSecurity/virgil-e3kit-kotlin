@@ -38,7 +38,7 @@ import com.virgilsecurity.android.common.exception.EThreeException
 import com.virgilsecurity.android.common.exception.PrivateKeyNotFoundException
 import com.virgilsecurity.android.common.exception.RestoreKeyException
 import com.virgilsecurity.android.common.storage.cloud.CloudKeyManager
-import com.virgilsecurity.android.common.storage.local.KeyStorageLocal
+import com.virgilsecurity.android.common.storage.local.LocalKeyStorage
 import com.virgilsecurity.common.model.Completable
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.keyknox.exception.EntryAlreadyExistsException
@@ -49,8 +49,8 @@ import com.virgilsecurity.sdk.crypto.exceptions.KeyEntryAlreadyExistsException
 /**
  * BackupWorker
  */
-internal class BackupWorker(
-        private val keyStorageLocal: KeyStorageLocal,
+internal class BackupWorker internal constructor(
+        private val localKeyStorage: LocalKeyStorage,
         private val keyManagerCloud: CloudKeyManager,
         private val privateKeyChanged: (Card?) -> Unit
 ) {
@@ -60,7 +60,7 @@ internal class BackupWorker(
             try {
                 require(password.isNotEmpty()) { "\'password\' should not be empty" }
 
-                val identityKeyPair = keyStorageLocal.load()
+                val identityKeyPair = localKeyStorage.load()
                 keyManagerCloud.store(identityKeyPair.privateKey, password)
             } catch (e: EntryAlreadyExistsException) {
                 throw BackupKeyException("Can't backup private key", e)
@@ -74,7 +74,7 @@ internal class BackupWorker(
                 require(password.isNotEmpty()) { "\'password\' should not be empty" }
 
                 val entry = keyManagerCloud.retrieve(password)
-                keyStorageLocal.store(Data(entry.data))
+                localKeyStorage.store(Data(entry.data))
                 privateKeyChanged(null)
             } catch (e: KeyEntryAlreadyExistsException) {
                 throw RestoreKeyException("Can't restore private key", e)

@@ -40,7 +40,6 @@ import com.google.gson.JsonParser
 import com.virgilsecurity.android.common.storage.CardStorage
 import com.virgilsecurity.android.common.storage.sql.model.CardEntity
 import com.virgilsecurity.android.common.utils.TestConfig
-import com.virgilsecurity.android.common.utils.TestConfig.Companion.context
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
 import com.virgilsecurity.sdk.crypto.VirgilCardCrypto
@@ -80,7 +79,9 @@ class SQLCardStorageTest {
         val tokenProvider = CachingJwtProvider(CachingJwtProvider.RenewJwtCallback(function = {
             return@RenewJwtCallback null
         }))
-        cardManager = CardManager(VirgilCardCrypto(VirgilCrypto()), tokenProvider, VirgilCardVerifier(VirgilCardCrypto(VirgilCrypto())))
+        cardManager = CardManager(VirgilCardCrypto(VirgilCrypto()),
+                                  tokenProvider,
+                                  VirgilCardVerifier(VirgilCardCrypto(VirgilCrypto())))
 
         db = Room.inMemoryDatabaseBuilder(TestConfig.context, ETheeDatabase::class.java).build()
         prePopulateDatabase()
@@ -224,7 +225,9 @@ class SQLCardStorageTest {
     }
 
     private fun prePopulateDatabase() {
-        val sampleJson = JsonParser().parse(InputStreamReader(context.assets.open("databases/cards.json"))) as JsonObject
+        val databasesDataStream =
+                this.javaClass.classLoader?.getResourceAsStream("databases/cards.json")
+        val sampleJson = JsonParser().parse(InputStreamReader(databasesDataStream)) as JsonObject
         sampleJson.entrySet().forEach {
             val cardId = it.key
             val identity = (it.value as JsonObject)["identity"].asString

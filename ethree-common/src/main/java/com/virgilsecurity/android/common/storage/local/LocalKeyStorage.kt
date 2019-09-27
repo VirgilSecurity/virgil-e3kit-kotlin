@@ -44,8 +44,8 @@ import com.virgilsecurity.sdk.storage.KeyStorage
 /**
  * Local KeyStorage.
  */
-class KeyStorageLocal(
-        val identity: String,
+class LocalKeyStorage internal constructor(
+        internal val identity: String,
         private val keyStorage: KeyStorage,
         private val crypto: VirgilCrypto
 ) {

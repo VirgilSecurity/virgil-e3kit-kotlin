@@ -56,10 +56,10 @@ import java.net.URL
 /**
  * CloudKeyManager
  */
-internal class CloudKeyManager(
+internal class CloudKeyManager internal constructor(
         private val identity: String,
         private val crypto: VirgilCrypto,
-        private val tokenProvider: AccessTokenProvider,
+        internal val tokenProvider: AccessTokenProvider,
         baseUrl: String = VIRGIL_BASE_URL
 ) {
 
@@ -121,7 +121,7 @@ internal class CloudKeyManager(
      * Initializes [SyncKeyStorage] with default settings, [tokenProvider] and provided
      * [password] after that returns initialized [SyncKeyStorage] object.
      */
-    private fun setupCloudKeyStorage(password: String): CloudKeyStorage {
+    internal fun setupCloudKeyStorage(password: String): CloudKeyStorage {
         val brainKeyPair = this.brainKey.generateKeyPair(password)
 
         val cloudKeyStorage = CloudKeyStorage(this.keyknoxManager, listOf(brainKeyPair.publicKey),

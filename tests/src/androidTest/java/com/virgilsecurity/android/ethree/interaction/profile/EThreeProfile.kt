@@ -72,7 +72,8 @@ class EThreeProfile {
         Debug.stopMethodTracing()
     }
 
-    @Ignore("Needed only to profile from time to time") @Test fun generate_signature_debug_profile() {
+    @Ignore("Needed only to profile from time to time") @Test
+    fun generate_signature_debug_profile() {
         Debug.startMethodTracing("EThreeProfile_generate_signature")
         crypto.generateSignature(oneMbData, keyPair.privateKey)
         Debug.stopMethodTracing()

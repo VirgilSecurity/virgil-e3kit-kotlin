@@ -34,7 +34,7 @@
 package com.virgilsecurity.android.common.worker
 
 import com.virgilsecurity.android.common.exception.EThreeException
-import com.virgilsecurity.android.common.storage.local.KeyStorageLocal
+import com.virgilsecurity.android.common.storage.local.LocalKeyStorage
 import com.virgilsecurity.common.model.Completable
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.crypto.VirgilKeyPair
@@ -42,9 +42,9 @@ import com.virgilsecurity.sdk.crypto.VirgilKeyPair
 /**
  * AuthorizationWorker
  */
-internal class AuthorizationWorker(
+internal class AuthorizationWorker internal constructor(
         private val cardManager: CardManager,
-        private val keyStorageLocal: KeyStorageLocal,
+        private val localKeyStorage: LocalKeyStorage,
         private val identity: String,
         private val publishCardThenSaveLocal: (VirgilKeyPair?, String?) -> Unit,
         private val privateKeyDeleted: () -> Unit
@@ -54,7 +54,7 @@ internal class AuthorizationWorker(
     @JvmOverloads
     internal fun register(keyPair: VirgilKeyPair? = null) = object : Completable {
         override fun execute() {
-            if (keyStorageLocal.exists())
+            if (localKeyStorage.exists())
                 throw EThreeException("Private key already exists in local key storage")
 
             val cards = cardManager.searchCards(this@AuthorizationWorker.identity)
@@ -70,14 +70,14 @@ internal class AuthorizationWorker(
             val card = cards.firstOrNull() ?: throw EThreeException("User is not registered")
 
             cardManager.revokeCard(card.identifier)
-            keyStorageLocal.delete()
+            localKeyStorage.delete()
             privateKeyDeleted()
         }
     }
 
     @Synchronized internal fun rotatePrivateKey() = object : Completable {
         override fun execute() {
-            if (keyStorageLocal.exists())
+            if (localKeyStorage.exists())
                 throw EThreeException("Private key already exists in local key storage.")
 
             val cards = cardManager.searchCards(this@AuthorizationWorker.identity)
@@ -87,10 +87,10 @@ internal class AuthorizationWorker(
         }
     }
 
-    internal fun hasLocalPrivateKey() = keyStorageLocal.exists()
+    internal fun hasLocalPrivateKey() = localKeyStorage.exists()
 
     internal fun cleanup() {
-        keyStorageLocal.delete()
+        localKeyStorage.delete()
         privateKeyDeleted()
     }
 }

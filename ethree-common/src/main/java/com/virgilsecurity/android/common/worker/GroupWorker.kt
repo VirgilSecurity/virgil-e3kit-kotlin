@@ -48,7 +48,7 @@ import java.nio.charset.StandardCharsets
 /**
  * GroupWorker
  */
-internal class GroupWorker(
+internal class GroupWorker internal constructor(
         private val identity: String,
         private val crypto: VirgilCrypto,
         private val getGroupManager: () -> GroupManager,

@@ -38,7 +38,7 @@ import com.virgilsecurity.sdk.cards.Card
 /**
  * Virgil Cards storage.
  */
-interface CardStorage {
+internal interface CardStorage {
 
     fun storeCard(card: Card)
 

@@ -53,13 +53,19 @@ android {
         consumerProguardFiles 'proguard-rules.txt'
     }
     buildTypes {
-        buildTypes {
+        debug {
+            minifyEnabled false
+            useProguard false
+        }
+        release {
+            minifyEnabled false
+            useProguard false
         }
     }
 }
 
 group 'com.virgilsecurity'
-version '0.5.2'
+version '0.6.0-beta1'
 
 dependencies {
     // Inner dependencies

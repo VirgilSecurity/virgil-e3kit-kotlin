@@ -34,10 +34,12 @@
 package com.virgilsecurity.android.ethree.interaction.sync
 
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
-import com.virgilsecurity.android.common.exception.*
+import com.virgilsecurity.android.common.exception.EThreeException
+import com.virgilsecurity.android.common.exception.PrivateKeyNotFoundException
+import com.virgilsecurity.android.common.exception.WrongPasswordException
 import com.virgilsecurity.android.ethree.interaction.EThree
-import com.virgilsecurity.android.common.utils.TestConfig
-import com.virgilsecurity.android.common.utils.TestUtils
+import com.virgilsecurity.android.ethree.utils.TestConfig
+import com.virgilsecurity.android.ethree.utils.TestUtils
 import com.virgilsecurity.keyknox.exception.EntryNotFoundException
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.model.RawSignedModel
@@ -206,7 +208,8 @@ class EThreeSyncNegative {
     @Test fun lookup_zero_users() {
         val eThree = initEThree(identity)
         try {
-            eThree.lookupPublicKeys(listOf()).get()
+            listOf()
+            eThree.findUsers(List).get()
         } catch (throwable: Throwable) {
             assertTrue(throwable is IllegalArgumentException)
         }

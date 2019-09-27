@@ -46,10 +46,10 @@ import java.io.Serializable
 /**
  * Ticket
  */
-class Ticket : Parcelable {
+internal class Ticket : Parcelable {
 
-    val groupMessage: GroupSessionMessage
-    val participants: Set<String>
+    internal val groupMessage: GroupSessionMessage
+    internal val participants: Set<String>
 
     private constructor(parcel: Parcel) {
         val groupMessageDataLength = parcel.readInt()
@@ -65,9 +65,9 @@ class Ticket : Parcelable {
         this.participants = participants
     }
 
-    constructor(crypto: VirgilCrypto,
-                sessionId: Data,
-                participants: Set<String>) {
+    internal constructor(crypto: VirgilCrypto,
+                         sessionId: Data,
+                         participants: Set<String>) {
         require(participants is Serializable) { "Please, use serializable Set for participants." }
 
         val ticket = GroupSessionTicket()

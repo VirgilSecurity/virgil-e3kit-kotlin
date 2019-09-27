@@ -39,10 +39,10 @@ import com.virgilsecurity.android.common.exception.EThreeException
 import com.virgilsecurity.android.common.exception.FindUsersException
 import com.virgilsecurity.android.common.exception.PrivateKeyNotFoundException
 import com.virgilsecurity.android.ethree.interaction.EThree
-import com.virgilsecurity.android.common.utils.TestConfig
-import com.virgilsecurity.android.common.utils.TestConfig.Companion.virgilBaseUrl
-import com.virgilsecurity.android.common.utils.TestConfig.Companion.virgilCrypto
-import com.virgilsecurity.android.common.utils.TestUtils
+import com.virgilsecurity.android.ethree.utils.TestConfig
+import com.virgilsecurity.android.ethree.utils.TestConfig.Companion.virgilBaseUrl
+import com.virgilsecurity.android.ethree.utils.TestConfig.Companion.virgilCrypto
+import com.virgilsecurity.android.ethree.utils.TestUtils
 import com.virgilsecurity.common.callback.OnCompleteListener
 import com.virgilsecurity.common.callback.OnResultListener
 import com.virgilsecurity.sdk.cards.CardManager
@@ -353,7 +353,8 @@ class EThreeAuthTest {
 
         var rotateFailed = false
         val waiterTwo = CountDownLatch(1)
-        eThree.lookupPublicKeys(listOf(identity))
+        listOf(identity)
+        eThree.findUsers(List)
                 .addCallback(object : OnResultListener<Map<String, VirgilPublicKey>> {
                     override fun onSuccess(result: Map<String, VirgilPublicKey>) {
                         fail("Illegal state")

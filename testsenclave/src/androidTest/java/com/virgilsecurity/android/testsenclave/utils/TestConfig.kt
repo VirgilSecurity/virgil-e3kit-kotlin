@@ -53,7 +53,8 @@ class TestConfig {
         const val VIRGIL_CARDS_SERVICE_PATH = "/card/v5/"
 
         val context = InstrumentationRegistry.getInstrumentation().targetContext
-        val DIRECTORY_PATH = InstrumentationRegistry.getInstrumentation().targetContext.filesDir.absolutePath
+        val DIRECTORY_PATH = InstrumentationRegistry.getInstrumentation()
+                .targetContext.filesDir.absolutePath
         val KEYSTORE_NAME = "virgil.keystore"
     }
 }

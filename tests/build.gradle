@@ -83,19 +83,6 @@ dependencies {
     // Coroutines
     androidTestImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$versions.coroutines"
 
-    // Virgil
-//    androidTestImplementation ("com.virgilsecurity:pythia:$versions.pythia") {
-//        exclude group: 'com.virgilsecurity.crypto'
-//        exclude group: 'com.virgilsecurity.sdk'
-//    }
-//    androidTestImplementation "com.virgilsecurity.crypto:pythia-android:$versions.virgilCrypto"
-//    androidTestImplementation ("com.virgilsecurity.sdk:sdk:$versions.virgilSdk") {
-//        exclude group: 'com.virgilsecurity.crypto'
-//    }
-//    androidTestImplementation "com.virgilsecurity.sdk:crypto-android:$versions.virgilSdk"
-//    androidTestImplementation "com.virgilsecurity.crypto:common-android:$versions.virgilCrypto"
-//    androidTestImplementation "com.virgilsecurity:common:$versions.virgilSdk"
-
     // Tests core
     testImplementation "junit:junit:$versions.junit"
     androidTestImplementation "androidx.test.ext:junit:$versions.testsRunner"
