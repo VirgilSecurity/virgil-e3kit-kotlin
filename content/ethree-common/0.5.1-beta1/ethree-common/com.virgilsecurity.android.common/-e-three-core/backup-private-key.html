@@ -1,0 +1,28 @@
+<HTML>
+<HEAD>
+<meta charset="UTF-8">
+<title>EThreeCore.backupPrivateKey - ethree-common</title>
+<link rel="stylesheet" href="../../../style.css">
+</HEAD>
+<BODY>
+<a href="../../index.html">ethree-common</a>&nbsp;/&nbsp;<a href="../index.html">com.virgilsecurity.android.common</a>&nbsp;/&nbsp;<a href="index.html">EThreeCore</a>&nbsp;/&nbsp;<a href="./backup-private-key.html">backupPrivateKey</a><br/>
+<br/>
+<h1>backupPrivateKey</h1>
+<a name="com.virgilsecurity.android.common.EThreeCore$backupPrivateKey(kotlin.String)"></a>
+<code><span class="keyword">fun </span><span class="identifier">backupPrivateKey</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$backupPrivateKey(kotlin.String)/password">password</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">)</span><span class="symbol">: </span><span class="identifier">Completable</span></code>
+<p>Encrypts the user's private key using the user's <a href="backup-private-key.html#com.virgilsecurity.android.common.EThreeCore$backupPrivateKey(kotlin.String)/password">password</a> and backs up the encrypted
+private key to Virgil's cloud. This enables users to log in from other devices and have
+access to their private key to decrypt data.</p>
+<p>Encrypts loaded from private keys local storage user's <em>Private key</em> using <em>Public key</em>
+that is generated based on provided <a href="backup-private-key.html#com.virgilsecurity.android.common.EThreeCore$backupPrivateKey(kotlin.String)/password">password</a> after that backs up encrypted user's
+<em>Private key</em> to the Virgil's cloud storage.</p>
+<p>Can be called only if private key is on the device otherwise <a href="../../com.virgilsecurity.android.common.exception/-private-key-not-found-exception/index.html">PrivateKeyNotFoundException</a>
+exception will be thrown.</p>
+<p>To start execution of the current function, please see <a href="#">Completable</a> description.</p>
+<h3>Exceptions</h3>
+<p><a name="PrivateKeyNotFoundException"></a>
+<code>PrivateKeyNotFoundException</code> - </p>
+<p><a name="BackupKeyException"></a>
+<code>BackupKeyException</code> - </p>
+</BODY>
+</HTML>

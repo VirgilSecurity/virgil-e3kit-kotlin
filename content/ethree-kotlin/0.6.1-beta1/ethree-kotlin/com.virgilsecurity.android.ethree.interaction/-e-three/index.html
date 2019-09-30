@@ -1,0 +1,60 @@
+<HTML>
+<HEAD>
+<meta charset="UTF-8">
+<title>EThree - ethree-kotlin</title>
+<link rel="stylesheet" href="../../../style.css">
+</HEAD>
+<BODY>
+<a href="../../index.html">ethree-kotlin</a>&nbsp;/&nbsp;<a href="../index.html">com.virgilsecurity.android.ethree.interaction</a>&nbsp;/&nbsp;<a href="./index.html">EThree</a><br/>
+<br/>
+<h1>EThree</h1>
+<code><span class="keyword">class </span><span class="identifier">EThree</span>&nbsp;<span class="symbol">:</span>&nbsp;<span class="identifier">EThreeCore</span></code>
+<p><a href="./index.html">EThree</a> class simplifies work with Virgil Services to easily implement End to End Encrypted
+communication.</p>
+<h3>Constructors</h3>
+<table>
+<tbody>
+<tr>
+<td>
+<p><a href="-init-.html">&lt;init&gt;</a></p>
+</td>
+<td>
+<code><span class="identifier">EThree</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.ethree.interaction.EThree$<init>(kotlin.String, com.virgilsecurity.android.common.callback.OnGetTokenCallback, android.content.Context, com.virgilsecurity.android.common.callback.OnKeyChangedCallback)/identity">identity</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.ethree.interaction.EThree$<init>(kotlin.String, com.virgilsecurity.android.common.callback.OnGetTokenCallback, android.content.Context, com.virgilsecurity.android.common.callback.OnKeyChangedCallback)/tokenCallback">tokenCallback</span><span class="symbol">:</span>&nbsp;<span class="identifier">OnGetTokenCallback</span><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.ethree.interaction.EThree$<init>(kotlin.String, com.virgilsecurity.android.common.callback.OnGetTokenCallback, android.content.Context, com.virgilsecurity.android.common.callback.OnKeyChangedCallback)/context">context</span><span class="symbol">:</span>&nbsp;<span class="identifier">Context</span><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.ethree.interaction.EThree$<init>(kotlin.String, com.virgilsecurity.android.common.callback.OnGetTokenCallback, android.content.Context, com.virgilsecurity.android.common.callback.OnKeyChangedCallback)/keyChangedCallback">keyChangedCallback</span><span class="symbol">:</span>&nbsp;<span class="identifier">OnKeyChangedCallback</span><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">)</span></code>
+<p><a href="./index.html">EThree</a> class simplifies work with Virgil Services to easily implement End to End Encrypted
+communication.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3>Properties</h3>
+<table>
+<tbody>
+<tr>
+<td>
+<p><a href="key-storage.html">keyStorage</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">keyStorage</span><span class="symbol">: </span><span class="identifier">KeyStorage</span></code></td>
+</tr>
+</tbody>
+</table>
+<h3>Companion Object Functions</h3>
+<table>
+<tbody>
+<tr>
+<td>
+<p><a href="initialize.html">initialize</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><s><span class="identifier">initialize</span></s><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.ethree.interaction.EThree.Companion$initialize(android.content.Context, com.virgilsecurity.android.common.callback.OnGetTokenCallback, com.virgilsecurity.android.common.callback.OnKeyChangedCallback)/context">context</span><span class="symbol">:</span>&nbsp;<span class="identifier">Context</span><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.ethree.interaction.EThree.Companion$initialize(android.content.Context, com.virgilsecurity.android.common.callback.OnGetTokenCallback, com.virgilsecurity.android.common.callback.OnKeyChangedCallback)/onGetTokenCallback">onGetTokenCallback</span><span class="symbol">:</span>&nbsp;<span class="identifier">OnGetTokenCallback</span><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.ethree.interaction.EThree.Companion$initialize(android.content.Context, com.virgilsecurity.android.common.callback.OnGetTokenCallback, com.virgilsecurity.android.common.callback.OnKeyChangedCallback)/keyChangedCallback">keyChangedCallback</span><span class="symbol">:</span>&nbsp;<span class="identifier">OnKeyChangedCallback</span><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">)</span><span class="symbol">: </span><span class="identifier">Result</span><span class="symbol">&lt;</span><a href="./index.html"><span class="identifier">EThree</span></a><span class="symbol">&gt;</span></code>
+<p>Current method allows you to initialize EThree helper class. To do this you
+should provide <a href="initialize.html#com.virgilsecurity.android.ethree.interaction.EThree.Companion$initialize(android.content.Context, com.virgilsecurity.android.common.callback.OnGetTokenCallback, com.virgilsecurity.android.common.callback.OnKeyChangedCallback)/onGetTokenCallback">onGetTokenCallback</a> that must return Json Web Token string
+representation with identity of the user which will use this class.
+In <a href="#">onResultListener</a> you will receive instance of <a href="#">EThreeCore</a> class or an <a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-throwable/index.html">Throwable</a>
+if something went wrong.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</BODY>
+</HTML>

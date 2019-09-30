@@ -1,0 +1,38 @@
+<HTML>
+<HEAD>
+<meta charset="UTF-8">
+<title>EThreeCore.createGroup - ethree-common</title>
+<link rel="stylesheet" href="../../../style.css">
+</HEAD>
+<BODY>
+<a href="../../index.html">ethree-common</a>&nbsp;/&nbsp;<a href="../index.html">com.virgilsecurity.android.common</a>&nbsp;/&nbsp;<a href="index.html">EThreeCore</a>&nbsp;/&nbsp;<a href="./create-group.html">createGroup</a><br/>
+<br/>
+<h1>createGroup</h1>
+<a name="com.virgilsecurity.android.common.EThreeCore$createGroup(com.virgilsecurity.common.model.Data, com.virgilsecurity.android.common.model.FindUsersResult)"></a>
+<code><span class="keyword">fun </span><span class="identifier">createGroup</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$createGroup(com.virgilsecurity.common.model.Data, com.virgilsecurity.android.common.model.FindUsersResult)/identifier">identifier</span><span class="symbol">:</span>&nbsp;<span class="identifier">Data</span><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$createGroup(com.virgilsecurity.common.model.Data, com.virgilsecurity.android.common.model.FindUsersResult)/users">users</span><span class="symbol">:</span>&nbsp;<a href="../../com.virgilsecurity.android.common.model/-find-users-result/index.html"><span class="identifier">FindUsersResult</span></a><span class="symbol">)</span><span class="symbol">: </span><span class="identifier">Result</span><span class="symbol">&lt;</span><a href="../../com.virgilsecurity.android.common.model/-group/index.html"><span class="identifier">Group</span></a><span class="symbol">&gt;</span></code>
+<p>Creates group, saves in cloud and locally.</p>
+<p>To start execution of the current function, please see <a href="#">Result</a> description.</p>
+<h3>Parameters</h3>
+<p><a name="identifier"></a>
+<code>identifier</code> - Identifier of group. Should be <em>&gt; 10</em> length.</p>
+<p><a name="users"></a>
+<code>users</code> - Cards of participants. Result of findUsers call.</p>
+<h3>Exceptions</h3>
+<p><a name="InvalidParticipantsCountGroupException"></a>
+<code>InvalidParticipantsCountGroupException</code> - If participants count is out of
+<a href="../../com.virgilsecurity.android.common.model/-group/-v-a-l-i-d_-p-a-r-t-i-c-i-p-a-n-t-s_-c-o-u-n-t_-r-a-n-g-e.html">Group.VALID_PARTICIPANTS_COUNT_RANGE</a> range.</p>
+<p><strong>Return</strong><br/>
+New <a href="../../com.virgilsecurity.android.common.model/-group/index.html">Group</a>.</p>
+<a name="com.virgilsecurity.android.common.EThreeCore$createGroup(kotlin.String, com.virgilsecurity.android.common.model.FindUsersResult)"></a>
+<code><span class="keyword">fun </span><span class="identifier">createGroup</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$createGroup(kotlin.String, com.virgilsecurity.android.common.model.FindUsersResult)/identifier">identifier</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$createGroup(kotlin.String, com.virgilsecurity.android.common.model.FindUsersResult)/users">users</span><span class="symbol">:</span>&nbsp;<a href="../../com.virgilsecurity.android.common.model/-find-users-result/index.html"><span class="identifier">FindUsersResult</span></a><span class="symbol">)</span><span class="symbol">: </span><span class="identifier">Result</span><span class="symbol">&lt;</span><a href="../../com.virgilsecurity.android.common.model/-group/index.html"><span class="identifier">Group</span></a><span class="symbol">&gt;</span></code>
+<p>Creates group, saves in cloud and locally.</p>
+<p>To start execution of the current function, please see <a href="#">Result</a> description.</p>
+<h3>Parameters</h3>
+<p><a name="identifier"></a>
+<code>identifier</code> - Identifier of group. Should be <em>&gt; 10</em> length.</p>
+<p><a name="users"></a>
+<code>users</code> - Cards of participants. Result of findUsers call.</p>
+<p><strong>Return</strong><br/>
+New <a href="../../com.virgilsecurity.android.common.model/-group/index.html">Group</a>.</p>
+</BODY>
+</HTML>
