@@ -442,7 +442,7 @@ constructor(val identity: String,
      *
      * @return [Group] if exists, null otherwise.
      */
-    internal fun getGroup(identifier: String): Group? = groupWorker.getGroup(identifier)
+    fun getGroup(identifier: String): Group? = groupWorker.getGroup(identifier)
 
     /**
      * Loads group from cloud, saves locally.
