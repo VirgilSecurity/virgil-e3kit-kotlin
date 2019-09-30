@@ -1,19 +1,26 @@
-# Virgil E3Kit Android SDK
+# Virgil E3Kit Android
 
 [![Build Status](https://travis-ci.com/VirgilSecurity/virgil-e3kit-kotlin.svg?branch=master)](https://travis-ci.com/VirgilSecurity/virgil-e3kit-kotlin)
 [![GitHub license](https://img.shields.io/badge/license-BSD%203--Clause-blue.svg)](https://github.com/VirgilSecurity/virgil/blob/master/LICENSE)
 
-[Introduction](#introduction) | [SDK Features](#sdk-features) | [Installation](#installation) | [Usage Examples](#usage-examples) | [Samples](#samples) | [License](#license) | [Docs](#docs) | [Support](#support)
+[Introduction](#introduction) | [SDK Features](#features) | [Installation](#installation) | [Usage Examples](#usage-examples) | [Enable Group Chat](#enable-group-chat) | [Samples](#samples) | [License](#license) | [Docs](#docs) | [Support](#support)
 
 ## Introduction
 
-<a href="https://developer.virgilsecurity.com/docs"><img width="230px" src="https://cdn.virgilsecurity.com/assets/images/github/logos/virgil-logo-red.png" align="left" hspace="10" vspace="6"></a> [Virgil Security](https://virgilsecurity.com) provides the E3Kit SDK which simplifies work with Virgil services and presents an easy-to-use API for adding a security layer to any application. E3Kit interacts with Virgil Cards Service, Keyknox Service and Pythia Service.
-Virgil E3kit allows you to setup user encryption with multidevice support in just a few simple steps.
+<a href="https://developer.virgilsecurity.com/docs"><img width="230px" src="https://cdn.virgilsecurity.com/assets/images/github/logos/virgil-logo-red.png" align="left" hspace="10" vspace="6"></a> [Virgil Security](https://virgilsecurity.com) provides the E3Kit framework which simplifies work with Virgil Cloud and presents an easy-to-use API for adding a security layer to any application. In a few simple steps you can add end-to-end encryption with multidevice and group chats support.
 
-## SDK Features
-- multi-device support
-- group chats
-- manage users' Public Keys
+The E3Kit allows developers to get up and running with Virgil API quickly and add full end-to-end security to their existing digital solutions to become HIPAA and GDPR compliant and more.
+
+##  Features
+- Strong end-to-end encryption with authorization
+- One-to-one and group encryption
+- Files and stream encryption
+- Recovery features for secret keys
+- Strong secret keys storage, integration with Keychain
+- Integration with any CPaaS providers like Nexmo, Firebase, Twilio, PubNub, etc.
+- Public keys cache features
+- Access encrypted data from multiple user devices
+- Easy setup and integration into new or existing projects
 
 ## Installation
 
@@ -21,151 +28,244 @@ You can install E3Kit SDK using [Gradle](https://gradle.org/). Please, choose pa
 
 | Package | Description |
 |----------|---------|
-| [`E3Kit`](./ethree-kotlin) | Standard package for Java/Kotlin with methods responses in `callbacks` |
+| [`E3Kit`](./ethree-kotlin) | Standard package for Android API 21+ (Java/Kotlin) |
+| [`E3Kit`](./ethree-enclave) | Package with [Android Keystore](https://developer.android.com/training/articles/keystore) for Android API 23+ |
 
 
 ## Usage Examples
 
-#### Initialize e3kit
-
-In order to interact with the Virgil Cloud, the Virgil e3kit SDK must be provided with a callback that it will call to fetch the Virgil JWT from your backend for the current user.
-
-```kotlin
-lateinit var eThree: EThree
-
-// Listener for E3Kit initialization
-val initializeListener =
-    object : OnResultListener<EThree> {
-        override fun onSuccess(result: EThree) {
-            // Init done!
-            eThree = result
-        }
-
-        override fun onError(throwable: Throwable) {
-            // Error handling
-        }
-    }
-
-// initialize E3Kit
-EThree.initialize(context, virgilTokenCallback).addCallback(initializeListener)
-```
+> Be sure to import `OnCompleteListener` and `OnResultListener` from `com.virgilsecurity.common.callback`.
 
 #### Register user
-
-Use the following lines of code to register a user:
+Use the following lines of code to authenticate user.
 
 ```kotlin
-// TODO: Initialize e3kit
+// initialize E3Kit
+val ethree = EThree(identity = "Bob", tokenCallback = tokenCallback, context = context)
 
-val registerListener =
-    object : OnCompleteListener {
-        override fun onSuccess() {
-            // User private key loaded, ready for end-to-end encrypt!
-        }
-
-        override fun onError(throwable: Throwable) {
-            // Error handling
-        }
+ethree.register().addCallback(object : OnCompleteListener {
+    override fun onSuccess() {
+        // Done
     }
 
-eThree.register().addCallback(registerListener)
-```
-This function generates PrivateKey/PublicKey keypair, saves PrivateKey locally on device and publishes PublicKey to Virgil Cards Service.
-
-#### Sign and encrypt data/text
-
-This method signs the data/text with the sender's private key and encrypts the message for recipients' public key(s).
-
-```kotlin
-// TODO: Initialize e3kit, Register e3kit user          
-
-val lookupKeysListener =
-    object : OnResultListener<LookupResult> {
-        override fun onSuccess(result: LookupResult) {
-            val text = "I was text but become byte array"
-            val data = text.toByteArray()
-
-            // Encrypt data using user public keys
-            val encryptedData = eThree.encrypt(data, result)
-
-            // Encrypt message using user public keys
-            val encryptedText = eThree.encrypt(text, result)
-        }
-
-        override fun onError(throwable: Throwable) {
-            // Error handling
-        }
+    override fun onError(throwable: Throwable) {
+        // Error handling
     }
-
-// Lookup destination user public keys
-eThree.lookupPublicKeys(listOf("userUID1", "userUID2", "userUID3")).addCallback(lookupKeysListener)
+})
 ```
 
-#### Decrypt data/text and verify signature
+#### Encrypt & decrypt
 
-This method decrypts the data using the recipient's private key and verifies authenticity of the decrypted data with sender's public key.
+Virgil E3Kit lets you use a user's Private key and his or her Card to sign, then encrypt text.
 
 ```kotlin
-// TODO: Initialize e3kit, Register e3kit user 
+// TODO: init and register user (see Register User)
 
-val lookupKeysListener =
-    object : OnResultListener<LookupResult> {
-        override fun onSuccess(result: LookupResult) {
-            // Decrypt data and verify if it was really written by Bob
-            val decryptedData = eThree.decrypt(encryptedData, result["bobUID"])
+// prepare a message
+val messageToEncrypt = "Hello, Alice and Den!"
 
-            // Decrypt text and verify if it was really written by Bob
-            val decryptedText = eThree.decrypt(encryptedText, result["bobUID"])
-        }
-
-        override fun onError(throwable: Throwable) {
-            // Error handling
-        }
-    }
-
-// Lookup chat room member key
-eThree.lookupPublicKeys("bobUID").addCallback(lookupKeysListener)
-```
-
-#### Encrypt & decrypt large files
-
-If the data that needs to be encrypted is too large for your RAM to encrypt all at once, use the following snippets to encrypt and decrypt streams.
-> Stream encryption doesn’t sign the data. This is why stream decryption doesn’t require VirgilPublicKey for verification unlike the general data decryption.
-
-Encryption:
-```kotlin
-// TODO: initialize and register user (see EThree.initialize and EThree#register)
-
-// Listener for keys lookup
-val lookupKeysListener =
-        object : OnResultListener<LookupResult> {
-            override fun onSuccess(result: LookupResult) {
-                val assetManager = context.assets
-
-                assetManager.open("some_file.txt").use { inputStream ->
-                    ByteArrayOutputStream().use { outputStream ->
-                        // Encrypt input stream using user public keys and writes output to the output stream
-                        eThree.encrypt(inputStream, outputStream, result)
-                    }
-                }
+// Search user's Cards to encrypt for
+ethree.findUsers(listOf("Alice, Den"))
+        .addCallback(object : OnResultListener<FindUsersResult> {
+            override fun onSuccess(result: FindUsersResult) {
+                // encrypt text
+                val encryptedMessage = ethree.encrypt(messageToEncrypt, result)
             }
 
             override fun onError(throwable: Throwable) {
                 // Error handling
             }
-        }
+        })
+```
 
-// Lookup destination user public keys
-eThree.lookupPublicKeys(listOf("userUID1", "userUID2", "userUID3")).addCallback(lookupKeysListener)
+Decrypt and verify the signed & encrypted data using sender's public key and receiver's private key:
+
+```kotlin
+// TODO: init and register user (see Register User)
+
+// Find user
+ethree.findUsers(listOf("bobUID"))
+        .addCallback(object : OnResultListener<FindUsersResult> {
+    override fun onSuccess(result: FindUsersResult) {
+        // Decrypt text and verify if it was really written by Bob
+        val originText = ethree.decrypt(encryptedText, result["bobUID"])
+    }
+
+    override fun onError(throwable: Throwable) {
+        // Error handling
+    }
+})
+```
+
+#### Encrypt & decrypt large files
+
+If the data that needs to be encrypted is too large for your RAM to encrypt all at once, use the following snippets to encrypt and decrypt streams.
+
+Encryption:
+```kotlin
+// TODO: init and register user (see Register User)
+// TODO: Get users UIDs
+
+val usersToEncryptTo = listOf(user1UID, user2UID, user3UID)
+
+// Find users
+ethree.findUsers(usersToEncryptTo)
+        .addCallback(object : OnResultListener<FindUsersResult> {
+    override fun onSuccess(result: FindUsersResult) {
+        val assetManager = context.assets
+
+        assetManager.open("some_file.txt").use { inputStream ->
+            ByteArrayOutputStream().use { outputStream ->
+                ethree.encrypt(inputStream, outputStream, result)
+            }
+        }
+    }
+
+    override fun onError(throwable: Throwable) {
+        // Error handling
+    }
+})
 ```
 
 Decryption:
+> Stream encryption doesn’t sign the data. This is why decryption doesn’t need Card for verification unlike the general data decryption.
 ```kotlin
-// TODO: init SDK and register users - see EThree.initialize and EThree#register
+// TODO: init and register user (see Register User)
+
 ByteArrayOutputStream().use { outputStream ->
-    // Decrypt encrypted input stream and writes output to the output stream
     eThree.decrypt(encryptedStream, outputStream)
 }
+```
+
+## Enable Group Chat
+
+E3Kit also provides you with tools for easy group chats creating and management. In this section we assume that your users have installed and initialized the E3Kit, and are already registered at Virgil Cloud.
+
+### Create Group Chat
+
+Let's imagine Alice wants to start a group chat with Bob and Carol. First, Alice creates a new group ticket by running the `createGroup` feature and the E3Kit stores the ticket on the Virgil Cloud. This ticket holds a shared root key for future group encryption.
+
+Alice has to specify a unique `identifier` of group with length > 10 and `findUsersResult` of participants. We recommend tying this identifier to your unique transport channel id.
+```kotlin 
+ethree.createGroup(groupId, users).addCallback(object : OnResultListener<Group> {
+    override fun onSuccess(result: Group) {
+        // Group created and saved locally!
+    }
+
+    override fun onError(throwable: Throwable) {
+        // Error handling
+    }
+})
+```
+
+### Start Group Chat Session
+
+Now, other participants, Bob and Carol, want to join the Alice's group and have to start the group session using the `loadGroup` method that loads and saves the group ticket locally. This function requires specifying the group `identifier` and group initiator's Card.
+
+```kotlin
+ethree.loadGroup(groupId, users["Alice"]!!).addCallback(object : OnResultListener<Group> {
+    override fun onSuccess(result: Group) {
+        // Group loaded and saved locally!
+    }
+
+    override fun onError(throwable: Throwable) {
+        // Error handling
+    }
+})
+```
+
+Then, you can use the `getGroup` method to retrieve group instance from local storage.
+
+```kotlin
+val group = ethree.getGroup(groupId)
+```
+
+### Encrypt and Decrypt Messages
+
+To encrypt and decrypt messages, use the `encrypt` and `decrypt` E3Kit functions, which allows you to work with data and strings.
+
+Use the following code snippets to encrypt messages:
+
+```kotlin
+// prepare a message
+val messageToEncrypt = "Hello, Bob and Carol!"
+
+val encrypted = group.encrypt(messageToEncrypt)
+```
+
+Use the following code snippets to decrypt messages:
+
+```kotlin
+val decrypted = group.decrypt(encrypted, findUsersResult["Alice"]!!)
+```
+At the decrypt step, you should also use `findUsers` method to verify that the message hasn't been tempered with.
+
+### Manage Group Chat
+
+E3Kit also allows you to perform other operations, like participants management, while you work with group chat. In current version of E3Kit only the group initiator can change participants or delete group.
+
+#### Add new participant
+
+To add a new chat member, the chat owner needs to use the `add` method and specify the new member's Card. New member will be able to decrypt all previous messages history.
+
+```kotlin
+group.add(users["Den"]!!).addCallback(object : OnCompleteListener {
+    override fun onSuccess() {
+        // Den was added!
+    }
+
+    override fun onError(throwable: Throwable) {
+        // Error handling
+    }
+})
+```
+
+#### Remove participant
+
+To remove a participant, group owner needs to use the `remove` method and specify the member's Card. Removed participants won't be able to load or update this group:
+
+```kotlin
+group.remove(users["Den"]!!).addCallback(object : OnCompleteListener {
+    override fun onSuccess() {
+        // Den was removed!
+    }
+
+    override fun onError(throwable: Throwable) {
+        // Error handling
+    }
+})
+```
+
+#### Update group chat
+
+In case of changes in your group, i.e. adding a new participant, or deleting an existing one, each group chat participant has to update the encryption key by calling the `update` E3Kit method or reloading Group by `loadGroup`:
+
+```kotlin
+group.update().addCallback(object : OnCompleteListener {
+    override fun onSuccess() {
+        // Group updated!
+    }
+
+    override fun onError(throwable: Throwable) {
+        // Error handling
+    }
+})
+```
+
+#### Delete group chat
+
+To delete a group, the owner needs to use the `deleteGroup` method and specify the group `identifier`:
+
+```kotlin
+ethree.deleteGroup(groupId).addCallback(object : OnCompleteListener {
+    override fun onSuccess() {
+        // Group was deleted!
+    }
+
+    override fun onError(throwable: Throwable) {
+        // Error handling
+    }
+})
 ```
 
 ## Samples

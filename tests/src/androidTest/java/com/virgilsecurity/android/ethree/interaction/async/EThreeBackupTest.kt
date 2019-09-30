@@ -33,17 +33,19 @@
 
 package com.virgilsecurity.android.ethree.interaction.async
 
-import com.virgilsecurity.android.common.exceptions.BackupKeyException
-import com.virgilsecurity.android.common.exceptions.PrivateKeyNotFoundException
-import com.virgilsecurity.android.common.exceptions.RestoreKeyException
-import com.virgilsecurity.android.common.exceptions.WrongPasswordException
-import com.virgilsecurity.android.common.callback.OnCompleteListener
+import android.util.Log
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
-import com.virgilsecurity.android.common.callback.OnResultListener
+import com.virgilsecurity.android.common.exception.BackupKeyException
+import com.virgilsecurity.android.common.exception.PrivateKeyNotFoundException
+import com.virgilsecurity.android.common.exception.RestoreKeyException
+import com.virgilsecurity.android.common.exception.WrongPasswordException
 import com.virgilsecurity.android.ethree.interaction.EThree
 import com.virgilsecurity.android.ethree.utils.TestConfig
 import com.virgilsecurity.android.ethree.utils.TestConfig.Companion.virgilBaseUrl
 import com.virgilsecurity.android.ethree.utils.TestUtils
+import com.virgilsecurity.common.callback.OnCompleteListener
+import com.virgilsecurity.common.callback.OnResultListener
 import com.virgilsecurity.keyknox.KeyknoxManager
 import com.virgilsecurity.keyknox.client.KeyknoxClient
 import com.virgilsecurity.keyknox.cloud.CloudKeyStorage
@@ -62,6 +64,7 @@ import com.virgilsecurity.sdk.storage.KeyStorage
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 import java.net.URL
 import java.util.*
 import java.util.concurrent.CountDownLatch
@@ -74,6 +77,7 @@ import java.util.concurrent.TimeUnit
  * 10/9/18
  * at Virgil Security
  */
+@RunWith(AndroidJUnit4::class)
 class EThreeBackupTest {
 
     private lateinit var jwtGenerator: JwtGenerator
@@ -160,18 +164,18 @@ class EThreeBackupTest {
                 .build()
         val keyPair = BrainKey(brainKeyContext).generateKeyPair(passwordBrainKey)
 
-        val syncKeyStorage =
-                SyncKeyStorage(
-                    identity, keyStorage, CloudKeyStorage(
-                        KeyknoxManager(
-                            tokenProvider,
-                            KeyknoxClient(URL(virgilBaseUrl)),
-                            listOf(keyPair.publicKey),
-                            keyPair.privateKey,
-                            KeyknoxCrypto()
-                        )
-                    )
-                )
+        val syncKeyStorage = SyncKeyStorage(
+            identity,
+            keyStorage,
+            CloudKeyStorage(
+                KeyknoxManager(
+                    KeyknoxClient(tokenProvider, URL(virgilBaseUrl)),
+                    KeyknoxCrypto()
+                ),
+                listOf(keyPair.publicKey),
+                keyPair.privateKey
+            )
+        )
 
         syncKeyStorage.sync()
 
@@ -311,6 +315,7 @@ class EThreeBackupTest {
             }
 
             override fun onError(throwable: Throwable) {
+                Log.d(TAG, "Exception type is: " + throwable.javaClass.canonicalName)
                 if (throwable is RestoreKeyException)
                     failedToRestore = true
 
@@ -558,6 +563,7 @@ class EThreeBackupTest {
     }
 
     companion object {
+        const val TAG = "EThreeBackupTest"
         const val WRONG_PASSWORD = "WRONG_PASSWORD"
     }
 }

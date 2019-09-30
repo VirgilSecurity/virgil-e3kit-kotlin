@@ -42,14 +42,23 @@ def API_PUBLIC_KEY_ID = hasProperty('API_PUBLIC_KEY_ID') ? API_PUBLIC_KEY_ID : S
 def VIRGIL_BASE_URL = hasProperty('VIRGIL_BASE_URL') ? VIRGIL_BASE_URL : System.getenv('VIRGIL_BASE_URL')
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion androidOptions.compileSdkVersion
     defaultConfig {
         applicationId "com.virgilsecurity.android.ethree"
-        minSdkVersion 21
-        targetSdkVersion 28
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        minSdkVersion androidOptions.minSdkVersionRegular
+        targetSdkVersion androidOptions.targetSdkVersion
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        multiDexEnabled true
     }
     buildTypes {
+        debug {
+            minifyEnabled false
+            useProguard false
+        }
+        release {
+            minifyEnabled false
+            useProguard false
+        }
         buildTypes.each {
             it.buildConfigField "String", "APP_ID", "$APP_ID"
             it.buildConfigField "String", "API_PRIVATE_KEY", "$API_PRIVATE_KEY"
@@ -57,6 +66,9 @@ android {
             it.buildConfigField "String", "API_PUBLIC_KEY_ID", "$API_PUBLIC_KEY_ID"
             it.buildConfigField "String", "VIRGIL_BASE_URL", "$VIRGIL_BASE_URL"
         }
+    }
+    lintOptions {
+        abortOnError false
     }
 }
 
@@ -66,26 +78,19 @@ dependencies {
 
     // Kotlin
     androidTestImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$versions.kotlin"
-    implementation 'com.android.support:appcompat-v7:28.0.0'
+    implementation "com.android.support:appcompat-v7:$versions.appCompat"
 
     // Coroutines
     androidTestImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$versions.coroutines"
 
-    // Virgil
-    androidTestImplementation("com.virgilsecurity:pythia:$versions.pythia") {
-        exclude group: 'com.virgilsecurity.sdk', module: 'crypto'
-        exclude group: 'com.virgilsecurity.crypto', module: 'common'
-        exclude group: 'com.virgilsecurity.crypto', module: 'foundation'
-        exclude group: 'com.virgilsecurity.crypto', module: 'pythia'
-    }
-    androidTestImplementation "com.virgilsecurity.crypto:pythia-android:$versions.virgilCrypto"
-    androidTestImplementation("com.virgilsecurity:keyknox:$versions.keyknox") {
-        exclude group: 'com.virgilsecurity.sdk', module: 'crypto'
-        exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
-    }
-
     // Tests core
     testImplementation "junit:junit:$versions.junit"
-    androidTestImplementation "com.android.support.test:runner:$versions.testsRunner"
-    androidTestImplementation "com.android.support.test.espresso:espresso-core:$versions.espresso"
+    androidTestImplementation "androidx.test.ext:junit:$versions.testsRunner"
+    androidTestImplementation "androidx.test:runner:$versions.testsRunner"
+//    androidTestImplementation "androidx.test:rules:$versions.testsRunner"
+
+    // Room
+    implementation "androidx.room:room-runtime:$versions.room"
+    implementation "androidx.room:room-ktx:$versions.room"
+    testImplementation "androidx.room:room-testing:$versions.room"
 }

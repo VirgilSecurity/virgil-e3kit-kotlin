@@ -31,22 +31,20 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.common.callback
+package com.virgilsecurity.android.common.model
+
+import com.virgilsecurity.sdk.cards.Card
 
 /**
- * Interface that is intended to signal if some asynchronous process is completed successfully
- * or not.
+ * FindUsersResult is used for the result of findUsers call.
  */
-interface OnCompleteListener {
+class FindUsersResult : HashMap<String, Card> {
 
-    /**
-     * This method will be called if asynchronous process is completed successfully.
-     */
-    fun onSuccess()
+    constructor(initialCapacity: Int, loadFactor: Float) : super(initialCapacity, loadFactor)
 
-    /**
-     * This method will be called if asynchronous process is failed and provide [throwable]
-     * cause.
-     */
-    fun onError(throwable: Throwable)
+    constructor(initialCapacity: Int) : super(initialCapacity)
+
+    constructor() : super()
+
+    constructor(map: Map<out String, Card>) : super(map)
 }

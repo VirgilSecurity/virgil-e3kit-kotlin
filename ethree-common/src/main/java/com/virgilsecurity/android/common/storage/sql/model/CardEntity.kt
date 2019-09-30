@@ -7,7 +7,7 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *
+ *  
  *     (1) Redistributions of source code must retain the above copyright notice, this
  *     list of conditions and the following disclaimer.
  *
@@ -31,44 +31,20 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.common.model
+package com.virgilsecurity.android.common.storage.sql.model
 
-import com.virgilsecurity.android.common.callback.OnCompleteListener
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import androidx.annotation.NonNull
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.Index
+import androidx.room.PrimaryKey
 
-/**
- * Completable's class intent is to give possibility to call a completable operation that got only Success or Error
- * without actual result *synchronously* or *asynchronously*.
- */
-interface Completable {
-
-    /**
-     * Call this method to complete operation *synchronously*.
-     */
-    fun execute()
-
-    /**
-     * Call this method to complete operation *asynchronously*. You'll get the completion status in the
-     * [onCompleteListener]. Provided [scope] will be used to execute operation.
-     */
-    fun addCallback(onCompleteListener: OnCompleteListener, scope: CoroutineScope = GlobalScope) {
-        scope.launch {
-            try {
-                execute()
-                onCompleteListener.onSuccess()
-            } catch (throwable: Throwable) {
-                onCompleteListener.onError(throwable)
-            }
-        }
-    }
-
-    /**
-     * Call this method to complete operation *asynchronously*. You'll get the completion status in the
-     * [onCompleteListener].
-     */
-    fun addCallback(onCompleteListener: OnCompleteListener) =
-            addCallback(onCompleteListener, GlobalScope)
-
-}
+@Entity(tableName = "ethree_cards",
+        indices = [Index(value = ["id"], unique = true), Index(value = ["identity"],
+                                                               unique = false)])
+internal data class CardEntity(
+        @PrimaryKey @ColumnInfo(name = "id") val identifier: String,
+        @ColumnInfo(name = "identity") @NonNull val identity: String,
+        @ColumnInfo(name = "is_outdated") @NonNull val isOutdated: Boolean,
+        @ColumnInfo(name = "card") @NonNull val card: String
+)

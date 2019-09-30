@@ -31,5 +31,4 @@
   ~ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   -->
 
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.virgilsecurity.android.ethreeenclave" />
+<manifest package="com.virgilsecurity.android.ethreeenclave" />

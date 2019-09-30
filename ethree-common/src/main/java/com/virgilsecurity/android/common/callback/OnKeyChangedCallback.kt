@@ -31,43 +31,17 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.common.model
-
-import com.virgilsecurity.android.common.callback.OnResultListener
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+package com.virgilsecurity.android.common.callback
 
 /**
- * Result's class intent is to give possibility to call an operation that returns result in Success or Error in case of
- * error *synchronously* or *asynchronously*.
+ * OnKeyChangedCallback can be used to track users keys rotations.
  */
-interface Result<T> {
+interface OnKeyChangedCallback {
 
     /**
-     * Call this method to get result *synchronously*.
+     * This function is called when some local card became outdated
+     *
+     * @param identity Identity, which key was changed.
      */
-    fun get(): T
-
-    /**
-     * Call this method to get result *asynchronously*. You'll get the result of an operation in the
-     * [onResultListener]. Provided [scope] will be used to execute operation.
-     */
-    fun addCallback(onResultListener: OnResultListener<T>, scope: CoroutineScope = GlobalScope) {
-        scope.launch {
-            try {
-                val result = get()
-                onResultListener.onSuccess(result)
-            } catch (throwable: Throwable) {
-                onResultListener.onError(throwable)
-            }
-        }
-    }
-
-    /**
-     * Call this method to get result *asynchronously*. You'll get the result of an operation in the
-     * [onResultListener].
-     */
-    fun addCallback(onResultListener: OnResultListener<T>) =
-            addCallback(onResultListener, GlobalScope)
+    fun keyChanged(identity: String)
 }

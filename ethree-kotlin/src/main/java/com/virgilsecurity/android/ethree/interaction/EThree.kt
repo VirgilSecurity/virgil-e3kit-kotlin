@@ -34,30 +34,33 @@
 package com.virgilsecurity.android.ethree.interaction
 
 import android.content.Context
-import com.virgilsecurity.android.common.Const.NO_CONTEXT
+import com.virgilsecurity.android.common.EThreeCore
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
-import com.virgilsecurity.android.common.interaction.EThreeCore
-import com.virgilsecurity.android.common.interaction.KeyManagerLocal
-import com.virgilsecurity.android.common.model.Result
+import com.virgilsecurity.android.common.callback.OnKeyChangedCallback
+import com.virgilsecurity.android.common.util.Const.NO_CONTEXT
+import com.virgilsecurity.common.model.Result
 import com.virgilsecurity.sdk.jwt.Jwt
 import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
-import com.virgilsecurity.sdk.jwt.contract.AccessTokenProvider
+import com.virgilsecurity.sdk.storage.DefaultKeyStorage
+import com.virgilsecurity.sdk.storage.KeyStorage
 
 /**
  * [EThree] class simplifies work with Virgil Services to easily implement End to End Encrypted
  * communication.
  */
-class EThree
-private constructor(
+class EThree(
+        identity: String,
+        tokenCallback: OnGetTokenCallback,
         context: Context,
-        tokenProvider: AccessTokenProvider
-) : EThreeCore(tokenProvider) {
+        keyChangedCallback: OnKeyChangedCallback? = null
+) : EThreeCore(identity, tokenCallback, keyChangedCallback, context) {
 
-    override val keyManagerLocal: KeyManagerLocal
+    override val keyStorage: KeyStorage
 
     init {
-        keyManagerLocal =
-                KeyManagerLocalDefault(tokenProvider.getToken(NO_CONTEXT).identity, context)
+        keyStorage = DefaultKeyStorage(context.filesDir.absolutePath, KEYSTORE_NAME)
+
+        initializeCore()
     }
 
     companion object {
@@ -70,19 +73,32 @@ private constructor(
          *
          * To start execution of the current function, please see [Result] description.
          */
-        @JvmStatic fun initialize(context: Context,
-                                  onGetTokenCallback: OnGetTokenCallback) = object : Result<EThree> {
-            override fun get(): EThree {
-                val tokenProvider = CachingJwtProvider(CachingJwtProvider.RenewJwtCallback {
-                    Jwt(onGetTokenCallback.onGetToken())
-                })
+        @JvmStatic
+        @JvmOverloads
+        @Deprecated("Use constructor instead")
+        fun initialize(context: Context,
+                       onGetTokenCallback: OnGetTokenCallback,
+                       keyChangedCallback: OnKeyChangedCallback? = null) =
+                object : Result<EThree> {
+                    override fun get(): EThree {
+                        val tokenProvider = CachingJwtProvider(CachingJwtProvider.RenewJwtCallback {
+                            Jwt(onGetTokenCallback.onGetToken())
+                        })
 
-                // Just check whether we can get token, otherwise there's no reasons to
-                // initialize EThree. We have caching JWT provider, so sequential calls
-                // won't take much time, as token will be cached after first call.
-                tokenProvider.getToken(NO_CONTEXT)
-                return EThree(context, tokenProvider)
-            }
-        }
+                        // Just check whether we can get token, otherwise there's no reasons to
+                        // initialize EThree. We have caching JWT provider, so sequential calls
+                        // won't take much time, as token will be cached after first call.
+                        val token = tokenProvider.getToken(NO_CONTEXT)
+                        val ethree = EThree(token.identity,
+                                            onGetTokenCallback,
+                                            context,
+                                            keyChangedCallback)
+                        ethree.initializeCore()
+
+                        return ethree
+                    }
+                }
+
+        private const val KEYSTORE_NAME = "virgil.keystore"
     }
 }

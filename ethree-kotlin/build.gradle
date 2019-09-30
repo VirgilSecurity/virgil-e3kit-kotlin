@@ -44,36 +44,32 @@ apply plugin: 'digital.wup.android-maven-publish'
 apply plugin: 'org.jetbrains.dokka'
 
 android {
-    compileSdkVersion 28
-    buildToolsVersion "28.0.3"
+    compileSdkVersion androidOptions.compileSdkVersion
+    buildToolsVersion androidOptions.buildToolsVersion
 
     defaultConfig {
-        minSdkVersion 21
-        targetSdkVersion 28
+        minSdkVersion androidOptions.minSdkVersionRegular
+        targetSdkVersion androidOptions.targetSdkVersion
         consumerProguardFiles 'proguard-rules.txt'
+    }
+    buildTypes {
+        debug {
+            minifyEnabled false
+            useProguard false
+        }
+        release {
+            minifyEnabled false
+            useProguard false
+        }
     }
 }
 
 group 'com.virgilsecurity'
-version '0.5.1'
+version '0.6.1-beta1'
 
 dependencies {
     // Inner dependencies
     api project(':ethree-common')
-
-    // Virgil
-    api "com.virgilsecurity.sdk:crypto-android:$versions.virgilSdk"
-    implementation("com.virgilsecurity:pythia:$versions.pythia") {
-        exclude group: 'com.virgilsecurity.sdk', module: 'crypto'
-        exclude group: 'com.virgilsecurity.crypto', module: 'common'
-        exclude group: 'com.virgilsecurity.crypto', module: 'foundation'
-        exclude group: 'com.virgilsecurity.crypto', module: 'pythia'
-    }
-    implementation "com.virgilsecurity.crypto:pythia-android:$versions.virgilCrypto"
-    implementation("com.virgilsecurity:keyknox:$versions.keyknox") {
-        exclude group: 'com.virgilsecurity.sdk', module: 'crypto'
-        exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
-    }
 
     // Kotlin
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$versions.kotlin"
@@ -81,30 +77,6 @@ dependencies {
 
     // Android
     compileOnly "com.google.android:android:$versions.android"
-}
-
-task generateVersionVirgilAgent {
-    outputs.dir "$buildDir/generated"
-    doFirst {
-        def versionFile = file("$buildDir/generated/release/com/virgilsecurity/android/ethree/build/VersionVirgilAgent.kt")
-        versionFile.parentFile.mkdirs()
-        versionFile.text =
-                """
-package com.virgilsecurity.android.ethree.build;
-
-object VersionVirgilAgent {
-    const val VERSION = "$project.version"
-}
-"""
-    }
-}
-
-
-
-project.android.sourceSets.main.java.srcDirs = ["${buildDir}/generated/release/", "src/main/java"]
-
-tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
-    dependsOn(generateVersionVirgilAgent)
 }
 
 sourceCompatibility = "8"

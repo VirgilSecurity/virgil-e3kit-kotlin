@@ -31,33 +31,42 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.ethreeenclave.interaction
+package com.virgilsecurity.android.common.storage.local
 
-import android.content.Context
-import com.virgilsecurity.android.common.interaction.KeyManagerLocal
-import com.virgilsecurity.sdk.androidutils.storage.AndroidKeyStorage
+import com.virgilsecurity.android.common.exception.PrivateKeyNotFoundException
+import com.virgilsecurity.common.model.Data
+import com.virgilsecurity.sdk.crypto.VirgilCrypto
+import com.virgilsecurity.sdk.crypto.VirgilKeyPair
+import com.virgilsecurity.sdk.crypto.exceptions.KeyEntryNotFoundException
 import com.virgilsecurity.sdk.storage.JsonKeyEntry
-import com.virgilsecurity.sdk.storage.KeyEntry
 import com.virgilsecurity.sdk.storage.KeyStorage
-import java.time.Duration
 
 /**
- * KeyManagerLocalEnclave
+ * Local KeyStorage.
  */
-class KeyManagerLocalEnclave(
-        private val keyStorage: AndroidKeyStorage,
-        private val identity: String
-) : KeyManagerLocal {
+class LocalKeyStorage internal constructor(
+        internal val identity: String,
+        private val keyStorage: KeyStorage,
+        private val crypto: VirgilCrypto
+) {
 
-    override fun exists() = keyStorage.exists(identity)
+    internal fun exists() = keyStorage.exists(identity)
 
-    override fun store(privateKey: ByteArray) = keyStorage.store(JsonKeyEntry(identity, privateKey))
+    internal fun store(privateKeyData: Data) =
+            keyStorage.store(JsonKeyEntry(identity, privateKeyData.data))
 
-    override fun load(): KeyEntry = keyStorage.load(identity)
+    internal fun load(): VirgilKeyPair = try {
+        val privateKeyData = keyStorage.load(identity)
+        crypto.importPrivateKey(privateKeyData.value)
+    } catch (e: KeyEntryNotFoundException) {
+        throw PrivateKeyNotFoundException("No private key on device. You should call register() " +
+                                          "or retrievePrivateKey()")
+    }
 
-    override fun delete() = keyStorage.delete(identity)
-
-    companion object {
-        private const val KEYSTORE_NAME = "virgil_android_keystore"
+    internal fun delete() = try {
+        keyStorage.delete(identity)
+    } catch (exception: KeyEntryNotFoundException) {
+        throw PrivateKeyNotFoundException("No private key on device. You should call register() " +
+                                          "or retrievePrivateKey()")
     }
 }

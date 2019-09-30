@@ -7,7 +7,7 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- *
+ *  
  *     (1) Redistributions of source code must retain the above copyright notice, this
  *     list of conditions and the following disclaimer.
  *
@@ -31,23 +31,14 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.common.callback
+package com.virgilsecurity.android.common.storage.sql
 
-/**
- * Interface that is intended to return *<T>* type result if some asynchronous process is
- * completed successfully, otherwise error will be returned.
- */
-interface OnResultListener<T> {
+import androidx.room.Database
+import androidx.room.RoomDatabase
+import com.virgilsecurity.android.common.storage.sql.dao.CardDao
+import com.virgilsecurity.android.common.storage.sql.model.CardEntity
 
-    /**
-     * This method will be called if asynchronous process is completed successfully and
-     * provide *<T>* type [result].
-     */
-    fun onSuccess(result: T)
-
-    /**
-     * This method will be called if asynchronous process is failed and provide [throwable]
-     * cause.
-     */
-    fun onError(throwable: Throwable)
+@Database(entities = arrayOf(CardEntity::class), version = 1)
+internal abstract class ETheeDatabase : RoomDatabase() {
+    abstract fun cardDao(): CardDao
 }

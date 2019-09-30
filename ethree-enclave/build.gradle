@@ -33,36 +33,46 @@
 
 plugins {
     id 'signing'
+    id 'maven-publish'
 }
 
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
-apply plugin: 'maven-publish'
 apply plugin: 'digital.wup.android-maven-publish'
 apply plugin: 'org.jetbrains.dokka'
 
 android {
-    compileSdkVersion 28
-    buildToolsVersion "28.0.3"
+    compileSdkVersion androidOptions.compileSdkVersion
+    buildToolsVersion androidOptions.buildToolsVersion
 
     defaultConfig {
-        minSdkVersion 23
-        targetSdkVersion 28
+        minSdkVersion androidOptions.minSdkVersionEnclave
+        targetSdkVersion androidOptions.targetSdkVersion
         consumerProguardFiles 'proguard-rules.txt'
+    }
+    buildTypes {
+        debug {
+            minifyEnabled false
+            useProguard false
+        }
+        release {
+            minifyEnabled false
+            useProguard false
+        }
     }
 }
 
 group 'com.virgilsecurity'
-version '0.5.0'
+version '0.6.1-beta1'
 
 dependencies {
     // Inner dependencies
     api project(':ethree-common')
 
     // Virgil
-    api "com.virgilsecurity.sdk:android-utils:6.0.1-SNAPSHOT"
+    implementation "com.virgilsecurity.sdk:android-utils:$versions.virgilSdk"
 
     // Kotlin
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$versions.kotlin"
@@ -70,28 +80,6 @@ dependencies {
 
     // Android
     compileOnly "com.google.android:android:$versions.android"
-}
-
-task generateVersionVirgilAgent {
-    outputs.dir "$buildDir/generated"
-    doFirst {
-        def versionFile = file("$buildDir/generated/release/com/virgilsecurity/android/ethreeenclave/build/VersionVirgilAgent.kt")
-        versionFile.parentFile.mkdirs()
-        versionFile.text =
-                """
-package com.virgilsecurity.android.ethreeenclave.build;
-
-object VersionVirgilAgent {
-    const val VERSION = "$project.version"
-}
-"""
-    }
-}
-
-project.android.sourceSets.main.java.srcDirs = ["${buildDir}/generated/release/", "src/main/java"]
-
-tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
-    dependsOn(generateVersionVirgilAgent)
 }
 
 sourceCompatibility = "8"

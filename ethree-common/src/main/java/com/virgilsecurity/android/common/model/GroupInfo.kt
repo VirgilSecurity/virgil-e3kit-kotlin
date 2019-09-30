@@ -31,32 +31,23 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.ethree.interaction
+package com.virgilsecurity.android.common.model
 
-import android.content.Context
-import com.virgilsecurity.android.common.interaction.KeyManagerLocal
-import com.virgilsecurity.sdk.storage.DefaultKeyStorage
-import com.virgilsecurity.sdk.storage.JsonKeyEntry
-import com.virgilsecurity.sdk.storage.KeyEntry
-import com.virgilsecurity.sdk.storage.KeyStorage
+import com.virgilsecurity.common.model.Data
+import com.virgilsecurity.common.util.SerializeUtils
 
 /**
- * KeyManagerLocalDefault
+ * GroupInfo
  */
-class KeyManagerLocalDefault(val identity: String, context: Context) : KeyManagerLocal {
+internal class GroupInfo(internal val initiator: String) {
 
-    private val keyStorage: KeyStorage = DefaultKeyStorage(context.filesDir.absolutePath,
-                                                           KEYSTORE_NAME)
-
-    override fun exists() = keyStorage.exists(identity)
-
-    override fun store(privateKey: ByteArray) = keyStorage.store(JsonKeyEntry(identity, privateKey))
-
-    override fun load(): KeyEntry = keyStorage.load(identity)
-
-    override fun delete() = keyStorage.delete(identity)
+    internal fun serialize(): Data {
+        return SerializeUtils.serialize(this)
+    }
 
     companion object {
-        private const val KEYSTORE_NAME = "virgil.keystore"
+        internal fun deserialize(data: Data): GroupInfo {
+            return SerializeUtils.deserialize(data, GroupInfo::class.java)
+        }
     }
 }

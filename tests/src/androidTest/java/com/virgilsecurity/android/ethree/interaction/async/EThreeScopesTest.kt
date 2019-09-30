@@ -33,12 +33,13 @@
 
 package com.virgilsecurity.android.ethree.interaction.async
 
-import com.virgilsecurity.android.common.callback.OnCompleteListener
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
-import com.virgilsecurity.android.common.callback.OnResultListener
 import com.virgilsecurity.android.ethree.interaction.EThree
 import com.virgilsecurity.android.ethree.utils.TestConfig
 import com.virgilsecurity.android.ethree.utils.TestUtils
+import com.virgilsecurity.common.callback.OnCompleteListener
+import com.virgilsecurity.common.callback.OnResultListener
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
 import com.virgilsecurity.sdk.client.VirgilCardClient
@@ -53,12 +54,14 @@ import kotlinx.coroutines.*
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
 import java.util.*
 import java.util.concurrent.TimeUnit
 
 /**
  * EThreeScopesTest
  */
+@RunWith(AndroidJUnit4::class)
 class EThreeScopesTest {
 
     private val identity = UUID.randomUUID().toString()
@@ -155,9 +158,11 @@ class EThreeScopesTest {
         delay(A_FEW_NETWORK_CALLS_DELAY)
         scope.cancel()
 
-        assertNotEquals(0, timesBeforeCancel)  // Called at least once
-        assertTrue(timesBeforeCancel < NUMBER_OF_REPEATS) // But cancelled before initialize has
-                                                          // been called NUMBER_OF_REPEATS times
+        // Called at least once But cancelled before initialize has been called NUMBER_OF_REPEATS times
+        assertNotEquals(0, timesBeforeCancel)
+        assertTrue("$timesBeforeCancel should be less than $NUMBER_OF_REPEATS",
+                   timesBeforeCancel < NUMBER_OF_REPEATS)
+        println("TIMES BEFORE: $timesBeforeCancel")
     }
 
     @Test fun get_result_without_waiting_callback() {

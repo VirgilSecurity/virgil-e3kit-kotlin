@@ -31,16 +31,30 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.common
+package com.virgilsecurity.android.common.utils
 
-/**
- * Const
- */
-object Const {
+import androidx.test.platform.app.InstrumentationRegistry
+import com.virgilsecurity.android.common.BuildConfig
+import com.virgilsecurity.sdk.crypto.VirgilCrypto
+import com.virgilsecurity.sdk.crypto.VirgilPrivateKey
+import com.virgilsecurity.sdk.utils.ConvertionUtils
 
-    const val VIRGIL_BASE_URL = "https://api.virgilsecurity.com"
-    const val VIRGIL_CARDS_SERVICE_PATH = "/card/v5/"
-    const val ETHREE_NAME = "e3kit"
+class TestConfig {
+    companion object {
+        val virgilCrypto = VirgilCrypto(false)
+        val appId = BuildConfig.APP_ID
+        val apiKey: VirgilPrivateKey by lazy {
+            virgilCrypto.importPrivateKey(ConvertionUtils.base64ToBytes(BuildConfig.API_PRIVATE_KEY))
+                    .privateKey
+        }
+        val apiPublicKeyId = BuildConfig.API_PUBLIC_KEY_ID
 
-    val NO_CONTEXT = null
+        val virgilBaseUrl = BuildConfig.VIRGIL_BASE_URL
+        const val VIRGIL_CARDS_SERVICE_PATH = "/card/v5/"
+
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val DIRECTORY_PATH = InstrumentationRegistry.getInstrumentation()
+                .targetContext.filesDir.absolutePath
+        val KEYSTORE_NAME = "virgil.keystore"
+    }
 }

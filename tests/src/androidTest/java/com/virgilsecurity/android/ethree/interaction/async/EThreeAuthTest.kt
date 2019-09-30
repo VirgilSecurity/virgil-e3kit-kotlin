@@ -33,17 +33,18 @@
 
 package com.virgilsecurity.android.ethree.interaction.async
 
-import com.virgilsecurity.android.common.exceptions.CardNotFoundException
-import com.virgilsecurity.android.common.exceptions.PrivateKeyExistsException
-import com.virgilsecurity.android.common.exceptions.RegistrationException
-import com.virgilsecurity.android.common.callback.OnCompleteListener
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
-import com.virgilsecurity.android.common.callback.OnResultListener
+import com.virgilsecurity.android.common.exception.EThreeException
+import com.virgilsecurity.android.common.exception.FindUsersException
+import com.virgilsecurity.android.common.exception.PrivateKeyNotFoundException
 import com.virgilsecurity.android.ethree.interaction.EThree
 import com.virgilsecurity.android.ethree.utils.TestConfig
 import com.virgilsecurity.android.ethree.utils.TestConfig.Companion.virgilBaseUrl
 import com.virgilsecurity.android.ethree.utils.TestConfig.Companion.virgilCrypto
 import com.virgilsecurity.android.ethree.utils.TestUtils
+import com.virgilsecurity.common.callback.OnCompleteListener
+import com.virgilsecurity.common.callback.OnResultListener
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.model.RawSignedModel
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
@@ -60,11 +61,14 @@ import org.hamcrest.core.IsEqual.equalTo
 import org.hamcrest.core.IsNot.not
 import org.junit.Assert.*
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
+import org.junit.runner.RunWith
 import java.util.*
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
+@RunWith(AndroidJUnit4::class)
 class EThreeAuthTest {
 
     private val identity = UUID.randomUUID().toString()
@@ -190,7 +194,7 @@ class EThreeAuthTest {
             }
 
             override fun onError(throwable: Throwable) {
-                assertTrue(throwable is RegistrationException)
+                assertTrue(throwable is EThreeException)
                 waiter.countDown()
             }
         })
@@ -211,7 +215,7 @@ class EThreeAuthTest {
             }
 
             override fun onError(throwable: Throwable) {
-                assertTrue(throwable is PrivateKeyExistsException)
+                assertTrue(throwable is EThreeException)
                 waiter.countDown()
             }
         })
@@ -230,7 +234,7 @@ class EThreeAuthTest {
                 }
 
                 override fun onError(throwable: Throwable) {
-                    assertTrue(throwable is CardNotFoundException)
+                    assertTrue(throwable is EThreeException)
                     waiter.countDown()
                 }
             }
@@ -251,7 +255,7 @@ class EThreeAuthTest {
             }
 
             override fun onError(throwable: Throwable) {
-                assertTrue(throwable is PrivateKeyExistsException)
+                assertTrue(throwable is EThreeException)
                 waiterTwo.countDown()
             }
         })
@@ -311,6 +315,7 @@ class EThreeAuthTest {
         assertNotNull("Error during keys rotation", encrypted)
     }
 
+    @Ignore("iOS does not have this exception for now, so keeping SDKs with the same structure.")
     @Test fun rotate_when_multiply_cards_available() {
         val cardManager = initCardManager(identity)
         val publishPair = generateRawCard(identity, cardManager)
@@ -355,7 +360,7 @@ class EThreeAuthTest {
                     }
 
                     override fun onError(throwable: Throwable) {
-                        if (throwable is IllegalStateException)
+                        if (throwable is FindUsersException)
                             rotateFailed = true
 
                         waiterTwo.countDown()
@@ -406,11 +411,15 @@ class EThreeAuthTest {
         val waiter = CountDownLatch(1)
         eThree.unregister().addCallback(object : OnCompleteListener {
             override fun onSuccess() {
+                fail("unregister should fail without local private key")
                 waiter.countDown()
             }
 
             override fun onError(throwable: Throwable) {
-                fail(throwable.message)
+                if (throwable !is PrivateKeyNotFoundException)
+                    fail(throwable.message)
+
+                waiter.countDown()
             }
         })
         waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)

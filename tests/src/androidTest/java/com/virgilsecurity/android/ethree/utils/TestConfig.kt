@@ -33,11 +33,10 @@
 
 package com.virgilsecurity.android.ethree.utils
 
-import android.support.test.InstrumentationRegistry
+import androidx.test.platform.app.InstrumentationRegistry
 import com.virgilsecurity.android.ethree.BuildConfig
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilPrivateKey
-import com.virgilsecurity.sdk.crypto.VirgilPublicKey
 import com.virgilsecurity.sdk.utils.ConvertionUtils
 
 class TestConfig {
@@ -53,8 +52,9 @@ class TestConfig {
         val virgilBaseUrl = BuildConfig.VIRGIL_BASE_URL
         const val VIRGIL_CARDS_SERVICE_PATH = "/card/v5/"
 
-        val context = InstrumentationRegistry.getTargetContext()
-        val DIRECTORY_PATH = InstrumentationRegistry.getTargetContext().filesDir.absolutePath
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val DIRECTORY_PATH = InstrumentationRegistry.getInstrumentation()
+                .targetContext.filesDir.absolutePath
         val KEYSTORE_NAME = "virgil.keystore"
     }
 }

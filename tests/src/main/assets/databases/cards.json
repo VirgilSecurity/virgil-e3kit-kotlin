@@ -1,0 +1,17 @@
+{
+  "b2e6c8bee5cfa40fa2ac2bc8961057600bced26bc5b29aab04014c5141a91bd4": {
+    "identity": "8DA6A11D-F8BC-4A1D-A221-CEE3A2D70631",
+    "card": "{\"content_snapshot\":\"eyJ2ZXJzaW9uIjoiNS4wIiwicHVibGljX2tleSI6Ik1Db3dCUVlESzJWd0F5RUFlM0ltTlZvNGM3TURwTitkQkNiQ2NLZUlZTnpYbTlxcEJ2bGdMeThTVWFnPSIsInByZXZpb3VzX2NhcmRfaWQiOiI5ZmY5MTdhN2ExYWEwODkxYjg3NWQ0YTllNDM5NzJhMGZiNjk0ODc5YmY4OTg3NzkwYzE2MTVkZDg2NGEzOGE0IiwiaWRlbnRpdHkiOiI4REE2QTExRC1GOEJDLTRBMUQtQTIyMS1DRUUzQTJENzA2MzEiLCJjcmVhdGVkX2F0IjoxNTY0NTgzNzY3fQ==\",\"signatures\":[{\"signature\":\"MFEwDQYJYIZIAWUDBAIDBQAEQFmgT4UsSYR9bgjP1N2arysAv03EXVXApwG3pmHDTJbUas2vCOaEIb\\/t+ArGKGjjq0vJSo0MSp5gamwySeDidAs=\",\"signer\":\"self\"},{\"signature\":\"MFEwDQYJYIZIAWUDBAIDBQAEQFedSgMbE\\/wVtqxLVAmskw5PLPwoEriMItQG+vVijAsl\\/snbHHcJ7HDcf5NTG3yLgP3l+8bQd9LIG5\\/XEwk+HwA=\",\"signer\":\"virgil\"}]}",
+    "is_outdated": false
+  },
+  "9ff917a7a1aa0891b875d4a9e43972a0fb694879bf8987790c1615dd864a38a4": {
+    "identity": "8DA6A11D-F8BC-4A1D-A221-CEE3A2D70631",
+    "card": "{\"content_snapshot\":\"eyJ2ZXJzaW9uIjoiNS4wIiwicHVibGljX2tleSI6Ik1Db3dCUVlESzJWd0F5RUExS01yU2p6QVpFOE5SdHhpdVl3SmtaaXVUaFdQcWY3eTVsN3p1RlBJWWJFPSIsImlkZW50aXR5IjoiOERBNkExMUQtRjhCQy00QTFELUEyMjEtQ0VFM0EyRDcwNjMxIiwiY3JlYXRlZF9hdCI6MTU2NDU4Mzc2Nn0=\",\"signatures\":[{\"signature\":\"MFEwDQYJYIZIAWUDBAIDBQAEQKz0eeFp43LH4l5nWjoVGyvP\\/qu67MhoaYaJ\\/utJIlqH2gLMqnXBUQk692+9WX1YsZlJjPPviuaPdRdwUUUGQQU=\",\"signer\":\"self\"},{\"signature\":\"MFEwDQYJYIZIAWUDBAIDBQAEQIF7919OYmvnpQ4\\/ytp534vqRKOO4M48tq4wQizbhbjhtvuUvrBFfIa140jrqxdeZhb462FodPQEMAtyaZCKUwM=\",\"signer\":\"virgil\"}]}",
+    "is_outdated": true
+  },
+  "e66465a08232beb55e33b4ce5e8772d748911c9b830797336e1ce342c78829a2": {
+    "identity": "D4E8E4CA-6FB4-42B6-A3FF-DBBC19201DD6",
+    "card": "{\"content_snapshot\":\"eyJ2ZXJzaW9uIjoiNS4wIiwicHVibGljX2tleSI6Ik1Db3dCUVlESzJWd0F5RUFkV2ZBWXowNnNoQUNjeFdUVWlhZkRIcE9PcHBrUkdrNWdCZjllUzQ0SlM0PSIsImlkZW50aXR5IjoiRDRFOEU0Q0EtNkZCNC00MkI2LUEzRkYtREJCQzE5MjAxREQ2IiwiY3JlYXRlZF9hdCI6MTU2NDU4NTYwOX0=\",\"signatures\":[{\"signature\":\"MFEwDQYJYIZIAWUDBAIDBQAEQIR0PND1Yic36leh\\/vQ+oMXmR8vJX+Vm6pRF4C6z52IP5PK4TMWobPcymrkY+lOllxQNG1ORROoXBfcKSWxkWAw=\",\"signer\":\"self\"},{\"signature\":\"MFEwDQYJYIZIAWUDBAIDBQAEQDFlyBswkrCV3+NSGwn67KFLwU\\/FznY\\/5o+wThgdCzliCP7oMjMe8uGSq4A1GNOEcNoMZhPz7Tku24dncXA0cgk=\",\"signer\":\"virgil\"}]}",
+    "is_outdated": false
+  }
+}

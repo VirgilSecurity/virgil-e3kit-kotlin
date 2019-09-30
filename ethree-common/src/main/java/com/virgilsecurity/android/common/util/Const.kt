@@ -31,20 +31,16 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.common.interaction
-
-import com.virgilsecurity.sdk.storage.KeyEntry
+package com.virgilsecurity.android.common.util
 
 /**
- * KeyManagerLocal
+ * Const
  */
-interface KeyManagerLocal {
+object Const {
 
-    fun exists() : Boolean
+    const val VIRGIL_BASE_URL = "https://api.virgilsecurity.com"
+    const val VIRGIL_CARDS_SERVICE_PATH = "/card/v5/"
+    const val ETHREE_NAME = "e3kit"
 
-    fun store(privateKey: ByteArray)
-
-    fun load(): KeyEntry
-
-    fun delete()
+    val NO_CONTEXT = null
 }

@@ -70,6 +70,7 @@ import org.junit.Test
 import java.net.URL
 import java.util.*
 import java.util.concurrent.TimeUnit
+import kotlin.String.Companion
 
 /**
  * EThreeSyncPositive
@@ -133,18 +134,18 @@ class EThreeSyncPositive {
                 .build()
         val keyPair = BrainKey(brainKeyContext).generateKeyPair(passwordBrainKey)
 
-        val syncKeyStorage =
-                SyncKeyStorage(
-                    identity, keyStorage, CloudKeyStorage(
-                        KeyknoxManager(
-                            tokenProvider,
-                            KeyknoxClient(URL(TestConfig.virgilBaseUrl)),
-                            listOf(keyPair.publicKey),
-                            keyPair.privateKey,
-                            KeyknoxCrypto()
-                        )
-                    )
-                )
+        val syncKeyStorage = SyncKeyStorage(
+            identity,
+            keyStorage,
+            CloudKeyStorage(
+                KeyknoxManager(
+                    KeyknoxClient(tokenProvider, URL(TestConfig.virgilBaseUrl)),
+                    KeyknoxCrypto()
+                ),
+                listOf(keyPair.publicKey),
+                keyPair.privateKey
+            )
+        )
 
         syncKeyStorage.sync()
 

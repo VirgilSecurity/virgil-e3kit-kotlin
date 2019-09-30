@@ -40,3 +40,7 @@ import com.virgilsecurity.sdk.crypto.VirgilPublicKey
  */
 
 typealias LookupResult = Map<String, VirgilPublicKey>
+
+fun LookupResult?.toPublicKeys(): List<VirgilPublicKey>? {
+    return this?.values?.toList()
+}
