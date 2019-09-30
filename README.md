@@ -138,12 +138,11 @@ ByteArrayOutputStream().use { outputStream ->
 ```
 
 ## Enable Group Chat
-In this section, you'll find out how to build a group chat using the Virgil E3Kit.
 
-We assume that your users have installed and initialized the E3Kit, and used snippet above to register.
+E3Kit also provides you with tools for easy group chats creating and management. In this section we assume that your users have installed and initialized the E3Kit, and are already registered at Virgil Cloud.
 
+### Create Group Chat
 
-#### Create group chat
 Let's imagine Alice wants to start a group chat with Bob and Carol. First, Alice creates a new group ticket by running the `createGroup` feature and the E3Kit stores the ticket on the Virgil Cloud. This ticket holds a shared root key for future group encryption.
 
 Alice has to specify a unique `identifier` of group with length > 10 and `findUsersResult` of participants. We recommend tying this identifier to your unique transport channel id.
@@ -159,9 +158,10 @@ ethree.createGroup(groupId, users).addCallback(object : OnResultListener<Group> 
 })
 ```
 
-#### Start group chat session
+### Start Group Chat Session
 
-Now, other participants, Bob and Carol, want to join the Alice's group and have to start the group session by loading the group ticket using the `loadGroup` method. This function requires specifying the group `identifier` and group initiator's Card.
+Now, other participants, Bob and Carol, want to join the Alice's group and have to start the group session using the `loadGroup` method that loads and saves the group ticket locally. This function requires specifying the group `identifier` and group initiator's Card.
+
 ```kotlin
 ethree.loadGroup(groupId, users["Alice"]!!).addCallback(object : OnResultListener<Group> {
     override fun onSuccess(result: Group) {
@@ -174,15 +174,18 @@ ethree.loadGroup(groupId, users["Alice"]!!).addCallback(object : OnResultListene
 })
 ```
 
-Use the loadGroup method to load and save group locally. Then, you can use the getGroup method to retrieve group instance from local storage.
+Then, you can use the `getGroup` method to retrieve group instance from local storage.
+
 ```kotlin
 val group = ethree.getGroup(groupId)
 ```
 
-#### Encrypt and decrypt messages
+### Encrypt and Decrypt Messages
+
 To encrypt and decrypt messages, use the `encrypt` and `decrypt` E3Kit functions, which allows you to work with data and strings.
 
-Use the following code-snippets to encrypt messages:
+Use the following code snippets to encrypt messages:
+
 ```kotlin
 // prepare a message
 val messageToEncrypt = "Hello, Bob and Carol!"
@@ -190,17 +193,21 @@ val messageToEncrypt = "Hello, Bob and Carol!"
 val encrypted = group.encrypt(messageToEncrypt)
 ```
 
-Use the following code-snippets to decrypt messages:
+Use the following code snippets to decrypt messages:
+
 ```kotlin
 val decrypted = group.decrypt(encrypted, findUsersResult["Alice"]!!)
 ```
-At the decrypt step, you also use `findUsers` method to verify that the message hasn't been tempered with.
+At the decrypt step, you should also use `findUsers` method to verify that the message hasn't been tempered with.
 
-### Manage group chat
-E3Kit also allows you to perform other operations, like participants management, while you work with group chat. In this version of E3Kit only group initiator can change participants or delete group.
+### Manage Group Chat
+
+E3Kit also allows you to perform other operations, like participants management, while you work with group chat. In current version of E3Kit only the group initiator can change participants or delete group.
 
 #### Add new participant
-To add a new chat member, the chat owner has to use the `add` method and specify the new member's Card. New member will be able to decrypt all previous messages history.
+
+To add a new chat member, the chat owner needs to use the `add` method and specify the new member's Card. New member will be able to decrypt all previous messages history.
+
 ```kotlin
 group.add(users["Den"]!!).addCallback(object : OnCompleteListener {
     override fun onSuccess() {
@@ -214,7 +221,9 @@ group.add(users["Den"]!!).addCallback(object : OnCompleteListener {
 ```
 
 #### Remove participant
-To remove participant, group owner has to use the `remove` method and specify the member's Card. Removed participants won't be able to load or update this group.
+
+To remove a participant, group owner needs to use the `remove` method and specify the member's Card. Removed participants won't be able to load or update this group:
+
 ```kotlin
 group.remove(users["Den"]!!).addCallback(object : OnCompleteListener {
     override fun onSuccess() {
@@ -228,7 +237,9 @@ group.remove(users["Den"]!!).addCallback(object : OnCompleteListener {
 ```
 
 #### Update group chat
-In the event of changes in your group, i.e. adding a new participant, or deleting an existing one, each group chat participant has to update the encryption key by calling the `update` E3Kit method or reloading Group by `loadGroup`.
+
+In case of changes in your group, i.e. adding a new participant, or deleting an existing one, each group chat participant has to update the encryption key by calling the `update` E3Kit method or reloading Group by `loadGroup`:
+
 ```kotlin
 group.update().addCallback(object : OnCompleteListener {
     override fun onSuccess() {
@@ -242,7 +253,9 @@ group.update().addCallback(object : OnCompleteListener {
 ```
 
 #### Delete group chat
-To delete a group, the owner has to use the `deleteGroup` method and specify the group `identifier`.
+
+To delete a group, the owner needs to use the `deleteGroup` method and specify the group `identifier`:
+
 ```kotlin
 ethree.deleteGroup(groupId).addCallback(object : OnCompleteListener {
     override fun onSuccess() {
