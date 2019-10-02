@@ -67,9 +67,9 @@ val messageToEncrypt = "Hello, Alice and Den!"
 // Search user's Cards to encrypt for
 ethree.findUsers(listOf("Alice, Den"))
         .addCallback(object : OnResultListener<FindUsersResult> {
-            override fun onSuccess(result: FindUsersResult) {
+            override fun onSuccess(users: FindUsersResult) {
                 // encrypt text
-                val encryptedMessage = ethree.encrypt(messageToEncrypt, result)
+                val encryptedMessage = ethree.encrypt(messageToEncrypt, users)
             }
 
             override fun onError(throwable: Throwable) {
@@ -86,9 +86,9 @@ Decrypt and verify the signed & encrypted data using sender's public key and rec
 // Find user
 ethree.findUsers(listOf("bobUID"))
         .addCallback(object : OnResultListener<FindUsersResult> {
-    override fun onSuccess(result: FindUsersResult) {
+    override fun onSuccess(users: FindUsersResult) {
         // Decrypt text and verify if it was really written by Bob
-        val originText = ethree.decrypt(encryptedText, result["bobUID"])
+        val originText = ethree.decrypt(encryptedText, users["bobUID"])
     }
 
     override fun onError(throwable: Throwable) {
@@ -111,12 +111,12 @@ val usersToEncryptTo = listOf(user1UID, user2UID, user3UID)
 // Find users
 ethree.findUsers(usersToEncryptTo)
         .addCallback(object : OnResultListener<FindUsersResult> {
-    override fun onSuccess(result: FindUsersResult) {
+    override fun onSuccess(users: FindUsersResult) {
         val assetManager = context.assets
 
         assetManager.open("some_file.txt").use { inputStream ->
             ByteArrayOutputStream().use { outputStream ->
-                ethree.encrypt(inputStream, outputStream, result)
+                ethree.encrypt(inputStream, outputStream, users)
             }
         }
     }
@@ -139,16 +139,17 @@ ByteArrayOutputStream().use { outputStream ->
 
 ## Enable Group Chat
 
-E3Kit also provides you with tools for easy group chats creating and management. In this section we assume that your users have installed and initialized the E3Kit, and are already registered at Virgil Cloud.
+E3Kit also provides you with functions for secure group chats creating and management. In this section, we assume that your users have installed and initialized the E3Kit, and are already registered at Virgil Cloud.
 
 ### Create Group Chat
 
-Let's imagine Alice wants to start a group chat with Bob and Carol. First, Alice creates a new group ticket by running the `createGroup` feature and the E3Kit stores the ticket on the Virgil Cloud. This ticket holds a shared root key for future group encryption.
+Let's imagine Alice wants to start a group chat with Bob and Carol. First, Alice creates a new group's ticket by running the `createGroup` function, and the E3Kit stores the ticket in the Virgil Cloud. This ticket holds a shared root key for future group encryption.
 
-Alice has to specify a unique `identifier` of group with length > 10 and `findUsersResult` of participants. We recommend tying this identifier to your unique transport channel id.
+Alice has to specify a unique identifier of the group (`groupId`) with length > 10 and participants (`users`). We recommend tying this identifier to your unique transport channel id.
+
 ```kotlin 
 ethree.createGroup(groupId, users).addCallback(object : OnResultListener<Group> {
-    override fun onSuccess(result: Group) {
+    override fun onSuccess(group: Group) {
         // Group created and saved locally!
     }
 
@@ -164,7 +165,7 @@ Now, other participants, Bob and Carol, want to join the Alice's group and have 
 
 ```kotlin
 ethree.loadGroup(groupId, users["Alice"]!!).addCallback(object : OnResultListener<Group> {
-    override fun onSuccess(result: Group) {
+    override fun onSuccess(group: Group) {
         // Group loaded and saved locally!
     }
 
@@ -196,7 +197,7 @@ val encrypted = group.encrypt(messageToEncrypt)
 Use the following code snippets to decrypt messages:
 
 ```kotlin
-val decrypted = group.decrypt(encrypted, findUsersResult["Alice"]!!)
+val decrypted = group.decrypt(encrypted, users["Alice"]!!)
 ```
 At the decrypt step, you should also use `findUsers` method to verify that the message hasn't been tempered with.
 
