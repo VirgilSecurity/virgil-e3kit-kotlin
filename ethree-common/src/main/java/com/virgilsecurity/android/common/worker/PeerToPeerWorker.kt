@@ -33,7 +33,9 @@
 
 package com.virgilsecurity.android.common.worker
 
+import com.virgilsecurity.android.common.exception.ConversionException
 import com.virgilsecurity.android.common.exception.EThreeException
+import com.virgilsecurity.android.common.exception.SignatureVerificationException
 import com.virgilsecurity.android.common.model.FindUsersResult
 import com.virgilsecurity.android.common.model.LookupResult
 import com.virgilsecurity.android.common.model.toPublicKeys
@@ -98,7 +100,7 @@ internal class PeerToPeerWorker internal constructor(
         val data = try {
             Data(text.toByteArray(StandardCharsets.UTF_8))
         } catch (exception: IllegalArgumentException) {
-            throw EThreeException("Error while converting String to Data. ${exception.message}")
+            throw ConversionException("Error while converting String to Data. ${exception.message}")
         }
         return encrypt(data, users).toBase64String()
     }
@@ -109,7 +111,7 @@ internal class PeerToPeerWorker internal constructor(
         val data = try {
             Data.fromBase64String(text)
         } catch (exception: IllegalArgumentException) {
-            throw EThreeException("Error while converting String to Data. ${exception.message}")
+            throw ConversionException("Error while converting String to Data. ${exception.message}")
         }
 
         val decryptedData = decrypt(data, user)
@@ -123,7 +125,7 @@ internal class PeerToPeerWorker internal constructor(
         val data = try {
             Data.fromBase64String(text)
         } catch (exception: IllegalArgumentException) {
-            throw EThreeException("Error while converting String to Data. ${exception.message}")
+            throw ConversionException("Error while converting String to Data. ${exception.message}")
         }
 
         val decryptedData = decrypt(data, user, date)
@@ -187,8 +189,9 @@ internal class PeerToPeerWorker internal constructor(
         } catch (exception: Throwable) {
             when (exception.cause) {
                 is SignatureIsNotValidException -> {
-                    throw EThreeException("Verification of message failed. This may be caused by " +
-                                          "rotating sender key. Try finding new one")
+                    throw SignatureVerificationException("Verification of message failed. This " +
+                                                         "may be caused by rotating sender key. " +
+                                                         "Try finding new one")
                 }
                 else -> throw exception
             }
@@ -204,7 +207,7 @@ internal class PeerToPeerWorker internal constructor(
         val data = try {
             Data(text.toByteArray(StandardCharsets.UTF_8))
         } catch (exception: IllegalArgumentException) {
-            throw EThreeException("Error while converting String to Data. ${exception.message}")
+            throw ConversionException("Error while converting String to Data. ${exception.message}")
         }
 
         return encryptInternal(data, lookupResult.toPublicKeys()).toBase64String()
@@ -228,7 +231,7 @@ internal class PeerToPeerWorker internal constructor(
         val data = try {
             Data.fromBase64String(base64String)
         } catch (exception: IllegalArgumentException) {
-            throw EThreeException("Error while converting String to Data. ${exception.message}")
+            throw ConversionException("Error while converting String to Data. ${exception.message}")
         }
 
         val decryptedData = decryptInternal(data, sendersKey)

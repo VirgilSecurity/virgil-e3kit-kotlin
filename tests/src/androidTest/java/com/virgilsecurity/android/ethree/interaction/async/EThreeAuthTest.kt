@@ -35,9 +35,7 @@ package com.virgilsecurity.android.ethree.interaction.async
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
-import com.virgilsecurity.android.common.exception.EThreeException
-import com.virgilsecurity.android.common.exception.FindUsersException
-import com.virgilsecurity.android.common.exception.PrivateKeyNotFoundException
+import com.virgilsecurity.android.common.exception.*
 import com.virgilsecurity.android.ethree.interaction.EThree
 import com.virgilsecurity.android.ethree.utils.TestConfig
 import com.virgilsecurity.android.ethree.utils.TestConfig.Companion.virgilBaseUrl
@@ -194,7 +192,7 @@ class EThreeAuthTest {
             }
 
             override fun onError(throwable: Throwable) {
-                assertTrue(throwable is EThreeException)
+                assertTrue(throwable is AlreadyRegisteredException)
                 waiter.countDown()
             }
         })
@@ -215,7 +213,7 @@ class EThreeAuthTest {
             }
 
             override fun onError(throwable: Throwable) {
-                assertTrue(throwable is EThreeException)
+                assertTrue(throwable is PrivateKeyPresentException)
                 waiter.countDown()
             }
         })
@@ -234,7 +232,7 @@ class EThreeAuthTest {
                 }
 
                 override fun onError(throwable: Throwable) {
-                    assertTrue(throwable is EThreeException)
+                    assertTrue(throwable is UserNotRegisteredException)
                     waiter.countDown()
                 }
             }
@@ -255,7 +253,7 @@ class EThreeAuthTest {
             }
 
             override fun onError(throwable: Throwable) {
-                assertTrue(throwable is EThreeException)
+                assertTrue(throwable is PrivateKeyPresentException)
                 waiterTwo.countDown()
             }
         })

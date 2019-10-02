@@ -123,7 +123,7 @@ class BackupTests {
         try {
             ethree.backupPrivateKey(password).execute()
         } catch (throwable: Throwable) {
-            if (throwable !is EThreeException)
+            if (throwable !is PrivateKeyNotFoundException)
                 fail()
         }
 

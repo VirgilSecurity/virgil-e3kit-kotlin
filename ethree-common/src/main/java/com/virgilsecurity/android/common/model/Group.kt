@@ -207,7 +207,7 @@ class Group internal constructor(
     /**
      * Decrypts and verifies base64 string from group participant.
      *
-     * @param text encryted String.
+     * @param text encrypted String.
      * @param senderCard sender Card to verify with.
      * @param date date of message. Use it to prevent verifying new messages with old card.
      *
@@ -216,14 +216,14 @@ class Group internal constructor(
     fun decrypt(text: String, senderCard: Card, date: Date? = null): String {
         require(text.isNotEmpty()) { "\'text\' should not be empty" }
 
-        val data: ByteArray
+        val data: Data
         try {
-            data = ConvertionUtils.base64ToBytes(text)
-        } catch (e: Exception) {
-            throw StringEncodingException()
+            data = Data.fromBase64String(text)
+        } catch (exception: Exception) {
+            throw ConversionException("Error while converting String to Data. ${exception.message}")
         }
 
-        val decryptedData = this.decrypt(data, senderCard, date)
+        val decryptedData = this.decrypt(data.data, senderCard, date)
         return ConvertionUtils.toString(decryptedData)
     }
 

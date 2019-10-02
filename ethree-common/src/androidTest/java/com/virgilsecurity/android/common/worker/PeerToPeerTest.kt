@@ -36,6 +36,9 @@ package com.virgilsecurity.android.common.worker
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.common.exception.EThreeException
+import com.virgilsecurity.android.common.exception.PrivateKeyNotFoundException
+import com.virgilsecurity.android.common.exception.PrivateKeyPresentException
+import com.virgilsecurity.android.common.exception.SignatureVerificationException
 import com.virgilsecurity.android.common.model.FindUsersResult
 import com.virgilsecurity.android.common.utils.TestConfig
 import com.virgilsecurity.android.common.utils.TestUtils
@@ -151,14 +154,14 @@ class PeerToPeerTest {
         try {
             ethree.encrypt(TEXT, FindUsersResult(mapOf(ethree.identity to card)))
         } catch (throwable: Throwable) {
-            if (throwable !is EThreeException)
+            if (throwable !is PrivateKeyNotFoundException)
                 fail()
         }
 
         try {
             ethree.decrypt(Data(TEXT.toByteArray()).toBase64String(), card)
         } catch (throwable: Throwable) {
-            if (throwable !is EThreeException)
+            if (throwable !is PrivateKeyNotFoundException)
                 fail()
         }
     }
@@ -307,7 +310,7 @@ class PeerToPeerTest {
             ethreeTwo.decrypt(encrypted, cardOne)
             fail()
         } catch (throwable: Throwable) {
-            if (throwable !is EThreeException)
+            if (throwable !is SignatureVerificationException)
                 fail()
         }
     }

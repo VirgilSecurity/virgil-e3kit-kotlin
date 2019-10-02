@@ -35,7 +35,10 @@ package com.virgilsecurity.android.common.worker
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
+import com.virgilsecurity.android.common.exception.AlreadyRegisteredException
 import com.virgilsecurity.android.common.exception.EThreeException
+import com.virgilsecurity.android.common.exception.PrivateKeyPresentException
+import com.virgilsecurity.android.common.exception.UserNotRegisteredException
 import com.virgilsecurity.android.common.utils.TestConfig
 import com.virgilsecurity.android.common.utils.TestConfig.Companion.virgilCrypto
 import com.virgilsecurity.android.common.utils.TestUtils
@@ -114,7 +117,7 @@ class AuthenticationTests {
         try {
             ethree.register().execute()
         } catch (throwable: Throwable) {
-            if (throwable !is EThreeException)
+            if (throwable !is AlreadyRegisteredException)
                 fail()
         }
     }
@@ -129,13 +132,13 @@ class AuthenticationTests {
         try {
             ethree.register().execute()
         } catch (throwable: Throwable) {
-            if (throwable !is EThreeException)
+            if (throwable !is PrivateKeyPresentException)
                 fail()
         }
     }
 
     // test05 STE_12
-    @Test(expected = EThreeException::class) fun rotate_without_published_card() {
+    @Test(expected = UserNotRegisteredException::class) fun rotate_without_published_card() {
         ethree.rotatePrivateKey().execute()
     }
 
@@ -147,7 +150,7 @@ class AuthenticationTests {
         try {
             ethree.rotatePrivateKey().execute()
         } catch (throwable: Throwable) {
-            if (throwable !is EThreeException)
+            if (throwable !is PrivateKeyPresentException)
                 fail()
         }
     }
@@ -182,7 +185,7 @@ class AuthenticationTests {
         try {
             ethree.unregister().execute()
         } catch (throwable: Throwable) {
-            if (throwable !is EThreeException)
+            if (throwable !is UserNotRegisteredException)
                 fail()
         }
 

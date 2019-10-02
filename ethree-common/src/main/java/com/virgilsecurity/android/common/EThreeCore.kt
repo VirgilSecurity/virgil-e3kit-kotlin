@@ -155,8 +155,9 @@ constructor(val identity: String,
     }
 
     internal fun getGroupManager(): GroupManager =
-            groupManager ?: throw EThreeException("No private key on device. You should call " +
-                                                  "register() of retrievePrivateKey()")
+            groupManager ?: throw PrivateKeyNotFoundException("No private key on device. You " +
+                                                              "should call register() of " +
+                                                              "retrievePrivateKey()")
 
     /**
      * Publishes the public key in Virgil's Cards Service in case no public key for current
@@ -164,7 +165,8 @@ constructor(val identity: String,
      *
      * To start execution of the current function, please see [Completable] description.
      *
-     * @throws EThreeException
+     * @throws PrivateKeyPresentException
+     * @throws AlreadyRegisteredException
      * @throws CryptoException
      */
     @Synchronized
@@ -177,8 +179,7 @@ constructor(val identity: String,
      *
      * To start execution of the current function, please see [Completable] description.
      *
-     * @throws EThreeException if there's no public key published yet, or if there's more
-     * than one public key is published.
+     * @throws UserNotRegisteredException if there's no public key published yet.
      */
     @Synchronized fun unregister(): Completable = authorizationWorker.unregister()
 
@@ -189,7 +190,8 @@ constructor(val identity: String,
      *
      * To start execution of the current function, please see [Completable] description.
      *
-     * @throws EThreeException
+     * @throws PrivateKeyPresentException
+     * @throws UserNotRegisteredException
      * @throws CryptoException
      */
     @Synchronized fun rotatePrivateKey(): Completable = authorizationWorker.rotatePrivateKey()
@@ -351,6 +353,7 @@ constructor(val identity: String,
      * To start execution of the current function, please see [Completable] description.
      *
      * @throws WrongPasswordException If [oldPassword] is wrong.
+     * @throws ChangePasswordException If [newPassword] is the same as [oldPassword].
      */
     fun changePassword(oldPassword: String,
                        newPassword: String): Completable =
@@ -495,7 +498,7 @@ constructor(val identity: String,
      *
      * @return Decrypted Data.
      *
-     * @throws EThreeException If verification of message failed.
+     * @throws SignatureVerificationException If verification of message failed.
      */
     @JvmOverloads fun decrypt(data: Data, user: Card? = null): Data =
             p2pWorker.decrypt(data, user)
@@ -511,7 +514,7 @@ constructor(val identity: String,
      *
      * @return Decrypted Data.
      *
-     * @throws EThreeException If verification of message failed.
+     * @throws SignatureVerificationException If verification of message failed.
      */
     fun decrypt(data: Data, user: Card, date: Date): Data = p2pWorker.decrypt(data, user, date)
 
@@ -719,7 +722,7 @@ constructor(val identity: String,
      *
      * @return Decrypted String.
      *
-     * @throws EThreeException If verification of message failed.
+     * @throws SignatureVerificationException If verification of message failed.
      * @throws PrivateKeyNotFoundException
      * @throws CryptoException
      */
@@ -736,7 +739,7 @@ constructor(val identity: String,
      * @param data Data to decrypt.
      * @param sendersKey Sender PublicKey to verify with.
      *
-     * @throws EThreeException If verification of message failed.
+     * @throws SignatureVerificationException If verification of message failed.
      * @throws PrivateKeyNotFoundException
      * @throws CryptoException
      */

@@ -35,9 +35,7 @@ package com.virgilsecurity.android.ethree.interaction.async
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
-import com.virgilsecurity.android.common.exception.EThreeException
-import com.virgilsecurity.android.common.exception.FindUsersException
-import com.virgilsecurity.android.common.exception.PrivateKeyNotFoundException
+import com.virgilsecurity.android.common.exception.*
 import com.virgilsecurity.android.common.model.FindUsersResult
 import com.virgilsecurity.android.common.model.LookupResult
 import com.virgilsecurity.android.ethree.interaction.EThree
@@ -60,6 +58,7 @@ import com.virgilsecurity.sdk.utils.Tuple
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.*
@@ -312,7 +311,7 @@ class EThreeNegativeTest {
             }
 
             override fun onError(throwable: Throwable) {
-                if (throwable is EThreeException)
+                if (throwable is ChangePasswordException)
                     failed = true
 
                 waiter.countDown()
@@ -322,6 +321,7 @@ class EThreeNegativeTest {
         assertTrue(failed)
     }
 
+    @Ignore("We do not check double cards no more")
     @Test fun unregister_with_multiple_card() {
         val identityTwo = UUID.randomUUID().toString()
         val cardManager = initCardManager(identityTwo)
@@ -334,7 +334,7 @@ class EThreeNegativeTest {
 
         var failed = false
         val waiter = CountDownLatch(1)
-        eThree.unregister().addCallback(object : OnCompleteListener {
+        eThreeTwo.unregister().addCallback(object : OnCompleteListener {
             override fun onSuccess() {
                 fail("Unregister should fail when there are 1+ cards published for 1 identity.")
             }
@@ -359,7 +359,7 @@ class EThreeNegativeTest {
             }
 
             override fun onError(throwable: Throwable) {
-                if (throwable is EThreeException)
+                if (throwable is UserNotRegisteredException)
                     failed = true
 
                 waiter.countDown()

@@ -34,44 +34,8 @@
 package com.virgilsecurity.android.common.exception
 
 /**
- * Exceptions
+ * GroupExceptions
  */
-open class EThreeException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : RuntimeException(message, throwable)
-
-class BackupKeyException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : EThreeException(message, throwable)
-
-class StringEncodingException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : EThreeException(message, throwable)
-
-class RestoreKeyException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : EThreeException(message, throwable)
-
-class WrongPasswordException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : EThreeException(message, throwable)
-
-class PrivateKeyNotFoundException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : EThreeException(message, throwable)
-
-class RawGroupException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : EThreeException(message, throwable)
-
-class FileGroupStorageException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : EThreeException(message, throwable)
-
-class FindUsersException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : EThreeException(message, throwable)
-
 open class GroupException @JvmOverloads constructor(
         override val message: String? = null, throwable: Throwable? = null
 ) : EThreeException(message, throwable)
@@ -115,15 +79,3 @@ class MissingCachedGroupException @JvmOverloads constructor(
 class InvalidChangeParticipantsGroupException @JvmOverloads constructor(
         override val message: String? = null, throwable: Throwable? = null
 ) : GroupException(message, throwable)
-
-open class CardStorageException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : EThreeException(message, throwable)
-
-class InconsistentCardStorageException @JvmOverloads constructor(
-        override val message: String? = "Storage turned into inconsistency state",
-        throwable: Throwable? = null
-) : CardStorageException(message, throwable)
-
-class EmptyIdentitiesStorageException @JvmOverloads constructor(throwable: Throwable? = null
-) : CardStorageException("Empty identities", throwable)

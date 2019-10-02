@@ -34,9 +34,7 @@
 package com.virgilsecurity.android.ethree.interaction.sync
 
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
-import com.virgilsecurity.android.common.exception.EThreeException
-import com.virgilsecurity.android.common.exception.PrivateKeyNotFoundException
-import com.virgilsecurity.android.common.exception.WrongPasswordException
+import com.virgilsecurity.android.common.exception.*
 import com.virgilsecurity.android.ethree.interaction.EThree
 import com.virgilsecurity.android.ethree.utils.TestConfig
 import com.virgilsecurity.android.ethree.utils.TestUtils
@@ -127,7 +125,7 @@ class EThreeSyncNegative {
         try {
             eThree.register().execute()
         } catch (throwable: Throwable) {
-            assertTrue(throwable is EThreeException)
+            assertTrue(throwable is AlreadyRegisteredException)
         }
     }
 
@@ -137,7 +135,7 @@ class EThreeSyncNegative {
         try {
             eThree.unregister().execute()
         } catch (throwable: Throwable) {
-            assertTrue(throwable is EThreeException)
+            assertTrue(throwable is UserNotRegisteredException)
         }
     }
 
@@ -149,7 +147,7 @@ class EThreeSyncNegative {
         try {
             eThree.backupPrivateKey(password).execute()
         } catch (throwable: Throwable) {
-            assertTrue(throwable is EThreeException)
+            assertTrue(throwable is PrivateKeyNotFoundException)
         }
     }
 
@@ -186,7 +184,7 @@ class EThreeSyncNegative {
         try {
             eThree.rotatePrivateKey().execute()
         } catch (throwable: Throwable) {
-            assertTrue(throwable is EThreeException)
+            assertTrue(throwable is UserNotRegisteredException)
         }
     }
 
