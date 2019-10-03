@@ -42,5 +42,5 @@ interface OnGetTokenCallback {
      * This method should return valid Json Web Token [String] representation with identity
      * (in it) of the user which will use this class.
      */
-    fun onGetToken(): String
+    fun onGetToken(): String // TODO add possibility for kotlin to pass high order functions
 }

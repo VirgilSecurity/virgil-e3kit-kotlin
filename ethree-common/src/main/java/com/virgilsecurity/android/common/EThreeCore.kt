@@ -55,6 +55,7 @@ import com.virgilsecurity.android.common.worker.*
 import com.virgilsecurity.common.model.Completable
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.common.model.Result
+import com.virgilsecurity.keyknox.exception.EntryNotFoundException
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
@@ -336,6 +337,7 @@ constructor(val identity: String,
      *
      * To start execution of the current function, please see [Completable] description.
      *
+     * @throws EntryNotFoundException If private key backup was not found.
      * @throws WrongPasswordException
      * @throws RestoreKeyException
      */

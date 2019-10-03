@@ -65,7 +65,7 @@ android {
 }
 
 group 'com.virgilsecurity'
-version '0.6.1-beta1'
+version '0.6.2-beta1'
 
 dependencies {
     // Inner dependencies
