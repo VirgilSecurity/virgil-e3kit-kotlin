@@ -70,7 +70,6 @@ import org.junit.Test
 import java.net.URL
 import java.util.*
 import java.util.concurrent.TimeUnit
-import kotlin.String.Companion
 
 /**
  * EThreeSyncPositive
@@ -317,5 +316,31 @@ class EThreeSyncPositive {
         assertTrue(lookupResult[identityOne] == publishedCardOne.publicKey
                    && lookupResult[identityTwo] == publishedCardTwo.publicKey
                    && lookupResult[identityThree] == publishedCardThree.publicKey)
+    }
+
+    @Test fun lookup_huge_amount_identities() {
+        val identities: MutableSet<String> = mutableSetOf()
+        while (identities.size < HUGE_AMOUNT) {
+            identities.add(UUID.randomUUID().toString())
+        }
+        assertEquals(HUGE_AMOUNT, identities.size)
+
+        identities.forEach { identity ->
+            val cardManager = initCardManager(identity)
+            val rawCard = generateRawCard(identity, cardManager).right
+            cardManager.publishCard(rawCard)
+        }
+
+        val ethree = initEThree(UUID.randomUUID().toString())
+
+        val lookupResult = ethree.lookupPublicKeys(identities.toList()).get()
+        assertEquals(HUGE_AMOUNT, lookupResult.size)
+
+        val users = ethree.findUsers(identities.toList()).get()
+        assertEquals(HUGE_AMOUNT, users.size)
+    }
+
+    companion object {
+        private const val HUGE_AMOUNT = 200
     }
 }
