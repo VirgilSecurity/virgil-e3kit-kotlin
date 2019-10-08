@@ -33,10 +33,7 @@
 
 package com.virgilsecurity.android.common.worker
 
-import com.virgilsecurity.android.common.exception.BackupKeyException
-import com.virgilsecurity.android.common.exception.ChangePasswordException
-import com.virgilsecurity.android.common.exception.PrivateKeyNotFoundException
-import com.virgilsecurity.android.common.exception.RestoreKeyException
+import com.virgilsecurity.android.common.exception.*
 import com.virgilsecurity.android.common.storage.cloud.CloudKeyManager
 import com.virgilsecurity.android.common.storage.local.LocalKeyStorage
 import com.virgilsecurity.common.model.Completable
@@ -63,7 +60,7 @@ internal class BackupWorker internal constructor(
                 val identityKeyPair = localKeyStorage.load()
                 keyManagerCloud.store(identityKeyPair.privateKey, password)
             } catch (e: EntryAlreadyExistsException) {
-                throw BackupKeyException("Can't backup private key", e)
+                throw BackupKeyException("Can't backup private key as it\'s already backed up", e)
             }
         }
     }
@@ -73,11 +70,17 @@ internal class BackupWorker internal constructor(
             try {
                 require(password.isNotEmpty()) { "\'password\' should not be empty" }
 
-                val entry = keyManagerCloud.retrieve(password)
+                val entry = try {
+                    keyManagerCloud.retrieve(password)
+                } catch (exception: EntryNotFoundException) {
+                    throw NoPrivateKeyBackupException("Can't restore private key: private key " +
+                                                      "backup has not been found.", exception)
+                }
+
                 localKeyStorage.store(Data(entry.data))
                 privateKeyChanged(null)
             } catch (e: KeyEntryAlreadyExistsException) {
-                throw RestoreKeyException("Can't restore private key", e)
+                throw PrivateKeyPresentException("Can't restore private key", e)
             }
         }
     }
@@ -103,7 +106,7 @@ internal class BackupWorker internal constructor(
                     keyManagerCloud.delete(password)
                 } catch (exception: EntryNotFoundException) {
                     throw PrivateKeyNotFoundException("Can't reset private key: private key not " +
-                                                      "found", exception)
+                                                      "found.", exception)
                 }
             else
                 keyManagerCloud.deleteAll()

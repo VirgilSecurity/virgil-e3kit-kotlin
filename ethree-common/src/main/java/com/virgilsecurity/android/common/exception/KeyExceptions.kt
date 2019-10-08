@@ -41,7 +41,7 @@ class BackupKeyException @JvmOverloads constructor(
         override val message: String? = null, throwable: Throwable? = null
 ) : KeyException(message, throwable)
 
-class RestoreKeyException @JvmOverloads constructor(
+class NoPrivateKeyBackupException @JvmOverloads constructor(
         override val message: String? = null, throwable: Throwable? = null
 ) : KeyException(message, throwable)
 

@@ -173,7 +173,7 @@ class EThreeSyncNegative {
         try {
             eThree.restorePrivateKey(password).execute()
         } catch (throwable: Throwable) {
-            assertTrue(throwable is EntryNotFoundException)
+            assertTrue(throwable is NoPrivateKeyBackupException)
         }
     }
 

@@ -55,7 +55,6 @@ import com.virgilsecurity.android.common.worker.*
 import com.virgilsecurity.common.model.Completable
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.common.model.Result
-import com.virgilsecurity.keyknox.exception.EntryNotFoundException
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
@@ -325,7 +324,8 @@ constructor(val identity: String,
      * To start execution of the current function, please see [Completable] description.
      *
      * @throws PrivateKeyNotFoundException
-     * @throws BackupKeyException
+     * @throws BackupKeyException If private key with current user's identity is already present
+     * in Virgil cloud.
      */
     fun backupPrivateKey(password: String): Completable =
             backupWorker.backupPrivateKey(password)
@@ -337,9 +337,9 @@ constructor(val identity: String,
      *
      * To start execution of the current function, please see [Completable] description.
      *
-     * @throws EntryNotFoundException If private key backup was not found.
-     * @throws WrongPasswordException
-     * @throws RestoreKeyException
+     * @throws NoPrivateKeyBackupException If private key backup was not found.
+     * @throws WrongPasswordException If [password] is wrong.
+     * @throws PrivateKeyPresentException If private key already present on the device locally.
      */
     fun restorePrivateKey(password: String): Completable =
             backupWorker.restorePrivateKey(password)
