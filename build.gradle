@@ -43,7 +43,7 @@ buildscript {
             coroutines  : '1.3.0-M1',
 
             // Gradle
-            gradle      : '3.5.0',
+            gradle      : '3.5.1',
 
             // Maven
             mavenPublish: '3.6.2',

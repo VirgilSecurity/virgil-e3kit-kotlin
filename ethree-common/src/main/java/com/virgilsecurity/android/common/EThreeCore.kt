@@ -156,7 +156,7 @@ constructor(val identity: String,
 
     internal fun getGroupManager(): GroupManager =
             groupManager ?: throw PrivateKeyNotFoundException("No private key on device. You " +
-                                                              "should call register() of " +
+                                                              "should call register() or " +
                                                               "retrievePrivateKey()")
 
     /**

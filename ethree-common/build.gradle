@@ -45,7 +45,7 @@ apply plugin: 'digital.wup.android-maven-publish'
 apply plugin: 'org.jetbrains.dokka'
 
 group 'com.virgilsecurity'
-version '0.5.2-beta1'
+version '0.5.1-beta2'
 
 def APP_ID = hasProperty('APP_ID') ? APP_ID : System.getenv('APP_ID')
 def API_PRIVATE_KEY = hasProperty('API_PRIVATE_KEY') ? API_PRIVATE_KEY : System.getenv('API_PRIVATE_KEY')
