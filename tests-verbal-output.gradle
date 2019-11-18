@@ -31,34 +31,39 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-android {
-    defaultConfig {
-        minSdkVersion androidOptions.minSdkVersionEnclave
-        consumerProguardFiles 'proguard-rules.txt'
-    }
-}
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent
 
-dependencies {
-    // Inner dependencies
-    api project(':ethree-common')
+// Adds verbal output for tests when running them via CLI
+tasks.withType(Test) {
+    testLogging {
+        events TestLogEvent.FAILED,
+                TestLogEvent.PASSED,
+                TestLogEvent.SKIPPED,
+                TestLogEvent.STANDARD_OUT
+        exceptionFormat TestExceptionFormat.FULL
+        showExceptions true
+        showCauses true
+        showStackTraces true
 
-    // Virgil
-    implementation "com.virgilsecurity.sdk:android-utils:$versions.virgilSdk"
+        debug {
+            events TestLogEvent.STARTED,
+                    TestLogEvent.FAILED,
+                    TestLogEvent.PASSED,
+                    TestLogEvent.SKIPPED,
+                    TestLogEvent.STANDARD_ERROR,
+                    TestLogEvent.STANDARD_OUT
+            exceptionFormat TestExceptionFormat.FULL
+        }
+        info.events = debug.events
+        info.exceptionFormat = debug.exceptionFormat
 
-    // Kotlin
-    implementation "org.jetbrains.kotlin:kotlin-stdlib:$versions.kotlin"
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$versions.coroutines"
-
-    // Android
-    compileOnly "com.google.android:android:$versions.android"
-}
-
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            artifactId = 'ethree-enclave'
-            pom {
-                name = 'Virgil E3Kit Java/Kotlin SDK with Secure Enclave'
+        afterSuite { desc, result ->
+            if (!desc.parent) {
+                def output = "Results: ${result.resultType} (${result.testCount} tests, ${result.successfulTestCount} successes, ${result.failedTestCount} failures, ${result.skippedTestCount} skipped)"
+                def startItem = '|  ', endItem = '  |'
+                def repeatLength = startItem.length() + output.length() + endItem.length()
+                println('\n' + ('-' * repeatLength) + '\n' + startItem + output + endItem + '\n' + ('-' * repeatLength))
             }
         }
     }

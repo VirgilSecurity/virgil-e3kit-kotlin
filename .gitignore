@@ -32,7 +32,6 @@ eclipse-aar/
 build/
 gradle-wrapper.jar
 gradle-wrapper.properties
-gradle.properties
 
 # Ignore Gradle GUI config
 gradle-app.setting
@@ -178,3 +177,5 @@ fabric.properties
 # Project-specific
 !crypto/libs/virgil_crypto_java.jar
 publishArtifacts.sh
+env.json
+publish.properties

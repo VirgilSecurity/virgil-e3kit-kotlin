@@ -38,9 +38,12 @@ import com.virgilsecurity.android.ethree.BuildConfig
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilPrivateKey
 import com.virgilsecurity.sdk.utils.ConvertionUtils
+import com.virgilsecurity.testcommon.property.EnvPropertyReader
 
 class TestConfig {
     companion object {
+        val propertyReader = EnvPropertyReader
+
         val virgilCrypto = VirgilCrypto(false)
         val appId = BuildConfig.APP_ID
         val apiKey: VirgilPrivateKey by lazy {
