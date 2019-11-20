@@ -87,6 +87,9 @@ dependencies {
 
     // Test internal
     androidTestImplementation project(':ethree-kotlin')
+
+    // Virgil test common
+    implementation "com.virgilsecurity:test-common:$versions.virgilTestCommon"
 }
 
 task generateVersionVirgilAgent {
@@ -109,6 +112,7 @@ project.android.sourceSets.main.java.srcDirs = ["${buildDir}/generated/release/"
 
 tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
     dependsOn(generateVersionVirgilAgent)
+    dependsOn(copyEnvFile)
 }
 
 publishing {
@@ -120,4 +124,12 @@ publishing {
             }
         }
     }
+}
+
+task copyEnvFile(type: Copy) {
+    def resourcesFolder = new File(project.projectDir.absolutePath + '/src/androidTest/resources/testProperties')
+    if (!resourcesFolder.exists()) resourcesFolder.mkdirs()
+
+    from rootProject.projectDir.absolutePath + '/env.json'
+    into resourcesFolder.absolutePath
 }

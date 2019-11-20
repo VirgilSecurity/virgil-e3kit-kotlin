@@ -35,7 +35,6 @@ package com.virgilsecurity.android.common.worker
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
-import com.virgilsecurity.android.common.exception.EThreeException
 import com.virgilsecurity.android.common.exception.PrivateKeyNotFoundException
 import com.virgilsecurity.android.common.exception.WrongPasswordException
 import com.virgilsecurity.android.common.utils.TestConfig
@@ -95,7 +94,7 @@ class BackupTests {
         })
         val brainKeyContext = BrainKeyContext.Builder()
                 .setAccessTokenProvider(tokenProvider)
-                .setPythiaClient(VirgilPythiaClient(TestConfig.virgilBaseUrl))
+                .setPythiaClient(VirgilPythiaClient(TestConfig.virgilServiceAddress))
                 .setPythiaCrypto(VirgilPythiaCrypto())
                 .build()
         val keyPair = BrainKey(brainKeyContext).generateKeyPair(passwordBrainKey)
@@ -105,7 +104,7 @@ class BackupTests {
             keyStorage,
             CloudKeyStorage(
                 KeyknoxManager(
-                    KeyknoxClient(tokenProvider, URL(TestConfig.virgilBaseUrl)),
+                    KeyknoxClient(tokenProvider, URL(TestConfig.virgilServiceAddress)),
                     KeyknoxCrypto()
                 ),
                 listOf(keyPair.publicKey),

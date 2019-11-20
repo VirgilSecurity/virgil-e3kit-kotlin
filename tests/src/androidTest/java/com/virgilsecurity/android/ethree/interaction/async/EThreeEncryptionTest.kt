@@ -36,14 +36,12 @@ package com.virgilsecurity.android.ethree.interaction.async
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.common.exception.EThreeException
-import com.virgilsecurity.android.common.model.FindUsersResult
 import com.virgilsecurity.android.common.model.LookupResult
 import com.virgilsecurity.android.ethree.interaction.EThree
 import com.virgilsecurity.android.ethree.utils.TestConfig
 import com.virgilsecurity.android.ethree.utils.TestUtils
 import com.virgilsecurity.common.callback.OnCompleteListener
 import com.virgilsecurity.common.callback.OnResultListener
-import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.model.RawSignedModel
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
@@ -65,12 +63,9 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
-import java.io.InputStream
-import java.io.OutputStream
 import java.util.*
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
-import kotlin.String.Companion
 
 /**
  * Created by:
@@ -91,8 +86,8 @@ class EThreeEncryptionTest {
     @Before fun setup() {
         jwtGenerator = JwtGenerator(
             TestConfig.appId,
-            TestConfig.apiKey,
-            TestConfig.apiPublicKeyId,
+            TestConfig.appKey,
+            TestConfig.appPublicKeyId,
             TimeSpan.fromTime(600, TimeUnit.SECONDS),
             VirgilAccessTokenSigner(TestConfig.virgilCrypto)
         )
@@ -162,7 +157,7 @@ class EThreeEncryptionTest {
             cardCrypto,
             GeneratorJwtProvider(jwtGenerator, identity),
             VirgilCardVerifier(cardCrypto, false, false),
-            VirgilCardClient(TestConfig.virgilBaseUrl + TestConfig.VIRGIL_CARDS_SERVICE_PATH)
+            VirgilCardClient(TestConfig.virgilServiceAddress + TestConfig.VIRGIL_CARDS_SERVICE_PATH)
         )
     }
 

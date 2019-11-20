@@ -38,7 +38,6 @@ import com.virgilsecurity.android.common.exception.*
 import com.virgilsecurity.android.ethree.interaction.EThree
 import com.virgilsecurity.android.ethree.utils.TestConfig
 import com.virgilsecurity.android.ethree.utils.TestUtils
-import com.virgilsecurity.keyknox.exception.EntryNotFoundException
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.model.RawSignedModel
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
@@ -73,8 +72,8 @@ class EThreeSyncNegative {
 
         jwtGenerator = JwtGenerator(
             TestConfig.appId,
-            TestConfig.apiKey,
-            TestConfig.apiPublicKeyId,
+            TestConfig.appKey,
+            TestConfig.appPublicKeyId,
             TimeSpan.fromTime(600, TimeUnit.SECONDS),
             VirgilAccessTokenSigner(TestConfig.virgilCrypto)
         )
@@ -106,7 +105,7 @@ class EThreeSyncNegative {
             cardCrypto,
             GeneratorJwtProvider(jwtGenerator, identity),
             VirgilCardVerifier(cardCrypto, false, false),
-            VirgilCardClient(TestConfig.virgilBaseUrl + TestConfig.VIRGIL_CARDS_SERVICE_PATH)
+            VirgilCardClient(TestConfig.virgilServiceAddress + TestConfig.VIRGIL_CARDS_SERVICE_PATH)
         )
     }
 

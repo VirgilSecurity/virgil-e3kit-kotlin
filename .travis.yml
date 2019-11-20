@@ -2,13 +2,6 @@ language: android
 sudo: required
 jdk: oraclejdk8
 
-# Include branches
-branches:
-  only:
-    - dev
-    - master
-    - travis-setup
-
 before_cache:
   - rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
   - rm -fr $HOME/.gradle/caches/*/plugin-resolution/

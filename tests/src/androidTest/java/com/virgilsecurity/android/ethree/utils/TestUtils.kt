@@ -61,8 +61,8 @@ class TestUtils {
         fun generateTokenString(identity: String): String =
                 JwtGenerator(
                     TestConfig.appId,
-                    TestConfig.apiKey,
-                    TestConfig.apiPublicKeyId,
+                    TestConfig.appKey,
+                    TestConfig.appPublicKeyId,
                     TimeSpan.fromTime(600, TimeUnit.SECONDS),
                     VirgilAccessTokenSigner(virgilCrypto)
                 ).generateToken(identity).stringRepresentation()
@@ -70,8 +70,8 @@ class TestUtils {
         fun generateToken(identity: String): Jwt =
                 JwtGenerator(
                     TestConfig.appId,
-                    TestConfig.apiKey,
-                    TestConfig.apiPublicKeyId,
+                    TestConfig.appKey,
+                    TestConfig.appPublicKeyId,
                     TimeSpan.fromTime(600, TimeUnit.SECONDS),
                     VirgilAccessTokenSigner(virgilCrypto)
                 ).generateToken(identity)
@@ -91,7 +91,7 @@ class TestUtils {
             val provider = ConstAccessTokenProvider(token)
             val signer = ModelSigner(VirgilCardCrypto(virgilCrypto))
             signer.selfSign(rawCard, keyPair.privateKey)
-            val cardClient = VirgilCardClient(TestConfig.virgilBaseUrl + TestConfig.VIRGIL_CARDS_SERVICE_PATH)
+            val cardClient = VirgilCardClient(TestConfig.virgilServiceAddress + TestConfig.VIRGIL_CARDS_SERVICE_PATH)
 
             val responseRawCard =
                     cardClient.publishCard(rawCard,

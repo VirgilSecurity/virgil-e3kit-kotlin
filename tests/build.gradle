@@ -62,5 +62,17 @@ dependencies {
     testImplementation "androidx.room:room-testing:$versions.room"
 
     // Virgil test common
-    androidTestImplementation "com.virgilsecurity:test-common:$versions.virgilTestCommon"
+    implementation "com.virgilsecurity:test-common:$versions.virgilTestCommon"
+}
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
+    dependsOn(copyEnvFile)
+}
+
+task copyEnvFile(type: Copy) {
+    def assetsFolder = new File(project.projectDir.absolutePath + '/src/androidTest/resources/testProperties')
+    if (!assetsFolder.exists()) assetsFolder.mkdirs()
+
+    from rootProject.projectDir.absolutePath + '/env.json'
+    into assetsFolder.absolutePath
 }

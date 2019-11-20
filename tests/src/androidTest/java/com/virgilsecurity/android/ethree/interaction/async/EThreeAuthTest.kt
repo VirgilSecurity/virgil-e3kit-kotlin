@@ -38,7 +38,7 @@ import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.common.exception.*
 import com.virgilsecurity.android.ethree.interaction.EThree
 import com.virgilsecurity.android.ethree.utils.TestConfig
-import com.virgilsecurity.android.ethree.utils.TestConfig.Companion.virgilBaseUrl
+import com.virgilsecurity.android.ethree.utils.TestConfig.Companion.virgilServiceAddress
 import com.virgilsecurity.android.ethree.utils.TestConfig.Companion.virgilCrypto
 import com.virgilsecurity.android.ethree.utils.TestUtils
 import com.virgilsecurity.common.callback.OnCompleteListener
@@ -79,8 +79,8 @@ class EThreeAuthTest {
 
         jwtGenerator = JwtGenerator(
             TestConfig.appId,
-            TestConfig.apiKey,
-            TestConfig.apiPublicKeyId,
+            TestConfig.appKey,
+            TestConfig.appPublicKeyId,
             TimeSpan.fromTime(600, TimeUnit.SECONDS),
             VirgilAccessTokenSigner(virgilCrypto)
         )
@@ -149,7 +149,7 @@ class EThreeAuthTest {
             cardCrypto,
             GeneratorJwtProvider(jwtGenerator, identity),
             VirgilCardVerifier(cardCrypto, false, false),
-            VirgilCardClient(virgilBaseUrl + TestConfig.VIRGIL_CARDS_SERVICE_PATH)
+            VirgilCardClient(virgilServiceAddress + TestConfig.VIRGIL_CARDS_SERVICE_PATH)
         )
     }
 

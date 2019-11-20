@@ -36,14 +36,12 @@ package com.virgilsecurity.android.ethree.interaction.async
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.common.exception.*
-import com.virgilsecurity.android.common.model.FindUsersResult
 import com.virgilsecurity.android.common.model.LookupResult
 import com.virgilsecurity.android.ethree.interaction.EThree
 import com.virgilsecurity.android.ethree.utils.TestConfig
 import com.virgilsecurity.android.ethree.utils.TestUtils
 import com.virgilsecurity.common.callback.OnCompleteListener
 import com.virgilsecurity.common.callback.OnResultListener
-import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.model.RawSignedModel
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
@@ -85,8 +83,8 @@ class EThreeNegativeTest {
     @Before fun setup() {
         jwtGenerator = JwtGenerator(
             TestConfig.appId,
-            TestConfig.apiKey,
-            TestConfig.apiPublicKeyId,
+            TestConfig.appKey,
+            TestConfig.appPublicKeyId,
             TimeSpan.fromTime(600, TimeUnit.SECONDS),
             VirgilAccessTokenSigner(TestConfig.virgilCrypto)
         )
@@ -101,7 +99,7 @@ class EThreeNegativeTest {
             cardCrypto,
             GeneratorJwtProvider(jwtGenerator, identity),
             VirgilCardVerifier(cardCrypto, false, false),
-            VirgilCardClient(TestConfig.virgilBaseUrl + TestConfig.VIRGIL_CARDS_SERVICE_PATH)
+            VirgilCardClient(TestConfig.virgilServiceAddress + TestConfig.VIRGIL_CARDS_SERVICE_PATH)
         )
     }
 

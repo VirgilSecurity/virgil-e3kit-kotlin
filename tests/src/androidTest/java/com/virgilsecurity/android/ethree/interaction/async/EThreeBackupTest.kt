@@ -39,7 +39,7 @@ import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.common.exception.*
 import com.virgilsecurity.android.ethree.interaction.EThree
 import com.virgilsecurity.android.ethree.utils.TestConfig
-import com.virgilsecurity.android.ethree.utils.TestConfig.Companion.virgilBaseUrl
+import com.virgilsecurity.android.ethree.utils.TestConfig.Companion.virgilServiceAddress
 import com.virgilsecurity.android.ethree.utils.TestUtils
 import com.virgilsecurity.common.callback.OnCompleteListener
 import com.virgilsecurity.common.callback.OnResultListener
@@ -86,8 +86,8 @@ class EThreeBackupTest {
 
         jwtGenerator = JwtGenerator(
             TestConfig.appId,
-            TestConfig.apiKey,
-            TestConfig.apiPublicKeyId,
+            TestConfig.appKey,
+            TestConfig.appPublicKeyId,
             TimeSpan.fromTime(600, TimeUnit.SECONDS),
             VirgilAccessTokenSigner(TestConfig.virgilCrypto)
         )
@@ -156,7 +156,7 @@ class EThreeBackupTest {
         })
         val brainKeyContext = BrainKeyContext.Builder()
                 .setAccessTokenProvider(tokenProvider)
-                .setPythiaClient(VirgilPythiaClient(virgilBaseUrl))
+                .setPythiaClient(VirgilPythiaClient(virgilServiceAddress))
                 .setPythiaCrypto(VirgilPythiaCrypto())
                 .build()
         val keyPair = BrainKey(brainKeyContext).generateKeyPair(passwordBrainKey)
@@ -166,7 +166,7 @@ class EThreeBackupTest {
             keyStorage,
             CloudKeyStorage(
                 KeyknoxManager(
-                    KeyknoxClient(tokenProvider, URL(virgilBaseUrl)),
+                    KeyknoxClient(tokenProvider, URL(virgilServiceAddress)),
                     KeyknoxCrypto()
                 ),
                 listOf(keyPair.publicKey),

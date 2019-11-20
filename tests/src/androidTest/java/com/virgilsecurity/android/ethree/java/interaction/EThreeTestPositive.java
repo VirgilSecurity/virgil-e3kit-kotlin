@@ -80,8 +80,8 @@ public class EThreeTestPositive {
     @Before
     public void setup() throws InterruptedException {
         jwtGenerator = new JwtGenerator(TestConfig.Companion.getAppId(),
-                                        TestConfig.Companion.getApiKey(),
-                                        TestConfig.Companion.getApiPublicKeyId(),
+                                        TestConfig.Companion.getAppKey(),
+                                        TestConfig.Companion.getAppPublicKeyId(),
                                         TimeSpan.fromTime(600, TimeUnit.SECONDS),
                                         new VirgilAccessTokenSigner(TestConfig.Companion.getVirgilCrypto()));
 
@@ -114,7 +114,7 @@ public class EThreeTestPositive {
         return new CardManager(cardCrypto,
                                new GeneratorJwtProvider(jwtGenerator, identity),
                                new VirgilCardVerifier(cardCrypto, false, false),
-                               new VirgilCardClient(TestConfig.Companion.getVirgilBaseUrl()
+                               new VirgilCardClient(TestConfig.Companion.getVirgilServiceAddress()
                                                             + TestConfig.VIRGIL_CARDS_SERVICE_PATH));
     }
 

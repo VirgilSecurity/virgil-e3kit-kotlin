@@ -85,8 +85,8 @@ class EThreeSyncPositive {
 
         jwtGenerator = JwtGenerator(
             TestConfig.appId,
-            TestConfig.apiKey,
-            TestConfig.apiPublicKeyId,
+            TestConfig.appKey,
+            TestConfig.appPublicKeyId,
             TimeSpan.fromTime(600, TimeUnit.SECONDS),
             VirgilAccessTokenSigner(TestConfig.virgilCrypto)
         )
@@ -118,7 +118,7 @@ class EThreeSyncPositive {
             cardCrypto,
             GeneratorJwtProvider(jwtGenerator, identity),
             VirgilCardVerifier(cardCrypto, false, false),
-            VirgilCardClient(TestConfig.virgilBaseUrl + TestConfig.VIRGIL_CARDS_SERVICE_PATH)
+            VirgilCardClient(TestConfig.virgilServiceAddress + TestConfig.VIRGIL_CARDS_SERVICE_PATH)
         )
     }
 
@@ -128,7 +128,7 @@ class EThreeSyncPositive {
         })
         val brainKeyContext = BrainKeyContext.Builder()
                 .setAccessTokenProvider(tokenProvider)
-                .setPythiaClient(VirgilPythiaClient(TestConfig.virgilBaseUrl))
+                .setPythiaClient(VirgilPythiaClient(TestConfig.virgilServiceAddress))
                 .setPythiaCrypto(VirgilPythiaCrypto())
                 .build()
         val keyPair = BrainKey(brainKeyContext).generateKeyPair(passwordBrainKey)
@@ -138,7 +138,7 @@ class EThreeSyncPositive {
             keyStorage,
             CloudKeyStorage(
                 KeyknoxManager(
-                    KeyknoxClient(tokenProvider, URL(TestConfig.virgilBaseUrl)),
+                    KeyknoxClient(tokenProvider, URL(TestConfig.virgilServiceAddress)),
                     KeyknoxCrypto()
                 ),
                 listOf(keyPair.publicKey),

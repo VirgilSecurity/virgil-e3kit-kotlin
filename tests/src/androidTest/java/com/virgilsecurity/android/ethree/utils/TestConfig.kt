@@ -33,31 +33,67 @@
 
 package com.virgilsecurity.android.ethree.utils
 
+import android.content.Context
 import androidx.test.platform.app.InstrumentationRegistry
-import com.virgilsecurity.android.ethree.BuildConfig
+import com.virgilsecurity.crypto.foundation.Base64
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilPrivateKey
-import com.virgilsecurity.sdk.utils.ConvertionUtils
 import com.virgilsecurity.testcommon.property.EnvPropertyReader
+import com.virgilsecurity.testcommon.utils.PropertyUtils
+import java.io.File
+import java.io.FileOutputStream
 
 class TestConfig {
     companion object {
-        val propertyReader = EnvPropertyReader
+        private const val APP_ID = "APP_ID"
+        private const val APP_PRIVATE_KEY = "APP_PRIVATE_KEY"
+        private const val APP_PUBLIC_KEY_ID = "APP_PUBLIC_KEY_ID"
+        private const val VIRGIL_SERVICE_ADDRESS = "VIRGIL_SERVICE_ADDRESS"
+
+        private const val ENVIRONMENT_PARAMETER = "environment"
+
+        private val propertyReader: EnvPropertyReader by lazy {
+            val environment = PropertyUtils.getSystemProperty(ENVIRONMENT_PARAMETER)
+
+            val resourceEnvStream =
+                    this.javaClass.classLoader.getResourceAsStream("testProperties/env.json")
+            val tempEnvDirectory = File(context.filesDir, "tempEnvDir")
+            tempEnvDirectory.mkdirs()
+
+            val tempEnvFile = File(tempEnvDirectory, "env.json")
+
+            val outputStream = FileOutputStream(tempEnvFile)
+            outputStream.write(resourceEnvStream.readBytes())
+            outputStream.close()
+
+            if (environment != null)
+                EnvPropertyReader.Builder()
+                        .environment(EnvPropertyReader.Environment.fromType(environment))
+                        .filePath(tempEnvFile.parent)
+                        .build()
+            else
+                EnvPropertyReader.Builder()
+                        .filePath(tempEnvFile.parent)
+                        .build()
+        }
 
         val virgilCrypto = VirgilCrypto(false)
-        val appId = BuildConfig.APP_ID
-        val apiKey: VirgilPrivateKey by lazy {
-            virgilCrypto.importPrivateKey(ConvertionUtils.base64ToBytes(BuildConfig.API_PRIVATE_KEY))
-                    .privateKey
+        val appId: String by lazy { propertyReader.getProperty(APP_ID) }
+        val appKey: VirgilPrivateKey by lazy {
+            with(propertyReader.getProperty(APP_PRIVATE_KEY)) {
+                virgilCrypto.importPrivateKey(Base64.decode(this.toByteArray())).privateKey
+            }
         }
-        val apiPublicKeyId = BuildConfig.API_PUBLIC_KEY_ID
+        val appPublicKeyId: String by lazy { propertyReader.getProperty(APP_PUBLIC_KEY_ID) }
+        val virgilServiceAddress: String by lazy {
+            propertyReader.getProperty(VIRGIL_SERVICE_ADDRESS)
+        }
 
-        val virgilBaseUrl = BuildConfig.VIRGIL_BASE_URL
         const val VIRGIL_CARDS_SERVICE_PATH = "/card/v5/"
 
-        val context = InstrumentationRegistry.getInstrumentation().targetContext
-        val DIRECTORY_PATH = InstrumentationRegistry.getInstrumentation()
+        val context: Context = InstrumentationRegistry.getInstrumentation().targetContext
+        val DIRECTORY_PATH: String = InstrumentationRegistry.getInstrumentation()
                 .targetContext.filesDir.absolutePath
-        val KEYSTORE_NAME = "virgil.keystore"
+        const val KEYSTORE_NAME = "virgil.keystore"
     }
 }
