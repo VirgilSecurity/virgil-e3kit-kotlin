@@ -34,6 +34,7 @@
 package com.virgilsecurity.android.common.storage.local
 
 import com.virgilsecurity.android.common.exception.FileGroupStorageException
+import com.virgilsecurity.android.common.exception.InconsistentStateGroupException
 import com.virgilsecurity.android.common.exception.RawGroupException
 import com.virgilsecurity.android.common.model.GroupInfo
 import com.virgilsecurity.android.common.model.RawGroup
@@ -74,6 +75,20 @@ internal class FileGroupStorage internal constructor(
         fileSystemEncrypted = FileSystemEncrypted(fullPath, credentials)
     }
 
+    internal fun add(tickets: List<Ticket>) {
+        val ticket = tickets.lastOrNull() ?: throw InconsistentStateGroupException()
+        val subdir = ticket.groupMessage.sessionId.toHexString()
+
+        tickets.forEach { store(it, subdir) }
+    }
+
+    internal fun getEpochs(sessionId: Data): Set<String> {
+        val subdir = "${sessionId.toHexString()}/$TICKETS_SUBDIR"
+        val epochs = fileSystemEncrypted.listFiles(subdir).sorted()
+
+        return HashSet(epochs)
+    }
+
     internal fun store(group: RawGroup) {
         val ticket = group.tickets.lastOrNull() ?: throw RawGroupException("Empty tickets")
 
@@ -86,11 +101,11 @@ internal class FileGroupStorage internal constructor(
     }
 
     private fun store(ticket: Ticket, subdir: String) {
-        val subdir = "$subdir/$TICKETS_SUBDIR"
+        val subdirNew = "$subdir/$TICKETS_SUBDIR"
         val name = ticket.groupMessage.epoch.toString()
 
         val data = ticket.serialize()
-        fileSystemEncrypted.write(data, name, subdir)
+        fileSystemEncrypted.write(data, name, subdirNew)
     }
 
     private fun store(info: GroupInfo, subdir: String) {
@@ -98,18 +113,16 @@ internal class FileGroupStorage internal constructor(
         fileSystemEncrypted.write(data, GROUP_INFO_NAME, subdir)
     }
 
-    internal fun retrieveInfo(sessionId: Data): GroupInfo? = retrieveGroupInfo(sessionId)
-
-    internal fun retrieve(sessionId: Data, count: Int): RawGroup? {
+    internal fun retrieve(sessionId: Data, count: Int): RawGroup {
         val tickets = retrieveLastTickets(count, sessionId)
-        val groupInfo = retrieveGroupInfo(sessionId) ?: return null
+        val groupInfo = retrieveGroupInfo(sessionId)
 
         return RawGroup(groupInfo, tickets)
     }
 
-    internal fun retrieve(sessionId: Data, epoch: Long): RawGroup? {
+    internal fun retrieve(sessionId: Data, epoch: Long): RawGroup {
         val ticket = retrieveTicket(sessionId, epoch)
-        val groupInfo = retrieveGroupInfo(sessionId) ?: return null
+        val groupInfo = retrieveGroupInfo(sessionId)
 
         return RawGroup(groupInfo, listOf(ticket))
     }
@@ -123,6 +136,7 @@ internal class FileGroupStorage internal constructor(
         val name = epoch.toString()
 
         val data = fileSystemEncrypted.read(name, subdir)
+        if (data.data.isEmpty()) throw FileGroupStorageException("File is empty.") // FIXME maybe add to high-level signature methods info about exception
 
         return Ticket.deserialize(data)
     }
@@ -149,26 +163,18 @@ internal class FileGroupStorage internal constructor(
         }
 
         epochs.forEach { epoch ->
-            try {
-                retrieveTicket(sessionId, epoch)
-            } catch (throwable: Throwable) {
-                throw FileGroupStorageException("File is empty")
-            }.also { ticket ->
-                result.add(ticket)
-            }
+            val ticket = retrieveTicket(sessionId, epoch)
+            result.add(ticket)
         }
 
         return result
     }
 
-    private fun retrieveGroupInfo(sessionId: Data): GroupInfo? {
+    private fun retrieveGroupInfo(sessionId: Data): GroupInfo {
         val subdir = sessionId.toHexString()
 
-        if (!fileSystemEncrypted.exists(GROUP_INFO_NAME, subdir)) {
-            return null
-        }
-
         val data = fileSystemEncrypted.read(GROUP_INFO_NAME, subdir)
+        if (data.data.isEmpty()) throw FileGroupStorageException("File is empty.") // FIXME maybe add to high-level signature methods info about exception
 
         return GroupInfo.deserialize(data)
     }

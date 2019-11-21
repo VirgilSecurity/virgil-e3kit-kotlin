@@ -36,7 +36,7 @@ package com.virgilsecurity.android.common.exception
 /**
  * Exceptions
  */
-open class EThreeException @JvmOverloads constructor(
+open class EThreeException @JvmOverloads constructor( // TODO re-think exceptions type
         override val message: String? = null, throwable: Throwable? = null
 ) : RuntimeException(message, throwable)
 

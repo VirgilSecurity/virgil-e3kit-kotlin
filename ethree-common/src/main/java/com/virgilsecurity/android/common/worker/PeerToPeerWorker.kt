@@ -87,7 +87,7 @@ internal class PeerToPeerWorker internal constructor(
     internal fun decrypt(inputStream: InputStream, outputStream: OutputStream) {
         if (inputStream.available() == 0) throw EmptyArgumentException("inputStream")
 
-        val selfKeyPair = localKeyStorage.load()
+        val selfKeyPair = localKeyStorage.retrieveKeyPair()
 
         crypto.decrypt(inputStream, outputStream, selfKeyPair.privateKey)
     }
@@ -147,7 +147,7 @@ internal class PeerToPeerWorker internal constructor(
                                 publicKeys: List<VirgilPublicKey>?) {
         if (inputStream.available() == 0) throw EmptyArgumentException("inputStream")
 
-        val selfKeyPair = localKeyStorage.load()
+        val selfKeyPair = localKeyStorage.retrieveKeyPair()
         val pubKeys = mutableListOf(selfKeyPair.publicKey)
 
         if (publicKeys != null) {
@@ -165,7 +165,7 @@ internal class PeerToPeerWorker internal constructor(
                                 publicKeys: List<VirgilPublicKey>?): Data {
         require(data.data.isNotEmpty()) { "\'data\' should not be empty." }
 
-        val selfKeyPair = localKeyStorage.load()
+        val selfKeyPair = localKeyStorage.retrieveKeyPair()
         val pubKeys = mutableListOf(selfKeyPair.publicKey)
 
         if (publicKeys != null) {
@@ -181,7 +181,7 @@ internal class PeerToPeerWorker internal constructor(
     private fun decryptInternal(data: Data, publicKey: VirgilPublicKey?): Data {
         require(data.data.isNotEmpty()) { "\'data\' should not be empty." }
 
-        val selfKeyPair = localKeyStorage.load()
+        val selfKeyPair = localKeyStorage.retrieveKeyPair()
         val pubKey = publicKey ?: selfKeyPair.publicKey
 
         return try {

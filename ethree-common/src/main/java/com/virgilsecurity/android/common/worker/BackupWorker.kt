@@ -57,7 +57,7 @@ internal class BackupWorker internal constructor(
             try {
                 require(password.isNotEmpty()) { "\'password\' should not be empty" }
 
-                val identityKeyPair = localKeyStorage.load()
+                val identityKeyPair = localKeyStorage.retrieveKeyPair()
                 keyManagerCloud.store(identityKeyPair.privateKey, password)
             } catch (e: EntryAlreadyExistsException) {
                 throw BackupKeyException("Can't backup private key as it\'s already backed up", e)

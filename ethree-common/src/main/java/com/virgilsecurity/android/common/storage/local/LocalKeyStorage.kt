@@ -55,7 +55,7 @@ class LocalKeyStorage internal constructor(
     internal fun store(privateKeyData: Data) =
             keyStorage.store(JsonKeyEntry(identity, privateKeyData.data))
 
-    internal fun load(): VirgilKeyPair = try {
+    internal fun retrieveKeyPair(): VirgilKeyPair = try {
         val privateKeyData = keyStorage.load(identity)
         crypto.importPrivateKey(privateKeyData.value)
     } catch (e: KeyEntryNotFoundException) {

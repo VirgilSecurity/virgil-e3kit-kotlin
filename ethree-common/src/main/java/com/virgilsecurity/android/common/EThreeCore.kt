@@ -751,7 +751,7 @@ constructor(val identity: String,
             p2pWorker.decrypt(data, sendersKey)
 
     internal fun privateKeyChanged(newCard: Card? = null) {
-        val selfKeyPair = localKeyStorage.load()
+        val selfKeyPair = localKeyStorage.retrieveKeyPair()
 
         val localGroupStorage = FileGroupStorage(identity, crypto, selfKeyPair, rootPath)
         val ticketStorageCloud = CloudTicketStorage(accessTokenProvider, localKeyStorage)

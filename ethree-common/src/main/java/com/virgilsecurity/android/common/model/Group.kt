@@ -145,7 +145,7 @@ class Group internal constructor(
     fun encrypt(data: ByteArray): ByteArray {
         require(data.isNotEmpty()) { "\'data\' should not be empty" }
 
-        val selfKeyPair = this.localKeyStorage.load()
+        val selfKeyPair = this.localKeyStorage.retrieveKeyPair()
         val encrypted = this.session.encrypt(data, selfKeyPair.privateKey.privateKey)
         return encrypted.serialize()
     }
