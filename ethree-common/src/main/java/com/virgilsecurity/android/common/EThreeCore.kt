@@ -218,21 +218,23 @@ constructor(val identity: String,
     fun cleanup() = authorizationWorker.cleanup()
 
     /**
-     * Returns cards from local storage for given [identities].
+     * Retrieves cards from local storage for given [identities].
      *
      * To start execution of the current function, please see [Result] description.
      *
-     * @param identities Identities.
+     * @param identities Identities of cards to retrieve.
+     * @param checkResult Checks that cards for all identities were found if true.
      *
      * @return [FindUsersResult] with found users.
      *
      * @throws FindUsersException If no cached user was found.
      */
-    fun findCachedUsers(identities: List<String>): Result<FindUsersResult> =
-            searchWorker.findCachedUsers(identities)
+    @JvmOverloads fun findCachedUsers(identities: List<String>,
+                                      checkResult: Boolean = true): Result<FindUsersResult> =
+            searchWorker.findCachedUsers(identities, checkResult)
 
     /**
-     * Returns card from local storage for given [identity].
+     * Retrieves card from local storage for given [identity].
      *
      * To start execution of the current function, please see [Result] description.
      *
@@ -252,13 +254,16 @@ constructor(val identity: String,
      *
      * @param identities Array of identities to find.
      * @param forceReload Will not use local cached cards if *true*.
+     * @param checkResult Checks that cards for all identities were found if true.
      *
      * @return [FindUsersResult] with found users.
      *
      * @throws FindUsersException If card duplicates was found or at least one card was not found.
      */
-    fun findUsers(identities: List<String>, forceReload: Boolean = false): Result<FindUsersResult> =
-            searchWorker.findUsers(identities, forceReload)
+    fun findUsers(identities: List<String>,
+                  forceReload: Boolean = false,
+                  checkResult: Boolean = true): Result<FindUsersResult> =
+            searchWorker.findUsers(identities, forceReload, checkResult)
 
     /**
      * Retrieves user Card from the Virgil Cloud or local storage if exists.
@@ -274,6 +279,11 @@ constructor(val identity: String,
      */
     fun findUser(identity: String, forceReload: Boolean = false): Result<Card> =
             searchWorker.findUser(identity, forceReload)
+
+    /**
+     * Updates local cached cards.
+     */
+    fun updateCachedUsers(): Completable = searchWorker.updateCachedUsers()
 
     /**
      * Retrieves user public key from the cloud for encryption/verification operations.

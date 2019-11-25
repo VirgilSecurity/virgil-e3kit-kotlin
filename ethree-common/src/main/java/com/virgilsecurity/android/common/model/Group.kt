@@ -302,7 +302,9 @@ class Group internal constructor(
 
             if (newSet == oldSet) throw InvalidChangeParticipantsGroupException()
 
-            val newSetLookup = lookupManager.lookupCards(newSet.toList())
+            val newSetLookup = lookupManager.lookupCards(newSet.toList(),
+                                                         forceReload = false,
+                                                         checkResult = true)
             addNewTicket(newSetLookup)
 
             val removedSet = oldSet.subtract(newSet)

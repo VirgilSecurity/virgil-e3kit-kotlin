@@ -66,7 +66,7 @@ internal class FileGroupStorage internal constructor(
         val credentials = FileSystemEncryptedCredentials(crypto, identityKeyPair)
         val fullPath: String = rootPath +
                                File.separator +
-                               ConvertionUtils.toHex(identityKeyPair.privateKey.identifier) +
+                               ConvertionUtils.toHex(identityKeyPair.privateKey.identifier) + // FIXME possible issue
                                File.separator +
                                STORAGE_POSTFIX_E3KIT +
                                File.separator +
@@ -83,7 +83,7 @@ internal class FileGroupStorage internal constructor(
     }
 
     internal fun getEpochs(sessionId: Data): Set<String> {
-        val subdir = "${sessionId.toHexString()}/$TICKETS_SUBDIR"
+        val subdir = sessionId.toHexString() + File.separator + TICKETS_SUBDIR
         val epochs = fileSystemEncrypted.listFiles(subdir).sorted()
 
         return HashSet(epochs)
@@ -101,7 +101,7 @@ internal class FileGroupStorage internal constructor(
     }
 
     private fun store(ticket: Ticket, subdir: String) {
-        val subdirNew = "$subdir/$TICKETS_SUBDIR"
+        val subdirNew = subdir + File.separator + TICKETS_SUBDIR
         val name = ticket.groupMessage.epoch.toString()
 
         val data = ticket.serialize()

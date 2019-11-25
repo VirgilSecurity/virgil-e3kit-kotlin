@@ -179,4 +179,39 @@ class SearchTests {
 
         assertEquals(cardNew.identifier, cardCached.identifier)
     }
+
+    // test06 STE_47
+    @Test fun checkResult() {
+        val card = TestUtils.publishCard()
+
+        val identities = listOf(card.identity, this.identity)
+
+        try {
+            ethree.findUsers(identities).get()
+            fail()
+        } catch (throwable: Throwable) {
+            assertTrue(throwable is FindUsersException)
+        }
+
+        val cards = ethree.findUsers(identities, checkResult = false).get()
+
+        assertEquals(1, cards.size)
+        assertEquals(card.identifier, cards[card.identity]!!.identifier)
+    }
+
+    // test07 STE_48
+    @Test fun updateCachedCards() {
+        val ethree2 = setupDevice()
+
+        val card2 = ethree.findUser(ethree2.identity, forceReload = false).get()
+
+        ethree2.cleanup()
+        ethree2.rotatePrivateKey().execute()
+
+        ethree.updateCachedUsers().execute()
+
+        val newCard2 = ethree.findUser(ethree2.identity, forceReload = false).get()
+
+        assertEquals(card2.identifier, newCard2.previousCardId)
+    }
 }

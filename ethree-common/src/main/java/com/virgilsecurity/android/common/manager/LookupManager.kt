@@ -35,12 +35,12 @@ package com.virgilsecurity.android.common.manager
 
 import com.virgilsecurity.android.common.callback.OnKeyChangedCallback
 import com.virgilsecurity.android.common.exception.FindUsersException
+import com.virgilsecurity.android.common.exception.MissingIdentitiesException
 import com.virgilsecurity.android.common.model.FindUsersResult
 import com.virgilsecurity.android.common.storage.CardStorage
 import com.virgilsecurity.keyknox.utils.unwrapCompanionClass
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.cards.CardManager
-import com.virgilsecurity.sdk.exception.EmptyArgumentException
 import java.util.logging.Logger
 
 /**
@@ -88,18 +88,22 @@ internal class LookupManager internal constructor(
         }
     }
 
-    internal fun lookupCachedCards(identities: List<String>): FindUsersResult {
-        if (identities.isEmpty()) throw EmptyArgumentException("identities")
+    internal fun lookupCachedCards(identities: List<String>,
+                                   checkResult: Boolean): FindUsersResult {
+        if (identities.isEmpty())
+            throw MissingIdentitiesException("Passed empty array of identities to findUsers")
 
         val result: MutableMap<String, Card> = mutableMapOf()
         val cards = cardStorage.searchCards(identities)
 
-        for (identity in identities) {
-            val card = cards.firstOrNull { it.identity == identity }
-                       ?: throw FindUsersException("Card with identity: $identity was not found " +
-                                                   "locally. Try to call findUsers first")
+        for (card in cards)
+            result[card.identity] = card
 
-            result[identity] = card
+        if (checkResult) {
+            if (result.keys != identities.toMutableSet()) {
+                throw FindUsersException("Card with provided identity was not found " + // FIXME move strings to enum
+                                         "locally. Try to call findUsers first")
+            }
         }
 
         return FindUsersResult(result)
@@ -119,8 +123,10 @@ internal class LookupManager internal constructor(
     }
 
     internal fun lookupCards(identities: List<String>,
-                             forceReload: Boolean = false): FindUsersResult {
-        if (identities.isEmpty()) throw EmptyArgumentException("identities")
+                             forceReload: Boolean = false,
+                             checkResult: Boolean): FindUsersResult {
+        if (identities.isEmpty())
+            throw MissingIdentitiesException("Passed empty array of identities to findUsers")
 
         val result: MutableMap<String, Card> = mutableMapOf()
         val identitiesDistincted: MutableList<String> = identities.distinct().toMutableList()
@@ -128,15 +134,10 @@ internal class LookupManager internal constructor(
         if (!forceReload) {
             val cards = cardStorage.searchCards(identitiesDistincted)
 
-            val identitiesToRemove = mutableSetOf<String>()
-            for (identity in identitiesDistincted) {
-                val card = cards.firstOrNull { it.identity == identity }
-                if (card != null) {
-                    identitiesToRemove.add(identity)
-                    result[identity] = card
-                }
+            for (card in cards) {
+                result[card.identity] = card
+                identitiesDistincted.remove(card.identity)
             }
-            identitiesDistincted.removeAll(identitiesToRemove)
         }
 
         if (identitiesDistincted.isNotEmpty()) {
@@ -157,7 +158,7 @@ internal class LookupManager internal constructor(
             }
         }
 
-        if (result.keys.toList().sorted() != identities.distinct().sorted()) {
+        if (checkResult && (result.keys != identities.toMutableSet())) {
             throw FindUsersException("Card for one or more of provided identities was not found")
         }
 
@@ -167,12 +168,14 @@ internal class LookupManager internal constructor(
     internal fun lookupCard(identity: String, forceReload: Boolean = false): Card {
         require(identity.isNotEmpty()) { "\'identity\' should not be empty" }
 
-        val cards = lookupCards(listOf(identity), forceReload)
+        val cards = lookupCards(listOf(identity), forceReload, true)
 
         return cards[identity]
                ?: throw FindUsersException("Card for one or more of provided identities " +
                                            "was not found")
     }
+
+    // TODO Add benchmarks
 
     companion object {
         private const val MAX_SEARCH_COUNT = 50

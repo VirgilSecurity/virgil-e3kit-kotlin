@@ -75,3 +75,7 @@ class SignatureVerificationException @JvmOverloads constructor(
 class ConversionException @JvmOverloads constructor(
         override val message: String? = null, throwable: Throwable? = null
 ) : EThreeException(message, throwable)
+
+class MissingIdentitiesException @JvmOverloads constructor(
+        override val message: String? = null, throwable: Throwable? = null
+) : EThreeException(message, throwable)
