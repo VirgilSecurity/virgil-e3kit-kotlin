@@ -84,7 +84,11 @@ internal class FileGroupStorage internal constructor(
 
     internal fun getEpochs(sessionId: Data): Set<String> {
         val subdir = sessionId.toHexString() + File.separator + TICKETS_SUBDIR
-        val epochs = fileSystemEncrypted.listFiles(subdir).sorted()
+        val epochs = try {
+            fileSystemEncrypted.listFiles(subdir).sorted()
+        } catch (exception: DirectoryNotExistsException) {
+            setOf<String>()
+        }
 
         return HashSet(epochs)
     }
