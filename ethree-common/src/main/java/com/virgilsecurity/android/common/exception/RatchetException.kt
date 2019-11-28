@@ -33,42 +33,26 @@
 
 package com.virgilsecurity.android.common.exception
 
-class WrongPasswordException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : EThreeException(message, throwable)
+/**
+ * RatchetException
+ */
+class RatchetException @JvmOverloads constructor(
+        description: Description,
+        throwable: Throwable? = null
+) : EThreeException(throwable = throwable) {
 
-class ChangePasswordException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : EThreeException(message, throwable)
-
-class RawGroupException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : EThreeException(message, throwable)
-
-class FileGroupStorageException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : EThreeException(message, throwable)
-
-class FindUsersException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : EThreeException(message, throwable)
-
-class UserNotRegisteredException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : EThreeException(message, throwable)
-
-class AlreadyRegisteredException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : EThreeException(message, throwable)
-
-class SignatureVerificationException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : EThreeException(message, throwable)
-
-class ConversionException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : EThreeException(message, throwable)
-
-class MissingIdentitiesException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : EThreeException(message, throwable)
+    enum class Description(val errorCode: Int, val errorMessage: String) {
+        ENCRYPT_EMPTY_ARRAY(70201, "Trying to encrypt empty array"),
+        DECRYPT_EMPTY_ARRAY(70202, "Trying to decrypt empty array"),
+        MISSING_LOCAL_CHAT(70203, "Chat with provided user was not found locally"),
+        CHAT_ALREADY_EXISTS(70204, "Chat with provided user and name already exists"),
+        SELF_CHAT_IS_FORBIDDEN(70205,
+                               "Chat with self is forbidden. Use regular encryption for this " +
+                               "purpose."),
+        RATCHET_IS_DISABLED(70206, "enableRatchet parameter is set to false"),
+        USER_IS_NOT_USING_RATCHET(70207,
+                                  "Provided user has been never initialized with ratchet enabled"),
+        NO_INVITE(70208, "There is no invitation from provided user"),
+        NO_SELF_CARD_LOCALLY(70209, "There is no self card in local storage")
+    }
+}

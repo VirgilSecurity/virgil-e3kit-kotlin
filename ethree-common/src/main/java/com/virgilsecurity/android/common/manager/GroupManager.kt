@@ -68,7 +68,8 @@ internal class GroupManager internal constructor(
                                                          lookupManager)
 
     internal fun store(ticket: Ticket, cards: List<Card>): Group {
-        val rawGroup = RawGroup(GroupInfo(this.identity), listOf(ticket))
+        val info = GroupInfo(this.identity)
+        val rawGroup = RawGroup(info, listOf(ticket))
 
         cloudTicketStorage.store(ticket, cards)
         localGroupStorage.store(rawGroup)

@@ -40,10 +40,12 @@ import com.virgilsecurity.android.common.callback.OnKeyChangedCallback
 import com.virgilsecurity.android.common.exception.*
 import com.virgilsecurity.android.common.manager.GroupManager
 import com.virgilsecurity.android.common.manager.LookupManager
+import com.virgilsecurity.android.common.model.EThreeParams
 import com.virgilsecurity.android.common.model.FindUsersResult
 import com.virgilsecurity.android.common.model.Group
 import com.virgilsecurity.android.common.model.LookupResult
 import com.virgilsecurity.android.common.storage.cloud.CloudKeyManager
+import com.virgilsecurity.android.common.storage.cloud.CloudRatchetStorage
 import com.virgilsecurity.android.common.storage.cloud.CloudTicketStorage
 import com.virgilsecurity.android.common.storage.local.FileGroupStorage
 import com.virgilsecurity.android.common.storage.local.LocalKeyStorage
@@ -51,15 +53,21 @@ import com.virgilsecurity.android.common.storage.sql.SQLCardStorage
 import com.virgilsecurity.android.common.util.Const
 import com.virgilsecurity.android.common.util.Const.VIRGIL_BASE_URL
 import com.virgilsecurity.android.common.util.Const.VIRGIL_CARDS_SERVICE_PATH
+import com.virgilsecurity.android.common.util.RepeatingTimer
 import com.virgilsecurity.android.common.worker.*
 import com.virgilsecurity.common.model.Completable
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.common.model.Result
+import com.virgilsecurity.keyknox.utils.unwrapCompanionClass
+import com.virgilsecurity.ratchet.exception.ProtocolException
+import com.virgilsecurity.ratchet.securechat.SecureChat
+import com.virgilsecurity.ratchet.securechat.SecureChatContext
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
 import com.virgilsecurity.sdk.client.HttpClient
 import com.virgilsecurity.sdk.client.VirgilCardClient
+import com.virgilsecurity.sdk.common.TimeSpan
 import com.virgilsecurity.sdk.crypto.*
 import com.virgilsecurity.sdk.jwt.Jwt
 import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
@@ -69,23 +77,16 @@ import com.virgilsecurity.sdk.storage.KeyStorage
 import java.io.InputStream
 import java.io.OutputStream
 import java.util.*
+import java.util.logging.Logger
 
 /**
  * [EThreeCore] class simplifies work with Virgil Services to easily implement End to End Encrypted
  * communication.
  */
-abstract class EThreeCore
-/**
- * @constructor Initializing [CardManager] with provided in [EThreeCore.initialize] callback
- * [onGetTokenCallback] using [CachingJwtProvider] also initializing [DefaultKeyStorage] with
- * default settings.
- */
-constructor(val identity: String,
-            getTokenCallback: OnGetTokenCallback,
-            keyChangedCallback: OnKeyChangedCallback?,
-            context: Context) {
+abstract class EThreeCore {
 
     private val rootPath: String
+    private val context: Context
 
     private var accessTokenProvider: AccessTokenProvider
     private var groupManager: GroupManager? = null
@@ -101,13 +102,40 @@ constructor(val identity: String,
     internal val lookupManager: LookupManager
     internal val cloudKeyManager: CloudKeyManager
 
+    internal val enableRatchet: Boolean
+    internal val keyRotationInterval: TimeSpan
+    internal val cloudRatchetStorage: CloudRatchetStorage
+    internal var secureChat: SecureChat? = null
+    internal var timer: RepeatingTimer? = null
+
     protected val crypto: VirgilCrypto = VirgilCrypto()
 
     protected abstract val keyStorage: KeyStorage
 
     val cardManager: CardManager
+    val identity: String
 
-    init {
+    constructor(params: EThreeParams) : this(params.identity,
+                                             params.tokenCallback,
+                                             params.changedKeyDelegate,
+                                             params.enableRatchet,
+                                             params.keyRotationInterval,
+                                             params.context)
+
+    /**
+     * Initializes [CardManager] with provided in [EThreeCore.initialize] callback
+     * [onGetTokenCallback] using [CachingJwtProvider] also initializing [DefaultKeyStorage] with
+     * default settings.
+     */
+    constructor(identity: String,
+                getTokenCallback: OnGetTokenCallback,
+                keyChangedCallback: OnKeyChangedCallback?,
+                enableRatchet: Boolean,
+                keyRotationInterval: TimeSpan,
+                context: Context) {
+
+        this.identity = identity
+
         val cardCrypto = VirgilCardCrypto(crypto)
         val virgilCardVerifier = VirgilCardVerifier(cardCrypto)
         val httpClient = HttpClient(Const.ETHREE_NAME, VersionVirgilAgent.VERSION)
@@ -127,6 +155,12 @@ constructor(val identity: String,
 
         this.lookupManager = LookupManager(cardStorageSqlite, cardManager, keyChangedCallback)
         this.rootPath = context.filesDir.absolutePath
+
+        this.cloudRatchetStorage = CloudRatchetStorage(accessTokenProvider, localKeyStorage)
+
+        this.enableRatchet = enableRatchet
+        this.keyRotationInterval = keyRotationInterval
+        this.context = context
     }
 
     /**
@@ -760,28 +794,29 @@ constructor(val identity: String,
     @JvmOverloads fun decrypt(data: ByteArray, sendersKey: VirgilPublicKey? = null): ByteArray =
             p2pWorker.decrypt(data, sendersKey)
 
-    internal fun privateKeyChanged(newCard: Card? = null) {
+    data class PrivateKeyChangedParams(val card: Card, val isNew: Boolean)
+
+    internal fun privateKeyChanged(params: PrivateKeyChangedParams? = null) {
+        if (params != null) {
+            lookupManager.cardStorage.storeCard(params.card)
+        }
+
         val selfKeyPair = localKeyStorage.retrieveKeyPair()
 
-        val localGroupStorage = FileGroupStorage(identity, crypto, selfKeyPair, rootPath)
-        val ticketStorageCloud = CloudTicketStorage(accessTokenProvider, localKeyStorage)
+        setupGroupManager(selfKeyPair)
 
-        this.groupManager = GroupManager(localGroupStorage,
-                                         ticketStorageCloud,
-                                         this.localKeyStorage,
-                                         this.lookupManager,
-                                         this.crypto)
-
-        if (newCard != null) {
-            this.lookupManager.cardStorage.storeCard(newCard)
+        if (this.enableRatchet) {
+            setupRatchet(params, selfKeyPair)
         }
     }
 
     internal fun privateKeyDeleted() {
-        groupManager?.localGroupStorage?.reset()
-        groupManager = null
-
         lookupManager.cardStorage.reset()
+        groupManager?.localGroupStorage?.reset()
+
+        groupManager = null
+        secureChat = null
+        timer = null
     }
 
     internal fun computeSessionId(identifier: Data): Data {
@@ -813,6 +848,92 @@ constructor(val identity: String,
         val privateKeyData = Data(crypto.exportPrivateKey(virgilKeyPair.privateKey))
 
         localKeyStorage.store(privateKeyData)
-        privateKeyChanged(card)
+        privateKeyChanged(PrivateKeyChangedParams(card, isNew = true))
+    }
+
+    private fun setupGroupManager(keyPair: VirgilKeyPair) {
+        val localGroupStorage = FileGroupStorage(identity, crypto, keyPair, rootPath)
+        val ticketStorageCloud = CloudTicketStorage(accessTokenProvider, localKeyStorage)
+
+        this.groupManager = GroupManager(localGroupStorage,
+                                         ticketStorageCloud,
+                                         this.localKeyStorage,
+                                         this.lookupManager,
+                                         this.crypto)
+    }
+
+    private fun setupRatchet(params: PrivateKeyChangedParams? = null, keyPair: VirgilKeyPair) {
+        if (!enableRatchet) throw RatchetException(RatchetException.Description.RATCHET_IS_DISABLED)
+
+        if (params != null) {
+            val chat = setupSecureChat(keyPair, params.card)
+
+            if (params.isNew) {
+                try {
+                    chat.reset().execute()
+                } catch (exception: ProtocolException) {
+                    if (exception.errorCode == ServiceErrorCodes.NO_KEY_DATA_FOR_USER) {
+                        // When there're no keys on cloud. Should be fixed on server side.
+                        logger.info("No key data found for user. " +
+                                      "Should be fixed on server side.")
+                    }
+                }
+
+                cloudRatchetStorage.reset()
+            }
+
+            logger.info("Key rotation started")
+            val logs = chat.rotateKeys().get()
+            logger.info("Key rotation succeed: ${logs.description}")
+
+            scheduleKeysRotation(chat, false)
+        } else {
+            val card = findCachedUser(this.identity).get()
+                       ?: throw RatchetException(RatchetException.Description.NO_SELF_CARD_LOCALLY) // FIXME should Card be nullable?
+
+            val chat = setupSecureChat(keyPair, card)
+
+            scheduleKeysRotation(chat, startFromNow = true)
+        }
+    }
+
+    private fun setupSecureChat(keyPair: VirgilKeyPair, card: Card): SecureChat {
+        val context = SecureChatContext(card,
+                                        keyPair,
+                                        this.accessTokenProvider,
+                                        this.context.filesDir.path)
+
+        val chat = SecureChat(context)
+        this.secureChat = chat
+
+        return chat
+    }
+
+    private fun scheduleKeysRotation(chat: SecureChat, startFromNow: Boolean) {
+        val secureChat = getSecureChat()
+
+        this.timer = RepeatingTimer(interval = this.keyRotationInterval, startFromNow) {
+            logger.info("\"Key rotation started\"")
+
+            try {
+                val logs = secureChat.rotateKeys().get()
+                logger.info("Key rotation succeed: ${logs.description})")
+            } catch (throwable: Throwable) {
+                logger.severe("Key rotation failed: ${throwable.localizedMessage}")
+            }
+        }
+
+        this.timer?.resume()
+    }
+
+    private fun getSecureChat(): SecureChat {
+        if (!enableRatchet) throw RatchetException(RatchetException.Description.RATCHET_IS_DISABLED)
+
+        return this.secureChat
+               ?: throw EThreeException(EThreeException.Description.MISSING_PRIVATE_KEY)
+    }
+
+    companion object {
+        private val logger = Logger.getLogger(unwrapCompanionClass(this.javaClass).name)
     }
 }

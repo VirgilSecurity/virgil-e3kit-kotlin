@@ -37,13 +37,14 @@ buildscript {
             virgilSdk       : '6.0',
             virgilCrypto    : '0.10.2',
             pythia          : '0.3.2',
+            ratchet         : '0.1.0',
 
             // Kotlin
             kotlin          : '1.3.50',
             coroutines      : '1.3.0-M1',
 
             // Gradle
-            gradle          : '3.5.1',
+            gradle          : '3.5.2',
 
             // Maven
             mavenPublish    : '3.6.2',
@@ -97,7 +98,7 @@ allprojects {
 final String BASE_VIRGIL_PACKAGE = 'com.virgilsecurity'
 
 // Packages versions
-final String SDK_VERSION = '0.7.0'
+final String SDK_VERSION = '0.8.0-beta4'
 
 subprojects {
     group BASE_VIRGIL_PACKAGE

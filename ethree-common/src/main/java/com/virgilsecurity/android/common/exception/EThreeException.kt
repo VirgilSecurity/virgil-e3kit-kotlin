@@ -33,42 +33,40 @@
 
 package com.virgilsecurity.android.common.exception
 
-class WrongPasswordException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : EThreeException(message, throwable)
+/**
+ * Exceptions
+ */               // TODO re-think exceptions type
+open class EThreeException @JvmOverloads constructor(
+        override val message: String? = null,
+        throwable: Throwable? = null
+) : RuntimeException(message, throwable) {
 
-class ChangePasswordException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : EThreeException(message, throwable)
+    var description: Description? = null
+        protected set
 
-class RawGroupException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : EThreeException(message, throwable)
+    @JvmOverloads constructor(
+            description: Description,
+            throwable: Throwable? = null
+    ) : this(description.errorMessage, throwable) {
 
-class FileGroupStorageException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : EThreeException(message, throwable)
+        this.description = description
+    }
 
-class FindUsersException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : EThreeException(message, throwable)
-
-class UserNotRegisteredException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : EThreeException(message, throwable)
-
-class AlreadyRegisteredException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : EThreeException(message, throwable)
-
-class SignatureVerificationException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : EThreeException(message, throwable)
-
-class ConversionException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : EThreeException(message, throwable)
-
-class MissingIdentitiesException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : EThreeException(message, throwable)
+    enum class Description(val errorCode: Int, val errorMessage: String) {
+        VERIFIER_INIT_FAILED(70101, "Initialization of VirgilCardVerifier failed."),
+        STR_TO_DATA_FAILED(70101, "String to Data failed."),
+        STR_FROM_DATA_FAILED(70101, "Data to String failed."),
+        MISSING_PRIVATE_KEY(70101,
+                            "No private key on device. You should call register() of " +
+                            "retrievePrivateKey()."),
+        MISSING_PUBLIC_KEY(70101, "Passed empty FindUsersResult."),
+        MISSING_IDENTITIES(70101, "Passed empty array of identities to findUsers."),
+        USER_IS_ALREADY_REGISTERED(70101, "User is already registered."),
+        USER_IS_NOT_REGISTERED(70101, "User is not registered."),
+        PRIVATE_KEY_EXISTS(70101, "Private key already exists in local key storage."),
+        VERIFICATION_FAILED(70101,
+                            "Verification of message failed. This may be caused by rotating " +
+                            "sender key. Try finding new one."),
+        WRONG_PASSWORD(70101, "Wrong password."),
+    }
+}

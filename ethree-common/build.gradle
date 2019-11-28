@@ -65,11 +65,14 @@ dependencies {
         exclude group: 'com.virgilsecurity.crypto'
     }
     api("com.virgilsecurity.sdk:keyknox:$versions.virgilSdk") {
-        exclude group: 'com.virgilsecurity.sdk', module: "sdk"
+        exclude group: 'com.virgilsecurity.sdk', module: 'sdk'
     }
     api("com.virgilsecurity:pythia:$versions.pythia") {
         exclude group: 'com.virgilsecurity.crypto'
         exclude group: 'com.virgilsecurity.sdk'
+    }
+    api("com.virgilsecurity:ratchet-android:$versions.ratchet") {
+//        exclude group: 'com.virgilsecurity', module: 'ratchet'
     }
 
     // Android
