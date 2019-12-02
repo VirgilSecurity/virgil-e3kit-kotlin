@@ -33,8 +33,85 @@
 
 package com.virgilsecurity.android.common.storage.cloud
 
+import com.virgilsecurity.android.common.exception.EThreeRatchetException
+import com.virgilsecurity.android.common.storage.local.LocalKeyStorage
+import com.virgilsecurity.crypto.ratchet.RatchetMessage
+import com.virgilsecurity.keyknox.KeyknoxManager
+import com.virgilsecurity.keyknox.client.KeyknoxClient
+import com.virgilsecurity.keyknox.client.KeyknoxPullParams
+import com.virgilsecurity.keyknox.client.KeyknoxPushParams
+import com.virgilsecurity.keyknox.client.KeyknoxResetParams
+import com.virgilsecurity.sdk.cards.Card
+import com.virgilsecurity.sdk.jwt.contract.AccessTokenProvider
+
 /**
  * CloudRatchetStorage
  */
-class CloudRatchetStorage {
+internal class CloudRatchetStorage(
+        private val accessTokenProvider: AccessTokenProvider,
+        private val localKeyStorage: LocalKeyStorage
+) {
+
+    private val keyknoxManager: KeyknoxManager
+    private val identity: String
+        get() = localKeyStorage.identity
+
+    init {
+        val keyknoxClient = KeyknoxClient(this.accessTokenProvider)
+
+        this.keyknoxManager = KeyknoxManager(keyknoxClient)
+    }
+
+    internal fun store(ticket: RatchetMessage, card: Card, name: String?) {
+        val selfKeyPair = localKeyStorage.retrieveKeyPair()
+
+        val pushParams = KeyknoxPushParams(listOf(card.identity, this.identity),
+                                           ROOT,
+                                           card.identity,
+                                           name ?: DEFAULT_KEY)
+
+        keyknoxManager.pushValue(pushParams,
+                                 ticket.serialize(),
+                                 null,
+                                 listOf(card.publicKey, selfKeyPair.publicKey),
+                                 selfKeyPair.privateKey)
+    }
+
+    internal fun retrieve(card: Card, name: String?): RatchetMessage {
+        val selfKeyPair = localKeyStorage.retrieveKeyPair()
+
+        val params = KeyknoxPullParams(card.identity,
+                                       ROOT,
+                                       this.identity,
+                                       name ?: DEFAULT_KEY)
+
+        val response = keyknoxManager.pullValue(params,
+                                                listOf(card.publicKey),
+                                                selfKeyPair.privateKey)
+
+        if (response.value.isEmpty()) {
+            throw EThreeRatchetException(EThreeRatchetException.Description.NO_INVITE)
+        }
+
+        return RatchetMessage.deserialize(response.value)
+    }
+
+    internal fun delete(card: Card, name: String?) {
+        val params = KeyknoxResetParams(ROOT,
+                                        card.identity,
+                                        name ?: DEFAULT_KEY)
+
+        keyknoxManager.resetValue(params)
+    }
+
+    internal fun reset() {
+        val params = KeyknoxResetParams(ROOT, null, null)
+
+        keyknoxManager.resetValue(params)
+    }
+
+    companion object {
+        private const val ROOT = "ratchet-peer-to-peer"
+        private const val DEFAULT_KEY = "default"
+    }
 }

@@ -33,8 +33,39 @@
 
 package com.virgilsecurity.android.common.util
 
+import com.virgilsecurity.sdk.common.TimeSpan
+import java.util.*
+
 /**
  * RepeatingTimer
  */
-class RepeatingTimer {
+internal class RepeatingTimer(
+        private val interval: TimeSpan,
+        private val startFromNow: Boolean,
+        private val timerTask: TimerTask
+) {
+
+    private val timer: Timer
+    private var isRunning: Boolean = false
+
+    init {
+        this.timer = Timer(TIMER_NAME)
+    }
+
+    @Synchronized internal fun resume() {
+        if (this.isRunning) return
+
+        val startAfter = if (startFromNow) 0L else this.interval.spanMilliseconds
+
+        this.timer.scheduleAtFixedRate(timerTask, startAfter, interval.spanMilliseconds)
+        this.isRunning = true
+    }
+
+    protected fun finalize() {
+        timer.cancel()
+    }
+
+    companion object {
+        private const val TIMER_NAME = "Repeating_Timer"
+    }
 }

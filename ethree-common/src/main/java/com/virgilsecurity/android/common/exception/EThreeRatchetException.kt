@@ -36,7 +36,7 @@ package com.virgilsecurity.android.common.exception
 /**
  * RatchetException
  */
-class RatchetException @JvmOverloads constructor(
+class EThreeRatchetException @JvmOverloads constructor(
         description: Description,
         throwable: Throwable? = null
 ) : EThreeException(throwable = throwable) {

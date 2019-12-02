@@ -863,7 +863,7 @@ abstract class EThreeCore {
     }
 
     private fun setupRatchet(params: PrivateKeyChangedParams? = null, keyPair: VirgilKeyPair) {
-        if (!enableRatchet) throw RatchetException(RatchetException.Description.RATCHET_IS_DISABLED)
+        if (!enableRatchet) throw EThreeRatchetException(EThreeRatchetException.Description.RATCHET_IS_DISABLED)
 
         if (params != null) {
             val chat = setupSecureChat(keyPair, params.card)
@@ -889,7 +889,7 @@ abstract class EThreeCore {
             scheduleKeysRotation(chat, false)
         } else {
             val card = findCachedUser(this.identity).get()
-                       ?: throw RatchetException(RatchetException.Description.NO_SELF_CARD_LOCALLY) // FIXME should Card be nullable?
+                       ?: throw EThreeRatchetException(EThreeRatchetException.Description.NO_SELF_CARD_LOCALLY) // FIXME should Card be nullable?
 
             val chat = setupSecureChat(keyPair, card)
 
@@ -927,7 +927,7 @@ abstract class EThreeCore {
     }
 
     private fun getSecureChat(): SecureChat {
-        if (!enableRatchet) throw RatchetException(RatchetException.Description.RATCHET_IS_DISABLED)
+        if (!enableRatchet) throw EThreeRatchetException(EThreeRatchetException.Description.RATCHET_IS_DISABLED)
 
         return this.secureChat
                ?: throw EThreeException(EThreeException.Description.MISSING_PRIVATE_KEY)

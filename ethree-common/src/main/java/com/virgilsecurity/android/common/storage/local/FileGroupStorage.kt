@@ -75,13 +75,6 @@ internal class FileGroupStorage internal constructor(
         fileSystemEncrypted = FileSystemEncrypted(fullPath, credentials)
     }
 
-    internal fun add(tickets: List<Ticket>) {
-        val ticket = tickets.lastOrNull() ?: throw InconsistentStateGroupException()
-        val subdir = ticket.groupMessage.sessionId.toHexString()
-
-        tickets.forEach { store(it, subdir) }
-    }
-
     internal fun getEpochs(sessionId: Data): Set<String> {
         val subdir = sessionId.toHexString() + File.separator + TICKETS_SUBDIR
         val epochs = try {
