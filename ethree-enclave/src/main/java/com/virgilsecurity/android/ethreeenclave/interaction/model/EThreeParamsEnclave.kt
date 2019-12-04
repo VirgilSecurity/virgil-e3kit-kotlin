@@ -31,30 +31,42 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.common.exception
+package com.virgilsecurity.android.ethreeenclave.interaction.model
 
-import java.lang.RuntimeException
+import android.content.Context
+import com.virgilsecurity.android.common.callback.OnGetTokenCallback
+import com.virgilsecurity.android.common.callback.OnKeyChangedCallback
+import com.virgilsecurity.android.common.util.Defaults
+import com.virgilsecurity.sdk.common.TimeSpan
 
 /**
- * RatchetException
+ * EThreeParamsEnclave
  */
-class EThreeRatchetException @JvmOverloads constructor(
-        val description: Description,
-        throwable: Throwable? = null
-) : RuntimeException(description.errorMessage, throwable) {
+data class EThreeParamsEnclave(
+        // Identity of user.
+        val identity: String,
 
-    enum class Description(val errorCode: Int, val errorMessage: String) {
-        ENCRYPT_EMPTY_ARRAY(70201, "Trying to encrypt empty array"),
-        DECRYPT_EMPTY_ARRAY(70202, "Trying to decrypt empty array"),
-        MISSING_LOCAL_CHAT(70203, "Chat with provided user was not found locally"),
-        CHAT_ALREADY_EXISTS(70204, "Chat with provided user and name already exists"),
-        SELF_CHAT_IS_FORBIDDEN(70205,
-                               "Chat with self is forbidden. Use regular encryption for this " +
-                               "purpose."),
-        RATCHET_IS_DISABLED(70206, "enableRatchet parameter is set to false"),
-        USER_IS_NOT_USING_RATCHET(70207,
-                                  "Provided user has been never initialized with ratchet enabled"),
-        NO_INVITE(70208, "There is no invitation from provided user"),
-        NO_SELF_CARD_LOCALLY(70209, "There is no self card in local storage")
-    }
+        // Callback to get Virgil access token.
+        val tokenCallback: OnGetTokenCallback,
+
+        // Context
+        val context: Context) {
+
+    // Alias for Android Key Storage
+    var alias: String = "VirgilAndroidKeyStorage"
+
+    // Whether authentication is required
+    var isAuthenticationRequired: Boolean = true
+
+    // Key validity duration
+    var keyValidityDuration: Int = 60 * 5
+
+    // Callback to notify the change of User's keys.
+    var changedKeyDelegate: OnKeyChangedCallback? = null
+
+    // Enables ratchet operations.
+    var enableRatchet: Boolean = Defaults.enableRatchet
+
+    // TimeSpan of automatic rotate keys for double ratchet.
+    var keyRotationInterval: TimeSpan = Defaults.keyRotationInterval
 }

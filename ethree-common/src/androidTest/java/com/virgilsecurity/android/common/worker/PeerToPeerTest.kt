@@ -45,6 +45,7 @@ import com.virgilsecurity.android.common.utils.TestUtils
 import com.virgilsecurity.android.ethree.interaction.EThree
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.sdk.cards.Card
+import com.virgilsecurity.sdk.common.TimeSpan
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
 import com.virgilsecurity.sdk.utils.ConvertionUtils
@@ -55,6 +56,7 @@ import org.junit.runner.RunWith
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.util.*
+import java.util.concurrent.TimeUnit
 import kotlin.String.Companion
 
 /**
@@ -93,7 +95,9 @@ class PeerToPeerTest {
                                        return TestUtils.generateTokenString(identityTwo)
                                    }
                                },
-                               TestConfig.context)
+                               TestConfig.context,
+                               enableRatchet = false,
+                               keyRotationInterval = TimeSpan.fromTime(3600, TimeUnit.SECONDS))
 
         assertNotNull(ethreeTwo)
 
@@ -198,7 +202,9 @@ class PeerToPeerTest {
                                        return TestUtils.generateTokenString(identityTwo)
                                    }
                                },
-                               TestConfig.context)
+                               TestConfig.context,
+                               enableRatchet = false,
+                               keyRotationInterval = TimeSpan.fromTime(3600, TimeUnit.SECONDS))
 
         assertNotNull(ethreeTwo)
 

@@ -33,7 +33,9 @@
 
 package com.virgilsecurity.android.common.worker
 
+import com.virgilsecurity.android.common.EThreeCore
 import com.virgilsecurity.android.common.exception.*
+import com.virgilsecurity.android.common.manager.LookupManager
 import com.virgilsecurity.android.common.storage.cloud.CloudKeyManager
 import com.virgilsecurity.android.common.storage.local.LocalKeyStorage
 import com.virgilsecurity.common.model.Completable
@@ -49,7 +51,9 @@ import com.virgilsecurity.sdk.crypto.exceptions.KeyEntryAlreadyExistsException
 internal class BackupWorker internal constructor(
         private val localKeyStorage: LocalKeyStorage,
         private val keyManagerCloud: CloudKeyManager,
-        private val privateKeyChanged: (Card?) -> Unit
+        private val privateKeyChanged: (EThreeCore.PrivateKeyChangedParams?) -> Unit,
+        private val lookupManager: LookupManager,
+        private val identity: String
 ) {
 
     internal fun backupPrivateKey(password: String): Completable = object : Completable {
@@ -77,8 +81,13 @@ internal class BackupWorker internal constructor(
                                                       "backup has not been found.", exception)
                 }
 
+                val card = lookupManager.lookupCard(this@BackupWorker.identity)
+
                 localKeyStorage.store(Data(entry.data))
-                privateKeyChanged(null)
+
+                val params = EThreeCore.PrivateKeyChangedParams(card, isNew = false)
+
+                privateKeyChanged(params)
             } catch (e: KeyEntryAlreadyExistsException) {
                 throw PrivateKeyPresentException("Can't restore private key", e)
             }

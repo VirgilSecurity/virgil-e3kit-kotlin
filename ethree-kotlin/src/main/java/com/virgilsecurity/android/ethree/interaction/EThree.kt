@@ -37,8 +37,11 @@ import android.content.Context
 import com.virgilsecurity.android.common.EThreeCore
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.common.callback.OnKeyChangedCallback
+import com.virgilsecurity.android.common.model.EThreeParams
 import com.virgilsecurity.android.common.util.Const.NO_CONTEXT
+import com.virgilsecurity.android.common.util.Defaults
 import com.virgilsecurity.common.model.Result
+import com.virgilsecurity.sdk.common.TimeSpan
 import com.virgilsecurity.sdk.jwt.Jwt
 import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
@@ -52,8 +55,15 @@ class EThree(
         identity: String,
         tokenCallback: OnGetTokenCallback,
         context: Context,
-        keyChangedCallback: OnKeyChangedCallback? = null
-) : EThreeCore(identity, tokenCallback, keyChangedCallback, context) {
+        keyChangedCallback: OnKeyChangedCallback? = null,
+        enableRatchet: Boolean = Defaults.enableRatchet,
+        keyRotationInterval: TimeSpan = Defaults.keyRotationInterval
+) : EThreeCore(identity,
+               tokenCallback,
+               keyChangedCallback,
+               enableRatchet,
+               keyRotationInterval,
+               context) {
 
     override val keyStorage: KeyStorage
 
@@ -62,6 +72,13 @@ class EThree(
 
         initializeCore()
     }
+
+    constructor(params: EThreeParams) : this(params.identity,
+                                             params.tokenCallback,
+                                             params.context,
+                                             params.changedKeyDelegate,
+                                             params.enableRatchet,
+                                             params.keyRotationInterval)
 
     companion object {
         /**

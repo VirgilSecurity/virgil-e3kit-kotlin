@@ -54,13 +54,8 @@ internal class RatchetWorker internal constructor(
         private val getSecureChat: () -> SecureChat
 ) {
 
-    /**
-     * Creates double ratchet chat with user, saves it locally.
-     *
-     * @param card Card of participant.
-     * @param name Name of chat.
-     */
-    fun createRatchetChat(card: Card, name: String? = null): Result<RatchetChat> =
+    @JvmOverloads internal fun createRatchetChat(card: Card,
+                                                 name: String? = null): Result<RatchetChat> =
             object : Result<RatchetChat> {
                 override fun get(): RatchetChat {
                     try {
@@ -109,13 +104,8 @@ internal class RatchetWorker internal constructor(
                 }
             }
 
-    /**
-     * Joins double ratchet chat with user, saves it locally.
-     *
-     * @param card Card of initiator.
-     * @param name Name of chat.
-     */
-    fun joinRatchetChat(card: Card, name: String? = null): Result<RatchetChat> =
+    @JvmOverloads internal fun joinRatchetChat(card: Card,
+                                               name: String? = null): Result<RatchetChat> =
             object : Result<RatchetChat> {
                 override fun get(): RatchetChat {
                     val secureChat = getSecureChat()
@@ -142,10 +132,7 @@ internal class RatchetWorker internal constructor(
                 }
             }
 
-    /**
-     * Retrieves a double ratchet chat from the local storage.
-     */
-    fun getRatchetChat(card: Card, name: String? = null): RatchetChat? {
+    @JvmOverloads internal fun getRatchetChat(card: Card, name: String? = null): RatchetChat? {
         val secureChat = getSecureChat()
 
         val session = secureChat.existingSession(card.identity, name) ?: return null
@@ -153,23 +140,19 @@ internal class RatchetWorker internal constructor(
         return RatchetChat(session, secureChat.sessionStorage)
     }
 
-    /**
-     * Deletes double ratchet chat
-     *
-     * @param card Card of participant.
-     * @param name Name of chat.
-     */
-    fun deleteRatchetChat(card: Card, name: String? = null): Completable = object : Completable {
-        override fun execute() {
-            val secureChat = getSecureChat()
+    @JvmOverloads internal fun deleteRatchetChat(card: Card,
+                                                 name: String? = null): Completable =
+            object : Completable {
+                override fun execute() {
+                    val secureChat = getSecureChat()
 
-            cloudRatchetStorage.delete(card, name)
+                    cloudRatchetStorage.delete(card, name)
 
-//            try {
-                secureChat.deleteSession(card.identity, name)
-//            } catch (exception: NoSuchFileException) { // TODO should we have this exception? do we test this case?
-//                throw EThreeRatchetException(EThreeRatchetException.Description.MISSING_LOCAL_CHAT)
-//            }
-        }
-    }
+//                  try {
+                    secureChat.deleteSession(card.identity, name)
+//                  } catch (exception: NoSuchFileException) { // TODO should we have this exception? do we test this case?
+//                      throw EThreeRatchetException(EThreeRatchetException.Description.MISSING_LOCAL_CHAT)
+//                  }
+                }
+            }
 }

@@ -34,6 +34,7 @@
 package com.virgilsecurity.android.common
 
 import android.content.Context
+import com.google.gson.Gson
 import com.virgilsecurity.android.common.build.VersionVirgilAgent
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.common.callback.OnKeyChangedCallback
@@ -44,6 +45,7 @@ import com.virgilsecurity.android.common.model.EThreeParams
 import com.virgilsecurity.android.common.model.FindUsersResult
 import com.virgilsecurity.android.common.model.Group
 import com.virgilsecurity.android.common.model.LookupResult
+import com.virgilsecurity.android.common.model.ratchet.RatchetChat
 import com.virgilsecurity.android.common.storage.cloud.CloudKeyManager
 import com.virgilsecurity.android.common.storage.cloud.CloudRatchetStorage
 import com.virgilsecurity.android.common.storage.cloud.CloudTicketStorage
@@ -90,12 +92,14 @@ abstract class EThreeCore {
 
     private var accessTokenProvider: AccessTokenProvider
     private var groupManager: GroupManager? = null
+    private var secureChat: SecureChat? = null
 
     private lateinit var authorizationWorker: AuthorizationWorker
     private lateinit var backupWorker: BackupWorker
     private lateinit var groupWorker: GroupWorker
     private lateinit var p2pWorker: PeerToPeerWorker
     private lateinit var searchWorker: SearchWorker
+    private lateinit var ratchetWorker: RatchetWorker
 
     internal lateinit var localKeyStorage: LocalKeyStorage
 
@@ -105,7 +109,6 @@ abstract class EThreeCore {
     internal val enableRatchet: Boolean
     internal val keyRotationInterval: TimeSpan
     internal val cloudRatchetStorage: CloudRatchetStorage
-    internal var secureChat: SecureChat? = null
     internal var timer: RepeatingTimer? = null
 
     protected val crypto: VirgilCrypto = VirgilCrypto()
@@ -115,7 +118,7 @@ abstract class EThreeCore {
     val cardManager: CardManager
     val identity: String
 
-    constructor(params: EThreeParams) : this(params.identity,
+    protected constructor(params: EThreeParams) : this(params.identity,
                                              params.tokenCallback,
                                              params.changedKeyDelegate,
                                              params.enableRatchet,
@@ -127,7 +130,7 @@ abstract class EThreeCore {
      * [onGetTokenCallback] using [CachingJwtProvider] also initializing [DefaultKeyStorage] with
      * default settings.
      */
-    constructor(identity: String,
+    protected constructor(identity: String,
                 getTokenCallback: OnGetTokenCallback,
                 keyChangedCallback: OnKeyChangedCallback?,
                 enableRatchet: Boolean,
@@ -176,10 +179,15 @@ abstract class EThreeCore {
                                                        identity,
                                                        ::publishCardThenSaveLocal,
                                                        ::privateKeyDeleted)
-        this.backupWorker = BackupWorker(localKeyStorage, cloudKeyManager, ::privateKeyChanged)
+        this.backupWorker = BackupWorker(localKeyStorage,
+                                         cloudKeyManager,
+                                         ::privateKeyChanged,
+                                         lookupManager,
+                                         identity)
         this.groupWorker = GroupWorker(identity, crypto, ::getGroupManager, ::computeSessionId)
         this.p2pWorker = PeerToPeerWorker(localKeyStorage, crypto)
         this.searchWorker = SearchWorker(lookupManager)
+        this.ratchetWorker = RatchetWorker(identity, cloudRatchetStorage, ::getSecureChat)
 
         if (localKeyStorage.exists()) {
             privateKeyChanged()
@@ -192,6 +200,14 @@ abstract class EThreeCore {
             groupManager ?: throw PrivateKeyNotFoundException("No private key on device. You " +
                                                               "should call register() or " +
                                                               "retrievePrivateKey()")
+
+    protected fun getSecureChat(): SecureChat {
+        if (!enableRatchet)
+            throw EThreeRatchetException(EThreeRatchetException.Description.RATCHET_IS_DISABLED)
+
+        return this.secureChat
+               ?: throw EThreeException(EThreeException.Description.MISSING_PRIVATE_KEY)
+    }
 
     /**
      * Publishes the public key in Virgil's Cards Service in case no public key for current
@@ -237,7 +253,7 @@ abstract class EThreeCore {
     fun hasLocalPrivateKey(): Boolean = authorizationWorker.hasLocalPrivateKey()
 
     /**
-     * ! *WARNING* ! If you call this function after [register] without using [backupPrivateKey]
+     * - ! *WARNING* ! If you call this function after [register] without using [backupPrivateKey]
      * then you loose private key permanently, as well you won't be able to use identity that
      * was used with that private key no more.
      *
@@ -518,15 +534,15 @@ abstract class EThreeCore {
     /**
      * Signs then encrypts data for group of users.
      *
-     * *Important* Automatically includes self key to recipientsKeys.
+     * - *Important* Automatically includes self key to recipientsKeys.
      *
-     * *Important* Requires private key in local storage.
+     * - *Important* Requires private key in local storage.
      *
      * *Note* Avoid key duplication.
      *
      * @param data Data to encrypt.
      * @param users Result of findUsers call recipient Cards with Public Keys to sign and encrypt
-     * with. Use null to sign and encrypt for self.
+     * with. Use null to sign and encrypt for self (Or overloaded method with one param).
      *
      * @return Encrypted Data.
      */
@@ -536,11 +552,11 @@ abstract class EThreeCore {
     /**
      * Decrypts and verifies data from users.
      *
-     * *Important* Requires private key in local storage.
+     * - *Important* Requires private key in local storage.
      *
      * @param data Data to decrypt.
      * @param user Sender Card with Public Key to verify with. Use null to decrypt and verify.
-     * from self.
+     * from self (Or overloaded method with one param).
      *
      * @return Decrypted Data.
      *
@@ -552,7 +568,7 @@ abstract class EThreeCore {
     /**
      * Decrypts and verifies data from users.
      *
-     * *Important* Requires private key in local storage.
+     * - *Important* Requires private key in local storage.
      *
      * @param data Data to decrypt.
      * @param user Sender Card with Public Key to verify with.
@@ -567,16 +583,16 @@ abstract class EThreeCore {
     /**
      * Encrypts data stream.
      *
-     * *Important* Automatically includes self key to recipientsKeys.
+     * - *Important* Automatically includes self key to recipientsKeys.
      *
-     * *Important* Requires private key in local storage.
+     * - *Important* Requires private key in local storage.
      *
-     * *Note* Avoid key duplication.
+     * - *Note* Avoid key duplication.
      *
      * @param inputStream Data stream to be encrypted.
      * @param outputStream Stream with encrypted data.
      * @param users Result of findUsers call recipient Cards with Public Keys to sign and encrypt
-     * with. Use null to sign and encrypt for self.
+     * with. Use null to sign and encrypt for self (Or overloaded method with one param).
      */
     @JvmOverloads fun encrypt(inputStream: InputStream,
                               outputStream: OutputStream,
@@ -586,7 +602,7 @@ abstract class EThreeCore {
     /**
      * Decrypts encrypted stream.
      *
-     * *Important* Requires private key in local storage.
+     * - *Important* Requires private key in local storage.
      *
      * @param inputStream Stream with encrypted data.
      * @param outputStream Stream with decrypted data.
@@ -600,15 +616,15 @@ abstract class EThreeCore {
     /**
      * Signs then encrypts string for group of users.
      *
-     * *Important* Automatically includes self key to recipientsKeys.
+     * - *Important* Automatically includes self key to recipientsKeys.
      *
-     * *Important* Requires private key in local storage.
+     * - *Important* Requires private key in local storage.
      *
-     * *Note* Avoid key duplication.
+     * - *Note* Avoid key duplication.
      *
      * @param text String to encrypt. String should be *UTF-8* encoded.
      * @param users Result of findUsers call recipient Cards with Public Keys to sign and encrypt
-     * with. Use null to sign and encrypt for self.
+     * with. Use null to sign and encrypt for self (Or overloaded method with one param).
      *
      * @return Encrypted base64String.
      */
@@ -618,11 +634,11 @@ abstract class EThreeCore {
     /**
      * Decrypts and verifies base64 string from users.
      *
-     * *Important* Requires private key in local storage.
+     * - *Important* Requires private key in local storage.
      *
      * @param text Encrypted String.
      * @param user Sender Card with Public Key to verify with. Use null to decrypt and verify
-     * from self.
+     * from self (Or overloaded method with one param).
      *
      * @return Decrypted String.
      */
@@ -632,7 +648,7 @@ abstract class EThreeCore {
     /**
      * Decrypts and verifies base64 string from users.
      *
-     * *Important* Requires private key in local storage.
+     * - *Important* Requires private key in local storage.
      *
      * @param text Encrypted String.
      * @param user Sender Card with Public Key to verify with.
@@ -645,9 +661,9 @@ abstract class EThreeCore {
     /**
      * Signs and encrypts data for user.
      *
-     * *Important* Automatically includes self key to recipientsKeys.
+     * - *Important* Automatically includes self key to recipientsKeys.
      *
-     * *Important* Requires private key in local storage.
+     * - *Important* Requires private key in local storage.
      *
      * @param data Data to encrypt.
      * @param user User Card to encrypt for.
@@ -659,9 +675,9 @@ abstract class EThreeCore {
     /**
      * Signs and encrypts string for user.
      *
-     * *Important* Automatically includes self key to recipientsKeys.
+     * - *Important* Automatically includes self key to recipientsKeys.
      *
-     * *Important* Requires private key in local storage.
+     * - *Important* Requires private key in local storage.
      *
      * @param text String to encrypt.
      * @param user User Card to encrypt for.
@@ -673,9 +689,9 @@ abstract class EThreeCore {
     /**
      * Encrypts data stream.
      *
-     * *Important* Automatically includes self key to recipientsKeys.
+     * - *Important* Automatically includes self key to recipientsKeys.
      *
-     * *Important* Requires private key in local storage.
+     * - *Important* Requires private key in local storage.
      *
      * @param inputStream Data stream to be encrypted.
      * @param outputStream Stream with encrypted data.
@@ -684,16 +700,50 @@ abstract class EThreeCore {
     fun encrypt(inputStream: InputStream, outputStream: OutputStream, user: Card) =
             p2pWorker.encrypt(inputStream, outputStream, user)
 
-    // Backward compatibility deprecated methods --------------------------------------------------
+    /**
+     * Creates double ratchet chat with user, saves it locally. // TODO add throws to ratchet methods
+     *
+     * @param card Card of participant.
+     * @param name Name of chat.
+     */
+    @JvmOverloads fun createRatchetChat(card: Card, name: String? = null): Result<RatchetChat> =
+            ratchetWorker.createRatchetChat(card, name)
+
+    /**
+     * Joins double ratchet chat with user, saves it locally.
+     *
+     * @param card Card of initiator.
+     * @param name Name of chat.
+     */
+    @JvmOverloads fun joinRatchetChat(card: Card, name: String? = null): Result<RatchetChat> =
+        ratchetWorker.joinRatchetChat(card, name)
+
+    /**
+     * Retrieves a double ratchet chat from the local storage.
+     */
+    @JvmOverloads fun getRatchetChat(card: Card, name: String? = null): RatchetChat? =
+        ratchetWorker.getRatchetChat(card, name)
+
+    /**
+     * Deletes double ratchet chat
+     *
+     * @param card Card of participant.
+     * @param name Name of chat.
+     */
+    @JvmOverloads fun deleteRatchetChat(card: Card, name: String? = null): Completable =
+            ratchetWorker.deleteRatchetChat(card, name)
+
+
+            // Backward compatibility deprecated methods --------------------------------------------------
 
     /**
      * Signs then encrypts data for a group of users.
      *
-     * *Important* Automatically includes self key to recipientsKeys.
+     * - *Important* Automatically includes self key to recipientsKeys.
      *
-     * *Important* Requires private key in local storage.
+     * - *Important* Requires private key in local storage.
      *
-     * *Note* Avoid key duplication.
+     * - *Note* Avoid key duplication.
      *
      * @param text String to encrypt.
      * @param lookupResult Result of lookupPublicKeys call recipient PublicKeys to sign and
@@ -710,11 +760,11 @@ abstract class EThreeCore {
     /**
      * Signs then encrypts data for a group of users.
      *
-     * *Important* Automatically includes self key to recipientsKeys.
+     * - *Important* Automatically includes self key to recipientsKeys.
      *
-     * *Important* Requires private key in local storage.
+     * - *Important* Requires private key in local storage.
      *
-     * *Note* Avoid key duplication.
+     * - *Note* Avoid key duplication.
      *
      * @param data Data to encrypt
      * @param lookupResult Result of lookupPublicKeys call recipient PublicKeys to sign and
@@ -733,11 +783,11 @@ abstract class EThreeCore {
     /**
      * Encrypts data stream for a group of users.
      *
-     * *Important* Automatically includes self key to recipientsKeys.
+     * - *Important* Automatically includes self key to recipientsKeys.
      *
-     * *Important* Requires private key in local storage.
+     * - *Important* Requires private key in local storage.
      *
-     * *Note* Avoid key duplication.
+     * - *Note* Avoid key duplication.
      *
      * @param inputStream Data stream to be encrypted.
      * @param outputStream Stream with encrypted data.
@@ -757,11 +807,11 @@ abstract class EThreeCore {
     /**
      * Decrypts and verifies encrypted text that is in base64 [String] format.
      *
-     * *Important* Automatically includes self key to recipientsKeys.
+     * - *Important* Automatically includes self key to recipientsKeys.
      *
-     * *Important* Requires private key in local storage.
+     * - *Important* Requires private key in local storage.
      *
-     * *Note* Avoid key duplication.
+     * - *Note* Avoid key duplication.
      *
      * @param base64String Encrypted String.
      * @param sendersKey Sender PublicKey to verify with.
@@ -780,7 +830,7 @@ abstract class EThreeCore {
     /**
      * Decrypts and verifies encrypted data.
      *
-     * *Important* Requires private key in local storage.
+     * - *Important* Requires private key in local storage.
      *
      * @param data Data to decrypt.
      * @param sendersKey Sender PublicKey to verify with.
@@ -875,7 +925,7 @@ abstract class EThreeCore {
                     if (exception.errorCode == ServiceErrorCodes.NO_KEY_DATA_FOR_USER) {
                         // When there're no keys on cloud. Should be fixed on server side.
                         logger.info("No key data found for user. " +
-                                      "Should be fixed on server side.")
+                                    "Should be fixed on server side.")
                     }
                 }
 
@@ -884,12 +934,14 @@ abstract class EThreeCore {
 
             logger.info("Key rotation started")
             val logs = chat.rotateKeys().get()
-            logger.info("Key rotation succeed: ${logs.description}")
+            val logsDescription = Gson().toJson(logs)
+            logger.info("Key rotation succeed: $logsDescription")
 
             scheduleKeysRotation(chat, false)
         } else {
-            val card = findCachedUser(this.identity).get()
-                       ?: throw EThreeRatchetException(EThreeRatchetException.Description.NO_SELF_CARD_LOCALLY) // FIXME should Card be nullable?
+            val card = findCachedUser(this.identity).get() ?: throw EThreeRatchetException(
+                EThreeRatchetException.Description.NO_SELF_CARD_LOCALLY
+            ) // FIXME should Card be nullable?
 
             val chat = setupSecureChat(keyPair, card)
 
@@ -912,25 +964,21 @@ abstract class EThreeCore {
     private fun scheduleKeysRotation(chat: SecureChat, startFromNow: Boolean) {
         val secureChat = getSecureChat()
 
-        this.timer = RepeatingTimer(interval = this.keyRotationInterval, startFromNow) {
-            logger.info("\"Key rotation started\"")
+        this.timer = RepeatingTimer(this.keyRotationInterval, startFromNow, object : TimerTask() {
+            override fun run() {
+                logger.info("\"Key rotation started\"")
 
-            try {
-                val logs = secureChat.rotateKeys().get()
-                logger.info("Key rotation succeed: ${logs.description})")
-            } catch (throwable: Throwable) {
-                logger.severe("Key rotation failed: ${throwable.localizedMessage}")
+                try {
+                    val logs = secureChat.rotateKeys().get()
+                    val logsDescription = Gson().toJson(logs)
+                    logger.info("Key rotation succeed: $logsDescription)")
+                } catch (throwable: Throwable) {
+                    logger.severe("Key rotation failed: ${throwable.localizedMessage}")
+                }
             }
-        }
+        })
 
         this.timer?.resume()
-    }
-
-    private fun getSecureChat(): SecureChat {
-        if (!enableRatchet) throw EThreeRatchetException(EThreeRatchetException.Description.RATCHET_IS_DISABLED)
-
-        return this.secureChat
-               ?: throw EThreeException(EThreeException.Description.MISSING_PRIVATE_KEY)
     }
 
     companion object {

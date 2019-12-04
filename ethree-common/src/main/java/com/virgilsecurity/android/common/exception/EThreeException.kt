@@ -36,7 +36,11 @@ package com.virgilsecurity.android.common.exception
 /**
  * Exceptions
  */               // TODO re-think exceptions type
-open class EThreeException @JvmOverloads constructor(
+open class EThreeException
+@JvmOverloads
+@Deprecated("This constructor will be removed after 0.8.0 version",
+            replaceWith = ReplaceWith("EThreeException(Description, Throwable?)"))
+constructor(
         override val message: String? = null,
         throwable: Throwable? = null
 ) : RuntimeException(message, throwable) {
@@ -54,19 +58,19 @@ open class EThreeException @JvmOverloads constructor(
 
     enum class Description(val errorCode: Int, val errorMessage: String) {
         VERIFIER_INIT_FAILED(70101, "Initialization of VirgilCardVerifier failed."),
-        STR_TO_DATA_FAILED(70101, "String to Data failed."),
-        STR_FROM_DATA_FAILED(70101, "Data to String failed."),
-        MISSING_PRIVATE_KEY(70101,
+        STR_TO_DATA_FAILED(70102, "String to Data failed."),
+        STR_FROM_DATA_FAILED(70103, "Data to String failed."),
+        MISSING_PRIVATE_KEY(70104,
                             "No private key on device. You should call register() of " +
                             "retrievePrivateKey()."),
-        MISSING_PUBLIC_KEY(70101, "Passed empty FindUsersResult."),
-        MISSING_IDENTITIES(70101, "Passed empty array of identities to findUsers."),
-        USER_IS_ALREADY_REGISTERED(70101, "User is already registered."),
-        USER_IS_NOT_REGISTERED(70101, "User is not registered."),
-        PRIVATE_KEY_EXISTS(70101, "Private key already exists in local key storage."),
-        VERIFICATION_FAILED(70101,
+        MISSING_PUBLIC_KEY(70105, "Passed empty FindUsersResult."),
+        MISSING_IDENTITIES(70106, "Passed empty array of identities to findUsers."),
+        USER_IS_ALREADY_REGISTERED(70107, "User is already registered."),
+        USER_IS_NOT_REGISTERED(70108, "User is not registered."),
+        PRIVATE_KEY_EXISTS(70109, "Private key already exists in local key storage."),
+        VERIFICATION_FAILED(70110,
                             "Verification of message failed. This may be caused by rotating " +
                             "sender key. Try finding new one."),
-        WRONG_PASSWORD(70101, "Wrong password."),
+        WRONG_PASSWORD(70111, "Wrong password."),
     }
 }
