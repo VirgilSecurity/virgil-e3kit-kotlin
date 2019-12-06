@@ -33,11 +33,11 @@
 
 package com.virgilsecurity.android.common.storage.cloud
 
+import com.virgilsecurity.android.common.build.VersionVirgilAgent
 import com.virgilsecurity.android.common.exception.WrongPasswordException
 import com.virgilsecurity.android.common.util.Const
 import com.virgilsecurity.android.common.util.Const.VIRGIL_BASE_URL
 import com.virgilsecurity.keyknox.KeyknoxManager
-import com.virgilsecurity.keyknox.build.VersionVirgilAgent
 import com.virgilsecurity.keyknox.client.HttpClient
 import com.virgilsecurity.keyknox.client.KeyknoxClient
 import com.virgilsecurity.keyknox.cloud.CloudKeyStorage

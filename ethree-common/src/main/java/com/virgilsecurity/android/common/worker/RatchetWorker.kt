@@ -40,6 +40,7 @@ import com.virgilsecurity.android.common.storage.cloud.CloudRatchetStorage
 import com.virgilsecurity.common.model.Completable
 import com.virgilsecurity.common.model.Result
 import com.virgilsecurity.keyknox.exception.InvalidHashHeaderException
+import com.virgilsecurity.ratchet.exception.FileDeletionException
 import com.virgilsecurity.ratchet.exception.ProtocolException
 import com.virgilsecurity.ratchet.securechat.SecureChat
 import com.virgilsecurity.sdk.cards.Card
@@ -67,7 +68,7 @@ internal class RatchetWorker internal constructor(
                             )
                         }
 
-                        if (card.identifier == this@RatchetWorker.identity) {
+                        if (card.identity == this@RatchetWorker.identity) {
                             throw EThreeRatchetException(
                                 EThreeRatchetException.Description.SELF_CHAT_IS_FORBIDDEN
                             )
@@ -148,11 +149,11 @@ internal class RatchetWorker internal constructor(
 
                     cloudRatchetStorage.delete(card, name)
 
-//                  try {
+                  try {
                     secureChat.deleteSession(card.identity, name)
-//                  } catch (exception: NoSuchFileException) { // TODO should we have this exception? do we test this case?
-//                      throw EThreeRatchetException(EThreeRatchetException.Description.MISSING_LOCAL_CHAT)
-//                  }
+                  } catch (exception: FileDeletionException) {
+                      throw EThreeRatchetException(EThreeRatchetException.Description.MISSING_LOCAL_CHAT)
+                  }
                 }
             }
 }

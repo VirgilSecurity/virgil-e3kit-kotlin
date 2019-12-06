@@ -102,13 +102,13 @@ abstract class EThreeCore {
     private lateinit var ratchetWorker: RatchetWorker
 
     internal lateinit var localKeyStorage: LocalKeyStorage
+    internal lateinit var cloudRatchetStorage: CloudRatchetStorage
 
     internal val lookupManager: LookupManager
     internal val cloudKeyManager: CloudKeyManager
 
     internal val enableRatchet: Boolean
     internal val keyRotationInterval: TimeSpan
-    internal val cloudRatchetStorage: CloudRatchetStorage
     internal var timer: RepeatingTimer? = null
 
     protected val crypto: VirgilCrypto = VirgilCrypto()
@@ -159,8 +159,6 @@ abstract class EThreeCore {
         this.lookupManager = LookupManager(cardStorageSqlite, cardManager, keyChangedCallback)
         this.rootPath = context.filesDir.absolutePath
 
-        this.cloudRatchetStorage = CloudRatchetStorage(accessTokenProvider, localKeyStorage)
-
         this.enableRatchet = enableRatchet
         this.keyRotationInterval = keyRotationInterval
         this.context = context
@@ -174,6 +172,8 @@ abstract class EThreeCore {
      */
     protected fun initializeCore() {
         this.localKeyStorage = LocalKeyStorage(identity, keyStorage, crypto)
+        this.cloudRatchetStorage = CloudRatchetStorage(accessTokenProvider, localKeyStorage)
+
         this.authorizationWorker = AuthorizationWorker(cardManager,
                                                        localKeyStorage,
                                                        identity,
@@ -734,7 +734,7 @@ abstract class EThreeCore {
             ratchetWorker.deleteRatchetChat(card, name)
 
 
-            // Backward compatibility deprecated methods --------------------------------------------------
+    // Backward compatibility deprecated methods --------------------------------------------------
 
     /**
      * Signs then encrypts data for a group of users.

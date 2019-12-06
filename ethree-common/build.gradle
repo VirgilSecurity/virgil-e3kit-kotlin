@@ -64,15 +64,27 @@ dependencies {
     api("com.virgilsecurity.sdk:sdk:$versions.virgilSdk") {
         exclude group: 'com.virgilsecurity.crypto'
     }
-    api("com.virgilsecurity.sdk:keyknox:$versions.virgilSdk") {
-        exclude group: 'com.virgilsecurity.sdk', module: 'sdk'
-    }
     api("com.virgilsecurity:pythia:$versions.pythia") {
         exclude group: 'com.virgilsecurity.crypto'
         exclude group: 'com.virgilsecurity.sdk'
     }
-    implementation "com.virgilsecurity:ratchet-android:$versions.ratchet"
-    implementation "com.virgilsecurity.crypto:ratchet-android:0.8.0" // Temporary fix, before exposing this in ratchet-android
+
+    // Ratchet
+//    implementation("com.virgilsecurity:ratchet-android:$versions.ratchet") {
+//        exclude group: 'com.virgilsecurity.sdk', module: 'skd'
+//        exclude group: 'com.virgilsecurity.sdk', module: 'crypto'
+//    }
+    implementation("com.virgilsecurity:ratchet-android:$versions.ratchet") {
+        exclude group: 'com.virgilsecurity.crypto', module: 'common'
+        exclude group: 'com.virgilsecurity.crypto', module: 'foundation'
+        exclude group: 'com.virgilsecurity.crypto', module: 'ratchet'
+
+        exclude group: 'com.virgilsecurity.sdk', module: 'sdk'
+        exclude group: 'com.virgilsecurity.sdk', module: 'crypto'
+    }
+    api "com.virgilsecurity.crypto:common-android:$versions.virgilCrypto"
+    api "com.virgilsecurity.crypto:foundation-android:$versions.virgilCrypto"
+    api "com.virgilsecurity.crypto:ratchet-android:$versions.virgilCrypto"
 
     // Android
     compileOnly "com.google.android:android:$versions.android"
