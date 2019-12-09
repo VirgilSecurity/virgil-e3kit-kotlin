@@ -106,19 +106,19 @@ class PeerToPeerTest {
         val card = ethree.findUser(ethreeTwo.identity).get()
         assertNotNull(card)
 
-        val encrypted = ethree.encrypt(TEXT, card)
+        val encrypted = ethree.authEncrypt(TEXT, card)
 
         val otherCard = TestUtils.publishCard()
 
         try {
-            ethreeTwo.decrypt(encrypted, otherCard)
+            ethreeTwo.authDecrypt(encrypted, otherCard)
             fail()
         } catch (throwable: Throwable) {
             // We're good
         }
 
         val cardTwo = ethreeTwo.findUser(ethree.identity).get()
-        val decryptedTwo = ethreeTwo.decrypt(encrypted, cardTwo)
+        val decryptedTwo = ethreeTwo.authDecrypt(encrypted, cardTwo)
         assertEquals(TEXT, decryptedTwo)
     }
 
@@ -126,7 +126,7 @@ class PeerToPeerTest {
     @Test(expected = IllegalArgumentException::class) fun encrypt_empty_keys() {
         ethree.register().execute()
 
-        ethree.encrypt(TEXT, FindUsersResult())
+        ethree.authEncrypt(TEXT, FindUsersResult())
     }
 
     // test03 STE_5
@@ -141,7 +141,7 @@ class PeerToPeerTest {
         val otherCard = TestUtils.publishCard()
 
         try {
-            ethree.decrypt(encryptedString, otherCard)
+            ethree.authDecrypt(encryptedString, otherCard)
             fail()
         } catch (throwable: Throwable) {
             // We're food
@@ -156,14 +156,14 @@ class PeerToPeerTest {
         val card = TestUtils.publishCard()
 
         try {
-            ethree.encrypt(TEXT, FindUsersResult(mapOf(ethree.identity to card)))
+            ethree.authEncrypt(TEXT, FindUsersResult(mapOf(ethree.identity to card)))
         } catch (throwable: Throwable) {
             if (throwable !is PrivateKeyNotFoundException)
                 fail()
         }
 
         try {
-            ethree.decrypt(Data(TEXT.toByteArray()).toBase64String(), card)
+            ethree.authDecrypt(Data(TEXT.toByteArray()).toBase64String(), card)
         } catch (throwable: Throwable) {
             if (throwable !is PrivateKeyNotFoundException)
                 fail()
@@ -174,16 +174,18 @@ class PeerToPeerTest {
     @Test fun encrypt_decrypt_stream() {
         ethree.register().execute()
 
-        val inputStream = ByteArrayInputStream(TEXT.toByteArray())
+        val data = TEXT.toByteArray()
+        val inputStream = ByteArrayInputStream(data)
+        val size = data.size
         val outputStream = ByteArrayOutputStream()
 
-        ethree.encrypt(inputStream, outputStream)
+        ethree.authEncrypt(inputStream, size, outputStream)
         val encryptedData = outputStream.toByteArray()
 
         val inputStreamTwo = ByteArrayInputStream(encryptedData)
         val outputStreamTwo = ByteArrayOutputStream()
 
-        ethree.decrypt(inputStreamTwo, outputStreamTwo)
+        ethree.authDecrypt(inputStreamTwo, outputStreamTwo)
 
         val decryptedData = outputStreamTwo.toByteArray()
 
@@ -217,7 +219,7 @@ class PeerToPeerTest {
 
         TestUtils.pause(1000) // 1 sec
 
-        val encrypted = ethree.encrypt(TEXT, FindUsersResult(mapOf(card.identity to card)))
+        val encrypted = ethree.authEncrypt(TEXT, FindUsersResult(mapOf(card.identity to card)))
 
         ethree.cleanup()
 
@@ -226,36 +228,36 @@ class PeerToPeerTest {
         val dateTwo = Date()
 
         val encryptedTwo =
-                ethree.encrypt(TEXT + TEXT, FindUsersResult(mapOf(card.identity to card)))
+                ethree.authEncrypt(TEXT + TEXT, FindUsersResult(mapOf(card.identity to card)))
 
         val cardTwo = ethreeTwo.findUser(ethree.identity).get()
         assertNotNull(cardTwo)
 
         try {
-            ethreeTwo.decrypt(encrypted, cardTwo)
+            ethreeTwo.authDecrypt(encrypted, cardTwo)
             fail()
         } catch (throwable: Throwable) {
             // We're good
         }
 
         try {
-            ethreeTwo.decrypt(encrypted, cardTwo, dateTwo)
+            ethreeTwo.authDecrypt(encrypted, cardTwo, dateTwo)
             fail()
         } catch (throwable: Throwable) {
             // We're good
         }
 
-        val decrypted = ethreeTwo.decrypt(encrypted, cardTwo, dateOne)
+        val decrypted = ethreeTwo.authDecrypt(encrypted, cardTwo, dateOne)
         assertEquals(TEXT, decrypted)
 
         try {
-            ethreeTwo.decrypt(encryptedTwo, cardTwo, dateOne)
+            ethreeTwo.authDecrypt(encryptedTwo, cardTwo, dateOne)
             fail()
         } catch (throwable: Throwable) {
             // We're good
         }
 
-        val decryptedTwo = ethreeTwo.decrypt(encryptedTwo, cardTwo, dateTwo)
+        val decryptedTwo = ethreeTwo.authDecrypt(encryptedTwo, cardTwo, dateTwo)
         assertEquals(TEXT + TEXT, decryptedTwo)
     }
 
@@ -288,6 +290,45 @@ class PeerToPeerTest {
         val decrypted = ethreeTwo.decrypt(encrypted, publicKey)
 
         assertEquals(TEXT, decrypted)
+    }
+
+    // test08 STE_71
+    @Test fun encrypt_decrypt_deprecated_methods_should_succeed() {
+        val identityTwo = UUID.randomUUID().toString()
+
+        ethree.register().execute()
+
+        val ethreeTwo = EThree(identityTwo,
+                               object : OnGetTokenCallback {
+                                   override fun onGetToken(): String {
+                                       return TestUtils.generateTokenString(identityTwo)
+                                   }
+                               },
+                               TestConfig.context,
+                               enableRatchet = false,
+                               keyRotationInterval = TimeSpan.fromTime(3600, TimeUnit.SECONDS))
+
+        assertNotNull(ethreeTwo)
+
+        ethreeTwo.register().execute()
+
+        val card = ethree.findUser(ethreeTwo.identity, forceReload = false).get()
+        assertNotNull(card)
+
+        val encrypted = ethree.encrypt(TEXT, card)
+
+        val otherCard = TestUtils.publishCard()
+
+        try {
+            ethreeTwo.decrypt(encrypted, otherCard)
+            fail()
+        } catch (throwable: Throwable) {
+            // We're good
+        }
+
+        val cardTwo = ethreeTwo.findUser(ethree.identity, forceReload = false).get()
+        val decryptedTwo = ethreeTwo.decrypt(encrypted, cardTwo)
+        assertEquals(TEXT, decryptedTwo)
     }
 
     @Test fun signature_invalid_test() {

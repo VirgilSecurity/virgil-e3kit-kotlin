@@ -287,6 +287,14 @@ class BackupTests {
         }
     }
 
+    // test06 STE_70
+    @Test fun derive_passwords() {
+        val derived = ethree.derivePasswords(this.password)
+        assertNotNull(derived)
+
+        assertNotEquals(derived.backupPassword, derived.loginPassword)
+    }
+
     companion object {
         private const val WRONG_PASSWORD = "WRONG_PASSWORD"
     }

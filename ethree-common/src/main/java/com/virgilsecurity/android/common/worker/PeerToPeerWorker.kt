@@ -59,12 +59,17 @@ internal class PeerToPeerWorker internal constructor(
         private val crypto: VirgilCrypto
 ) {
 
-    @JvmOverloads internal fun encrypt(data: Data, users: FindUsersResult? = null): Data =
-            encryptInternal(data, users?.map { it.value.publicKey })
+    @Deprecated("Check 'replace with' section.", ReplaceWith("authEncrypt"))
+    @JvmOverloads
+    internal fun encrypt(data: Data, users: FindUsersResult? = null): Data =
+            oldEncryptInternal(data, users?.map { it.value.publicKey })
 
-    @JvmOverloads internal fun decrypt(data: Data, user: Card? = null): Data =
-            decryptInternal(data, user?.publicKey)
+    @Deprecated("Check 'replace with' section.", ReplaceWith("authDecrypt"))
+    @JvmOverloads
+    internal fun decrypt(data: Data, user: Card? = null): Data =
+            oldDecryptInternal(data, user?.publicKey)
 
+    @Deprecated("Check 'replace with' section.", ReplaceWith("authDecrypt"))
     internal fun decrypt(data: Data, user: Card, date: Date): Data {
         var card = user
 
@@ -76,14 +81,17 @@ internal class PeerToPeerWorker internal constructor(
             card = card.previousCard
         }
 
-        return decryptInternal(data, card.publicKey)
+        return oldDecryptInternal(data, card.publicKey)
     }
 
-    @JvmOverloads internal fun encrypt(inputStream: InputStream,
-                                       outputStream: OutputStream,
-                                       users: FindUsersResult? = null) =
-            encryptInternal(inputStream, outputStream, users?.map { it.value.publicKey })
+    @Deprecated("Check 'replace with' section.", ReplaceWith("authEncrypt"))
+    @JvmOverloads
+    internal fun encrypt(inputStream: InputStream,
+                         outputStream: OutputStream,
+                         users: FindUsersResult? = null) =
+            oldEncryptInternal(inputStream, outputStream, users?.map { it.value.publicKey })
 
+    @Deprecated("Check 'replace with' section.", ReplaceWith("authDecrypt"))
     internal fun decrypt(inputStream: InputStream, outputStream: OutputStream) {
         if (inputStream.available() == 0) throw EmptyArgumentException("inputStream")
 
@@ -92,7 +100,9 @@ internal class PeerToPeerWorker internal constructor(
         crypto.decrypt(inputStream, outputStream, selfKeyPair.privateKey)
     }
 
-    @JvmOverloads internal fun encrypt(text: String, users: FindUsersResult? = null): String {
+    @Deprecated("Check 'replace with' section.", ReplaceWith("authEncrypt"))
+    @JvmOverloads
+    internal fun encrypt(text: String, users: FindUsersResult? = null): String {
         require(text.isNotEmpty()) { "\'text\' should not be empty" }
 
         if (users != null) require(users.isNotEmpty()) { "Passed empty FindUsersResult" }
@@ -105,7 +115,9 @@ internal class PeerToPeerWorker internal constructor(
         return encrypt(data, users).toBase64String()
     }
 
-    @JvmOverloads internal fun decrypt(text: String, user: Card? = null): String {
+    @Deprecated("Check 'replace with' section.", ReplaceWith("authDecrypt"))
+    @JvmOverloads
+    internal fun decrypt(text: String, user: Card? = null): String {
         require(text.isNotEmpty()) { "\'text\' should not be empty" }
 
         val data = try {
@@ -119,6 +131,7 @@ internal class PeerToPeerWorker internal constructor(
         return String(decryptedData.data, StandardCharsets.UTF_8)
     }
 
+    @Deprecated("Check 'replace with' section.", ReplaceWith("authDecrypt"))
     internal fun decrypt(text: String, user: Card, date: Date): String {
         require(text.isNotEmpty()) { "\'text\' should not be empty" }
 
@@ -133,16 +146,19 @@ internal class PeerToPeerWorker internal constructor(
         return String(decryptedData.data, StandardCharsets.UTF_8)
     }
 
+    @Deprecated("Check 'replace with' section.", ReplaceWith("authEncrypt"))
     internal fun encrypt(data: Data, user: Card): Data =
             encrypt(data, FindUsersResult(mutableMapOf(user.identity to user)))
 
+    @Deprecated("Check 'replace with' section.", ReplaceWith("authEncrypt"))
     internal fun encrypt(text: String, user: Card): String =
             encrypt(text, FindUsersResult(mutableMapOf(user.identity to user)))
 
+    @Deprecated("Check 'replace with' section.", ReplaceWith("authEncrypt"))
     internal fun encrypt(inputStream: InputStream, outputStream: OutputStream, user: Card) =
             encrypt(inputStream, outputStream, FindUsersResult(mutableMapOf(user.identity to user)))
 
-    private fun encryptInternal(inputStream: InputStream,
+    private fun oldEncryptInternal(inputStream: InputStream,
                                 outputStream: OutputStream,
                                 publicKeys: List<VirgilPublicKey>?) {
         if (inputStream.available() == 0) throw EmptyArgumentException("inputStream")
@@ -161,7 +177,7 @@ internal class PeerToPeerWorker internal constructor(
         crypto.encrypt(inputStream, outputStream, pubKeys)
     }
 
-    private fun encryptInternal(data: Data,
+    private fun oldEncryptInternal(data: Data,
                                 publicKeys: List<VirgilPublicKey>?): Data {
         require(data.data.isNotEmpty()) { "\'data\' should not be empty." }
 
@@ -178,7 +194,7 @@ internal class PeerToPeerWorker internal constructor(
         return Data(crypto.signThenEncrypt(data.data, selfKeyPair.privateKey, pubKeys))
     }
 
-    private fun decryptInternal(data: Data, publicKey: VirgilPublicKey?): Data {
+    private fun oldDecryptInternal(data: Data, publicKey: VirgilPublicKey?): Data {
         require(data.data.isNotEmpty()) { "\'data\' should not be empty." }
 
         val selfKeyPair = localKeyStorage.retrieveKeyPair()
@@ -200,7 +216,7 @@ internal class PeerToPeerWorker internal constructor(
 
     // Backward compatibility deprecated methods --------------------------------------------------
 
-    @Deprecated("Use encryptForUsers method instead.")
+    @Deprecated("Check 'replace with' section.", ReplaceWith("authEncrypt"))
     internal fun encrypt(text: String, lookupResult: LookupResult): String {
         require(text.isNotEmpty()) { "\'text\' should not be empty" }
 
@@ -210,21 +226,21 @@ internal class PeerToPeerWorker internal constructor(
             throw ConversionException("Error while converting String to Data. ${exception.message}")
         }
 
-        return encryptInternal(data, lookupResult.toPublicKeys()).toBase64String()
+        return oldEncryptInternal(data, lookupResult.toPublicKeys()).toBase64String()
     }
 
-    @Deprecated("Use encryptForUsers method instead.")
+    @Deprecated("Check 'replace with' section.", ReplaceWith("authEncrypt"))
     @JvmOverloads internal fun encrypt(data: ByteArray,
                                        lookupResult: LookupResult? = null): ByteArray =
-            encryptInternal(Data(data), lookupResult.toPublicKeys()).data
+            oldEncryptInternal(Data(data), lookupResult.toPublicKeys()).data
 
-    @Deprecated("Use encryptForUsers method instead.")
+    @Deprecated("Check 'replace with' section.", ReplaceWith("authEncrypt"))
     internal fun encrypt(inputStream: InputStream,
                          outputStream: OutputStream,
                          lookupResult: LookupResult) =
-            encryptInternal(inputStream, outputStream, lookupResult.toPublicKeys())
+            oldEncryptInternal(inputStream, outputStream, lookupResult.toPublicKeys())
 
-    @Deprecated("Use decryptFromUser method instead.")
+    @Deprecated("Check 'replace with' section.", ReplaceWith("authDecrypt"))
     internal fun decrypt(base64String: String, sendersKey: VirgilPublicKey): String {
         require(base64String.isNotEmpty()) { "\'text\' should not be empty" }
 
@@ -234,13 +250,13 @@ internal class PeerToPeerWorker internal constructor(
             throw ConversionException("Error while converting String to Data. ${exception.message}")
         }
 
-        val decryptedData = decryptInternal(data, sendersKey)
+        val decryptedData = oldDecryptInternal(data, sendersKey)
 
         return String(decryptedData.data, StandardCharsets.UTF_8)
     }
 
-    @Deprecated("Use decryptFromUser method instead.")
+    @Deprecated("Check 'replace with' section.", ReplaceWith("authDecrypt"))
     @JvmOverloads internal fun decrypt(data: ByteArray,
                                        sendersKey: VirgilPublicKey? = null): ByteArray =
-            decryptInternal(Data(data), sendersKey).data
+            oldDecryptInternal(Data(data), sendersKey).data
 }

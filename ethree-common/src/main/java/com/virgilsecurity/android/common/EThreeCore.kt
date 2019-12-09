@@ -41,10 +41,7 @@ import com.virgilsecurity.android.common.callback.OnKeyChangedCallback
 import com.virgilsecurity.android.common.exception.*
 import com.virgilsecurity.android.common.manager.GroupManager
 import com.virgilsecurity.android.common.manager.LookupManager
-import com.virgilsecurity.android.common.model.EThreeParams
-import com.virgilsecurity.android.common.model.FindUsersResult
-import com.virgilsecurity.android.common.model.Group
-import com.virgilsecurity.android.common.model.LookupResult
+import com.virgilsecurity.android.common.model.*
 import com.virgilsecurity.android.common.model.ratchet.RatchetChat
 import com.virgilsecurity.android.common.storage.cloud.CloudKeyManager
 import com.virgilsecurity.android.common.storage.cloud.CloudRatchetStorage
@@ -100,6 +97,8 @@ abstract class EThreeCore {
     private lateinit var p2pWorker: PeerToPeerWorker
     private lateinit var searchWorker: SearchWorker
     private lateinit var ratchetWorker: RatchetWorker
+    private lateinit var authEncryptWorker: AuthEncryptWorker
+    private lateinit var streamsEncryptWorker: StreamsEncryptWorker
 
     internal lateinit var localKeyStorage: LocalKeyStorage
     internal lateinit var cloudRatchetStorage: CloudRatchetStorage
@@ -119,11 +118,11 @@ abstract class EThreeCore {
     val identity: String
 
     protected constructor(params: EThreeParams) : this(params.identity,
-                                             params.tokenCallback,
-                                             params.changedKeyDelegate,
-                                             params.enableRatchet,
-                                             params.keyRotationInterval,
-                                             params.context)
+                                                       params.tokenCallback,
+                                                       params.changedKeyDelegate,
+                                                       params.enableRatchet,
+                                                       params.keyRotationInterval,
+                                                       params.context)
 
     /**
      * Initializes [CardManager] with provided in [EThreeCore.initialize] callback
@@ -131,11 +130,11 @@ abstract class EThreeCore {
      * default settings.
      */
     protected constructor(identity: String,
-                getTokenCallback: OnGetTokenCallback,
-                keyChangedCallback: OnKeyChangedCallback?,
-                enableRatchet: Boolean,
-                keyRotationInterval: TimeSpan,
-                context: Context) {
+                          getTokenCallback: OnGetTokenCallback,
+                          keyChangedCallback: OnKeyChangedCallback?,
+                          enableRatchet: Boolean,
+                          keyRotationInterval: TimeSpan,
+                          context: Context) {
 
         this.identity = identity
 
@@ -188,6 +187,8 @@ abstract class EThreeCore {
         this.p2pWorker = PeerToPeerWorker(localKeyStorage, crypto)
         this.searchWorker = SearchWorker(lookupManager)
         this.ratchetWorker = RatchetWorker(identity, cloudRatchetStorage, ::getSecureChat)
+        this.authEncryptWorker = AuthEncryptWorker(localKeyStorage, crypto)
+        this.streamsEncryptWorker = StreamsEncryptWorker(localKeyStorage, crypto)
 
         if (localKeyStorage.exists()) {
             privateKeyChanged()
@@ -370,6 +371,14 @@ abstract class EThreeCore {
             searchWorker.lookupPublicKeys(identities)
 
     /**
+     * Derives different passwords for login and for backup from the one provided.
+     *
+     * @param password Password to derive from.
+     */
+    fun derivePasswords(password: String): DerivedPasswords =
+            backupWorker.derivePasswords(password)
+
+    /**
      * Encrypts the user's private key using the user's [password] and backs up the encrypted
      * private key to Virgil's cloud. This enables users to log in from other devices and have
      * access to their private key to decrypt data.
@@ -546,8 +555,9 @@ abstract class EThreeCore {
      *
      * @return Encrypted Data.
      */
-    @JvmOverloads fun encrypt(data: Data, users: FindUsersResult? = null): Data =
-            p2pWorker.encrypt(data, users)
+    @Deprecated("Check 'replace with' section.", ReplaceWith("authEncrypt"))
+    @JvmOverloads
+    fun encrypt(data: Data, users: FindUsersResult? = null): Data = p2pWorker.encrypt(data, users)
 
     /**
      * Decrypts and verifies data from users.
@@ -562,8 +572,9 @@ abstract class EThreeCore {
      *
      * @throws SignatureVerificationException If verification of message failed.
      */
-    @JvmOverloads fun decrypt(data: Data, user: Card? = null): Data =
-            p2pWorker.decrypt(data, user)
+    @Deprecated("Check 'replace with' section.", ReplaceWith("authDecrypt"))
+    @JvmOverloads
+    fun decrypt(data: Data, user: Card? = null): Data = p2pWorker.decrypt(data, user)
 
     /**
      * Decrypts and verifies data from users.
@@ -578,6 +589,7 @@ abstract class EThreeCore {
      *
      * @throws SignatureVerificationException If verification of message failed.
      */
+    @Deprecated("Check 'replace with' section.", ReplaceWith("authDecrypt"))
     fun decrypt(data: Data, user: Card, date: Date): Data = p2pWorker.decrypt(data, user, date)
 
     /**
@@ -594,9 +606,11 @@ abstract class EThreeCore {
      * @param users Result of findUsers call recipient Cards with Public Keys to sign and encrypt
      * with. Use null to sign and encrypt for self (Or overloaded method with one param).
      */
-    @JvmOverloads fun encrypt(inputStream: InputStream,
-                              outputStream: OutputStream,
-                              users: FindUsersResult? = null) =
+    @Deprecated("Check 'replace with' section.", ReplaceWith("authEncrypt"))
+    @JvmOverloads
+    fun encrypt(inputStream: InputStream,
+                outputStream: OutputStream,
+                users: FindUsersResult? = null) =
             p2pWorker.encrypt(inputStream, outputStream, users)
 
     /**
@@ -610,6 +624,7 @@ abstract class EThreeCore {
      * @throws PrivateKeyNotFoundException
      * @throws CryptoException
      */
+    @Deprecated("Check 'replace with' section.", ReplaceWith("authDecrypt"))
     fun decrypt(inputStream: InputStream, outputStream: OutputStream) =
             p2pWorker.decrypt(inputStream, outputStream)
 
@@ -628,7 +643,9 @@ abstract class EThreeCore {
      *
      * @return Encrypted base64String.
      */
-    @JvmOverloads fun encrypt(text: String, users: FindUsersResult? = null): String =
+    @Deprecated("Check 'replace with' section.", ReplaceWith("authEncrypt"))
+    @JvmOverloads
+    fun encrypt(text: String, users: FindUsersResult? = null): String =
             p2pWorker.encrypt(text, users)
 
     /**
@@ -642,8 +659,9 @@ abstract class EThreeCore {
      *
      * @return Decrypted String.
      */
-    @JvmOverloads fun decrypt(text: String, user: Card? = null): String =
-            p2pWorker.decrypt(text, user)
+    @Deprecated("Check 'replace with' section.", ReplaceWith("authDecrypt"))
+    @JvmOverloads
+    fun decrypt(text: String, user: Card? = null): String = p2pWorker.decrypt(text, user)
 
     /**
      * Decrypts and verifies base64 string from users.
@@ -656,6 +674,7 @@ abstract class EThreeCore {
      *
      * @return Decrypted String.
      */
+    @Deprecated("Check 'replace with' section.", ReplaceWith("authDecrypt"))
     fun decrypt(text: String, user: Card, date: Date): String = p2pWorker.decrypt(text, user, date)
 
     /**
@@ -670,6 +689,7 @@ abstract class EThreeCore {
      *
      * @return Encrypted data.
      */
+    @Deprecated("Check 'replace with' section.", ReplaceWith("authEncrypt"))
     fun encrypt(data: Data, user: Card): Data = p2pWorker.encrypt(data, user)
 
     /**
@@ -684,6 +704,7 @@ abstract class EThreeCore {
      *
      * @return Encrypted String.
      */
+    @Deprecated("Check 'replace with' section.", ReplaceWith("authEncrypt"))
     fun encrypt(text: String, user: Card): String = p2pWorker.encrypt(text, user)
 
     /**
@@ -697,8 +718,207 @@ abstract class EThreeCore {
      * @param outputStream Stream with encrypted data.
      * @param user User Card to encrypt for.
      */
+    @Deprecated("Check 'replace with' section.", ReplaceWith("authEncrypt"))
     fun encrypt(inputStream: InputStream, outputStream: OutputStream, user: Card) =
             p2pWorker.encrypt(inputStream, outputStream, user)
+
+    /**
+     * Signs then encrypts data (and signature) for user.
+     *
+     * - *Important* Deprecated decrypt method is unable to decrypt result of this method.
+     *
+     * - *Important* Automatically includes self key to recipientsKeys.
+     *
+     * - *Important* Requires private key in local storage.
+     *
+     * @param data Data to encrypt.
+     * @param card User Card to encrypt for.
+     *
+     * @return Encrypted data.
+     */
+    fun authEncrypt(data: Data, user: Card): Data =
+            authEncryptWorker.authEncrypt(data, user)
+
+    /**
+     * Signs then encrypts string (and signature) for user.
+     *
+     * - *Important* Deprecated decrypt method is unable to decrypt result of this method.
+     *
+     * - *Important* Automatically includes self key to recipientsKeys.
+     *
+     * - *Important* Requires private key in local storage.
+     *
+     * @param data String to encrypt.
+     * @param card User Card to encrypt for.
+     *
+     * @return Encrypted string.
+     */
+    fun authEncrypt(text: String, user: Card): String =
+            authEncryptWorker.authEncrypt(text, user)
+
+    /**
+     * Decrypts data and signature and verifies signature of sender.
+     *
+     * - *Important* Requires private key in local storage.
+     *
+     * @param data Data to decrypt.
+     * @param user Sender Card with Public Key to verify with.
+     * Use null to decrypt and verify from self.
+     *
+     * @return Decrypted Data.
+     */
+    @JvmOverloads fun authDecrypt(data: Data, user: Card? = null): Data =
+            authEncryptWorker.authDecrypt(data, user)
+
+    /**
+     * Decrypts data and signature and verifies signature of sender.
+     *
+     * - *Important* Requires private key in local storage.
+     *
+     * @param data Data to decrypt.
+     * @param user Sender Card with Public Key to verify with.
+     * @param date Date of encryption to use proper card version.
+     *
+     * @return Decrypted Data.
+     */
+    fun authDecrypt(data: Data, user: Card, date: Date): Data =
+            authEncryptWorker.authDecrypt(data, user, date)
+
+    /**
+     * Decrypts base64 string and signature and verifies signature of sender.
+     *
+     * - *Important* Requires private key in local storage.
+     *
+     * @param text Encrypted String.
+     * @param user Sender Card with Public Key to verify with.
+     * Use null to decrypt and verify from self.
+     *
+     * @return Decrypted String.
+     */
+    @JvmOverloads fun authDecrypt(text: String, user: Card? = null): String =
+            authEncryptWorker.authDecrypt(text, user)
+
+    /**
+     * Decrypts base64 string and signature and verifies signature of sender.
+     *
+     * - *Important* Requires private key in local storage.
+     *
+     * @param text Encrypted String.
+     * @param user Sender Card with Public Key to verify with.
+     * @param date Date of encryption to use proper card version.
+     *
+     * @return Decrypted String.
+     */
+    fun authDecrypt(text: String, user: Card, date: Date): String =
+            authEncryptWorker.authDecrypt(text, user, date)
+
+    /**
+     * Signs then encrypts string (and signature) for group of users.
+     *
+     * - *Important* Deprecated decrypt method is unable to decrypt result of this method.
+     *
+     * - *Important* Automatically includes self key to recipientsKeys.
+     *
+     * - *Important* Requires private key in local storage.
+     *
+     * - *Note* Avoid key duplication.
+     *
+     * @param text String to encrypt.
+     * @param users Result of findUsers call recipient Cards with Public Keys to sign and
+     * encrypt with. Use null to sign and encrypt for self.
+     *
+     * @return Encrypted base64String.
+     */
+    @JvmOverloads fun authEncrypt(text: String, users: FindUsersResult? = null): String =
+            authEncryptWorker.authEncrypt(text, users)
+
+    /**
+     * Signs then encrypts string (and signature) for group of users.
+     *
+     * - *Important* Deprecated decrypt method is unable to decrypt result of this method.
+     *
+     * - *Important* Automatically includes self key to recipientsKeys.
+     *
+     * - *Important* Requires private key in local storage.
+     *
+     * - *Note* Avoid key duplication.
+     *
+     * @param text Data to encrypt.
+     * @param users Result of findUsers call recipient Cards with Public Keys to sign and
+     * encrypt with. Use null to sign and encrypt for self.
+     *
+     * @return Encrypted data.
+     */
+    @JvmOverloads fun authEncrypt(data: Data, users: FindUsersResult? = null): Data =
+            authEncryptWorker.authEncrypt(data, users)
+
+    /**
+     * Signs then encrypts stream and signature for user.
+     *
+     * - *Important* Automatically includes self key to recipientsKeys.
+     *
+     * - *Important* Requires private key in local storage.
+     *
+     * @param inputStream Data stream to be encrypted.
+     * @param streamSize
+     * @param outputStream Stream with encrypted data
+     * @param user User Card to encrypt for.
+     */
+    fun authEncrypt(inputStream: InputStream,
+                             streamSize: Int,
+                             outputStream: OutputStream,
+                             user: Card) =
+            streamsEncryptWorker.authEncrypt(inputStream, streamSize, outputStream, user)
+
+    /**
+     * Signs then encrypts stream and signature for users.
+     *
+     * - *Important* Automatically includes self key to recipientsKeys.
+     *
+     * - *Important* Requires private key in local storage.
+     *
+     * - *Note* Avoid key duplication.
+     *
+     * @param inputStream Data stream to be encrypted.
+     * @param streamSize
+     * @param outputStream Stream with encrypted data
+     * @param users User Card to encrypt for.
+     */
+    @JvmOverloads fun authEncrypt(inputStream: InputStream,
+                                           streamSize: Int,
+                                           outputStream: OutputStream,
+                                           users: FindUsersResult? = null) =
+            streamsEncryptWorker.authEncrypt(inputStream, streamSize, outputStream, users)
+
+    /**
+     * Decrypts stream and signature and verifies signature of sender.
+     *
+     * - *Important* Requires private key in local storage.
+     *
+     * @param inputStream Stream with encrypted data.
+     * @param outputStream Stream with decrypted data.
+     * @param user Sender Card with Public Key to verify with. Use null to decrypt and verify
+     * from self.
+     */
+    fun authDecrypt(inputStream: InputStream, outputStream: OutputStream, user: Card? = null) =
+            streamsEncryptWorker.authDecrypt(inputStream, outputStream, user)
+
+    /**
+     * Decrypts stream and signature and verifies signature of sender.
+     *
+     * - *Important* Requires private key in local storage.
+     *
+     * @param inputStream Stream with encrypted data.
+     * @param outputStream Stream with decrypted data.
+     * @param user Sender Card with Public Key to verify with. Use null to decrypt and verify
+     * from self.
+     * @param date Date of encryption to use proper card version.
+     */
+    fun authDecrypt(inputStream: InputStream,
+                             outputStream: OutputStream,
+                             user: Card,
+                             date: Date) =
+            streamsEncryptWorker.authDecrypt(inputStream, outputStream, user, date)
 
     /**
      * Creates double ratchet chat with user, saves it locally. // TODO add throws to ratchet methods
@@ -716,13 +936,13 @@ abstract class EThreeCore {
      * @param name Name of chat.
      */
     @JvmOverloads fun joinRatchetChat(card: Card, name: String? = null): Result<RatchetChat> =
-        ratchetWorker.joinRatchetChat(card, name)
+            ratchetWorker.joinRatchetChat(card, name)
 
     /**
      * Retrieves a double ratchet chat from the local storage.
      */
     @JvmOverloads fun getRatchetChat(card: Card, name: String? = null): RatchetChat? =
-        ratchetWorker.getRatchetChat(card, name)
+            ratchetWorker.getRatchetChat(card, name)
 
     /**
      * Deletes double ratchet chat
@@ -752,8 +972,7 @@ abstract class EThreeCore {
      * @throws PrivateKeyNotFoundException
      * @throws CryptoException
      */
-    @Deprecated("Check 'replace with' section.",
-                ReplaceWith("encrypt(String, FindUsersResult)"))
+    @Deprecated("Check 'replace with' section.", ReplaceWith("authEncrypt"))
     fun encrypt(text: String, lookupResult: LookupResult): String =
             p2pWorker.encrypt(text, lookupResult)
 
@@ -775,8 +994,7 @@ abstract class EThreeCore {
      * @throws PrivateKeyNotFoundException
      * @throws CryptoException
      */
-    @Deprecated("Check 'replace with' section.",
-                ReplaceWith("encrypt(ByteArray, FindUsersResult)"))
+    @Deprecated("Check 'replace with' section.", ReplaceWith("authEncrypt"))
     @JvmOverloads fun encrypt(data: ByteArray, lookupResult: LookupResult? = null): ByteArray =
             p2pWorker.encrypt(data, lookupResult)
 
@@ -797,8 +1015,7 @@ abstract class EThreeCore {
      * @throws PrivateKeyNotFoundException
      * @throws CryptoException
      */
-    @Deprecated("Check \'replace with\' section.",
-                ReplaceWith("encrypt(InputStream, OutputStream, FindUsersResult)"))
+    @Deprecated("Check 'replace with' section.", ReplaceWith("authEncrypt"))
     fun encrypt(inputStream: InputStream,
                 outputStream: OutputStream,
                 lookupResult: LookupResult) =
@@ -822,8 +1039,7 @@ abstract class EThreeCore {
      * @throws PrivateKeyNotFoundException
      * @throws CryptoException
      */
-    @Deprecated("Check 'replace with' section.",
-                ReplaceWith("decrypt(String, Card)"))
+    @Deprecated("Check 'replace with' section.", ReplaceWith("authDecrypt"))
     fun decrypt(base64String: String, sendersKey: VirgilPublicKey): String =
             p2pWorker.decrypt(base64String, sendersKey)
 
@@ -839,8 +1055,7 @@ abstract class EThreeCore {
      * @throws PrivateKeyNotFoundException
      * @throws CryptoException
      */
-    @Deprecated("Check 'replace with' section.",
-                ReplaceWith("decrypt(Data, Card)"))
+    @Deprecated("Check 'replace with' section.", ReplaceWith("authDecrypt"))
     @JvmOverloads fun decrypt(data: ByteArray, sendersKey: VirgilPublicKey? = null): ByteArray =
             p2pWorker.decrypt(data, sendersKey)
 

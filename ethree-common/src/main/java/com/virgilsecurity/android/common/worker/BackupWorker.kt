@@ -36,6 +36,7 @@ package com.virgilsecurity.android.common.worker
 import com.virgilsecurity.android.common.EThreeCore
 import com.virgilsecurity.android.common.exception.*
 import com.virgilsecurity.android.common.manager.LookupManager
+import com.virgilsecurity.android.common.model.DerivedPasswords
 import com.virgilsecurity.android.common.storage.cloud.CloudKeyManager
 import com.virgilsecurity.android.common.storage.local.LocalKeyStorage
 import com.virgilsecurity.common.model.Completable
@@ -43,6 +44,8 @@ import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.keyknox.exception.EntryAlreadyExistsException
 import com.virgilsecurity.keyknox.exception.EntryNotFoundException
 import com.virgilsecurity.sdk.cards.Card
+import com.virgilsecurity.sdk.crypto.HashAlgorithm
+import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.exceptions.KeyEntryAlreadyExistsException
 
 /**
@@ -55,6 +58,19 @@ internal class BackupWorker internal constructor(
         private val lookupManager: LookupManager,
         private val identity: String
 ) {
+
+    internal fun derivePasswords(password: String): DerivedPasswords {
+        val passwordData = password.toByteArray(Charsets.UTF_8)
+        val crypto = VirgilCrypto()
+
+        val hash1 = crypto.computeHash(passwordData, HashAlgorithm.SHA256)
+        val hash2 = crypto.computeHash(hash1, HashAlgorithm.SHA512)
+
+        val loginPassword = Data(hash2.sliceArray(0 until 32)).toBase64String()
+        val backupPassword = Data(hash2.sliceArray(32 until 64)).toBase64String()
+
+        return DerivedPasswords(loginPassword, backupPassword)
+    }
 
     internal fun backupPrivateKey(password: String): Completable = object : Completable {
         override fun execute() {

@@ -81,15 +81,15 @@ internal class GroupManager internal constructor(
         val cloudEpochs = cloudTicketStorage.getEpochs(sessionId, card.identity)
         val localEpochs = localGroupStorage.getEpochs(sessionId)
 
-        val lastEpoch = cloudEpochs.max()
-        if (lastEpoch == null) {
+        val anyEpoch = cloudEpochs.firstOrNull()
+        if (anyEpoch == null) {
             localGroupStorage.delete(sessionId)
 
             throw GroupNotFoundException("Group with provided id was not found.")
         }
 
         val epochs = cloudEpochs.subtract(localEpochs).toMutableSet()
-        epochs.add(lastEpoch)
+        epochs.add(anyEpoch)
 
         val tickets = cloudTicketStorage.retrieve(sessionId, card.identity, card.publicKey, epochs)
         val info = GroupInfo(card.identity)
@@ -107,8 +107,10 @@ internal class GroupManager internal constructor(
             cloudTicketStorage.reAddRecipient(card, sessionId)
 
     internal fun retrieve(sessionId: Data): Group? {
+        val ticketsCount = MAX_TICKETS_IN_GROUP
+
         val rawGroup = try {
-            localGroupStorage.retrieve(sessionId, MAX_TICKETS_IN_GROUP)
+            localGroupStorage.retrieve(sessionId, ticketsCount)
         } catch (throwable: Throwable) {
             logger.info(throwable.message)
             return null
