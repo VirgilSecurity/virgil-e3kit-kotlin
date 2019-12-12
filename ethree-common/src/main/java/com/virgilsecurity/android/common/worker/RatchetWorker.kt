@@ -34,15 +34,13 @@
 package com.virgilsecurity.android.common.worker
 
 import com.virgilsecurity.android.common.exception.EThreeRatchetException
-import com.virgilsecurity.android.common.exception.ServiceErrorCodes
-import com.virgilsecurity.android.common.model.ratchet.RatchetChat
+import com.virgilsecurity.android.common.model.ratchet.RatchetChannel
 import com.virgilsecurity.android.common.storage.cloud.CloudRatchetStorage
 import com.virgilsecurity.common.model.Completable
 import com.virgilsecurity.common.model.Result
-import com.virgilsecurity.keyknox.exception.InvalidHashHeaderException
 import com.virgilsecurity.ratchet.exception.FileDeletionException
-import com.virgilsecurity.ratchet.exception.ProtocolException
 import com.virgilsecurity.ratchet.securechat.SecureChat
+import com.virgilsecurity.ratchet.securechat.SecureSession
 import com.virgilsecurity.sdk.cards.Card
 import java.util.*
 
@@ -52,74 +50,53 @@ import java.util.*
 internal class RatchetWorker internal constructor(
         private val identity: String,
         private val cloudRatchetStorage: CloudRatchetStorage,
-        private val getSecureChat: () -> SecureChat
+        private val getSecureChat: () -> SecureChat,
+        private val startRatchetSessionAsSender: (SecureChat, Card, String?) -> SecureSession
 ) {
 
-    @JvmOverloads internal fun createRatchetChat(card: Card,
-                                                 name: String? = null): Result<RatchetChat> =
-            object : Result<RatchetChat> {
-                override fun get(): RatchetChat {
-                    try {
-                        val secureChat = getSecureChat()
-
-                        if (secureChat.existingSession(card.identity, name) != null) {
-                            throw EThreeRatchetException(
-                                EThreeRatchetException.Description.CHAT_ALREADY_EXISTS
-                            )
-                        }
-
-                        if (card.identity == this@RatchetWorker.identity) {
-                            throw EThreeRatchetException(
-                                EThreeRatchetException.Description.SELF_CHAT_IS_FORBIDDEN
-                            )
-                        }
-
-                        val session = secureChat.startNewSessionAsSender(card, name).get()
-                        val ticket = session.encrypt(UUID.randomUUID().toString())
-                        cloudRatchetStorage.store(ticket, card, name)
-
-                        secureChat.storeSession(session)
-
-                        return RatchetChat(session, secureChat.sessionStorage)
-                    } catch (throwable: Throwable) {
-                        when (throwable) {
-                            is ProtocolException -> {
-                                if (throwable.errorCode == ServiceErrorCodes.NO_KEY_DATA_FOR_USER) {
-                                    throw EThreeRatchetException(
-                                        EThreeRatchetException.Description.USER_IS_NOT_USING_RATCHET
-                                    )
-                                } else {
-                                    throw throwable
-                                }
-                            }
-                            is InvalidHashHeaderException -> {
-                                throw EThreeRatchetException(
-                                    EThreeRatchetException.Description.CHAT_ALREADY_EXISTS
-                                )
-                            }
-                            else -> {
-                                throw throwable
-                            }
-                        }
-                    }
-                }
-            }
-
-    @JvmOverloads internal fun joinRatchetChat(card: Card,
-                                               name: String? = null): Result<RatchetChat> =
-            object : Result<RatchetChat> {
-                override fun get(): RatchetChat {
+    @JvmOverloads internal fun createRatchetChannel(card: Card,
+                                                    name: String? = null): Result<RatchetChannel> =
+            object : Result<RatchetChannel> {
+                override fun get(): RatchetChannel {
                     val secureChat = getSecureChat()
 
                     if (secureChat.existingSession(card.identity, name) != null) {
                         throw EThreeRatchetException(
-                            EThreeRatchetException.Description.CHAT_ALREADY_EXISTS
+                            EThreeRatchetException.Description.CHANNEL_ALREADY_EXISTS
                         )
                     }
 
                     if (card.identity == this@RatchetWorker.identity) {
                         throw EThreeRatchetException(
-                            EThreeRatchetException.Description.SELF_CHAT_IS_FORBIDDEN
+                            EThreeRatchetException.Description.SELF_CHANNEL_IS_FORBIDDEN
+                        )
+                    }
+
+                    val session = startRatchetSessionAsSender(secureChat, card, name)
+                    val ticket = session.encrypt(UUID.randomUUID().toString())
+                    cloudRatchetStorage.store(ticket, card, name)
+
+                    secureChat.storeSession(session)
+
+                    return RatchetChannel(session, secureChat.sessionStorage)
+                }
+            }
+
+    @JvmOverloads internal fun joinRatchetChannel(card: Card,
+                                                  name: String? = null): Result<RatchetChannel> =
+            object : Result<RatchetChannel> {
+                override fun get(): RatchetChannel {
+                    val secureChat = getSecureChat()
+
+                    if (secureChat.existingSession(card.identity, name) != null) {
+                        throw EThreeRatchetException(
+                            EThreeRatchetException.Description.CHANNEL_ALREADY_EXISTS
+                        )
+                    }
+
+                    if (card.identity == this@RatchetWorker.identity) {
+                        throw EThreeRatchetException(
+                            EThreeRatchetException.Description.SELF_CHANNEL_IS_FORBIDDEN
                         )
                     }
 
@@ -129,31 +106,31 @@ internal class RatchetWorker internal constructor(
 
                     secureChat.storeSession(session)
 
-                    return RatchetChat(session, secureChat.sessionStorage)
+                    return RatchetChannel(session, secureChat.sessionStorage)
                 }
             }
 
-    @JvmOverloads internal fun getRatchetChat(card: Card, name: String? = null): RatchetChat? {
+    @JvmOverloads internal fun getRatchetChannel(card: Card,
+                                                 name: String? = null): RatchetChannel? {
         val secureChat = getSecureChat()
 
         val session = secureChat.existingSession(card.identity, name) ?: return null
 
-        return RatchetChat(session, secureChat.sessionStorage)
+        return RatchetChannel(session, secureChat.sessionStorage)
     }
 
-    @JvmOverloads internal fun deleteRatchetChat(card: Card,
-                                                 name: String? = null): Completable =
+    @JvmOverloads internal fun deleteRatchetChannel(card: Card,
+                                                    name: String? = null): Completable =
             object : Completable {
                 override fun execute() {
                     val secureChat = getSecureChat()
 
                     cloudRatchetStorage.delete(card, name)
 
-                  try {
-                    secureChat.deleteSession(card.identity, name)
-                  } catch (exception: FileDeletionException) {
-                      throw EThreeRatchetException(EThreeRatchetException.Description.MISSING_LOCAL_CHAT)
-                  }
+                    try {
+                        secureChat.deleteSession(card.identity, name)
+                    } catch (_: FileDeletionException) {
+                    }
                 }
             }
 }

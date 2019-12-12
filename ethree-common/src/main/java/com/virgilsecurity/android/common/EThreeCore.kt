@@ -41,8 +41,10 @@ import com.virgilsecurity.android.common.callback.OnKeyChangedCallback
 import com.virgilsecurity.android.common.exception.*
 import com.virgilsecurity.android.common.manager.GroupManager
 import com.virgilsecurity.android.common.manager.LookupManager
+import com.virgilsecurity.android.common.manager.UnsafeChannelManager
 import com.virgilsecurity.android.common.model.*
-import com.virgilsecurity.android.common.model.ratchet.RatchetChat
+import com.virgilsecurity.android.common.model.ratchet.RatchetChannel
+import com.virgilsecurity.android.common.model.unsafe.UnsafeChannel
 import com.virgilsecurity.android.common.storage.cloud.CloudKeyManager
 import com.virgilsecurity.android.common.storage.cloud.CloudRatchetStorage
 import com.virgilsecurity.android.common.storage.cloud.CloudTicketStorage
@@ -61,6 +63,7 @@ import com.virgilsecurity.keyknox.utils.unwrapCompanionClass
 import com.virgilsecurity.ratchet.exception.ProtocolException
 import com.virgilsecurity.ratchet.securechat.SecureChat
 import com.virgilsecurity.ratchet.securechat.SecureChatContext
+import com.virgilsecurity.ratchet.securechat.SecureSession
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
@@ -85,10 +88,10 @@ import java.util.logging.Logger
 abstract class EThreeCore {
 
     private val rootPath: String
-    private val context: Context
 
     private var accessTokenProvider: AccessTokenProvider
     private var groupManager: GroupManager? = null
+    private var unsafeChannelManager: UnsafeChannelManager? = null
     private var secureChat: SecureChat? = null
 
     private lateinit var authorizationWorker: AuthorizationWorker
@@ -99,6 +102,7 @@ abstract class EThreeCore {
     private lateinit var ratchetWorker: RatchetWorker
     private lateinit var authEncryptWorker: AuthEncryptWorker
     private lateinit var streamsEncryptWorker: StreamsEncryptWorker
+    private lateinit var unsafeChannelWorker: UnsafeChannelWorker
 
     internal lateinit var localKeyStorage: LocalKeyStorage
     internal lateinit var cloudRatchetStorage: CloudRatchetStorage
@@ -160,7 +164,6 @@ abstract class EThreeCore {
 
         this.enableRatchet = enableRatchet
         this.keyRotationInterval = keyRotationInterval
-        this.context = context
     }
 
     /**
@@ -186,9 +189,13 @@ abstract class EThreeCore {
         this.groupWorker = GroupWorker(identity, crypto, ::getGroupManager, ::computeSessionId)
         this.p2pWorker = PeerToPeerWorker(localKeyStorage, crypto)
         this.searchWorker = SearchWorker(lookupManager)
-        this.ratchetWorker = RatchetWorker(identity, cloudRatchetStorage, ::getSecureChat)
+        this.ratchetWorker = RatchetWorker(identity,
+                                           cloudRatchetStorage,
+                                           ::getSecureChat,
+                                           ::startRatchetSessionAsSender)
         this.authEncryptWorker = AuthEncryptWorker(localKeyStorage, crypto)
         this.streamsEncryptWorker = StreamsEncryptWorker(localKeyStorage, crypto)
+        this.unsafeChannelWorker = UnsafeChannelWorker(identity, lookupManager, ::getUnsafeManager)
 
         if (localKeyStorage.exists()) {
             privateKeyChanged()
@@ -198,9 +205,11 @@ abstract class EThreeCore {
     }
 
     internal fun getGroupManager(): GroupManager =
-            groupManager ?: throw PrivateKeyNotFoundException("No private key on device. You " +
-                                                              "should call register() or " +
-                                                              "retrievePrivateKey()")
+            groupManager ?: throw EThreeException(EThreeException.Description.MISSING_PRIVATE_KEY)
+
+    internal fun getUnsafeManager(): UnsafeChannelManager =
+            unsafeChannelManager
+            ?: throw EThreeException(EThreeException.Description.MISSING_PRIVATE_KEY)
 
     protected fun getSecureChat(): SecureChat {
         if (!enableRatchet)
@@ -460,7 +469,7 @@ abstract class EThreeCore {
      * @throws InvalidParticipantsCountGroupException If participants count is out of
      * [Group.VALID_PARTICIPANTS_COUNT_RANGE] range.
      */
-    fun createGroup(identifier: Data, users: FindUsersResult): Result<Group> =
+    fun createGroup(identifier: Data, users: FindUsersResult? = null): Result<Group> =
             groupWorker.createGroup(identifier, users)
 
     /**
@@ -486,7 +495,7 @@ abstract class EThreeCore {
             groupWorker.loadGroup(identifier, card)
 
     /**
-     * Deletes group from cloud and local storage.
+     * Deletes group from cloud (if the user is an initiator) and local storage.
      *
      * To start execution of the current function, please see [Completable] description.
      *
@@ -506,7 +515,7 @@ abstract class EThreeCore {
      *
      * @return New [Group].
      */
-    fun createGroup(identifier: String, users: FindUsersResult): Result<Group> =
+    fun createGroup(identifier: String, users: FindUsersResult? = null): Result<Group> =
             groupWorker.createGroup(identifier, users)
 
     /**
@@ -865,9 +874,9 @@ abstract class EThreeCore {
      * @param user User Card to encrypt for.
      */
     fun authEncrypt(inputStream: InputStream,
-                             streamSize: Int,
-                             outputStream: OutputStream,
-                             user: Card) =
+                    streamSize: Int,
+                    outputStream: OutputStream,
+                    user: Card) =
             streamsEncryptWorker.authEncrypt(inputStream, streamSize, outputStream, user)
 
     /**
@@ -885,9 +894,9 @@ abstract class EThreeCore {
      * @param users User Card to encrypt for.
      */
     @JvmOverloads fun authEncrypt(inputStream: InputStream,
-                                           streamSize: Int,
-                                           outputStream: OutputStream,
-                                           users: FindUsersResult? = null) =
+                                  streamSize: Int,
+                                  outputStream: OutputStream,
+                                  users: FindUsersResult? = null) =
             streamsEncryptWorker.authEncrypt(inputStream, streamSize, outputStream, users)
 
     /**
@@ -915,44 +924,79 @@ abstract class EThreeCore {
      * @param date Date of encryption to use proper card version.
      */
     fun authDecrypt(inputStream: InputStream,
-                             outputStream: OutputStream,
-                             user: Card,
-                             date: Date) =
+                    outputStream: OutputStream,
+                    user: Card,
+                    date: Date) =
             streamsEncryptWorker.authDecrypt(inputStream, outputStream, user, date)
 
     /**
-     * Creates double ratchet chat with user, saves it locally. // TODO add throws to ratchet methods
+     * Creates double ratchet channel with user, saves it locally. // TODO add throws to ratchet methods
      *
      * @param card Card of participant.
-     * @param name Name of chat.
+     * @param name Name of channel.
      */
-    @JvmOverloads fun createRatchetChat(card: Card, name: String? = null): Result<RatchetChat> =
-            ratchetWorker.createRatchetChat(card, name)
+    @JvmOverloads fun createRatchetChannel(card: Card,
+                                           name: String? = null): Result<RatchetChannel> =
+            ratchetWorker.createRatchetChannel(card, name)
 
     /**
-     * Joins double ratchet chat with user, saves it locally.
+     * Joins double ratchet channel with user, saves it locally.
      *
      * @param card Card of initiator.
-     * @param name Name of chat.
+     * @param name Name of channel.
      */
-    @JvmOverloads fun joinRatchetChat(card: Card, name: String? = null): Result<RatchetChat> =
-            ratchetWorker.joinRatchetChat(card, name)
+    @JvmOverloads fun joinRatchetChannel(card: Card, name: String? = null): Result<RatchetChannel> =
+            ratchetWorker.joinRatchetChannel(card, name)
 
     /**
-     * Retrieves a double ratchet chat from the local storage.
+     * Retrieves a double ratchet channel from the local storage.
      */
-    @JvmOverloads fun getRatchetChat(card: Card, name: String? = null): RatchetChat? =
-            ratchetWorker.getRatchetChat(card, name)
+    @JvmOverloads fun getRatchetChannel(card: Card, name: String? = null): RatchetChannel? =
+            ratchetWorker.getRatchetChannel(card, name)
 
     /**
-     * Deletes double ratchet chat
+     * Deletes double ratchet channel.
      *
      * @param card Card of participant.
-     * @param name Name of chat.
+     * @param name Name of channel.
      */
-    @JvmOverloads fun deleteRatchetChat(card: Card, name: String? = null): Completable =
-            ratchetWorker.deleteRatchetChat(card, name)
+    @JvmOverloads fun deleteRatchetChannel(card: Card, name: String? = null): Completable =
+            ratchetWorker.deleteRatchetChannel(card, name)
 
+    /**
+     * Creates channel with unregistered user.
+     *
+     * - *Important* Temporary key for unregistered user is stored unencrypted on Cloud.
+     *
+     * @param identity Identity of unregistered user.
+     */
+    fun createUnsafeChannel(identity: String): Result<UnsafeChannel> =
+            unsafeChannelWorker.createUnsafeChannel(identity)
+
+    /**
+     * Loads unsafe channel by fetching temporary key form Cloud.
+     *
+     * @param asCreator Specifies whether caller is creator of channel or not.
+     * @param identity Identity of participant.
+     */
+    fun loadUnsafeChannel(asCreator: Boolean, identity: String): Result<UnsafeChannel> =
+            unsafeChannelWorker.loadUnsafeChannel(asCreator, identity)
+
+    /**
+     * Returns cached unsafe channel.
+     *
+     * @param identity Identity of participant.
+     */
+    fun getUnsafeChannel(identity: String): UnsafeChannel? =
+            unsafeChannelWorker.getUnsafeChannel(identity)
+
+    /**
+     * Deletes unsafe channel from the cloud (if the user is a creator) and from the local storage.
+     *
+     * @param identity Identity of participant.
+     */
+    fun deleteUnsafeChannel(identity: String): Completable =
+            unsafeChannelWorker.deleteUnsafeChannel(identity)
 
     // Backward compatibility deprecated methods --------------------------------------------------
 
@@ -1069,6 +1113,7 @@ abstract class EThreeCore {
         val selfKeyPair = localKeyStorage.retrieveKeyPair()
 
         setupGroupManager(selfKeyPair)
+        setupUnsafeManager(selfKeyPair)
 
         if (this.enableRatchet) {
             setupRatchet(params, selfKeyPair)
@@ -1078,18 +1123,20 @@ abstract class EThreeCore {
     internal fun privateKeyDeleted() {
         lookupManager.cardStorage.reset()
         groupManager?.localGroupStorage?.reset()
+        unsafeChannelManager?.localUnsafeStorage?.reset()
 
         groupManager = null
+        unsafeChannelManager = null
         secureChat = null
         timer = null
     }
 
     internal fun computeSessionId(identifier: Data): Data {
-        if (identifier.data.size <= 10) {
+        if (identifier.value.size <= 10) {
             throw GroupIdTooShortException("Group Id length should be > 10")
         }
 
-        val hash = crypto.computeHash(identifier.data, HashAlgorithm.SHA512)
+        val hash = crypto.computeHash(identifier.value, HashAlgorithm.SHA512)
                 .sliceArray(IntRange(0, 31))
 
         return Data(hash)
@@ -1116,6 +1163,22 @@ abstract class EThreeCore {
         privateKeyChanged(PrivateKeyChangedParams(card, isNew = true))
     }
 
+    internal fun startRatchetSessionAsSender(secureChat: SecureChat,
+                                             card: Card,
+                                             name: String?): SecureSession {
+        return try {
+            secureChat.startNewSessionAsSender(card, name).get()
+        } catch (exception: ProtocolException) {
+            if (exception.errorCode == ServiceErrorCodes.NO_KEY_DATA_FOR_USER) {
+                throw EThreeRatchetException(
+                    EThreeRatchetException.Description.USER_IS_NOT_USING_RATCHET
+                )
+            } else {
+                throw exception
+            }
+        }
+    }
+
     private fun setupGroupManager(keyPair: VirgilKeyPair) {
         val localGroupStorage = FileGroupStorage(identity, crypto, keyPair, rootPath)
         val ticketStorageCloud = CloudTicketStorage(accessTokenProvider, localKeyStorage)
@@ -1125,6 +1188,15 @@ abstract class EThreeCore {
                                          this.localKeyStorage,
                                          this.lookupManager,
                                          this.crypto)
+    }
+
+    private fun setupUnsafeManager(keyPair: VirgilKeyPair) {
+        unsafeChannelManager = UnsafeChannelManager(crypto,
+                                                    accessTokenProvider,
+                                                    localKeyStorage,
+                                                    lookupManager,
+                                                    keyPair,
+                                                    rootPath)
     }
 
     private fun setupRatchet(params: PrivateKeyChangedParams? = null, keyPair: VirgilKeyPair) {
@@ -1141,6 +1213,8 @@ abstract class EThreeCore {
                         // When there're no keys on cloud. Should be fixed on server side.
                         logger.info("No key data found for user. " +
                                     "Should be fixed on server side.")
+                    } else {
+                        throw exception
                     }
                 }
 
@@ -1168,7 +1242,7 @@ abstract class EThreeCore {
         val context = SecureChatContext(card,
                                         keyPair,
                                         this.accessTokenProvider,
-                                        this.context.filesDir.path)
+                                        rootPath)
 
         val chat = SecureChat(context)
         this.secureChat = chat

@@ -86,9 +86,8 @@ class GroupTests {
         this.groupId = Data(this.crypto.generateRandomData(100))
     }
 
-    @Test
-    fun ste26() {
-        // Create with invalid participants count. Should throw error
+    // test001 STE_26
+    @Test fun create_with_invalid_participants_count() {
         val card = this.ethree.findUser(ethree.identity).get()
 
         try {
@@ -120,9 +119,8 @@ class GroupTests {
         assertTrue(group.participants.contains(newUsers.keys.first()))
     }
 
-    @Test
-    fun ste27() {
-        // createGroup should add self
+    // test002 STE_27
+    @Test fun create_should_add_self() {
         val ethree2 = createEThree()
 
         val groupId2 = Data(this.crypto.generateRandomData(100))
@@ -141,9 +139,8 @@ class GroupTests {
         assertEquals(group1.participants, group2.participants)
     }
 
-    @Test
-    fun ste28() {
-        // groupId should not be short
+    // test003 STE_28
+    @Test fun groupId_should_not_be_short() {
         val ethree2 = createEThree()
         val invalidGroupId = Data(this.crypto.generateRandomData(5))
 
@@ -156,9 +153,8 @@ class GroupTests {
         }
     }
 
-    @Test
-    fun ste29() {
-        // get group
+    // test004 STE_29
+    @Test fun get_group() {
         val ethree2 = createEThree()
         assertNull(this.ethree.getGroup(groupId))
 
@@ -173,9 +169,8 @@ class GroupTests {
         assertEquals(cachedGroup.initiator, group.initiator)
     }
 
-    @Test
-    fun ste30() {
-        // load_group
+    // test005 STE_30
+    @Test fun load_group() {
         val ethree2 = createEThree()
 
         val lookup = this.ethree.findUsers(listOf(ethree2.identity)).get()
@@ -190,9 +185,8 @@ class GroupTests {
         assertEquals(group1.initiator, group2.initiator)
     }
 
-    @Test
-    fun ste31() {
-        // load alien or non-existing group should throw error
+    // test006 STE_31
+    @Test fun load_alien_or_unexistent_group() {
         val ethree2 = createEThree()
         val ethree3 = createEThree()
 
@@ -215,9 +209,8 @@ class GroupTests {
         }
     }
 
-    @Test
-    fun ste32() {
-        // actions on deleted group should throw error
+    // test007 STE_32
+    @Test fun actions_on_deleted_group() {
         val ethree2 = createEThree()
 
         val lookup = this.ethree.findUsers(listOf(ethree2.identity)).get()
@@ -250,9 +243,8 @@ class GroupTests {
         assertNull(ethree2.getGroup(groupId))
     }
 
-    @Test
-    fun ste33() {
-        // add more than max should throw error
+    // test008 STE_33
+    @Test fun add_more_than_max() {
         val identity = UUID.randomUUID().toString()
         val selfKeyPair = crypto.generateKeyPair()
 
@@ -299,7 +291,7 @@ class GroupTests {
         val rawGroup = RawGroup(GroupInfo(identity), listOf(ticket))
 
         assertNotNull(groupManager)
-        val group = Group(rawGroup, this.crypto, localKeyStorage, groupManager, lookupManager)
+        val group = Group(rawGroup, localKeyStorage, groupManager, lookupManager)
 
         val card = TestUtils.publishCard()
 
@@ -310,27 +302,24 @@ class GroupTests {
         }
     }
 
-    @Test
-    fun ste34() {
-        // remove last participant should throw error
+    // test009 STE_72
+    @Test fun remove_last_participant() {
         val ethree2 = createEThree()
 
-        val lookup = this.ethree.findUsers(listOf(ethree2.identity)).get()
-        val card = lookup[ethree2.identity]
+        val card = this.ethree.findUser(ethree2.identity).get()
         assertNotNull(card)
 
-        val group1 = this.ethree.createGroup(groupId, lookup).get()
+        val group = this.ethree.createGroup(this.groupId).get()
 
         try {
-            group1.remove(card!!).execute()
+            group.remove(card).execute()
             fail()
         } catch (e: InvalidParticipantsCountGroupException) {
         }
     }
 
-    @Test
-    fun ste35() {
-        // remove
+    // test010 STE_35
+    @Test fun remove() {
         val ethree2 = createEThree()
         val ethree3 = createEThree()
 
@@ -365,9 +354,35 @@ class GroupTests {
         assertNull(ethree2.getGroup(groupId))
     }
 
-    @Test
-    fun ste36() {
-        // change group by noninitiator should_throw_error
+    // test011 STE_37
+    @Test fun add() {
+        val ethree2 = createEThree()
+        val ethree3 = createEThree()
+
+        val lookup = this.ethree.findUsers(listOf(ethree2.identity)).get()
+
+        val card1 = ethree2.findUser(this.ethree.identity).get()
+
+        val group1 = this.ethree.createGroup(this.groupId, lookup).get()
+
+        val group2 = ethree2.loadGroup(this.groupId, card1).get()
+
+        val card3 = this.ethree.findUser(ethree3.identity).get()
+        group1.add(card3).execute()
+
+        val participants = setOf(this.ethree.identity, ethree2.identity, ethree3.identity)
+        assertEquals(participants, group1.participants)
+
+        group2.update().execute()
+
+        val group3 = ethree3.loadGroup(this.groupId, card1).get()
+
+        assertEquals(participants, group2.participants)
+        assertEquals(participants, group3.participants)
+    }
+
+    // test012 STE_36
+    @Test fun change_group_by_non_initiator() {
         val ethree2 = createEThree()
         val ethree3 = createEThree()
         val ethree4 = createEThree()
@@ -401,37 +416,8 @@ class GroupTests {
         }
     }
 
-    @Test
-    fun ste37() {
-        // add
-        val ethree2 = createEThree()
-        val ethree3 = createEThree()
-
-        val lookup = this.ethree.findUsers(listOf(ethree2.identity)).get()
-
-        val card1 = ethree2.findUser(this.ethree.identity).get()
-
-        val group1 = this.ethree.createGroup(this.groupId, lookup).get()
-
-        val group2 = ethree2.loadGroup(this.groupId, card1).get()
-
-        val card3 = this.ethree.findUser(ethree3.identity).get()
-        group1.add(card3).execute()
-
-        val participants = setOf(this.ethree.identity, ethree2.identity, ethree3.identity)
-        assertEquals(participants, group1.participants)
-
-        group2.update().execute()
-
-        val group3 = ethree3.loadGroup(this.groupId, card1).get()
-
-        assertEquals(participants, group2.participants)
-        assertEquals(participants, group3.participants)
-    }
-
-    @Test
-    fun ste38() {
-        // decrypt with old card should throw error
+    // test013 STE_38
+    @Test fun decrypt_with_old_card() {
         val ethree2 = createEThree()
 
         val lookup = this.ethree.findUsers(listOf(ethree2.identity)).get()
@@ -454,9 +440,8 @@ class GroupTests {
         }
     }
 
-    @Test
-    fun ste39() {
-        // integration_encryption
+    // test014 STE_39
+    @Test fun integration_encryption() {
         val ethree2 = createEThree()
         val ethree3 = createEThree()
 
@@ -546,9 +531,8 @@ class GroupTests {
         assertEquals(message4, decrypted4)
     }
 
-    @Test
-    fun ste42() {
-        // decrypt with old group should throw error
+    // test015 STE_42
+    @Test fun decrypt_with_old_group() {
         val ethree2 = createEThree()
         val ethree3 = createEThree()
 
@@ -573,9 +557,8 @@ class GroupTests {
         }
     }
 
-    @Test
-    fun ste43() {
-        // decrypt with old group should throw error
+    // test016 STE_43
+    @Test fun decrypt_with_old_group_two() {
         val ethree2 = createEThree()
 
         val lookup = this.ethree.findUsers(listOf(ethree2.identity)).get()
@@ -624,9 +607,8 @@ class GroupTests {
         assertEquals(message2, dectypted2)
     }
 
-    @Test
-    fun ste45() {
-        // Compatibility test
+    // test017 STE_45
+    @Test fun compatibility() {
         val compatDataStream =
                 this.javaClass.classLoader?.getResourceAsStream("compat/compat_data.json")
         val compatJson = JsonParser().parse(InputStreamReader(compatDataStream)) as JsonObject
@@ -677,9 +659,8 @@ class GroupTests {
         assertEquals(originCompatText, decrypted)
     }
 
-    @Test
-    fun ste46() {
-        // string identifier
+    // test018 STE_46
+    @Test fun string_identifier() {
         val ethree2 = createEThree()
 
         val identifier = Data(this.crypto.generateRandomData(32))
@@ -694,6 +675,33 @@ class GroupTests {
         ethree2.getGroup(identifier)
 
         this.ethree.deleteGroup(identifier)
+    }
+
+    // test019 STE_73
+    @Test fun added_participant_should_decrypt_history() {
+        val ethree2 = createEThree()
+
+        val identifier = UUID.randomUUID().toString()
+        val group1 = this.ethree.createGroup(identifier).get()
+
+        val message = UUID.randomUUID().toString()
+        val encrypted = group1.encrypt(message)
+
+        val card2 = ethree.findUser(ethree2.identity).get()
+        group1.add(card2).execute()
+
+        val card1 = ethree2.findUser(ethree.identity).get()
+        val group2 = ethree2.loadGroup(identifier, card1).get()
+
+        val decrypted = group2.decrypt(encrypted, card1)
+
+        assertEquals(message, decrypted)
+    }
+
+    // test020 STE_85
+    @Test fun delete_unexistent_channel() {
+        val fakeId = UUID.randomUUID().toString()
+        ethree.deleteGroup(fakeId).execute()
     }
 
     private fun createEThree(): EThree {

@@ -89,7 +89,7 @@ internal class AuthEncryptWorker internal constructor(
 
         val decryptedData = authDecrypt(data, user)
 
-        return String(decryptedData.data, StandardCharsets.UTF_8)
+        return String(decryptedData.value, StandardCharsets.UTF_8)
     }
 
     internal fun authDecrypt(text: String, user: Card, date: Date): String {
@@ -103,7 +103,7 @@ internal class AuthEncryptWorker internal constructor(
 
         val decryptedData = authDecrypt(data, user, date)
 
-        return String(decryptedData.data, StandardCharsets.UTF_8)
+        return String(decryptedData.value, StandardCharsets.UTF_8)
     }
 
     @JvmOverloads internal fun authEncrypt(text: String, users: FindUsersResult? = null): String {
@@ -123,7 +123,7 @@ internal class AuthEncryptWorker internal constructor(
             encryptInternal(data, users?.map { it.value.publicKey })
 
     private fun encryptInternal(data: Data, publicKeys: List<VirgilPublicKey>?): Data {
-        require(data.data.isNotEmpty()) { "\'data\' should not be empty." }
+        require(data.value.isNotEmpty()) { "\'data\' should not be empty." }
 
         val selfKeyPair = localKeyStorage.retrieveKeyPair()
         val pubKeys = mutableListOf(selfKeyPair.publicKey)
@@ -135,17 +135,17 @@ internal class AuthEncryptWorker internal constructor(
             pubKeys += publicKeys
         }
 
-        return Data(crypto.authEncrypt(data.data, selfKeyPair.privateKey, pubKeys))
+        return Data(crypto.authEncrypt(data.value, selfKeyPair.privateKey, pubKeys))
     }
 
     private fun decryptInternal(data: Data, publicKey: VirgilPublicKey?): Data {
-        require(data.data.isNotEmpty()) { "\'data\' should not be empty." }
+        require(data.value.isNotEmpty()) { "\'data\' should not be empty." }
 
         val selfKeyPair = localKeyStorage.retrieveKeyPair()
         val pubKey = publicKey ?: selfKeyPair.publicKey
 
         return try {
-            Data(crypto.authDecrypt(data.data, selfKeyPair.privateKey, pubKey))
+            Data(crypto.authDecrypt(data.value, selfKeyPair.privateKey, pubKey))
         } catch (exception: Throwable) {
             when (exception.cause) {
                 is SignatureIsNotValidException -> {

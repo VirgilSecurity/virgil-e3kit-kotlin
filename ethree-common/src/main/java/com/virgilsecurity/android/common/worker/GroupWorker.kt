@@ -55,24 +55,25 @@ internal class GroupWorker internal constructor(
         private val computeSessionId: (Data) -> Data
 ) {
 
-    internal fun createGroup(identifier: Data, users: FindUsersResult): Result<Group> =
+    internal fun createGroup(identifier: Data, users: FindUsersResult? = null): Result<Group> =
             object : Result<Group> {
                 override fun get(): Group {
-                    require(identifier.data.isNotEmpty()) { "\'identifier\' should not be empty" }
+                    require(identifier.value.isNotEmpty()) { "\'identifier\' should not be empty" }
 
                     val sessionId = computeSessionId(identifier)
-                    val participants = users.keys + identity
+                    val usersNew = users ?: FindUsersResult()
+                    val participants = usersNew.keys + identity
 
                     Group.validateParticipantsCount(participants.size)
 
                     val ticket = Ticket(crypto, sessionId, participants)
 
-                    return getGroupManager().store(ticket, users.values.toList())
+                    return getGroupManager().store(ticket, usersNew.values.toList())
                 }
             }
 
     internal fun getGroup(identifier: Data): Group? {
-        require(identifier.data.isNotEmpty()) { "\'identifier\' should not be empty" }
+        require(identifier.value.isNotEmpty()) { "\'identifier\' should not be empty" }
 
         val sessionId = computeSessionId(identifier)
         return getGroupManager().retrieve(sessionId)
@@ -81,7 +82,7 @@ internal class GroupWorker internal constructor(
     internal fun loadGroup(identifier: Data, card: Card): Result<Group> =
             object : Result<Group> {
                 override fun get(): Group {
-                    require(identifier.data.isNotEmpty()) { "\'identifier\' should not be empty" }
+                    require(identifier.value.isNotEmpty()) { "\'identifier\' should not be empty" }
 
                     val sessionId = computeSessionId(identifier)
                     return getGroupManager().pull(sessionId, card)
@@ -91,20 +92,14 @@ internal class GroupWorker internal constructor(
     internal fun deleteGroup(identifier: Data): Completable =
             object : Completable {
                 override fun execute() {
-                    require(identifier.data.isNotEmpty()) { "\'identifier\' should not be empty" }
+                    require(identifier.value.isNotEmpty()) { "\'identifier\' should not be empty" }
 
                     val sessionId = computeSessionId(identifier)
-                    val group = getGroupManager().retrieve(sessionId)
-                                ?: throw GroupNotFoundException("Group with provided id not found " +
-                                                                "locally. Try to call loadGroup first")
-
-                    group.checkPermissions()
-
                     getGroupManager().delete(sessionId)
                 }
             }
 
-    internal fun createGroup(identifier: String, users: FindUsersResult): Result<Group> {
+    internal fun createGroup(identifier: String, users: FindUsersResult? = null): Result<Group> {
         require(identifier.isNotEmpty()) { "\'identifier\' should not be empty" }
 
         val identifierData = Data(identifier.toByteArray(StandardCharsets.UTF_8))

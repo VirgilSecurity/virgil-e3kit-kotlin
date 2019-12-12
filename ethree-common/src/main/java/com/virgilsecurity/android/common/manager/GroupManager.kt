@@ -62,7 +62,6 @@ internal class GroupManager internal constructor(
     internal val identity: String = localGroupStorage.identity
 
     private fun parse(rawGroup: RawGroup): Group = Group(rawGroup,
-                                                         crypto,
                                                          localKeyStorage,
                                                          this,
                                                          lookupManager)

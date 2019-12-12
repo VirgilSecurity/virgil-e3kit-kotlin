@@ -48,7 +48,7 @@ internal class SearchWorker internal constructor(
 ) {
 
     internal fun findCachedUsers(identities: List<String>,
-                                 checkResult: Boolean): Result<FindUsersResult> =
+                                 checkResult: Boolean = true): Result<FindUsersResult> =
             object : Result<FindUsersResult> {
                 override fun get(): FindUsersResult {
                     return lookupManager.lookupCachedCards(identities, checkResult)
@@ -63,7 +63,7 @@ internal class SearchWorker internal constructor(
 
     internal fun findUsers(identities: List<String>,
                            forceReload: Boolean = false,
-                           checkResult: Boolean): Result<FindUsersResult> =
+                           checkResult: Boolean = true): Result<FindUsersResult> =
             object : Result<FindUsersResult> {
                 override fun get(): FindUsersResult {
                     return lookupManager.lookupCards(identities, forceReload, checkResult)

@@ -31,19 +31,25 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.common.util
+package com.virgilsecurity.android.common.exception
 
 /**
- * Const
+ * UnsafeChannelException
  */
-object Const {
+class UnsafeChannelException @JvmOverloads constructor(
+        val description: Description,
+        throwable: Throwable? = null
+) : RuntimeException(description.errorMessage, throwable) {
 
-    internal const val VIRGIL_BASE_URL = "https://api.virgilsecurity.com"
-    internal const val VIRGIL_CARDS_SERVICE_PATH = "/card/v5/"
-    internal const val ETHREE_NAME = "e3kit"
-
-    internal const val STORAGE_POSTFIX_E3KIT = "VIRGIL-E3KIT"
-    internal const val DEFAULT_NAME = "default"
-
-    val NO_CONTEXT = null
+    enum class Description(val errorCode: Int, val errorMessage: String) {
+        CHANNEL_ALREADY_EXISTS(ErrorCode.UNSAFE_CHANNEL + 1,
+                               "Unsafe channel with provided identity already exists."),
+        SELF_CHANNEL_IS_FORBIDDEN(ErrorCode.UNSAFE_CHANNEL + 2,
+                                  "Unsafe channel with self is forbidden. Use regular encryption " +
+                                  "for this purpose."),
+        USER_IS_REGISTERED(ErrorCode.UNSAFE_CHANNEL + 3,
+                           "User with provided identity is registered. Creation of unsafe " +
+                           "channels with registered users is forbidden."),
+        CHANNEL_NOT_FOUND(ErrorCode.UNSAFE_CHANNEL + 4, "Channel was not found."),
+    }
 }

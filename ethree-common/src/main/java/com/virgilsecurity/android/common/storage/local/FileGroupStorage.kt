@@ -39,6 +39,7 @@ import com.virgilsecurity.android.common.exception.RawGroupException
 import com.virgilsecurity.android.common.model.GroupInfo
 import com.virgilsecurity.android.common.model.RawGroup
 import com.virgilsecurity.android.common.model.Ticket
+import com.virgilsecurity.android.common.util.Const
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.common.util.toHexString
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
@@ -66,9 +67,9 @@ internal class FileGroupStorage internal constructor(
         val credentials = FileSystemEncryptedCredentials(crypto, identityKeyPair)
         val fullPath: String = rootPath +
                                File.separator +
-                               ConvertionUtils.toHex(identityKeyPair.privateKey.identifier) + // FIXME possible issue
+                               identity +
                                File.separator +
-                               STORAGE_POSTFIX_E3KIT +
+                               Const.STORAGE_POSTFIX_E3KIT +
                                File.separator +
                                STORAGE_POSTFIX_GROUPS
 
@@ -133,7 +134,7 @@ internal class FileGroupStorage internal constructor(
         val name = epoch.toString()
 
         val data = fileSystemEncrypted.read(name, subdir)
-        if (data.data.isEmpty()) throw FileGroupStorageException("File is empty.") // FIXME maybe add to high-level signature methods info about exception
+        if (data.value.isEmpty()) throw FileGroupStorageException("File is empty.") // FIXME maybe add to high-level signature methods info about exception
 
         return Ticket.deserialize(data)
     }
@@ -171,7 +172,7 @@ internal class FileGroupStorage internal constructor(
         val subdir = sessionId.toHexString()
 
         val data = fileSystemEncrypted.read(GROUP_INFO_NAME, subdir)
-        if (data.data.isEmpty()) throw FileGroupStorageException("File is empty.") // FIXME maybe add to high-level signature methods info about exception
+        if (data.value.isEmpty()) throw FileGroupStorageException("File is empty.") // FIXME maybe add to high-level signature methods info about exception
 
         return GroupInfo.deserialize(data)
     }
@@ -179,7 +180,6 @@ internal class FileGroupStorage internal constructor(
     companion object {
         private const val GROUP_INFO_NAME = "GROUP_INFO"
         private const val TICKETS_SUBDIR = "TICKETS"
-        private const val STORAGE_POSTFIX_E3KIT = "VIRGIL-E3KIT"
         private const val STORAGE_POSTFIX_GROUPS = "GROUPS"
     }
 }

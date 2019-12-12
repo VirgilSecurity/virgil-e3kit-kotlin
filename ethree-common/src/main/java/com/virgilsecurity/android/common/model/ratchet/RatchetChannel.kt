@@ -44,7 +44,7 @@ import java.nio.charset.StandardCharsets
 /**
  * Class representing Ratchet Chat.
  */
-class RatchetChat(
+class RatchetChannel(
         internal val session: SecureSession,
         internal val sessionStorage: SessionStorage
 ) {
@@ -58,7 +58,9 @@ class RatchetChat(
      * @param data Data to encrypt.
      */
     fun encrypt(data: Data): Data {
-        val ratchetMessage = this.session.encrypt(data.data)
+        require(data.value.isNotEmpty()) { "\'data\' should not be empty" }
+
+        val ratchetMessage = this.session.encrypt(data.value)
         sessionStorage.storeSession(this.session)
 
         return Data(ratchetMessage.serialize())
@@ -70,7 +72,9 @@ class RatchetChat(
      * @param data Encrypted data.
      */
     fun decrypt(data: Data): Data {
-        val message = RatchetMessage.deserialize(data.data)
+        require(data.value.isNotEmpty()) { "\'data\' should not be empty" }
+
+        val message = RatchetMessage.deserialize(data.value)
         val decrypted = session.decryptData(message)
 
         sessionStorage.storeSession(this.session)
@@ -111,7 +115,7 @@ class RatchetChat(
 
         val decryptedData = decrypt(data)
 
-        return String(decryptedData.data, Charsets.UTF_8)
+        return String(decryptedData.value, Charsets.UTF_8)
     }
 
     data class MultipleData(val multipleData: Iterable<Data>)
@@ -128,7 +132,7 @@ class RatchetChat(
         val result = mutableListOf<Data>()
 
         data.multipleData.forEach {
-            val ratchetMessage = session.encrypt(it.data)
+            val ratchetMessage = session.encrypt(it.value)
             val encrypted = ratchetMessage.serialize()
 
             result.add(Data(encrypted))
@@ -153,7 +157,7 @@ class RatchetChat(
         val result = mutableListOf<Data>()
 
         data.multipleData.forEach {
-            val ratchetMessage = RatchetMessage.deserialize(it.data)
+            val ratchetMessage = RatchetMessage.deserialize(it.value)
             val decrypted = session.decryptData(ratchetMessage)
 
             result.add(Data(decrypted))
@@ -203,7 +207,7 @@ class RatchetChat(
         }
 
         val decryptedData = decryptMultiple(MultipleData(data))
-        val decryptedStrings = decryptedData.multipleData.map { String(it.data, Charsets.UTF_8) }
+        val decryptedStrings = decryptedData.multipleData.map { String(it.value, Charsets.UTF_8) }
 
         return MultipleString(decryptedStrings)
     }

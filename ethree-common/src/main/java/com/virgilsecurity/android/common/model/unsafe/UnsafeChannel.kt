@@ -31,42 +31,59 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.common.storage.local
+package com.virgilsecurity.android.common.model.unsafe
 
-import com.virgilsecurity.android.common.exception.PrivateKeyNotFoundException
+import com.virgilsecurity.android.common.exception.EThreeException
+import com.virgilsecurity.common.extension.toData
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
-import com.virgilsecurity.sdk.crypto.VirgilKeyPair
-import com.virgilsecurity.sdk.crypto.exceptions.KeyEntryNotFoundException
-import com.virgilsecurity.sdk.storage.JsonKeyEntry
-import com.virgilsecurity.sdk.storage.KeyStorage
+import com.virgilsecurity.sdk.crypto.VirgilPrivateKey
+import com.virgilsecurity.sdk.crypto.VirgilPublicKey
+import java.nio.charset.StandardCharsets
 
 /**
- * Local KeyStorage.
+ * UnsafeChannel
  */
-class LocalKeyStorage internal constructor(
-        internal val identity: String,
-        private val keyStorage: KeyStorage,
+class UnsafeChannel(
+        val participant: String,
+        internal val participantPublicKey: VirgilPublicKey,
+        internal val selfPrivateKey: VirgilPrivateKey,
         internal val crypto: VirgilCrypto
 ) {
 
-    internal fun exists() = keyStorage.exists(identity)
+    fun encrypt(data: Data): Data {
+        require(data.value.isNotEmpty()) { "\'data\' should not be empty" }
 
-    internal fun store(privateKeyData: Data) =
-            keyStorage.store(JsonKeyEntry(identity, privateKeyData.value))
-
-    internal fun retrieveKeyPair(): VirgilKeyPair = try {
-        val privateKeyData = keyStorage.load(identity)
-        crypto.importPrivateKey(privateKeyData.value)
-    } catch (e: KeyEntryNotFoundException) {
-        throw PrivateKeyNotFoundException("No private key on device. You should call register() " +
-                                          "or retrievePrivateKey()")
+        return crypto.authEncrypt(data.value, this.selfPrivateKey, this.participantPublicKey).toData()
     }
 
-    internal fun delete() = try {
-        keyStorage.delete(identity)
-    } catch (exception: KeyEntryNotFoundException) {
-        throw PrivateKeyNotFoundException("No private key on device. You should call register() " +
-                                          "or retrievePrivateKey()")
+    fun decrypt(data: Data): Data {
+        require(data.value.isNotEmpty()) { "\'data\' should not be empty" }
+
+        return crypto.authDecrypt(data.value, this.selfPrivateKey, this.participantPublicKey).toData()
+    }
+
+    fun encrypt(text: String): String {
+        require(text.isNotEmpty()) { "\'text\' should not be empty" }
+
+        val data = try {
+            Data(text.toByteArray(StandardCharsets.UTF_8))
+        } catch (exception: IllegalArgumentException) {
+            throw EThreeException(EThreeException.Description.STR_TO_DATA_FAILED)
+        }
+
+        return encrypt(data).toBase64String()
+    }
+
+    fun decrypt(text: String): String {
+        require(text.isNotEmpty()) { "\'text\' should not be empty" }
+
+        val data = try {
+            Data.fromBase64String(text)
+        } catch (exception: IllegalArgumentException) {
+            throw EThreeException(EThreeException.Description.STR_TO_DATA_FAILED)
+        }
+
+        return decrypt(data).asString()
     }
 }

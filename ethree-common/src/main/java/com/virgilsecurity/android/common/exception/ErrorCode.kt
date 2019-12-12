@@ -31,19 +31,13 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.common.util
+package com.virgilsecurity.android.common.exception
 
 /**
- * Const
+ * ErrorCode
  */
-object Const {
-
-    internal const val VIRGIL_BASE_URL = "https://api.virgilsecurity.com"
-    internal const val VIRGIL_CARDS_SERVICE_PATH = "/card/v5/"
-    internal const val ETHREE_NAME = "e3kit"
-
-    internal const val STORAGE_POSTFIX_E3KIT = "VIRGIL-E3KIT"
-    internal const val DEFAULT_NAME = "default"
-
-    val NO_CONTEXT = null
+object ErrorCode {
+    const val BASE = 70100
+    const val RATCHET = 70200
+    const val UNSAFE_CHANNEL = 70300
 }

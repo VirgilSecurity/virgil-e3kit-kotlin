@@ -85,11 +85,11 @@ class TicketTest {
     }
 
     private fun computeSessionId(identifier: Data, crypto: VirgilCrypto): Data {
-        if (identifier.data.size <= 10) {
+        if (identifier.value.size <= 10) {
             throw GroupIdTooShortException("Group Id length should be > 10")
         }
 
-        val hash = crypto.computeHash(identifier.data, HashAlgorithm.SHA512)
+        val hash = crypto.computeHash(identifier.value, HashAlgorithm.SHA512)
                 .sliceArray(IntRange(0, 31))
 
         return Data(hash)

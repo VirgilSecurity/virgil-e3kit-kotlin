@@ -35,7 +35,7 @@ package com.virgilsecurity.android.common.worker
 
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.common.exception.EThreeRatchetException
-import com.virgilsecurity.android.common.model.ratchet.RatchetChat
+import com.virgilsecurity.android.common.model.ratchet.RatchetChannel
 import com.virgilsecurity.android.common.storage.local.LocalKeyStorage
 import com.virgilsecurity.android.common.util.Defaults
 import com.virgilsecurity.android.common.utils.TestConfig
@@ -46,12 +46,12 @@ import com.virgilsecurity.ratchet.securechat.SecureChatContext
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.common.TimeSpan
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
-import com.virgilsecurity.sdk.crypto.VirgilKeyPair
 import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
+import java.lang.Exception
 import java.util.*
 
 /**
@@ -90,17 +90,17 @@ class RatchetTests {
         return Pair(ethree, card)
     }
 
-    fun encryptDecrypt100Times(chat1: RatchetChat, chat2: RatchetChat) {
+    fun encryptDecrypt100Times(channel1: RatchetChannel, channel2: RatchetChannel) {
         for (i in 1..100) {
-            val sender: RatchetChat
-            val receiver: RatchetChat
+            val sender: RatchetChannel
+            val receiver: RatchetChannel
 
             if (Random().nextBoolean()) {
-                sender = chat1
-                receiver = chat2
+                sender = channel1
+                receiver = channel2
             } else {
-                sender = chat2
-                receiver = chat1
+                sender = channel2
+                receiver = channel1
             }
 
             val encrypted = sender.encrypt(TEXT)
@@ -115,8 +115,8 @@ class RatchetTests {
         val (ethree1, card1) = setupDevice()
         val (ethree2, card2) = setupDevice()
 
-        val chat1 = ethree1.createRatchetChat(card2).get()
-        val chat2 = ethree2.joinRatchetChat(card1).get()
+        val chat1 = ethree1.createRatchetChannel(card2).get()
+        val chat2 = ethree2.joinRatchetChannel(card1).get()
 
         encryptDecrypt100Times(chat1, chat2)
     }
@@ -126,10 +126,10 @@ class RatchetTests {
         val (ethree, card) = setupDevice()
 
         try {
-            ethree.createRatchetChat(card).get()
+            ethree.createRatchetChannel(card).get()
             fail()
         } catch (exception: EThreeRatchetException) {
-            if (exception.description != EThreeRatchetException.Description.SELF_CHAT_IS_FORBIDDEN)
+            if (exception.description != EThreeRatchetException.Description.SELF_CHANNEL_IS_FORBIDDEN)
                 fail()
         }
     }
@@ -140,7 +140,7 @@ class RatchetTests {
         val (ethree2, _) = setupDevice()
 
         try {
-            ethree2.createRatchetChat(card1).get()
+            ethree2.createRatchetChannel(card1).get()
             fail()
         } catch (exception: EThreeRatchetException) {
             if (exception.description != EThreeRatchetException.Description.USER_IS_NOT_USING_RATCHET)
@@ -153,13 +153,13 @@ class RatchetTests {
         val (ethree1, _) = setupDevice()
         val (_, card2) = setupDevice()
 
-        ethree1.createRatchetChat(card2).get()
+        ethree1.createRatchetChannel(card2).get()
 
         try {
-            ethree1.createRatchetChat(card2).get()
+            ethree1.createRatchetChannel(card2).get()
             fail()
         } catch (exception: EThreeRatchetException) {
-            if (exception.description != EThreeRatchetException.Description.CHAT_ALREADY_EXISTS)
+            if (exception.description != EThreeRatchetException.Description.CHANNEL_ALREADY_EXISTS)
                 fail()
         }
 
@@ -167,10 +167,10 @@ class RatchetTests {
         secureChat1.deleteSession(card2.identity)
 
         try {
-            ethree1.createRatchetChat(card2).get()
+            ethree1.createRatchetChannel(card2).get()
             fail()
         } catch (exception: EThreeRatchetException) {
-            if (exception.description != EThreeRatchetException.Description.CHAT_ALREADY_EXISTS)
+            if (exception.description != EThreeRatchetException.Description.CHANNEL_ALREADY_EXISTS)
                 fail()
         }
     }
@@ -180,14 +180,14 @@ class RatchetTests {
         val (ethree1, card1) = setupDevice()
         val (ethree2, card2) = setupDevice()
 
-        ethree1.createRatchetChat(card2).get()
-        ethree2.joinRatchetChat(card1).get()
+        ethree1.createRatchetChannel(card2).get()
+        ethree2.joinRatchetChannel(card1).get()
 
-        ethree1.deleteRatchetChat(card2).execute()
-        ethree2.deleteRatchetChat(card1).execute()
+        ethree1.deleteRatchetChannel(card2).execute()
+        ethree2.deleteRatchetChannel(card1).execute()
 
-        val newChat1 = ethree1.createRatchetChat(card2).get()
-        val newChat2 = ethree2.joinRatchetChat(card1).get()
+        val newChat1 = ethree1.createRatchetChannel(card2).get()
+        val newChat2 = ethree2.joinRatchetChannel(card1).get()
 
         encryptDecrypt100Times(newChat1, newChat2)
     }
@@ -197,10 +197,10 @@ class RatchetTests {
         val (ethree, card) = setupDevice()
 
         try {
-            ethree.joinRatchetChat(card).get()
+            ethree.joinRatchetChannel(card).get()
             fail()
         } catch (exception: EThreeRatchetException) {
-            if (exception.description != EThreeRatchetException.Description.SELF_CHAT_IS_FORBIDDEN)
+            if (exception.description != EThreeRatchetException.Description.SELF_CHANNEL_IS_FORBIDDEN)
                 fail()
         }
     }
@@ -210,14 +210,14 @@ class RatchetTests {
         val (ethree1, card1) = setupDevice()
         val (ethree2, card2) = setupDevice()
 
-        ethree1.createRatchetChat(card2).get()
-        ethree2.joinRatchetChat(card1).get()
+        ethree1.createRatchetChannel(card2).get()
+        ethree2.joinRatchetChannel(card1).get()
 
         try {
-            ethree2.joinRatchetChat(card1).get()
+            ethree2.joinRatchetChannel(card1).get()
             fail()
         } catch (exception: EThreeRatchetException) {
-            if (exception.description != EThreeRatchetException.Description.CHAT_ALREADY_EXISTS)
+            if (exception.description != EThreeRatchetException.Description.CHANNEL_ALREADY_EXISTS)
                 fail()
         }
     }
@@ -228,7 +228,7 @@ class RatchetTests {
         val (ethree2, _) = setupDevice()
 
         try {
-            ethree2.joinRatchetChat(card1).get()
+            ethree2.joinRatchetChannel(card1).get()
             fail()
         } catch (exception: EThreeRatchetException) {
             if (exception.description != EThreeRatchetException.Description.NO_INVITE)
@@ -241,11 +241,11 @@ class RatchetTests {
         val (ethree1, card1) = setupDevice()
         val (ethree2, card2) = setupDevice()
 
-        ethree1.createRatchetChat(card2).get()
-        ethree1.deleteRatchetChat(card2).execute()
+        ethree1.createRatchetChannel(card2).get()
+        ethree1.deleteRatchetChannel(card2).execute()
 
         try {
-            ethree2.joinRatchetChat(card1).get()
+            ethree2.joinRatchetChannel(card1).get()
             fail()
         } catch (exception: EThreeRatchetException) {
             if (exception.description != EThreeRatchetException.Description.NO_INVITE)
@@ -258,12 +258,12 @@ class RatchetTests {
         val (ethree1, card1) = setupDevice()
         val (ethree2, card2) = setupDevice()
 
-        ethree1.createRatchetChat(card2).get()
+        ethree1.createRatchetChannel(card2).get()
         ethree1.cleanup()
         ethree1.rotatePrivateKey().execute()
 
         try {
-            ethree2.joinRatchetChat(card1).get()
+            ethree2.joinRatchetChannel(card1).get()
         } catch (exception: EThreeRatchetException) {
             if (exception.description != EThreeRatchetException.Description.NO_INVITE)
                 fail()
@@ -275,50 +275,48 @@ class RatchetTests {
         val (ethree1, card1) = setupDevice()
         val (ethree2, card2) = setupDevice()
 
-        val chat1 = ethree1.createRatchetChat(card2).get()
+        val chat1 = ethree1.createRatchetChannel(card2).get()
 
         val encrypted = chat1.encrypt(TEXT)
 
         ethree1.unregister().execute()
 
-        val chat2 = ethree2.joinRatchetChat(card1).get()
+        val chat2 = ethree2.joinRatchetChannel(card1).get()
         val decrypted = chat2.decrypt(encrypted)
 
         assertEquals(TEXT, decrypted)
     }
 
     // test 012 STE_62
-    @Test fun getRatchetChat_should_succeed() {
+    @Test fun getRatchetChannel_should_succeed() {
         val (ethree1, card1) = setupDevice()
         val (ethree2, card2) = setupDevice()
 
-        assertNull(ethree1.getRatchetChat(card2))
-        assertNull(ethree2.getRatchetChat(card1))
+        assertNull(ethree1.getRatchetChannel(card2))
+        assertNull(ethree2.getRatchetChannel(card1))
 
-        ethree1.createRatchetChat(card2).get()
-        assertNotNull(ethree1.getRatchetChat(card2))
+        ethree1.createRatchetChannel(card2).get()
+        assertNotNull(ethree1.getRatchetChannel(card2))
 
-        ethree2.createRatchetChat(card1).get()
-        assertNotNull(ethree2.getRatchetChat(card1))
+        ethree2.createRatchetChannel(card1).get()
+        assertNotNull(ethree2.getRatchetChannel(card1))
 
-        ethree1.deleteRatchetChat(card2).execute()
-        assertNull(ethree1.getRatchetChat(card2))
+        ethree1.deleteRatchetChannel(card2).execute()
+        assertNull(ethree1.getRatchetChannel(card2))
 
-        ethree2.deleteRatchetChat(card1).execute()
-        assertNull(ethree2.getRatchetChat(card1))
+        ethree2.deleteRatchetChannel(card1).execute()
+        assertNull(ethree2.getRatchetChannel(card1))
     }
 
     // test 013 STE_63
-    @Test fun delete_nonexistent_chat_should_throw_error() {
+    @Test fun delete_nonexistent_chat_should_succeed() {
         val (ethree1, _) = setupDevice()
         val (_, card2) = setupDevice()
 
         try {
-            ethree1.deleteRatchetChat(card2).execute()
+            ethree1.deleteRatchetChannel(card2).execute()
+        } catch (exception: Exception) {
             fail()
-        } catch (exception: EThreeRatchetException) {
-            if (exception.description != EThreeRatchetException.Description.MISSING_LOCAL_CHAT)
-                fail()
         }
     }
 
@@ -328,28 +326,28 @@ class RatchetTests {
         val (_, card2) = setupDevice()
 
         try {
-            ethree1.createRatchetChat(card2).get()
+            ethree1.createRatchetChannel(card2).get()
         } catch (exception: EThreeRatchetException) {
             if (exception.description != EThreeRatchetException.Description.RATCHET_IS_DISABLED)
                 fail()
         }
 
         try {
-            ethree1.joinRatchetChat(card2).get()
+            ethree1.joinRatchetChannel(card2).get()
         } catch (exception: EThreeRatchetException) {
             if (exception.description != EThreeRatchetException.Description.RATCHET_IS_DISABLED)
                 fail()
         }
 
         try {
-            ethree1.getRatchetChat(card2)
+            ethree1.getRatchetChannel(card2)
         } catch (exception: EThreeRatchetException) {
             if (exception.description != EThreeRatchetException.Description.RATCHET_IS_DISABLED)
                 fail()
         }
 
         try {
-            ethree1.deleteRatchetChat(card2).execute()
+            ethree1.deleteRatchetChannel(card2).execute()
         } catch (exception: EThreeRatchetException) {
             if (exception.description != EThreeRatchetException.Description.RATCHET_IS_DISABLED)
                 fail()
@@ -361,7 +359,7 @@ class RatchetTests {
         val (ethree1, card1) = setupDevice()
         val (ethree2, card2) = setupDevice()
 
-        ethree2.createRatchetChat(card1).get()
+        ethree2.createRatchetChannel(card1).get()
 
         val secureChat1 = getSecureChat(ethree1)
 
@@ -369,7 +367,7 @@ class RatchetTests {
         val keys1 = secureChat1.oneTimeKeysStorage.retrieveAllKeys()
         secureChat1.oneTimeKeysStorage.stopInteraction()
 
-        ethree1.joinRatchetChat(card2).get()
+        ethree1.joinRatchetChannel(card2).get()
 
         TestUtils.pause(5)
 
@@ -393,21 +391,22 @@ class RatchetTests {
         val (ethree1, card1) = setupDevice()
         val (ethree2, card2) = setupDevice()
 
-        val chat1 = ethree1.createRatchetChat(card2).get()
+        val chat1 = ethree1.createRatchetChannel(card2).get()
 
         var messages = mutableListOf<String>()
         for (i in 0 until 100) {
             messages.add(UUID.randomUUID().toString())
         }
 
-        val encrypted = chat1.encryptMultiple(RatchetChat.MultipleString(messages))
+        val encrypted = chat1.encryptMultiple(RatchetChannel.MultipleString(messages))
 
-        val chat2 = ethree2.joinRatchetChat(card1).get()
+        val chat2 = ethree2.joinRatchetChannel(card1).get()
 
         val decrypted = chat2.decryptMultiple(encrypted)
 
         for (i in 0 until messages.size) {
-            assertEquals(messages[i], decrypted.multipleText.toList()[i]) // TODO do we need Iterable really here?
+            assertEquals(messages[i],
+                         decrypted.multipleText.toList()[i]) // TODO do we need Iterable really here?
         }
     }
 
@@ -416,15 +415,15 @@ class RatchetTests {
         val (ethree1, _) = setupDevice()
         val (ethree2, card2) = setupDevice()
 
-        ethree1.createRatchetChat(card2).get()
+        ethree1.createRatchetChannel(card2).get()
 
         ethree1.cleanup()
         ethree1.rotatePrivateKey().execute()
 
         val newCard1 = ethree2.findUser(ethree1.identity, forceReload = true).get()
 
-        val chat1 = ethree1.createRatchetChat(card2).get()
-        val chat2 = ethree2.joinRatchetChat(newCard1).get()
+        val chat1 = ethree1.createRatchetChannel(card2).get()
+        val chat2 = ethree2.joinRatchetChannel(newCard1).get()
 
         encryptDecrypt100Times(chat1, chat2)
     }
@@ -435,13 +434,13 @@ class RatchetTests {
         val (ethree2, card2) = setupDevice()
 
         val name1 = UUID.randomUUID().toString()
-        val chat11 = ethree1.createRatchetChat(card2, name1).get()
+        val chat11 = ethree1.createRatchetChannel(card2, name1).get()
 
         val name2 = UUID.randomUUID().toString()
-        val chat22 = ethree2.createRatchetChat(card1, name2).get()
+        val chat22 = ethree2.createRatchetChannel(card1, name2).get()
 
-        val chat12 = ethree1.joinRatchetChat(card2, name2).get()
-        val chat21 = ethree2.joinRatchetChat(card1, name1).get()
+        val chat12 = ethree1.joinRatchetChannel(card2, name2).get()
+        val chat21 = ethree2.joinRatchetChannel(card1, name1).get()
 
         encryptDecrypt100Times(chat11, chat21)
         encryptDecrypt100Times(chat12, chat22)

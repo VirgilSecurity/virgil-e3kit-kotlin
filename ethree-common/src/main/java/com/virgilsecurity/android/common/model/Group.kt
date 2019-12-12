@@ -53,11 +53,12 @@ import kotlin.collections.HashSet
  */
 class Group internal constructor(
         rawGroup: RawGroup,
-        private val crypto: VirgilCrypto,
         private val localKeyStorage: LocalKeyStorage,
         private val groupManager: GroupManager,
         private val lookupManager: LookupManager
 ) {
+
+    private val crypto: VirgilCrypto
 
     val initiator: String = rawGroup.info.initiator
     var participants: MutableSet<String>
@@ -75,6 +76,7 @@ class Group internal constructor(
 
         this.participants = lastTicket.participants.toMutableSet()
         this.session = generateSession(tickets)
+        this.crypto = localKeyStorage.crypto
     }
 
     private fun generateSession(tickets: List<Ticket>, crypto: VirgilCrypto): GroupSession {
@@ -223,7 +225,7 @@ class Group internal constructor(
             throw ConversionException("Error while converting String to Data. ${exception.message}")
         }
 
-        val decryptedData = this.decrypt(data.data, senderCard, date)
+        val decryptedData = this.decrypt(data.value, senderCard, date)
         return ConvertionUtils.toString(decryptedData)
     }
 
@@ -327,6 +329,6 @@ class Group internal constructor(
             }
         }
 
-        val VALID_PARTICIPANTS_COUNT_RANGE = 2..100
+        val VALID_PARTICIPANTS_COUNT_RANGE = 1..100
     }
 }

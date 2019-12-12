@@ -39,4 +39,5 @@ package com.virgilsecurity.android.common.exception
 object ServiceErrorCodes {
 
     const val NO_KEY_DATA_FOR_USER = 50_017
+    const val INVALID_PREVIOUS_HASH = 50_010
 }

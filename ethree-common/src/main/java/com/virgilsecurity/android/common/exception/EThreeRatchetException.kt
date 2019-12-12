@@ -33,8 +33,6 @@
 
 package com.virgilsecurity.android.common.exception
 
-import java.lang.RuntimeException
-
 /**
  * RatchetException
  */
@@ -44,17 +42,17 @@ class EThreeRatchetException @JvmOverloads constructor(
 ) : RuntimeException(description.errorMessage, throwable) {
 
     enum class Description(val errorCode: Int, val errorMessage: String) {
-        ENCRYPT_EMPTY_ARRAY(70201, "Trying to encrypt empty array"),
-        DECRYPT_EMPTY_ARRAY(70202, "Trying to decrypt empty array"),
-        MISSING_LOCAL_CHAT(70203, "Chat with provided user was not found locally"),
-        CHAT_ALREADY_EXISTS(70204, "Chat with provided user and name already exists"),
-        SELF_CHAT_IS_FORBIDDEN(70205,
-                               "Chat with self is forbidden. Use regular encryption for this " +
+        ENCRYPT_EMPTY_ARRAY(ErrorCode.RATCHET + 1, "Trying to encrypt empty array."),
+        DECRYPT_EMPTY_ARRAY(ErrorCode.RATCHET + 2, "Trying to decrypt empty array."),
+        CHANNEL_ALREADY_EXISTS(ErrorCode.RATCHET + 4,
+                               "Channel with provided user and name already exists."),
+        SELF_CHANNEL_IS_FORBIDDEN(ErrorCode.RATCHET + 5,
+                               "Channel with self is forbidden. Use regular encryption for this " +
                                "purpose."),
-        RATCHET_IS_DISABLED(70206, "enableRatchet parameter is set to false"),
-        USER_IS_NOT_USING_RATCHET(70207,
-                                  "Provided user has been never initialized with ratchet enabled"),
-        NO_INVITE(70208, "There is no invitation from provided user"),
-        NO_SELF_CARD_LOCALLY(70209, "There is no self card in local storage")
+        RATCHET_IS_DISABLED(ErrorCode.RATCHET + 6, "enableRatchet parameter is set to false."),
+        USER_IS_NOT_USING_RATCHET(ErrorCode.RATCHET + 7,
+                                  "Provided user has been never initialized with ratchet enabled."),
+        NO_INVITE(ErrorCode.RATCHET + 8, "There is no invitation from provided user."),
+        NO_SELF_CARD_LOCALLY(ErrorCode.RATCHET + 9, "There is no self card in local storage.")
     }
 }

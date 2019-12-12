@@ -34,6 +34,8 @@
 package com.virgilsecurity.android.common.storage.cloud
 
 import com.virgilsecurity.android.common.exception.EThreeRatchetException
+import com.virgilsecurity.android.common.exception.ServiceErrorCodes
+import com.virgilsecurity.android.common.exception.UnsafeChannelException
 import com.virgilsecurity.android.common.storage.local.LocalKeyStorage
 import com.virgilsecurity.crypto.ratchet.RatchetMessage
 import com.virgilsecurity.keyknox.KeyknoxManager
@@ -41,6 +43,7 @@ import com.virgilsecurity.keyknox.client.KeyknoxClient
 import com.virgilsecurity.keyknox.client.KeyknoxPullParams
 import com.virgilsecurity.keyknox.client.KeyknoxPushParams
 import com.virgilsecurity.keyknox.client.KeyknoxResetParams
+import com.virgilsecurity.ratchet.exception.ProtocolException
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.jwt.contract.AccessTokenProvider
 
@@ -63,18 +66,28 @@ internal class CloudRatchetStorage(
     }
 
     internal fun store(ticket: RatchetMessage, card: Card, name: String?) {
-        val selfKeyPair = localKeyStorage.retrieveKeyPair()
+        try {
+            val selfKeyPair = localKeyStorage.retrieveKeyPair()
 
-        val pushParams = KeyknoxPushParams(listOf(card.identity, this.identity),
-                                           ROOT,
-                                           card.identity,
-                                           name ?: DEFAULT_KEY)
+            val pushParams = KeyknoxPushParams(listOf(card.identity, this.identity),
+                                               ROOT,
+                                               card.identity,
+                                               name ?: DEFAULT_KEY)
 
-        keyknoxManager.pushValue(pushParams,
-                                 ticket.serialize(),
-                                 null,
-                                 listOf(card.publicKey, selfKeyPair.publicKey),
-                                 selfKeyPair.privateKey)
+            keyknoxManager.pushValue(pushParams,
+                                     ticket.serialize(),
+                                     null,
+                                     listOf(card.publicKey, selfKeyPair.publicKey),
+                                     selfKeyPair.privateKey)
+        } catch (exception: ProtocolException) {
+            if (exception.errorCode == ServiceErrorCodes.INVALID_PREVIOUS_HASH) {
+                throw UnsafeChannelException(
+                    UnsafeChannelException.Description.CHANNEL_ALREADY_EXISTS
+                )
+            } else {
+                throw exception
+            }
+        }
     }
 
     internal fun retrieve(card: Card, name: String?): RatchetMessage {

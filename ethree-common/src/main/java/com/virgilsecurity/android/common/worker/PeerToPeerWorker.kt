@@ -128,7 +128,7 @@ internal class PeerToPeerWorker internal constructor(
 
         val decryptedData = decrypt(data, user)
 
-        return String(decryptedData.data, StandardCharsets.UTF_8)
+        return String(decryptedData.value, StandardCharsets.UTF_8)
     }
 
     @Deprecated("Check 'replace with' section.", ReplaceWith("authDecrypt"))
@@ -143,7 +143,7 @@ internal class PeerToPeerWorker internal constructor(
 
         val decryptedData = decrypt(data, user, date)
 
-        return String(decryptedData.data, StandardCharsets.UTF_8)
+        return String(decryptedData.value, StandardCharsets.UTF_8)
     }
 
     @Deprecated("Check 'replace with' section.", ReplaceWith("authEncrypt"))
@@ -179,7 +179,7 @@ internal class PeerToPeerWorker internal constructor(
 
     private fun oldEncryptInternal(data: Data,
                                 publicKeys: List<VirgilPublicKey>?): Data {
-        require(data.data.isNotEmpty()) { "\'data\' should not be empty." }
+        require(data.value.isNotEmpty()) { "\'data\' should not be empty." }
 
         val selfKeyPair = localKeyStorage.retrieveKeyPair()
         val pubKeys = mutableListOf(selfKeyPair.publicKey)
@@ -191,17 +191,17 @@ internal class PeerToPeerWorker internal constructor(
             pubKeys += publicKeys
         }
 
-        return Data(crypto.signThenEncrypt(data.data, selfKeyPair.privateKey, pubKeys))
+        return Data(crypto.signThenEncrypt(data.value, selfKeyPair.privateKey, pubKeys))
     }
 
     private fun oldDecryptInternal(data: Data, publicKey: VirgilPublicKey?): Data {
-        require(data.data.isNotEmpty()) { "\'data\' should not be empty." }
+        require(data.value.isNotEmpty()) { "\'data\' should not be empty." }
 
         val selfKeyPair = localKeyStorage.retrieveKeyPair()
         val pubKey = publicKey ?: selfKeyPair.publicKey
 
         return try {
-            Data(crypto.decryptThenVerify(data.data, selfKeyPair.privateKey, pubKey))
+            Data(crypto.decryptThenVerify(data.value, selfKeyPair.privateKey, pubKey))
         } catch (exception: Throwable) {
             when (exception.cause) {
                 is SignatureIsNotValidException -> {
@@ -232,7 +232,7 @@ internal class PeerToPeerWorker internal constructor(
     @Deprecated("Check 'replace with' section.", ReplaceWith("authEncrypt"))
     @JvmOverloads internal fun encrypt(data: ByteArray,
                                        lookupResult: LookupResult? = null): ByteArray =
-            oldEncryptInternal(Data(data), lookupResult.toPublicKeys()).data
+            oldEncryptInternal(Data(data), lookupResult.toPublicKeys()).value
 
     @Deprecated("Check 'replace with' section.", ReplaceWith("authEncrypt"))
     internal fun encrypt(inputStream: InputStream,
@@ -252,11 +252,11 @@ internal class PeerToPeerWorker internal constructor(
 
         val decryptedData = oldDecryptInternal(data, sendersKey)
 
-        return String(decryptedData.data, StandardCharsets.UTF_8)
+        return String(decryptedData.value, StandardCharsets.UTF_8)
     }
 
     @Deprecated("Check 'replace with' section.", ReplaceWith("authDecrypt"))
     @JvmOverloads internal fun decrypt(data: ByteArray,
                                        sendersKey: VirgilPublicKey? = null): ByteArray =
-            oldDecryptInternal(Data(data), sendersKey).data
+            oldDecryptInternal(Data(data), sendersKey).value
 }

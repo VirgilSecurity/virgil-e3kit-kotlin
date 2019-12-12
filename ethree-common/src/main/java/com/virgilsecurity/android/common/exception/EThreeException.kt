@@ -57,20 +57,23 @@ constructor(
     }
 
     enum class Description(val errorCode: Int, val errorMessage: String) {
-        VERIFIER_INIT_FAILED(70101, "Initialization of VirgilCardVerifier failed."),
-        STR_TO_DATA_FAILED(70102, "String to Data failed."),
-        STR_FROM_DATA_FAILED(70103, "Data to String failed."),
-        MISSING_PRIVATE_KEY(70104,
+        VERIFIER_INIT_FAILED(ErrorCode.BASE + 1,
+                             "Initialization of VirgilCardVerifier failed."),
+        STR_TO_DATA_FAILED(ErrorCode.BASE + 2, "String to Data failed."),
+        STR_FROM_DATA_FAILED(ErrorCode.BASE + 3, "Data to String failed."),
+        MISSING_PRIVATE_KEY(ErrorCode.BASE + 4,
                             "No private key on device. You should call register() of " +
                             "retrievePrivateKey()."),
-        MISSING_PUBLIC_KEY(70105, "Passed empty FindUsersResult."),
-        MISSING_IDENTITIES(70106, "Passed empty array of identities to findUsers."),
-        USER_IS_ALREADY_REGISTERED(70107, "User is already registered."),
-        USER_IS_NOT_REGISTERED(70108, "User is not registered."),
-        PRIVATE_KEY_EXISTS(70109, "Private key already exists in local key storage."),
-        VERIFICATION_FAILED(70110,
+        MISSING_PUBLIC_KEY(ErrorCode.BASE + 5, "Passed empty FindUsersResult."),
+        MISSING_IDENTITIES(ErrorCode.BASE + 6,
+                           "Passed empty array of identities to findUsers."),
+        USER_IS_ALREADY_REGISTERED(ErrorCode.BASE + 7, "User is already registered."),
+        USER_IS_NOT_REGISTERED(ErrorCode.BASE + 8, "User is not registered."),
+        PRIVATE_KEY_EXISTS(ErrorCode.BASE + 9,
+                           "Private key already exists in local key storage."),
+        VERIFICATION_FAILED(ErrorCode.BASE + 10,
                             "Verification of message failed. This may be caused by rotating " +
                             "sender key. Try finding new one."),
-        WRONG_PASSWORD(70111, "Wrong password."),
+        WRONG_PASSWORD(ErrorCode.BASE + 11, "Wrong password."),
     }
 }
