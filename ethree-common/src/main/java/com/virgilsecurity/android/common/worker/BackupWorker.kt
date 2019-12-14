@@ -43,7 +43,6 @@ import com.virgilsecurity.common.model.Completable
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.keyknox.exception.EntryAlreadyExistsException
 import com.virgilsecurity.keyknox.exception.EntryNotFoundException
-import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.crypto.HashAlgorithm
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.exceptions.KeyEntryAlreadyExistsException
@@ -123,18 +122,23 @@ internal class BackupWorker internal constructor(
         }
     }
 
-    @JvmOverloads
-    internal fun resetPrivateKeyBackup(password: String? = null): Completable = object : Completable {
+    internal fun resetPrivateKeyBackup(): Completable = object : Completable {
         override fun execute() {
-            if (password != null)
-                try {
-                    keyManagerCloud.delete(password)
-                } catch (exception: EntryNotFoundException) {
-                    throw PrivateKeyNotFoundException("Can't reset private key: private key not " +
-                                                      "found.", exception)
-                }
-            else
-                keyManagerCloud.deleteAll()
+            keyManagerCloud.deleteAll()
+        }
+
+    }
+
+    @Deprecated("Check 'replace with' section.",
+                ReplaceWith("Please, use resetPrivateKeyBackup without password instead."))
+    internal fun resetPrivateKeyBackup(password: String): Completable = object : Completable {
+        override fun execute() {
+            try {
+                keyManagerCloud.delete(password)
+            } catch (exception: EntryNotFoundException) {
+                throw PrivateKeyNotFoundException("Can't reset private key: private key not " +
+                                                  "found.", exception)
+            }
         }
 
     }

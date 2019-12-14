@@ -49,7 +49,8 @@ before_install:
   - echo -e "\n84831b9409646a918e30573bab4c9c91346d8abd" > "$ANDROID_HOME/licenses/android-sdk-preview-license"
   - chmod +x gradlew
   - ./gradlew dependencies || true
-  - openssl aes-256-cbc -K $encrypted_62e1b1822e5d_key -iv $encrypted_62e1b1822e5d_iv -in ethree-common/src/androidTest/resources/compat/compat_data.json.enc -out ethree-common/src/androidTest/resources/compat/compat_data.json -d
+  - openssl aes-256-cbc -K $encrypted_ce7206e29fc6_key -iv $encrypted_ce7206e29fc6_iv -in ethree-common/src/androidTest/resources/compat/compat_data_group_tests.json.enc -out ethree-common/src/androidTest/resources/compat/compat_data_group_tests.json -d
+  - openssl aes-256-cbc -K $encrypted_ce7206e29fc6_key -iv $encrypted_ce7206e29fc6_iv -in ethree-common/src/androidTest/resources/compat/compat_data_temp_channel_tests.json.enc -out ethree-common/src/androidTest/resources/compat/compat_data_temp_channel_tests.json -d
 
 before_script:
   - android list targets

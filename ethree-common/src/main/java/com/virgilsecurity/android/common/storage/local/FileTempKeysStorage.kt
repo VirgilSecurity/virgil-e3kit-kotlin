@@ -48,9 +48,9 @@ import java.io.File
 import java.io.FileNotFoundException
 
 /**
- * FileUnsafeKeysStorage
+ * FileTempKeysStorage
  */
-internal class FileUnsafeKeysStorage(
+internal class FileTempKeysStorage(
         internal val identity: String,
         private val crypto: VirgilCrypto,
         private val identityKeyPair: VirgilKeyPair,
@@ -67,7 +67,7 @@ internal class FileUnsafeKeysStorage(
                                File.separator +
                                Const.STORAGE_POSTFIX_E3KIT +
                                File.separator +
-                               STORAGE_POSTFIX_UNSAFE_KEYS
+                               STORAGE_POSTFIX_TEMPORARY_KEYS
 
         fileSystem = FileSystemEncrypted(fullPath)
     }
@@ -84,7 +84,7 @@ internal class FileUnsafeKeysStorage(
         fileSystem.write(data, Const.DEFAULT_NAME, identity)
     }
 
-    internal fun retrieve(identity: String): UnsafeKey? {
+    internal fun retrieve(identity: String): TempKey? {
         return try {
             val data = fileSystem.read(Const.DEFAULT_NAME, identity)
             decode(data)
@@ -113,28 +113,28 @@ internal class FileUnsafeKeysStorage(
             }
         }
 
-        val unsafeKey = UnsafeKey(data, type)
+        val temporaryKey = TempKey(data, type)
 
-        return gson.toJson(unsafeKey).toData()
+        return gson.toJson(temporaryKey).toData()
     }
 
-    private fun decode(data: Data): UnsafeKey {
-        val unsafeKey = gson.fromJson(data.asString(), UnsafeKey::class.java)
+    private fun decode(data: Data): TempKey {
+        val temporaryKey = gson.fromJson(data.asString(), TempKey::class.java)
 
-        return when (unsafeKey.type) {
+        return when (temporaryKey.type) {
             KeyType.PRIVATE -> {
-                val decryptedKey = crypto.authDecrypt(unsafeKey.key.value,
+                val decryptedKey = crypto.authDecrypt(temporaryKey.key.value,
                                                       this.identityKeyPair.privateKey,
                                                       this.identityKeyPair.publicKey).toData()
-                unsafeKey.copy(key = decryptedKey)
+                temporaryKey.copy(key = decryptedKey)
             }
             KeyType.PUBLIC -> {
-                unsafeKey
+                temporaryKey
             }
         }
     }
 
-    internal data class UnsafeKey(
+    internal data class TempKey(
             @SerializedName("key")
             var key: Data,
 
@@ -147,6 +147,6 @@ internal class FileUnsafeKeysStorage(
     }
 
     companion object {
-        private const val STORAGE_POSTFIX_UNSAFE_KEYS = "UNSAFE-KEYS"
+        private const val STORAGE_POSTFIX_TEMPORARY_KEYS = "UNSAFE-KEYS"
     }
 }

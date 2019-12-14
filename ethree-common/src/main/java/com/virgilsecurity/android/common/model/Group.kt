@@ -74,9 +74,9 @@ class Group internal constructor(
 
         validateParticipantsCount(lastTicket.participants.size)
 
+        this.crypto = localKeyStorage.crypto
         this.participants = lastTicket.participants.toMutableSet()
         this.session = generateSession(tickets)
-        this.crypto = localKeyStorage.crypto
     }
 
     private fun generateSession(tickets: List<Ticket>, crypto: VirgilCrypto): GroupSession {

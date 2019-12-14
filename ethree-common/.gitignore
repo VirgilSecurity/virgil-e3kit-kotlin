@@ -173,5 +173,7 @@ fabric.properties
 
 # Project-specific
 !crypto/libs/virgil_crypto_java.jar
-compat_data.json
-!compat_data.json.enc
+compat_data_group_tests.json
+!compat_data_group_tests.json.enc
+compat_data_temp_channel_tests.json
+!compat_data_temp_channel_tests.json.enc

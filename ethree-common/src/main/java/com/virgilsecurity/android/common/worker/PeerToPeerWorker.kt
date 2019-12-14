@@ -45,6 +45,7 @@ import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilPublicKey
 import com.virgilsecurity.sdk.crypto.exceptions.SignatureIsNotValidException
+import com.virgilsecurity.sdk.crypto.exceptions.VerificationException
 import com.virgilsecurity.sdk.exception.EmptyArgumentException
 import java.io.InputStream
 import java.io.OutputStream
@@ -204,7 +205,7 @@ internal class PeerToPeerWorker internal constructor(
             Data(crypto.decryptThenVerify(data.value, selfKeyPair.privateKey, pubKey))
         } catch (exception: Throwable) {
             when (exception.cause) {
-                is SignatureIsNotValidException -> {
+                is VerificationException -> {
                     throw SignatureVerificationException("Verification of message failed. This " +
                                                          "may be caused by rotating sender key. " +
                                                          "Try finding new one")

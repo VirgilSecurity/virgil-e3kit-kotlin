@@ -39,5 +39,5 @@ package com.virgilsecurity.android.common.exception
 object ErrorCode {
     const val BASE = 70100
     const val RATCHET = 70200
-    const val UNSAFE_CHANNEL = 70300
+    const val TEMP_CHANNEL = 70300
 }

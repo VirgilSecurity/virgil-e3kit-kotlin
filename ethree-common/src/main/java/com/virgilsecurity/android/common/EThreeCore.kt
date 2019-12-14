@@ -41,10 +41,10 @@ import com.virgilsecurity.android.common.callback.OnKeyChangedCallback
 import com.virgilsecurity.android.common.exception.*
 import com.virgilsecurity.android.common.manager.GroupManager
 import com.virgilsecurity.android.common.manager.LookupManager
-import com.virgilsecurity.android.common.manager.UnsafeChannelManager
+import com.virgilsecurity.android.common.manager.TempChannelManager
 import com.virgilsecurity.android.common.model.*
 import com.virgilsecurity.android.common.model.ratchet.RatchetChannel
-import com.virgilsecurity.android.common.model.unsafe.UnsafeChannel
+import com.virgilsecurity.android.common.model.temporary.TemporaryChannel
 import com.virgilsecurity.android.common.storage.cloud.CloudKeyManager
 import com.virgilsecurity.android.common.storage.cloud.CloudRatchetStorage
 import com.virgilsecurity.android.common.storage.cloud.CloudTicketStorage
@@ -91,7 +91,7 @@ abstract class EThreeCore {
 
     private var accessTokenProvider: AccessTokenProvider
     private var groupManager: GroupManager? = null
-    private var unsafeChannelManager: UnsafeChannelManager? = null
+    private var tempChannelManager: TempChannelManager? = null
     private var secureChat: SecureChat? = null
 
     private lateinit var authorizationWorker: AuthorizationWorker
@@ -102,7 +102,7 @@ abstract class EThreeCore {
     private lateinit var ratchetWorker: RatchetWorker
     private lateinit var authEncryptWorker: AuthEncryptWorker
     private lateinit var streamsEncryptWorker: StreamsEncryptWorker
-    private lateinit var unsafeChannelWorker: UnsafeChannelWorker
+    private lateinit var tempChannelWorker: TempChannelWorker
 
     internal lateinit var localKeyStorage: LocalKeyStorage
     internal lateinit var cloudRatchetStorage: CloudRatchetStorage
@@ -195,7 +195,7 @@ abstract class EThreeCore {
                                            ::startRatchetSessionAsSender)
         this.authEncryptWorker = AuthEncryptWorker(localKeyStorage, crypto)
         this.streamsEncryptWorker = StreamsEncryptWorker(localKeyStorage, crypto)
-        this.unsafeChannelWorker = UnsafeChannelWorker(identity, lookupManager, ::getUnsafeManager)
+        this.tempChannelWorker = TempChannelWorker(identity, lookupManager, ::getTempChannelManager)
 
         if (localKeyStorage.exists()) {
             privateKeyChanged()
@@ -207,8 +207,8 @@ abstract class EThreeCore {
     internal fun getGroupManager(): GroupManager =
             groupManager ?: throw EThreeException(EThreeException.Description.MISSING_PRIVATE_KEY)
 
-    internal fun getUnsafeManager(): UnsafeChannelManager =
-            unsafeChannelManager
+    internal fun getTempChannelManager(): TempChannelManager =
+            tempChannelManager
             ?: throw EThreeException(EThreeException.Description.MISSING_PRIVATE_KEY)
 
     protected fun getSecureChat(): SecureChat {
@@ -443,6 +443,18 @@ abstract class EThreeCore {
      * Deletes Private Key stored on Virgil's cloud. This will disable user to log in from
      * other devices.
      *
+     * To start execution of the current function, please see [Completable] description. // TODO add this to new func descriptions
+     *
+     * @throws WrongPasswordException If [password] is wrong.
+     * @throws PrivateKeyNotFoundException
+     */
+    fun resetPrivateKeyBackup(): Completable =
+            backupWorker.resetPrivateKeyBackup()
+
+    /**
+     * Deletes Private Key stored on Virgil's cloud. This will disable user to log in from
+     * other devices.
+     *
      * Deletes private key backup using specified [password] and provides [onCompleteListener]
      * callback that will notify you with successful completion or with a [Throwable] if
      * something went wrong.
@@ -452,8 +464,9 @@ abstract class EThreeCore {
      * @throws WrongPasswordException If [password] is wrong.
      * @throws PrivateKeyNotFoundException
      */
-    @JvmOverloads
-    fun resetPrivateKeyBackup(password: String? = null): Completable =
+    @Deprecated("Check 'replace with' section.",
+                ReplaceWith("Please, use resetPrivateKeyBackup without password instead."))
+    fun resetPrivateKeyBackup(password: String): Completable =
             backupWorker.resetPrivateKeyBackup(password)
 
     /**
@@ -970,33 +983,34 @@ abstract class EThreeCore {
      *
      * @param identity Identity of unregistered user.
      */
-    fun createUnsafeChannel(identity: String): Result<UnsafeChannel> =
-            unsafeChannelWorker.createUnsafeChannel(identity)
+    fun createTemporaryChannel(identity: String): Result<TemporaryChannel> =
+            tempChannelWorker.createTemporaryChannel(identity)
 
     /**
-     * Loads unsafe channel by fetching temporary key form Cloud.
+     * Loads temporary channel by fetching temporary key form Cloud.
      *
      * @param asCreator Specifies whether caller is creator of channel or not.
      * @param identity Identity of participant.
      */
-    fun loadUnsafeChannel(asCreator: Boolean, identity: String): Result<UnsafeChannel> =
-            unsafeChannelWorker.loadUnsafeChannel(asCreator, identity)
+    fun loadTemporaryChannel(asCreator: Boolean, identity: String): Result<TemporaryChannel> =
+            tempChannelWorker.loadTemporaryChannel(asCreator, identity)
 
     /**
-     * Returns cached unsafe channel.
+     * Returns cached temporary channel.
      *
      * @param identity Identity of participant.
      */
-    fun getUnsafeChannel(identity: String): UnsafeChannel? =
-            unsafeChannelWorker.getUnsafeChannel(identity)
+    fun getTemporaryChannel(identity: String): TemporaryChannel? =
+            tempChannelWorker.getTemporaryChannel(identity)
 
     /**
-     * Deletes unsafe channel from the cloud (if the user is a creator) and from the local storage.
+     * Deletes temporary channel from the cloud (if the user is a creator) and from the
+     * local storage.
      *
      * @param identity Identity of participant.
      */
-    fun deleteUnsafeChannel(identity: String): Completable =
-            unsafeChannelWorker.deleteUnsafeChannel(identity)
+    fun deleteTemporaryChannel(identity: String): Completable =
+            tempChannelWorker.deleteTemporaryChannel(identity)
 
     // Backward compatibility deprecated methods --------------------------------------------------
 
@@ -1113,7 +1127,7 @@ abstract class EThreeCore {
         val selfKeyPair = localKeyStorage.retrieveKeyPair()
 
         setupGroupManager(selfKeyPair)
-        setupUnsafeManager(selfKeyPair)
+        setupTempChannelManager(selfKeyPair)
 
         if (this.enableRatchet) {
             setupRatchet(params, selfKeyPair)
@@ -1123,10 +1137,10 @@ abstract class EThreeCore {
     internal fun privateKeyDeleted() {
         lookupManager.cardStorage.reset()
         groupManager?.localGroupStorage?.reset()
-        unsafeChannelManager?.localUnsafeStorage?.reset()
+        tempChannelManager?.localStorage?.reset()
 
         groupManager = null
-        unsafeChannelManager = null
+        tempChannelManager = null
         secureChat = null
         timer = null
     }
@@ -1186,17 +1200,16 @@ abstract class EThreeCore {
         this.groupManager = GroupManager(localGroupStorage,
                                          ticketStorageCloud,
                                          this.localKeyStorage,
-                                         this.lookupManager,
-                                         this.crypto)
+                                         this.lookupManager)
     }
 
-    private fun setupUnsafeManager(keyPair: VirgilKeyPair) {
-        unsafeChannelManager = UnsafeChannelManager(crypto,
-                                                    accessTokenProvider,
-                                                    localKeyStorage,
-                                                    lookupManager,
-                                                    keyPair,
-                                                    rootPath)
+    private fun setupTempChannelManager(keyPair: VirgilKeyPair) {
+        tempChannelManager = TempChannelManager(crypto,
+                                                accessTokenProvider,
+                                                localKeyStorage,
+                                                lookupManager,
+                                                keyPair,
+                                                rootPath)
     }
 
     private fun setupRatchet(params: PrivateKeyChangedParams? = null, keyPair: VirgilKeyPair) {

@@ -90,33 +90,25 @@ class GroupTests {
     @Test fun create_with_invalid_participants_count() {
         val card = this.ethree.findUser(ethree.identity).get()
 
-        try {
-            val users = FindUsersResult()
-            users[ethree.identity] = card
-            this.ethree.createGroup(groupId, users).get()
-            fail()
-        } catch (e: InvalidParticipantsCountGroupException) {
-        }
-
-        val users = FindUsersResult()
+        val lookup = FindUsersResult()
         for (i in 0 until 100) {
             val identity = UUID.randomUUID().toString()
-            users[identity] = card
+            lookup[identity] = card
         }
         try {
-            this.ethree.createGroup(groupId, users).get()
+            this.ethree.createGroup(groupId, lookup).get()
             fail()
         } catch (e: InvalidParticipantsCountGroupException) {
         }
 
-        val firstEntry = users.entries.first()
-        val newUsers = FindUsersResult()
-        newUsers[firstEntry.key] = firstEntry.value
+        val firstEntry = lookup.entries.first()
+        val newLookup = FindUsersResult()
+        newLookup[firstEntry.key] = firstEntry.value
 
-        val group = this.ethree.createGroup(groupId, newUsers).get()
+        val group = this.ethree.createGroup(groupId, newLookup).get()
         assertEquals(2, group.participants.size)
         assertTrue(group.participants.contains(this.ethree.identity))
-        assertTrue(group.participants.contains(newUsers.keys.first()))
+        assertTrue(group.participants.contains(newLookup.keys.first()))
     }
 
     // test002 STE_27
@@ -275,8 +267,7 @@ class GroupTests {
         val groupManager = GroupManager(localGroupStorage,
                                         ticketStorageCloud,
                                         localKeyStorage,
-                                        lookupManager,
-                                        this.crypto)
+                                        lookupManager)
 
         val participants = mutableSetOf<String>()
 
@@ -306,10 +297,10 @@ class GroupTests {
     @Test fun remove_last_participant() {
         val ethree2 = createEThree()
 
-        val card = this.ethree.findUser(ethree2.identity).get()
+        val card = ethree2.findUser(ethree2.identity).get()
         assertNotNull(card)
 
-        val group = this.ethree.createGroup(this.groupId).get()
+        val group = ethree2.createGroup(this.groupId).get()
 
         try {
             group.remove(card).execute()
@@ -397,13 +388,7 @@ class GroupTests {
         val group2 = ethree2.loadGroup(this.groupId, ethree1Card).get()
 
         try {
-            ethree2.deleteGroup(groupId).execute()
-            fail()
-        } catch (e: PermissionDeniedGroupException) {
-        }
-
-        try {
-            group2.remove(card3!!).execute()
+            group2.remove(lookup[ethree3.identity]!!).execute()
             fail()
         } catch (e: PermissionDeniedGroupException) {
         }
@@ -609,8 +594,9 @@ class GroupTests {
 
     // test017 STE_45
     @Test fun compatibility() {
-        val compatDataStream =
-                this.javaClass.classLoader?.getResourceAsStream("compat/compat_data.json")
+        val compatDataStream = this.javaClass
+                .classLoader
+                ?.getResourceAsStream("compat/compat_data_group_tests.json")
         val compatJson = JsonParser().parse(InputStreamReader(compatDataStream)) as JsonObject
         val groupCompatJson = compatJson.getAsJsonObject("Group")
 

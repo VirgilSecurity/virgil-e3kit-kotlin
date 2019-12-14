@@ -33,65 +33,65 @@
 
 package com.virgilsecurity.android.common.worker
 
-import com.virgilsecurity.android.common.exception.UnsafeChannelException
+import com.virgilsecurity.android.common.exception.TemporaryChannelException
 import com.virgilsecurity.android.common.manager.LookupManager
-import com.virgilsecurity.android.common.manager.UnsafeChannelManager
-import com.virgilsecurity.android.common.model.unsafe.UnsafeChannel
+import com.virgilsecurity.android.common.manager.TempChannelManager
+import com.virgilsecurity.android.common.model.temporary.TemporaryChannel
 import com.virgilsecurity.common.model.Completable
 import com.virgilsecurity.common.model.Result
 
 /**
- * UnsafeWorker
+ * TempChannelWorker
  */
-internal class UnsafeChannelWorker(
+internal class TempChannelWorker(
         private val identity: String,
         private val lookupManager: LookupManager,
-        private val getUnsafeManager: () -> UnsafeChannelManager
+        private val getTempChannelManager: () -> TempChannelManager
 ) {
 
-    internal fun createUnsafeChannel(identity: String): Result<UnsafeChannel> =
-            object : Result<UnsafeChannel> {
-                override fun get(): UnsafeChannel {
-                    if (identity == this@UnsafeChannelWorker.identity) {
-                        throw UnsafeChannelException(
-                            UnsafeChannelException.Description.SELF_CHANNEL_IS_FORBIDDEN
+    internal fun createTemporaryChannel(identity: String): Result<TemporaryChannel> =
+            object : Result<TemporaryChannel> {
+                override fun get(): TemporaryChannel {
+                    if (identity == this@TempChannelWorker.identity) {
+                        throw TemporaryChannelException(
+                            TemporaryChannelException.Description.SELF_CHANNEL_IS_FORBIDDEN
                         )
                     }
 
                     val result = lookupManager.lookupCards(listOf(identity), checkResult = false)
                     if (result.isNotEmpty()) {
-                        throw UnsafeChannelException(
-                            UnsafeChannelException.Description.USER_IS_REGISTERED
+                        throw TemporaryChannelException(
+                            TemporaryChannelException.Description.USER_IS_REGISTERED
                         )
                     }
 
-                    return getUnsafeManager().create(identity)
+                    return getTempChannelManager().create(identity)
                 }
             }
 
-    internal fun loadUnsafeChannel(asCreator: Boolean, identity: String): Result<UnsafeChannel> =
-            object : Result<UnsafeChannel> {
-                override fun get(): UnsafeChannel {
-                    val unsafeManager = getUnsafeManager()
-                    if (identity == this@UnsafeChannelWorker.identity) {
-                        throw UnsafeChannelException(
-                            UnsafeChannelException.Description.SELF_CHANNEL_IS_FORBIDDEN
+    internal fun loadTemporaryChannel(asCreator: Boolean, identity: String): Result<TemporaryChannel> =
+            object : Result<TemporaryChannel> {
+                override fun get(): TemporaryChannel {
+                    val manager = getTempChannelManager()
+                    if (identity == this@TempChannelWorker.identity) {
+                        throw TemporaryChannelException(
+                            TemporaryChannelException.Description.SELF_CHANNEL_IS_FORBIDDEN
                         )
                     }
 
-                    return unsafeManager.loadFromCloud(asCreator, identity)
+                    return manager.loadFromCloud(asCreator, identity)
                 }
             }
 
-    internal fun getUnsafeChannel(identity: String): UnsafeChannel? {
-        val unsafeManager = getUnsafeManager()
+    internal fun getTemporaryChannel(identity: String): TemporaryChannel? {
+        val manager = getTempChannelManager()
 
-        return unsafeManager.getLocalChannel(identity)
+        return manager.getLocalChannel(identity)
     }
 
-    internal fun deleteUnsafeChannel(identity: String): Completable = object : Completable {
+    internal fun deleteTemporaryChannel(identity: String): Completable = object : Completable {
         override fun execute() {
-            getUnsafeManager().delete(identity)
+            getTempChannelManager().delete(identity)
         }
     }
 }

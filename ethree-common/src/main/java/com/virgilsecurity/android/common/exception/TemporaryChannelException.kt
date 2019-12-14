@@ -34,22 +34,22 @@
 package com.virgilsecurity.android.common.exception
 
 /**
- * UnsafeChannelException
+ * TemporaryChannelException
  */
-class UnsafeChannelException @JvmOverloads constructor(
+class TemporaryChannelException @JvmOverloads constructor(
         val description: Description,
         throwable: Throwable? = null
 ) : RuntimeException(description.errorMessage, throwable) {
 
     enum class Description(val errorCode: Int, val errorMessage: String) {
-        CHANNEL_ALREADY_EXISTS(ErrorCode.UNSAFE_CHANNEL + 1,
-                               "Unsafe channel with provided identity already exists."),
-        SELF_CHANNEL_IS_FORBIDDEN(ErrorCode.UNSAFE_CHANNEL + 2,
-                                  "Unsafe channel with self is forbidden. Use regular encryption " +
-                                  "for this purpose."),
-        USER_IS_REGISTERED(ErrorCode.UNSAFE_CHANNEL + 3,
-                           "User with provided identity is registered. Creation of unsafe " +
+        CHANNEL_ALREADY_EXISTS(ErrorCode.TEMP_CHANNEL + 1,
+                               "Temporary channel with provided identity already exists."),
+        SELF_CHANNEL_IS_FORBIDDEN(ErrorCode.TEMP_CHANNEL + 2,
+                                  "Temporary channel with self is forbidden. Use regular " +
+                                  "encryption for this purpose."),
+        USER_IS_REGISTERED(ErrorCode.TEMP_CHANNEL + 3,
+                           "User with provided identity is registered. Creation of Temporary " +
                            "channels with registered users is forbidden."),
-        CHANNEL_NOT_FOUND(ErrorCode.UNSAFE_CHANNEL + 4, "Channel was not found."),
+        CHANNEL_NOT_FOUND(ErrorCode.TEMP_CHANNEL + 4, "Channel was not found."),
     }
 }

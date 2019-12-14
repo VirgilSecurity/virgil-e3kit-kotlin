@@ -33,7 +33,7 @@
 
 package com.virgilsecurity.android.common.storage.cloud
 
-import com.virgilsecurity.android.common.exception.UnsafeChannelException
+import com.virgilsecurity.android.common.exception.TemporaryChannelException
 import com.virgilsecurity.android.common.util.Const
 import com.virgilsecurity.keyknox.client.KeyknoxClient
 import com.virgilsecurity.keyknox.client.KeyknoxPullParams
@@ -45,9 +45,9 @@ import com.virgilsecurity.sdk.crypto.VirgilPrivateKey
 import com.virgilsecurity.sdk.jwt.contract.AccessTokenProvider
 
 /**
- * CloudUnsafeStorage
+ * CloudTempKeysStorage
  */
-internal class CloudUnsafeStorage(
+internal class CloudTempKeysStorage(
         private val identity: String,
         private val accessTokenProvider: AccessTokenProvider,
         private val crypto: VirgilCrypto
@@ -57,7 +57,7 @@ internal class CloudUnsafeStorage(
 
     internal fun store(tempKey: VirgilPrivateKey, identity: String) {
         val pushParams = KeyknoxPushParams(listOf(identity, this.identity),
-                                           UNSAFE_KEYS_ROOT,
+                                           TEMP_KEYS_ROOT,
                                            identity,
                                            Const.DEFAULT_NAME)
 
@@ -69,20 +69,20 @@ internal class CloudUnsafeStorage(
 
     internal fun retrieve(identity: String, path: String): VirgilKeyPair {
         val params = KeyknoxPullParams(identity,
-                                       UNSAFE_KEYS_ROOT,
+                                       TEMP_KEYS_ROOT,
                                        path,
                                        Const.DEFAULT_NAME)
 
         val response = keyknoxClient.pullValue(params)
 
         if (response.value.isEmpty())
-            throw UnsafeChannelException(UnsafeChannelException.Description.CHANNEL_NOT_FOUND)
+            throw TemporaryChannelException(TemporaryChannelException.Description.CHANNEL_NOT_FOUND)
 
         return crypto.importPrivateKey(response.value)
     }
 
     internal fun delete(identity: String) {
-        val params = KeyknoxResetParams(UNSAFE_KEYS_ROOT,
+        val params = KeyknoxResetParams(TEMP_KEYS_ROOT,
                                         identity,
                                         Const.DEFAULT_NAME)
 
@@ -90,7 +90,7 @@ internal class CloudUnsafeStorage(
     }
 
     companion object {
-        private const val UNSAFE_KEYS_ROOT = "unsafe-keys" // TODO do we have compat tests?
+        private const val TEMP_KEYS_ROOT = "unsafe-keys" // TODO do we have compat tests?
         private const val META = "unencrypted"
     }
 }

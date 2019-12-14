@@ -55,8 +55,7 @@ internal class GroupManager internal constructor(
         internal val localGroupStorage: FileGroupStorage,
         internal val cloudTicketStorage: CloudTicketStorage,
         private val localKeyStorage: LocalKeyStorage,
-        private val lookupManager: LookupManager,
-        private val crypto: VirgilCrypto
+        private val lookupManager: LookupManager
 ) {
 
     internal val identity: String = localGroupStorage.identity

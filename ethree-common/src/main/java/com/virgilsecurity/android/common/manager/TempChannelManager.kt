@@ -33,13 +33,13 @@
 
 package com.virgilsecurity.android.common.manager
 
-import com.virgilsecurity.android.common.exception.EThreeRatchetException
 import com.virgilsecurity.android.common.exception.ServiceErrorCodes
-import com.virgilsecurity.android.common.exception.UnsafeChannelException
-import com.virgilsecurity.android.common.model.unsafe.UnsafeChannel
-import com.virgilsecurity.android.common.storage.cloud.CloudUnsafeStorage
-import com.virgilsecurity.android.common.storage.local.FileUnsafeKeysStorage
+import com.virgilsecurity.android.common.exception.TemporaryChannelException
+import com.virgilsecurity.android.common.model.temporary.TemporaryChannel
+import com.virgilsecurity.android.common.storage.cloud.CloudTempKeysStorage
+import com.virgilsecurity.android.common.storage.local.FileTempKeysStorage
 import com.virgilsecurity.android.common.storage.local.LocalKeyStorage
+import com.virgilsecurity.keyknox.exception.KeyknoxServiceException
 import com.virgilsecurity.ratchet.exception.ProtocolException
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilKeyPair
@@ -48,9 +48,9 @@ import com.virgilsecurity.sdk.crypto.VirgilPublicKey
 import com.virgilsecurity.sdk.jwt.contract.AccessTokenProvider
 
 /**
- * UnsageChannelManager
+ * TempChannelManager
  */
-internal class UnsafeChannelManager(
+internal class TempChannelManager(
         private val crypto: VirgilCrypto,
         accessTokenProvider: AccessTokenProvider,
         private val localKeyStorage: LocalKeyStorage,
@@ -61,86 +61,86 @@ internal class UnsafeChannelManager(
 
     private val identity: String get() = localKeyStorage.identity
 
-    internal val localUnsafeStorage: FileUnsafeKeysStorage
-    internal val cloudUnsafeStorage: CloudUnsafeStorage
+    internal val localStorage: FileTempKeysStorage
+    internal val cloudStorage: CloudTempKeysStorage
 
     init {
-        this.cloudUnsafeStorage = CloudUnsafeStorage(identity, accessTokenProvider, crypto)
-        this.localUnsafeStorage = FileUnsafeKeysStorage(identity, crypto, keyPair, rootPath)
+        this.cloudStorage = CloudTempKeysStorage(identity, accessTokenProvider, crypto)
+        this.localStorage = FileTempKeysStorage(identity, crypto, keyPair, rootPath)
     }
 
-    internal fun create(identity: String): UnsafeChannel {
+    internal fun create(identity: String): TemporaryChannel {
         val selfKeyPair = localKeyStorage.retrieveKeyPair()
         val tempKeyPair = crypto.generateKeyPair()
 
         try {
-            cloudUnsafeStorage.store(tempKeyPair.privateKey, identity)
-        } catch (exception: ProtocolException) { // TODO test this case or do we need to catch other exception
+            cloudStorage.store(tempKeyPair.privateKey, identity)
+        } catch (exception: KeyknoxServiceException) { // TODO test this case or do we need to catch other exception
             if (exception.errorCode == ServiceErrorCodes.INVALID_PREVIOUS_HASH) {
-                throw UnsafeChannelException(
-                    UnsafeChannelException.Description.CHANNEL_ALREADY_EXISTS
+                throw TemporaryChannelException(
+                    TemporaryChannelException.Description.CHANNEL_ALREADY_EXISTS
                 )
             } else {
                 throw exception
             }
         }
 
-        val unsafeChannel = UnsafeChannel(identity,
-                                          tempKeyPair.publicKey,
-                                          selfKeyPair.privateKey,
-                                          crypto)
+        val tempChannel = TemporaryChannel(identity,
+                                           tempKeyPair.publicKey,
+                                           selfKeyPair.privateKey,
+                                           crypto)
 
-        localUnsafeStorage.store(tempKeyPair.publicKey, identity)
+        localStorage.store(tempKeyPair.publicKey, identity)
 
-        return unsafeChannel
+        return tempChannel
     }
 
-    internal fun loadFromCloud(asCreator: Boolean, identity: String): UnsafeChannel {
+    internal fun loadFromCloud(asCreator: Boolean, identity: String): TemporaryChannel {
         val selfKeyPair = localKeyStorage.retrieveKeyPair()
 
         val publicKey: VirgilPublicKey
         val privateKey: VirgilPrivateKey
 
         if (asCreator) {
-            val tempKeyPair = cloudUnsafeStorage.retrieve(this.identity, identity)
-            localUnsafeStorage.store(tempKeyPair.publicKey, identity)
+            val tempKeyPair = cloudStorage.retrieve(this.identity, identity)
+            localStorage.store(tempKeyPair.publicKey, identity)
 
             publicKey = tempKeyPair.publicKey
             privateKey = selfKeyPair.privateKey
         } else {
             val card = lookupManager.lookupCard(identity)
-            val tempKeyPair = cloudUnsafeStorage.retrieve(identity, this.identity)
-            localUnsafeStorage.store(tempKeyPair.privateKey, identity)
+            val tempKeyPair = cloudStorage.retrieve(identity, this.identity)
+            localStorage.store(tempKeyPair.privateKey, identity)
 
             publicKey = card.publicKey
             privateKey = tempKeyPair.privateKey
         }
 
-        return UnsafeChannel(identity, publicKey, privateKey, crypto)
+        return TemporaryChannel(identity, publicKey, privateKey, crypto)
     }
 
-    internal fun getLocalChannel(identity: String): UnsafeChannel? {
-        val unsafeKey = localUnsafeStorage.retrieve(identity) ?: return null
+    internal fun getLocalChannel(identity: String): TemporaryChannel? {
+        val tempKey = localStorage.retrieve(identity) ?: return null
 
         val privateKey: VirgilPrivateKey
         val publicKey: VirgilPublicKey
 
-        when (unsafeKey.type) {
-            FileUnsafeKeysStorage.KeyType.PRIVATE -> { // User is participant
-                privateKey = crypto.importPrivateKey(unsafeKey.key.value).privateKey
+        when (tempKey.type) {
+            FileTempKeysStorage.KeyType.PRIVATE -> { // User is participant
+                privateKey = crypto.importPrivateKey(tempKey.key.value).privateKey
                 publicKey = lookupManager.lookupCachedCard(identity).publicKey
             }
-            FileUnsafeKeysStorage.KeyType.PUBLIC -> {
+            FileTempKeysStorage.KeyType.PUBLIC -> {
                 privateKey = localKeyStorage.retrieveKeyPair().privateKey
-                publicKey = crypto.importPublicKey(unsafeKey.key.value)
+                publicKey = crypto.importPublicKey(tempKey.key.value)
             }
         }
 
-        return UnsafeChannel(identity, publicKey, privateKey, crypto)
+        return TemporaryChannel(identity, publicKey, privateKey, crypto)
     }
 
     internal fun delete(identity: String) {
-        cloudUnsafeStorage.delete(identity)
-        localUnsafeStorage.delete(identity)
+        cloudStorage.delete(identity)
+        localStorage.delete(identity)
     }
 }

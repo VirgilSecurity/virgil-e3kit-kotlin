@@ -31,7 +31,7 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.common.model.unsafe
+package com.virgilsecurity.android.common.model.temporary
 
 import com.virgilsecurity.android.common.exception.EThreeException
 import com.virgilsecurity.common.extension.toData
@@ -42,9 +42,9 @@ import com.virgilsecurity.sdk.crypto.VirgilPublicKey
 import java.nio.charset.StandardCharsets
 
 /**
- * UnsafeChannel
+ * TemporaryChannel
  */
-class UnsafeChannel(
+class TemporaryChannel(
         val participant: String,
         internal val participantPublicKey: VirgilPublicKey,
         internal val selfPrivateKey: VirgilPrivateKey,

@@ -258,13 +258,6 @@ class BackupTests {
 
     // test05 STE_19
     @Test fun reset_private_key_backup_no_password() {
-        try {
-            ethree.resetPrivateKeyBackup(password).execute()
-        } catch (throwable: Throwable) {
-            if (throwable !is PrivateKeyNotFoundException)
-                fail()
-        }
-
         val keyPair = TestConfig.virgilCrypto.generateKeyPair()
         val data = TestConfig.virgilCrypto.exportPrivateKey(keyPair.privateKey)
 
