@@ -596,7 +596,7 @@ class GroupTests {
     @Test fun compatibility() {
         val compatDataStream = this.javaClass
                 .classLoader
-                ?.getResourceAsStream("compat/compat_data_group_tests.json")
+                ?.getResourceAsStream("compat/compat_data.json")
         val compatJson = JsonParser().parse(InputStreamReader(compatDataStream)) as JsonObject
         val groupCompatJson = compatJson.getAsJsonObject("Group")
 
