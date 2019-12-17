@@ -33,42 +33,15 @@
 
 package com.virgilsecurity.android.common.exception
 
-class WrongPasswordException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : EThreeException(message, throwable)
-
-class ChangePasswordException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : EThreeException(message, throwable)
-
+/**
+ * RawGroupException
+ */
 class RawGroupException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : EThreeException(message, throwable)
+        val description: Description,
+        throwable: Throwable? = null
+) : RuntimeException(description.errorMessage, throwable) {
 
-class FileGroupStorageException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : EThreeException(message, throwable)
-
-class FindUsersException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : EThreeException(message, throwable)
-
-class UserNotRegisteredException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : EThreeException(message, throwable)
-
-class AlreadyRegisteredException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : EThreeException(message, throwable)
-
-class SignatureVerificationException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : EThreeException(message, throwable)
-
-class ConversionException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : EThreeException(message, throwable)
-
-class MissingIdentitiesException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : EThreeException(message, throwable)
+    enum class Description(val errorCode: Int, val errorMessage: String) {
+        EMPTY_TICKETS(ErrorCode.RAW_GROUP + 1, "Tickets are empty."),
+    }
+}

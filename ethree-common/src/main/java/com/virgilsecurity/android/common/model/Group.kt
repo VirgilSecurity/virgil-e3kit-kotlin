@@ -70,7 +70,8 @@ class Group internal constructor(
 
     init {
         val tickets = rawGroup.tickets.sortedBy { it.groupMessage.epoch }
-        val lastTicket = tickets.lastOrNull() ?: throw GroupException("Group is invalid")
+        val lastTicket = tickets.lastOrNull()
+                         ?: throw GroupException(GroupException.Description.INVALID_GROUP)
 
         validateParticipantsCount(lastTicket.participants.size)
 
@@ -112,9 +113,8 @@ class Group internal constructor(
     }
 
     internal fun checkPermissions() {
-        if (selfIdentity != initiator) {
-            throw PermissionDeniedGroupException("Only group initiator can do changed on group")
-        }
+        if (selfIdentity != initiator)
+            throw GroupException(GroupException.Description.GROUP_PERMISSION_DENIED)
     }
 
     internal fun generateSession(tickets: List<Ticket>): GroupSession =
@@ -179,15 +179,14 @@ class Group internal constructor(
             }
         }
 
-        if (!Arrays.equals(this.session.sessionId, encrypted.sessionId)) {
-            throw MessageNotFromThisGroupException()
-        }
+        if (!Arrays.equals(this.session.sessionId, encrypted.sessionId))
+            throw GroupException(GroupException.Description.MESSAGE_NOT_FROM_THIS_GROUP)
 
         val messageEpoch = encrypted.epoch
         val currentEpoch = this.session.currentEpoch
 
         if (currentEpoch < messageEpoch) {
-            throw GroupIsOutdatedGroupException()
+            throw GroupException(GroupException.Description.GROUP_IS_OUTDATED)
         }
 
         try {
@@ -197,12 +196,14 @@ class Group internal constructor(
                 val sessionId = encrypted.sessionId
 
                 val tempGroup = this.groupManager.retrieve(Data(sessionId), messageEpoch)
-                                ?: throw MissingCachedGroupException()
+                                ?: throw GroupException(
+                                    GroupException.Description.MISSING_CACHED_GROUP
+                                )
 
                 tempGroup.decrypt(data, senderCard)
             }
         } catch (e: FoundationException) {
-            throw VerificationFailedGroupException()
+            throw GroupException(GroupException.Description.VERIFICATION_FAILED)
         }
     }
 
@@ -222,7 +223,7 @@ class Group internal constructor(
         try {
             data = Data.fromBase64String(text)
         } catch (exception: Exception) {
-            throw ConversionException("Error while converting String to Data. ${exception.message}")
+            throw EThreeException(EThreeException.Description.STR_TO_DATA_FAILED, exception)
         }
 
         val decryptedData = this.decrypt(data.value, senderCard, date)
@@ -258,13 +259,19 @@ class Group internal constructor(
 
             validateParticipantsCount(newSet.size)
 
-            if (newSet == oldSet) throw InvalidChangeParticipantsGroupException()
+            if (newSet == oldSet) {
+                throw GroupException(
+                    GroupException.Description.INVALID_CHANGE_PARTICIPANTS
+                )
+            }
 
             val addSet = newSet.subtract(oldSet)
 
             val addedCards = mutableListOf<Card>()
             addSet.forEach {
-                val card = participants[it] ?: throw InconsistentStateGroupException()
+                val card = participants[it]
+                           ?: throw GroupException(GroupException.Description.INCONSISTENT_STATE)
+
                 addedCards.add(card)
             }
 
@@ -302,7 +309,11 @@ class Group internal constructor(
 
             validateParticipantsCount(newSet.size)
 
-            if (newSet == oldSet) throw InvalidChangeParticipantsGroupException()
+            if (newSet == oldSet) {
+                throw GroupException(
+                    GroupException.Description.INVALID_CHANGE_PARTICIPANTS
+                )
+            }
 
             val newSetLookup = lookupManager.lookupCards(newSet.toList(),
                                                          forceReload = false,
@@ -322,11 +333,8 @@ class Group internal constructor(
 
     companion object {
         internal fun validateParticipantsCount(count: Int) {
-            if (count !in VALID_PARTICIPANTS_COUNT_RANGE) {
-                throw InvalidParticipantsCountGroupException("Please check valid participants " +
-                                                             "count range in " +
-                                                             "Group.VALID_PARTICIPANTS_COUNT_RANGE")
-            }
+            if (count !in VALID_PARTICIPANTS_COUNT_RANGE)
+                throw GroupException(GroupException.Description.INVALID_PARTICIPANTS_COUNT)
         }
 
         val VALID_PARTICIPANTS_COUNT_RANGE = 1..100

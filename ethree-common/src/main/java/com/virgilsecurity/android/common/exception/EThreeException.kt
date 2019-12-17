@@ -35,26 +35,13 @@ package com.virgilsecurity.android.common.exception
 
 /**
  * Exceptions
- */               // TODO re-think exceptions type
+ */
 open class EThreeException
 @JvmOverloads
-@Deprecated("This constructor will be removed after 0.8.0 version",
-            replaceWith = ReplaceWith("EThreeException(Description, Throwable?)"))
 constructor(
-        override val message: String? = null,
+        val description: Description,
         throwable: Throwable? = null
-) : RuntimeException(message, throwable) {
-
-    var description: Description? = null
-        protected set
-
-    @JvmOverloads constructor(
-            description: Description,
-            throwable: Throwable? = null
-    ) : this(description.errorMessage, throwable) {
-
-        this.description = description
-    }
+) : RuntimeException(description.errorMessage, throwable) { // FIXME add to all exception string to super("errCode: errMsg")
 
     enum class Description(val errorCode: Int, val errorMessage: String) {
         VERIFIER_INIT_FAILED(ErrorCode.BASE + 1,
@@ -75,5 +62,12 @@ constructor(
                             "Verification of message failed. This may be caused by rotating " +
                             "sender key. Try finding new one."),
         WRONG_PASSWORD(ErrorCode.BASE + 11, "Wrong password."),
+        SAME_PASSWORD(ErrorCode.BASE + 12, "To change the password, please provide a new " +
+                                           "password that differs from the old one."),
+        NO_PRIVATE_KEY_BACKUP(ErrorCode.BASE + 13, "Can't restore private key: private key " +
+                                                   "backup has not been found."),
+        PRIVATE_KEY_BACKUP_EXISTS(ErrorCode.BASE + 14, "Can't backup private key as it's " +
+                                                       "already backed up."),
+
     }
 }

@@ -34,7 +34,7 @@
 package com.virgilsecurity.android.ethree.interaction.sync
 
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
-import com.virgilsecurity.android.common.exception.*
+import com.virgilsecurity.android.common.exception.EThreeException
 import com.virgilsecurity.android.ethree.interaction.EThree
 import com.virgilsecurity.android.ethree.utils.TestConfig
 import com.virgilsecurity.android.ethree.utils.TestUtils
@@ -53,6 +53,7 @@ import com.virgilsecurity.sdk.storage.DefaultKeyStorage
 import com.virgilsecurity.sdk.storage.KeyStorage
 import com.virgilsecurity.sdk.utils.Tuple
 import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
 import java.util.*
@@ -123,8 +124,11 @@ class EThreeSyncNegative {
 
         try {
             eThree.register().execute()
+            fail()
         } catch (throwable: Throwable) {
-            assertTrue(throwable is AlreadyRegisteredException)
+            assertTrue(throwable is EThreeException
+                       && throwable.description ==
+                       EThreeException.Description.USER_IS_ALREADY_REGISTERED)
         }
     }
 
@@ -133,8 +137,9 @@ class EThreeSyncNegative {
 
         try {
             eThree.unregister().execute()
-        } catch (throwable: Throwable) {
-            assertTrue(throwable is UserNotRegisteredException)
+            fail()
+        } catch (throwable: EThreeException) {
+            assertTrue(throwable.description == EThreeException.Description.USER_IS_NOT_REGISTERED)
         }
     }
 
@@ -145,8 +150,9 @@ class EThreeSyncNegative {
 
         try {
             eThree.backupPrivateKey(password).execute()
-        } catch (throwable: Throwable) {
-            assertTrue(throwable is PrivateKeyNotFoundException)
+            fail()
+        } catch (exception: EThreeException) {
+            assertTrue(exception.description == EThreeException.Description.MISSING_PRIVATE_KEY)
         }
     }
 
@@ -159,8 +165,9 @@ class EThreeSyncNegative {
 
         try {
             eThreeWithPass.resetPrivateKeyBackup(password).execute()
-        } catch (throwable: Throwable) {
-            assertTrue(throwable is PrivateKeyNotFoundException)
+            fail()
+        } catch (exception: EThreeException) {
+            assertTrue(exception.description == EThreeException.Description.MISSING_PRIVATE_KEY)
         }
     }
 
@@ -171,8 +178,9 @@ class EThreeSyncNegative {
         eThree.cleanup()
         try {
             eThree.restorePrivateKey(password).execute()
-        } catch (throwable: Throwable) {
-            assertTrue(throwable is NoPrivateKeyBackupException)
+            fail()
+        } catch (exception: EThreeException) {
+            assertTrue(exception.description == EThreeException.Description.NO_PRIVATE_KEY_BACKUP)
         }
     }
 
@@ -182,8 +190,9 @@ class EThreeSyncNegative {
 
         try {
             eThree.rotatePrivateKey().execute()
-        } catch (throwable: Throwable) {
-            assertTrue(throwable is UserNotRegisteredException)
+            fail()
+        } catch (throwable: EThreeException) {
+            assertTrue(throwable.description == EThreeException.Description.USER_IS_NOT_REGISTERED)
         }
     }
 
@@ -196,8 +205,9 @@ class EThreeSyncNegative {
 
         try {
             eThreeWithPass.changePassword(passwordNew, password).execute()
-        } catch (throwable: Throwable) {
-            assertTrue(throwable is WrongPasswordException)
+            fail()
+        } catch (exception: EThreeException) {
+            assertTrue(exception.description == EThreeException.Description.WRONG_PASSWORD)
         }
     }
 
@@ -206,6 +216,7 @@ class EThreeSyncNegative {
         val eThree = initEThree(identity)
         try {
             eThree.lookupPublicKeys(listOf()).get()
+            fail()
         } catch (throwable: Throwable) {
             assertTrue(throwable is IllegalArgumentException)
         }

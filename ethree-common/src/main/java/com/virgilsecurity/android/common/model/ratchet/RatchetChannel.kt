@@ -93,7 +93,7 @@ class RatchetChannel(
         val data = try {
             Data(text.toByteArray(StandardCharsets.UTF_8))
         } catch (exception: IllegalArgumentException) {
-            throw EThreeException(EThreeException.Description.STR_TO_DATA_FAILED)
+            throw EThreeException(EThreeException.Description.STR_TO_DATA_FAILED, exception)
         }
 
         return encrypt(data).toBase64String()
@@ -110,7 +110,7 @@ class RatchetChannel(
         val data = try {
             Data.fromBase64String(text)
         } catch (exception: IllegalArgumentException) {
-            throw EThreeException(EThreeException.Description.STR_TO_DATA_FAILED)
+            throw EThreeException(EThreeException.Description.STR_TO_DATA_FAILED, exception)
         }
 
         val decryptedData = decrypt(data)
@@ -180,7 +180,7 @@ class RatchetChannel(
             try {
                 Data(it.toByteArray(StandardCharsets.UTF_8))
             } catch (exception: IllegalArgumentException) {
-                throw EThreeException(EThreeException.Description.STR_TO_DATA_FAILED)
+                throw EThreeException(EThreeException.Description.STR_TO_DATA_FAILED, exception)
             }
         }
 
@@ -202,7 +202,7 @@ class RatchetChannel(
             try {
                 Data.fromBase64String(it)
             } catch (exception: IllegalArgumentException) {
-                throw EThreeException(EThreeException.Description.STR_TO_DATA_FAILED)
+                throw EThreeException(EThreeException.Description.STR_TO_DATA_FAILED, exception)
             }
         }
 

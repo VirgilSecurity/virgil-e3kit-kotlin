@@ -33,7 +33,7 @@
 
 package com.virgilsecurity.android.common.storage.local
 
-import com.virgilsecurity.android.common.exception.PrivateKeyNotFoundException
+import com.virgilsecurity.android.common.exception.EThreeException
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilKeyPair
@@ -59,14 +59,12 @@ class LocalKeyStorage internal constructor(
         val privateKeyData = keyStorage.load(identity)
         crypto.importPrivateKey(privateKeyData.value)
     } catch (e: KeyEntryNotFoundException) {
-        throw PrivateKeyNotFoundException("No private key on device. You should call register() " +
-                                          "or retrievePrivateKey()")
+        throw EThreeException(EThreeException.Description.MISSING_PRIVATE_KEY)
     }
 
     internal fun delete() = try {
         keyStorage.delete(identity)
     } catch (exception: KeyEntryNotFoundException) {
-        throw PrivateKeyNotFoundException("No private key on device. You should call register() " +
-                                          "or retrievePrivateKey()")
+        throw EThreeException(EThreeException.Description.MISSING_PRIVATE_KEY)
     }
 }

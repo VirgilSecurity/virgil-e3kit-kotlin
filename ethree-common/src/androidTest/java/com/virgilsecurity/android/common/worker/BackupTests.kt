@@ -35,8 +35,7 @@ package com.virgilsecurity.android.common.worker
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
-import com.virgilsecurity.android.common.exception.PrivateKeyNotFoundException
-import com.virgilsecurity.android.common.exception.WrongPasswordException
+import com.virgilsecurity.android.common.exception.EThreeException
 import com.virgilsecurity.android.common.utils.TestConfig
 import com.virgilsecurity.android.common.utils.TestUtils
 import com.virgilsecurity.android.ethree.interaction.EThree
@@ -121,9 +120,9 @@ class BackupTests {
     @Test fun backup_private_key() {
         try {
             ethree.backupPrivateKey(password).execute()
-        } catch (throwable: Throwable) {
-            if (throwable !is PrivateKeyNotFoundException)
-                fail()
+            fail()
+        } catch (exception: EThreeException) {
+            assertTrue(exception.description == EThreeException.Description.MISSING_PRIVATE_KEY)
         }
 
         TestUtils.pause()
@@ -167,8 +166,8 @@ class BackupTests {
 
         try {
             ethree.restorePrivateKey(WRONG_PASSWORD).execute()
-        } catch (throwable: Throwable) {
-            if (throwable !is WrongPasswordException)
+        } catch (exception: EThreeException) {
+            if (exception.description != EThreeException.Description.WRONG_PASSWORD)
                 fail()
         }
 
@@ -211,8 +210,8 @@ class BackupTests {
 
         try {
             ethree.restorePrivateKey(password).execute()
-        } catch (throwable: Throwable) {
-            if (throwable !is WrongPasswordException)
+        } catch (exception: EThreeException) {
+            if (exception.description != EThreeException.Description.WRONG_PASSWORD)
                 fail()
         }
 
@@ -229,9 +228,9 @@ class BackupTests {
     @Test fun reset_private_key_backup() {
         try {
             ethree.resetPrivateKeyBackup(password).execute()
-        } catch (throwable: Throwable) {
-            if (throwable !is PrivateKeyNotFoundException)
-                fail()
+            fail()
+        } catch (exception: EThreeException) {
+            assertTrue(exception.description == EThreeException.Description.MISSING_PRIVATE_KEY)
         }
 
         val keyPair = TestConfig.virgilCrypto.generateKeyPair()

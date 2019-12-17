@@ -35,10 +35,7 @@ package com.virgilsecurity.android.common.worker
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
-import com.virgilsecurity.android.common.exception.AlreadyRegisteredException
 import com.virgilsecurity.android.common.exception.EThreeException
-import com.virgilsecurity.android.common.exception.PrivateKeyPresentException
-import com.virgilsecurity.android.common.exception.UserNotRegisteredException
 import com.virgilsecurity.android.common.utils.TestConfig
 import com.virgilsecurity.android.common.utils.TestConfig.Companion.virgilCrypto
 import com.virgilsecurity.android.common.utils.TestUtils
@@ -116,9 +113,9 @@ class AuthenticationTests {
 
         try {
             ethree.register().execute()
-        } catch (throwable: Throwable) {
-            if (throwable !is AlreadyRegisteredException)
-                fail()
+        } catch (exception: EThreeException) {
+            assertTrue(exception.description
+                               == EThreeException.Description.USER_IS_ALREADY_REGISTERED)
         }
     }
 
@@ -131,15 +128,19 @@ class AuthenticationTests {
 
         try {
             ethree.register().execute()
-        } catch (throwable: Throwable) {
-            if (throwable !is PrivateKeyPresentException)
-                fail()
+            fail()
+        } catch (exception: EThreeException) {
+            assertTrue(exception.description == EThreeException.Description.PRIVATE_KEY_EXISTS)
         }
     }
 
     // test05 STE_12
-    @Test(expected = UserNotRegisteredException::class) fun rotate_without_published_card() {
-        ethree.rotatePrivateKey().execute()
+    @Test fun rotate_without_published_card() {
+        try {
+            ethree.rotatePrivateKey().execute()
+        } catch (exception: EThreeException) {
+            assertTrue(exception.description == EThreeException.Description.USER_IS_NOT_REGISTERED)
+        }
     }
 
     // test06 STE_13
@@ -149,9 +150,9 @@ class AuthenticationTests {
 
         try {
             ethree.rotatePrivateKey().execute()
-        } catch (throwable: Throwable) {
-            if (throwable !is PrivateKeyPresentException)
-                fail()
+            fail()
+        } catch (exception: EThreeException) {
+            assertTrue(exception.description == EThreeException.Description.PRIVATE_KEY_EXISTS)
         }
     }
 
@@ -185,8 +186,9 @@ class AuthenticationTests {
         try {
             ethree.unregister().execute()
         } catch (throwable: Throwable) {
-            if (throwable !is UserNotRegisteredException)
-                fail()
+            if (throwable is EThreeException)
+                assertTrue(throwable.description
+                                   == EThreeException.Description.USER_IS_NOT_REGISTERED)
         }
 
         ethree.register().execute()

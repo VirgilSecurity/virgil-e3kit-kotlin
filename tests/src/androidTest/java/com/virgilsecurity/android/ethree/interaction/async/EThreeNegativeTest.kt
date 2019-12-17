@@ -159,9 +159,13 @@ class EThreeNegativeTest {
         return eThree
     }
 
-    @Test(expected = PrivateKeyNotFoundException::class)
+    @Test
     fun cleanup_fail_without_bootstrap() {
-        eThree.cleanup()
+        try {
+            eThree.cleanup()
+        } catch (exception: EThreeException) {
+            assertTrue(exception.description == EThreeException.Description.MISSING_PRIVATE_KEY)
+        }
     }
 
     @Test fun backup_fail_without_bootstrap() {
@@ -266,8 +270,12 @@ class EThreeNegativeTest {
                     }
 
                     override fun onError(throwable: Throwable) {
-                        if (throwable is FindUsersException)
+                        if (throwable is FindUsersException
+                            && throwable.description
+                            == FindUsersException.Description.CARD_WAS_NOT_FOUND) {
+
                             failed = true
+                        }
 
                         waiter.countDown()
                     }
@@ -309,8 +317,11 @@ class EThreeNegativeTest {
             }
 
             override fun onError(throwable: Throwable) {
-                if (throwable is ChangePasswordException)
+                if (throwable is EThreeException
+                    && throwable.description == EThreeException.Description.SAME_PASSWORD) {
+
                     failed = true
+                }
 
                 waiter.countDown()
             }
@@ -357,8 +368,12 @@ class EThreeNegativeTest {
             }
 
             override fun onError(throwable: Throwable) {
-                if (throwable is UserNotRegisteredException)
+                if (throwable is EThreeException
+                    && throwable.description
+                    == EThreeException.Description.USER_IS_NOT_REGISTERED) {
+
                     failed = true
+                }
 
                 waiter.countDown()
             }

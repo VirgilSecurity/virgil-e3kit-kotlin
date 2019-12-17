@@ -33,9 +33,7 @@
 
 package com.virgilsecurity.android.common.worker
 
-import com.virgilsecurity.android.common.exception.AlreadyRegisteredException
-import com.virgilsecurity.android.common.exception.PrivateKeyPresentException
-import com.virgilsecurity.android.common.exception.UserNotRegisteredException
+import com.virgilsecurity.android.common.exception.EThreeException
 import com.virgilsecurity.android.common.storage.local.LocalKeyStorage
 import com.virgilsecurity.common.model.Completable
 import com.virgilsecurity.sdk.cards.CardManager
@@ -57,10 +55,14 @@ internal class AuthorizationWorker internal constructor(
     internal fun register(keyPair: VirgilKeyPair? = null) = object : Completable { // FIXME add Coroutine scope argument everywhere
         override fun execute() {
             if (localKeyStorage.exists())
-                throw PrivateKeyPresentException("Private key already exists in local key storage")
+                throw EThreeException(EThreeException.Description.PRIVATE_KEY_EXISTS)
 
             val cards = cardManager.searchCards(this@AuthorizationWorker.identity)
-            if (cards.isNotEmpty()) throw AlreadyRegisteredException("User is already registered")
+            if (cards.isNotEmpty()) {
+                throw EThreeException(
+                    EThreeException.Description.USER_IS_ALREADY_REGISTERED
+                )
+            }
 
             publishCardThenSaveLocal(keyPair, null)
         }
@@ -70,7 +72,7 @@ internal class AuthorizationWorker internal constructor(
         override fun execute() {
             val cards = cardManager.searchCards(this@AuthorizationWorker.identity)
             val card = cards.firstOrNull()
-                       ?: throw UserNotRegisteredException("User is not registered")
+                       ?: throw EThreeException(EThreeException.Description.USER_IS_NOT_REGISTERED)
 
             cardManager.revokeCard(card.identifier)
             localKeyStorage.delete()
@@ -81,11 +83,11 @@ internal class AuthorizationWorker internal constructor(
     @Synchronized internal fun rotatePrivateKey() = object : Completable {
         override fun execute() {
             if (localKeyStorage.exists())
-                throw PrivateKeyPresentException("Private key already exists in local key storage.")
+                throw EThreeException(EThreeException.Description.PRIVATE_KEY_EXISTS)
 
             val cards = cardManager.searchCards(this@AuthorizationWorker.identity)
             val card = cards.firstOrNull()
-                       ?: throw UserNotRegisteredException("User is not registered")
+                       ?: throw EThreeException(EThreeException.Description.USER_IS_NOT_REGISTERED)
 
             publishCardThenSaveLocal(null, card.identifier)
         }

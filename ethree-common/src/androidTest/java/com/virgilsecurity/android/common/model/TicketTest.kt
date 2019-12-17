@@ -35,7 +35,7 @@ package com.virgilsecurity.android.common.model
 
 import android.os.Parcel
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.virgilsecurity.android.common.exception.GroupIdTooShortException
+import com.virgilsecurity.android.common.exception.GroupException
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.sdk.crypto.HashAlgorithm
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
@@ -85,9 +85,8 @@ class TicketTest {
     }
 
     private fun computeSessionId(identifier: Data, crypto: VirgilCrypto): Data {
-        if (identifier.value.size <= 10) {
-            throw GroupIdTooShortException("Group Id length should be > 10")
-        }
+        if (identifier.value.size <= 10)
+            throw GroupException(GroupException.Description.SHORT_GROUP_ID)
 
         val hash = crypto.computeHash(identifier.value, HashAlgorithm.SHA512)
                 .sliceArray(IntRange(0, 31))

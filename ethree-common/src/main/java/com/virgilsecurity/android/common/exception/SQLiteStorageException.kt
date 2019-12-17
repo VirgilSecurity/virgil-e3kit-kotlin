@@ -34,15 +34,15 @@
 package com.virgilsecurity.android.common.exception
 
 /**
- * ErrorCode
+ * SQLiteStorageException
  */
-object ErrorCode {
-    const val BASE = 70100
-    const val RATCHET = 70200
-    const val TEMP_CHANNEL = 70300
-    const val RAW_GROUP = 70400
-    const val FILE_GROUP_STORAGE = 70500
-    const val FIND_USERS = 70600
-    const val SQLITE_STORAGE = 70700
-    const val GROUP = 70800
+class SQLiteStorageException @JvmOverloads constructor(
+        val description: Description,
+        throwable: Throwable? = null
+) : RuntimeException(description.errorMessage, throwable) {
+
+    enum class Description(val errorCode: Int, val errorMessage: String) {
+        INCONSISTENT_DB(ErrorCode.SQLITE_STORAGE + 1, "Storage turned into inconsistency state."),
+        EMPTY_IDENTITIES(ErrorCode.SQLITE_STORAGE + 2, "Empty identities."),
+    }
 }

@@ -33,8 +33,7 @@
 
 package com.virgilsecurity.android.common.manager
 
-import com.virgilsecurity.android.common.exception.GroupNotFoundException
-import com.virgilsecurity.android.common.exception.InconsistentStateGroupException
+import com.virgilsecurity.android.common.exception.GroupException
 import com.virgilsecurity.android.common.model.Group
 import com.virgilsecurity.android.common.model.GroupInfo
 import com.virgilsecurity.android.common.model.RawGroup
@@ -45,7 +44,6 @@ import com.virgilsecurity.android.common.storage.local.LocalKeyStorage
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.keyknox.utils.unwrapCompanionClass
 import com.virgilsecurity.sdk.cards.Card
-import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import java.util.logging.Logger
 
 /**
@@ -83,7 +81,7 @@ internal class GroupManager internal constructor(
         if (anyEpoch == null) {
             localGroupStorage.delete(sessionId)
 
-            throw GroupNotFoundException("Group with provided id was not found.")
+            throw GroupException(GroupException.Description.GROUP_WAS_NOT_FOUND)
         }
 
         val epochs = cloudEpochs.subtract(localEpochs).toMutableSet()
@@ -95,7 +93,8 @@ internal class GroupManager internal constructor(
 
         localGroupStorage.store(rawGroup)
 
-        return retrieve(sessionId) ?: throw InconsistentStateGroupException()
+        return retrieve(sessionId)
+               ?: throw GroupException(GroupException.Description.INCONSISTENT_STATE)
     }
 
     internal fun addAccess(cards: List<Card>, sessionId: Data) =

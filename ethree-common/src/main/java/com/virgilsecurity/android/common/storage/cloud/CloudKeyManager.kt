@@ -34,7 +34,7 @@
 package com.virgilsecurity.android.common.storage.cloud
 
 import com.virgilsecurity.android.common.build.VersionVirgilAgent
-import com.virgilsecurity.android.common.exception.WrongPasswordException
+import com.virgilsecurity.android.common.exception.EThreeException
 import com.virgilsecurity.android.common.util.Const
 import com.virgilsecurity.android.common.util.Const.VIRGIL_BASE_URL
 import com.virgilsecurity.keyknox.KeyknoxManager
@@ -113,7 +113,7 @@ internal class CloudKeyManager internal constructor(
             cloudKeyStorage.updateRecipients(listOf(brainKeyPair.publicKey),
                                              brainKeyPair.privateKey)
         } catch (e: KeyknoxCryptoException) {
-            throw WrongPasswordException()
+            throw EThreeException(EThreeException.Description.WRONG_PASSWORD)
         }
     }
 
@@ -130,7 +130,7 @@ internal class CloudKeyManager internal constructor(
         try {
             cloudKeyStorage.retrieveCloudEntries()
         } catch (e: DecryptionFailedException) {
-            throw WrongPasswordException()
+            throw EThreeException(EThreeException.Description.WRONG_PASSWORD)
         }
 
         return cloudKeyStorage

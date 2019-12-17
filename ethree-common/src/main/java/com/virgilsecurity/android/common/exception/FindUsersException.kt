@@ -33,14 +33,20 @@
 
 package com.virgilsecurity.android.common.exception
 
-open class CardStorageException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : EThreeException(message, throwable)
-
-class InconsistentCardStorageException @JvmOverloads constructor(
-        override val message: String? = "Storage turned into inconsistency state",
+/**
+ * FindUsersException
+ */
+class FindUsersException @JvmOverloads constructor(
+        val description: Description,
         throwable: Throwable? = null
-) : CardStorageException(message, throwable)
+) : RuntimeException(description.errorMessage, throwable) { // FIXME extend EThreeException everywhere
 
-class EmptyIdentitiesStorageException @JvmOverloads constructor(throwable: Throwable? = null
-) : CardStorageException("Empty identities", throwable)
+    enum class Description(val errorCode: Int, val errorMessage: String) {
+        DUPLICATE_CARDS(ErrorCode.FIND_USERS + 1, "Found duplicated Cards."),
+        MISSING_CACHED_CARD(ErrorCode.FIND_USERS + 2, "File is emptyCard with provided identity " +
+                                                      "was not found locally. Try to call " +
+                                                      "findUsers first."),
+        CARD_WAS_NOT_FOUND(ErrorCode.FIND_USERS + 2, "Card for one or more of provided " +
+                                                     "identities was not found."),
+    }
+}

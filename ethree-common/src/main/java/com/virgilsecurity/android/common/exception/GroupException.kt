@@ -34,15 +34,24 @@
 package com.virgilsecurity.android.common.exception
 
 /**
- * ErrorCode
+ * GroupException
  */
-object ErrorCode {
-    const val BASE = 70100
-    const val RATCHET = 70200
-    const val TEMP_CHANNEL = 70300
-    const val RAW_GROUP = 70400
-    const val FILE_GROUP_STORAGE = 70500
-    const val FIND_USERS = 70600
-    const val SQLITE_STORAGE = 70700
-    const val GROUP = 70800
+class GroupException @JvmOverloads constructor(
+        val description: Description,
+        throwable: Throwable? = null
+) : RuntimeException(description.errorMessage, throwable) {
+
+    enum class Description(val errorCode: Int, val errorMessage: String) {
+        MISSING_CACHED_GROUP(ErrorCode.GROUP + 1, "Group with provided id not found locally. Try to call loadGroup first."),
+        GROUP_PERMISSION_DENIED(ErrorCode.GROUP + 2, "Only group initiator can do changed on group."),
+        GROUP_WAS_NOT_FOUND(ErrorCode.GROUP + 3, "Group with provided id was not found."),
+        INVALID_GROUP(ErrorCode.GROUP + 4, "Group is invalid."),
+        INVALID_CHANGE_PARTICIPANTS(ErrorCode.GROUP + 5, "Invalid change of group participants. e.g. Add smb who is already in group or remove smb who is not."),
+        INVALID_PARTICIPANTS_COUNT(ErrorCode.GROUP + 6, "Please check valid participants count range in Group.ValidParticipatnsCountRange."),
+        VERIFICATION_FAILED(ErrorCode.GROUP + 7, "Verification of message failed. This may be caused by rotating sender key. Try finding new one."),
+        SHORT_GROUP_ID(ErrorCode.GROUP + 8, "Group Id length should be > 10."),
+        MESSAGE_NOT_FROM_THIS_GROUP(ErrorCode.GROUP + 9, "Message was encrypted in group with different identifier."),
+        GROUP_IS_OUTDATED(ErrorCode.GROUP + 10, "Group is not up to date. Call update or loadGroup."),
+        INCONSISTENT_STATE(ErrorCode.GROUP + 11, "Inconsistent state."),
+    }
 }

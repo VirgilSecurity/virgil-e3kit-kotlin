@@ -34,7 +34,7 @@
 package com.virgilsecurity.android.common.worker
 
 import com.virgilsecurity.android.common.EThreeCore
-import com.virgilsecurity.android.common.exception.*
+import com.virgilsecurity.android.common.exception.EThreeException
 import com.virgilsecurity.android.common.manager.LookupManager
 import com.virgilsecurity.android.common.model.DerivedPasswords
 import com.virgilsecurity.android.common.storage.cloud.CloudKeyManager
@@ -78,8 +78,9 @@ internal class BackupWorker internal constructor(
 
                 val identityKeyPair = localKeyStorage.retrieveKeyPair()
                 keyManagerCloud.store(identityKeyPair.privateKey, password)
-            } catch (e: EntryAlreadyExistsException) {
-                throw BackupKeyException("Can't backup private key as it\'s already backed up", e)
+            } catch (exception: EntryAlreadyExistsException) {
+                throw EThreeException(EThreeException.Description.PRIVATE_KEY_BACKUP_EXISTS,
+                                      exception)
             }
         }
     }
@@ -92,8 +93,8 @@ internal class BackupWorker internal constructor(
                 val entry = try {
                     keyManagerCloud.retrieve(password)
                 } catch (exception: EntryNotFoundException) {
-                    throw NoPrivateKeyBackupException("Can't restore private key: private key " +
-                                                      "backup has not been found.", exception)
+                    throw EThreeException(EThreeException.Description.NO_PRIVATE_KEY_BACKUP,
+                                          exception)
                 }
 
                 val card = lookupManager.lookupCard(this@BackupWorker.identity)
@@ -103,8 +104,9 @@ internal class BackupWorker internal constructor(
                 val params = EThreeCore.PrivateKeyChangedParams(card, isNew = false)
 
                 privateKeyChanged(params)
-            } catch (e: KeyEntryAlreadyExistsException) {
-                throw PrivateKeyPresentException("Can't restore private key", e)
+            } catch (exception: KeyEntryAlreadyExistsException) {
+                throw EThreeException(EThreeException.Description.PRIVATE_KEY_EXISTS,
+                                      exception) // FIXME add in swift or remove here
             }
         }
     }
@@ -115,8 +117,7 @@ internal class BackupWorker internal constructor(
             require(oldPassword.isNotEmpty()) { "\'oldPassword\' should not be empty" }
             require(newPassword.isNotEmpty()) { "\'newPassword\' should not be empty" }
             if (oldPassword == newPassword)
-                throw ChangePasswordException("To change password, please provide new password " +
-                                              "that differs from the old one.")
+                throw EThreeException(EThreeException.Description.SAME_PASSWORD)
 
             keyManagerCloud.changePassword(oldPassword, newPassword)
         }
@@ -124,7 +125,11 @@ internal class BackupWorker internal constructor(
 
     internal fun resetPrivateKeyBackup(): Completable = object : Completable {
         override fun execute() {
-            keyManagerCloud.deleteAll()
+            try {
+                keyManagerCloud.deleteAll()
+            } catch (exception: EntryNotFoundException) {
+                throw EThreeException(EThreeException.Description.MISSING_PRIVATE_KEY, exception)
+            }
         }
 
     }
@@ -136,8 +141,7 @@ internal class BackupWorker internal constructor(
             try {
                 keyManagerCloud.delete(password)
             } catch (exception: EntryNotFoundException) {
-                throw PrivateKeyNotFoundException("Can't reset private key: private key not " +
-                                                  "found.", exception)
+                throw EThreeException(EThreeException.Description.MISSING_PRIVATE_KEY, exception)
             }
         }
 

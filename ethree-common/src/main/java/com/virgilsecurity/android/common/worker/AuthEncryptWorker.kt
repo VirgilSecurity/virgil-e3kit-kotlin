@@ -33,16 +33,13 @@
 
 package com.virgilsecurity.android.common.worker
 
-import com.virgilsecurity.android.common.exception.ConversionException
 import com.virgilsecurity.android.common.exception.EThreeException
-import com.virgilsecurity.android.common.exception.SignatureVerificationException
 import com.virgilsecurity.android.common.model.FindUsersResult
 import com.virgilsecurity.android.common.storage.local.LocalKeyStorage
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilPublicKey
-import com.virgilsecurity.sdk.crypto.exceptions.SignatureIsNotValidException
 import com.virgilsecurity.sdk.crypto.exceptions.VerificationException
 import java.nio.charset.StandardCharsets
 import java.util.*
@@ -85,7 +82,7 @@ internal class AuthEncryptWorker internal constructor(
         val data = try {
             Data.fromBase64String(text)
         } catch (exception: IllegalArgumentException) {
-            throw ConversionException("Error while converting String to Data. ${exception.message}")
+            throw EThreeException(EThreeException.Description.STR_TO_DATA_FAILED, exception)
         }
 
         val decryptedData = authDecrypt(data, user)
@@ -99,7 +96,7 @@ internal class AuthEncryptWorker internal constructor(
         val data = try {
             Data.fromBase64String(text)
         } catch (exception: IllegalArgumentException) {
-            throw ConversionException("Error while converting String to Data. ${exception.message}")
+            throw EThreeException(EThreeException.Description.STR_TO_DATA_FAILED, exception)
         }
 
         val decryptedData = authDecrypt(data, user, date)
@@ -115,7 +112,7 @@ internal class AuthEncryptWorker internal constructor(
         val data = try {
             Data(text.toByteArray(StandardCharsets.UTF_8))
         } catch (exception: IllegalArgumentException) {
-            throw ConversionException("Error while converting String to Data. ${exception.message}")
+            throw EThreeException(EThreeException.Description.STR_TO_DATA_FAILED, exception)
         }
         return authEncrypt(data, users).toBase64String()
     }
@@ -131,7 +128,7 @@ internal class AuthEncryptWorker internal constructor(
 
         if (publicKeys != null) {
             if (publicKeys.isEmpty())
-                throw EThreeException("Passed empty FindUsersResult")
+                throw EThreeException(EThreeException.Description.MISSING_PUBLIC_KEY)
 
             pubKeys += publicKeys
         }
@@ -150,9 +147,7 @@ internal class AuthEncryptWorker internal constructor(
         } catch (exception: Throwable) {
             when (exception.cause) {
                 is VerificationException -> {
-                    throw SignatureVerificationException("Verification of message failed. This " +
-                                                         "may be caused by rotating sender key. " +
-                                                         "Try finding new one")
+                    throw EThreeException(EThreeException.Description.VERIFICATION_FAILED)
                 }
                 else -> throw exception
             }

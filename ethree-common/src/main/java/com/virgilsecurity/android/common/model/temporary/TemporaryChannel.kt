@@ -69,7 +69,7 @@ class TemporaryChannel(
         val data = try {
             Data(text.toByteArray(StandardCharsets.UTF_8))
         } catch (exception: IllegalArgumentException) {
-            throw EThreeException(EThreeException.Description.STR_TO_DATA_FAILED)
+            throw EThreeException(EThreeException.Description.STR_TO_DATA_FAILED, exception)
         }
 
         return encrypt(data).toBase64String()
@@ -81,7 +81,7 @@ class TemporaryChannel(
         val data = try {
             Data.fromBase64String(text)
         } catch (exception: IllegalArgumentException) {
-            throw EThreeException(EThreeException.Description.STR_TO_DATA_FAILED)
+            throw EThreeException(EThreeException.Description.STR_TO_DATA_FAILED, exception)
         }
 
         return decrypt(data).asString()

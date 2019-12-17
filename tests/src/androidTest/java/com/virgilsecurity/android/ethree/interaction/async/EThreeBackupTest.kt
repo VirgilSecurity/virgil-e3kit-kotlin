@@ -36,7 +36,7 @@ package com.virgilsecurity.android.ethree.interaction.async
 import android.util.Log
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
-import com.virgilsecurity.android.common.exception.*
+import com.virgilsecurity.android.common.exception.EThreeException
 import com.virgilsecurity.android.ethree.interaction.EThree
 import com.virgilsecurity.android.ethree.utils.TestConfig
 import com.virgilsecurity.android.ethree.utils.TestConfig.Companion.virgilServiceAddress
@@ -194,8 +194,10 @@ class EThreeBackupTest {
             }
 
             override fun onError(throwable: Throwable) {
-                if (throwable is PrivateKeyNotFoundException)
+                if (throwable is EThreeException
+                    && throwable.description == EThreeException.Description.MISSING_PRIVATE_KEY) {
                     failedToBackup = true
+                }
 
                 waiter.countDown()
             }
@@ -245,8 +247,12 @@ class EThreeBackupTest {
             }
 
             override fun onError(throwable: Throwable) {
-                if (throwable is BackupKeyException)
+                if (throwable is EThreeException
+                    && throwable.description
+                    == EThreeException.Description.PRIVATE_KEY_BACKUP_EXISTS) {
+
                     failedToBackup = true
+                }
 
                 waiterTwo.countDown()
             }
@@ -313,8 +319,10 @@ class EThreeBackupTest {
 
             override fun onError(throwable: Throwable) {
                 Log.d(TAG, "Exception type is: " + throwable.javaClass.canonicalName)
-                if (throwable is PrivateKeyPresentException)
+                if (throwable is EThreeException
+                    && throwable.description == EThreeException.Description.PRIVATE_KEY_EXISTS) {
                     failedToRestore = true
+                }
 
                 waiterThree.countDown()
             }
@@ -375,8 +383,10 @@ class EThreeBackupTest {
             }
 
             override fun onError(throwable: Throwable) {
-                if (throwable is WrongPasswordException)
+                if (throwable is EThreeException
+                    && throwable.description == EThreeException.Description.WRONG_PASSWORD) {
                     failedWithOldPassword = true
+                }
 
                 waiterTwo.countDown()
             }
@@ -419,8 +429,10 @@ class EThreeBackupTest {
             }
 
             override fun onError(throwable: Throwable) {
-                if (throwable is PrivateKeyNotFoundException)
+                if (throwable is EThreeException
+                    && throwable.description == EThreeException.Description.MISSING_PRIVATE_KEY) {
                     failedToReset = true
+                }
 
                 waiter.countDown()
             }
@@ -549,8 +561,12 @@ class EThreeBackupTest {
                     }
 
                     override fun onError(throwable: Throwable) {
-                        if (throwable is WrongPasswordException)
+                        if (throwable is EThreeException
+                            && throwable.description
+                            == EThreeException.Description.WRONG_PASSWORD) {
+
                             failedKeyReset = true
+                        }
 
                         waiterTwo.countDown()
                     }

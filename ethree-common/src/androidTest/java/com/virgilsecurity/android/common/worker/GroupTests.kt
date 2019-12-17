@@ -98,7 +98,9 @@ class GroupTests {
         try {
             this.ethree.createGroup(groupId, lookup).get()
             fail()
-        } catch (e: InvalidParticipantsCountGroupException) {
+        } catch (exception: GroupException) {
+            assertTrue(exception.description
+                               == GroupException.Description.INVALID_PARTICIPANTS_COUNT)
         }
 
         val firstEntry = lookup.entries.first()
@@ -141,7 +143,8 @@ class GroupTests {
         try {
             this.ethree.createGroup(invalidGroupId, lookup).get()
             fail()
-        } catch (e: GroupIdTooShortException) {
+        } catch (exception: GroupException) {
+            assertTrue(exception.description == GroupException.Description.SHORT_GROUP_ID)
         }
     }
 
@@ -187,7 +190,8 @@ class GroupTests {
         try {
             ethree2.loadGroup(groupId, card1).get()
             fail()
-        } catch (e: GroupNotFoundException) {
+        } catch (exception: GroupException) {
+            assertTrue(exception.description == GroupException.Description.GROUP_WAS_NOT_FOUND)
         }
 
         val lookup = this.ethree.findUsers(listOf(ethree3.identity)).get()
@@ -197,7 +201,8 @@ class GroupTests {
         try {
             ethree2.loadGroup(groupId, card1).get()
             fail()
-        } catch (e: GroupNotFoundException) {
+        } catch (exception: GroupException) {
+            assertTrue(exception.description == GroupException.Description.GROUP_WAS_NOT_FOUND)
         }
     }
 
@@ -217,19 +222,22 @@ class GroupTests {
         try {
             this.ethree.loadGroup(groupId, card1).get()
             fail()
-        } catch (e: GroupNotFoundException) {
+        } catch (exception: GroupException) {
+            assertTrue(exception.description == GroupException.Description.GROUP_WAS_NOT_FOUND)
         }
 
         try {
             group2.update().execute()
             fail()
-        } catch (e: GroupNotFoundException) {
+        } catch (exception: GroupException) {
+            assertTrue(exception.description == GroupException.Description.GROUP_WAS_NOT_FOUND)
         }
 
         try {
             ethree2.loadGroup(groupId, card1).get()
             fail()
-        } catch (e: GroupNotFoundException) {
+        } catch (exception: GroupException) {
+            assertTrue(exception.description == GroupException.Description.GROUP_WAS_NOT_FOUND)
         }
 
         assertNull(ethree2.getGroup(groupId))
@@ -289,7 +297,9 @@ class GroupTests {
         try {
             group.add(card).execute()
             fail()
-        } catch (e: InvalidParticipantsCountGroupException) {
+        } catch (exception: GroupException) {
+            assertTrue(exception.description
+                               == GroupException.Description.INVALID_PARTICIPANTS_COUNT)
         }
     }
 
@@ -305,7 +315,9 @@ class GroupTests {
         try {
             group.remove(card).execute()
             fail()
-        } catch (e: InvalidParticipantsCountGroupException) {
+        } catch (exception: GroupException) {
+            assertTrue(exception.description
+                               == GroupException.Description.INVALID_PARTICIPANTS_COUNT)
         }
     }
 
@@ -333,13 +345,15 @@ class GroupTests {
         try {
             group2.update().execute()
             fail()
-        } catch (e: GroupNotFoundException) {
+        } catch (exception: GroupException) {
+            assertTrue(exception.description == GroupException.Description.GROUP_WAS_NOT_FOUND)
         }
 
         try {
             ethree2.loadGroup(groupId, card1).get()
             fail()
-        } catch (e: GroupNotFoundException) {
+        } catch (exception: GroupException) {
+            assertTrue(exception.description == GroupException.Description.GROUP_WAS_NOT_FOUND)
         }
 
         assertNull(ethree2.getGroup(groupId))
@@ -390,14 +404,16 @@ class GroupTests {
         try {
             group2.remove(lookup[ethree3.identity]!!).execute()
             fail()
-        } catch (e: PermissionDeniedGroupException) {
+        } catch (exception: GroupException) {
+            assertTrue(exception.description == GroupException.Description.GROUP_PERMISSION_DENIED)
         }
 
         try {
             val ethree4Card = ethree2.findUser(ethree4.identity).get()
             group2.add(ethree4Card).execute()
             fail()
-        } catch (e: PermissionDeniedGroupException) {
+        } catch (exception: GroupException) {
+            assertTrue(exception.description == GroupException.Description.GROUP_PERMISSION_DENIED)
         }
     }
 
@@ -421,7 +437,8 @@ class GroupTests {
         try {
             group1.decrypt(encrypted, card2)
             fail()
-        } catch (e: VerificationFailedGroupException) {
+        } catch (exception: GroupException) {
+            assertTrue(exception.description == GroupException.Description.VERIFICATION_FAILED)
         }
     }
 
@@ -479,7 +496,8 @@ class GroupTests {
         try {
             group2.decrypt(encrypted3, card1)
             fail()
-        } catch (e: GroupException) {
+        } catch (exception: GroupException) {
+            assertTrue(exception.description == GroupException.Description.INVALID_GROUP)
         }
 
         group3.update().execute()
@@ -538,7 +556,8 @@ class GroupTests {
         try {
             group2.decrypt(encrypted, card1)
             fail()
-        } catch (e: GroupIsOutdatedGroupException) {
+        } catch (exception: GroupException) {
+            assertTrue(exception.description == GroupException.Description.GROUP_IS_OUTDATED)
         }
     }
 
@@ -570,13 +589,15 @@ class GroupTests {
         try {
             group1.decrypt(encrypted1, card2)
             fail()
-        } catch (e: VerificationFailedGroupException) {
+        } catch (exception: GroupException) {
+            assertTrue(exception.description == GroupException.Description.VERIFICATION_FAILED)
         }
 
         try {
             group1.decrypt(encrypted1, card2, date2)
             fail()
-        } catch (e: VerificationFailedGroupException) {
+        } catch (exception: GroupException) {
+            assertTrue(exception.description == GroupException.Description.VERIFICATION_FAILED)
         }
 
         val dectypted1 = group1.decrypt(encrypted1, card2, date1)
@@ -585,7 +606,8 @@ class GroupTests {
         try {
             group1.decrypt(encrypted2, card2, date1)
             fail()
-        } catch (e: VerificationFailedGroupException) {
+        } catch (exception: GroupException) {
+            assertTrue(exception.description == GroupException.Description.VERIFICATION_FAILED)
         }
 
         val dectypted2 = group1.decrypt(encrypted2, card2, date2)

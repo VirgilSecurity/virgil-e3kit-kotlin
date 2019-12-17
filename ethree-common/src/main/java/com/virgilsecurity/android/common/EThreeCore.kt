@@ -225,8 +225,8 @@ abstract class EThreeCore {
      *
      * To start execution of the current function, please see [Completable] description.
      *
-     * @throws PrivateKeyPresentException
-     * @throws AlreadyRegisteredException
+     * @throws EThreeException(EThreeException.Description.PRIVATE_KEY_EXISTS)
+     * @throws EThreeException(EThreeException.Description.USER_IS_ALREADY_REGISTERED)
      * @throws CryptoException
      */
     @Synchronized
@@ -239,7 +239,8 @@ abstract class EThreeCore {
      *
      * To start execution of the current function, please see [Completable] description.
      *
-     * @throws UserNotRegisteredException if there's no public key published yet.
+     * @throws EThreeException(EThreeException.Description.USER_IS_NOT_REGISTERED) if there's no
+     * public key published yet.
      */
     @Synchronized fun unregister(): Completable = authorizationWorker.unregister()
 
@@ -250,8 +251,8 @@ abstract class EThreeCore {
      *
      * To start execution of the current function, please see [Completable] description.
      *
-     * @throws PrivateKeyPresentException
-     * @throws UserNotRegisteredException
+     * @throws EThreeException(EThreeException.Description.PRIVATE_KEY_EXISTS)
+     * @throws EThreeException(EThreeException.Description.USER_IS_NOT_REGISTERED)
      * @throws CryptoException
      */
     @Synchronized fun rotatePrivateKey(): Completable = authorizationWorker.rotatePrivateKey()
@@ -270,10 +271,10 @@ abstract class EThreeCore {
      * Cleans up user's private key from a device - call this function when you want to log your
      * user out of the device.
      *
-     * Can be called only if private key is on the device otherwise [PrivateKeyNotFoundException]
-     * exception will be thrown.
+     * Can be called only if private key is on the device otherwise
+     * [EThreeException.Description.MISSING_PRIVATE_KEY] exception will be thrown.
      *
-     * @throws PrivateKeyNotFoundException
+     * @throws EThreeException.Description.MISSING_PRIVATE_KEY
      */
     fun cleanup() = authorizationWorker.cleanup()
 
@@ -287,7 +288,8 @@ abstract class EThreeCore {
      *
      * @return [FindUsersResult] with found users.
      *
-     * @throws FindUsersException If no cached user was found.
+     * @throws FindUsersException(FindUsersException.Description.CARD_WAS_NOT_FOUND) If no cached
+     * user was found.
      */
     @JvmOverloads fun findCachedUsers(identities: List<String>,
                                       checkResult: Boolean = true): Result<FindUsersResult> =
@@ -302,7 +304,8 @@ abstract class EThreeCore {
      *
      * @return [Card] if it exists, *null* otherwise.
      *
-     * @throws FindUsersException If card duplicates was found or card was not found at all.
+     * @throws FindUsersException(FindUsersException.Description.CARD_WAS_NOT_FOUND) If card
+     * duplicates was found or card was not found at all.
      */
     fun findCachedUser(identity: String): Result<Card?> =
             searchWorker.findCachedUser(identity)
@@ -318,7 +321,8 @@ abstract class EThreeCore {
      *
      * @return [FindUsersResult] with found users.
      *
-     * @throws FindUsersException If card duplicates was found or at least one card was not found.
+     * @throws FindUsersException(FindUsersException.Description.CARD_WAS_NOT_FOUND) If card
+     * duplicates was found or at least one card was not found.
      */
     fun findUsers(identities: List<String>,
                   forceReload: Boolean = false,
@@ -335,7 +339,8 @@ abstract class EThreeCore {
      *
      * @return [Card] that corresponds to provided [identity].
      *
-     * @throws FindUsersException If card duplicates was found or at least one card was not found.
+     * @throws FindUsersException(FindUsersException.Description.CARD_WAS_NOT_FOUND) If card
+     * duplicates was found or at least one card was not found.
      */
     fun findUser(identity: String, forceReload: Boolean = false): Result<Card> =
             searchWorker.findUser(identity, forceReload)
@@ -351,11 +356,12 @@ abstract class EThreeCore {
      * Searches for public key with specified [identity] and returns map of [String] ->
      * [PublicKey] in [onResultListener] callback or [Throwable] if something went wrong.
      *
-     * [FindUsersException] will be thrown if public key wasn't found.
+     * [FindUsersException(FindUsersException.Description.CARD_WAS_NOT_FOUND)] will be thrown if
+     * public key wasn't found.
      *
      * To start execution of the current function, please see [Result] description.
      *
-     * @throws FindUsersException
+     * @throws FindUsersException(FindUsersException.Description.CARD_WAS_NOT_FOUND)
      */
     @Deprecated("Check 'replace with' section.",
                 ReplaceWith("findUser(String)"))
@@ -368,11 +374,12 @@ abstract class EThreeCore {
      * Searches for public keys with specified [identities] and returns map of [String] ->
      * [PublicKey] in [onResultListener] callback or [Throwable] if something went wrong.
      *
-     * [FindUsersException] will be thrown if public key wasn't found.
+     * [FindUsersException(FindUsersException.Description.CARD_WAS_NOT_FOUND)] will be thrown if
+     * public key wasn't found.
      *
      * To start execution of the current function, please see [Result] description.
      *
-     * @throws FindUsersException
+     * @throws FindUsersException(FindUsersException.Description.CARD_WAS_NOT_FOUND)
      */
     @Deprecated("Check 'replace with' section.",
                 ReplaceWith("findUsers(List<String>)"))
@@ -396,14 +403,14 @@ abstract class EThreeCore {
      * that is generated based on provided [password] after that backs up encrypted user's
      * *Private key* to the Virgil's cloud storage.
      *
-     * Can be called only if private key is on the device otherwise [PrivateKeyNotFoundException]
-     * exception will be thrown.
+     * Can be called only if private key is on the device otherwise
+     * [EThreeException.Description.MISSING_PRIVATE_KEY] exception will be thrown.
      *
      * To start execution of the current function, please see [Completable] description.
      *
-     * @throws PrivateKeyNotFoundException
-     * @throws BackupKeyException If private key with current user's identity is already present
-     * in Virgil cloud.
+     * @throws EThreeException.Description.MISSING_PRIVATE_KEY
+     * @throws EThreeException.Description.PRIVATE_KEY_BACKUP_EXISTS If private key with current
+     * user's identity is already present in Virgil cloud.
      */
     fun backupPrivateKey(password: String): Completable =
             backupWorker.backupPrivateKey(password)
@@ -415,9 +422,11 @@ abstract class EThreeCore {
      *
      * To start execution of the current function, please see [Completable] description.
      *
-     * @throws NoPrivateKeyBackupException If private key backup was not found.
-     * @throws WrongPasswordException If [password] is wrong.
-     * @throws PrivateKeyPresentException If private key already present on the device locally.
+     * @throws EThreeException.Description.NO_PRIVATE_KEY_BACKUP If private key backup was not
+     * found.
+     * @throws EThreeException(EThreeException.Description.WRONG_PASSWORD) If [password] is wrong.
+     * @throws EThreeException(EThreeException.Description.PRIVATE_KEY_EXISTS) If private key
+     * already present on the device locally.
      */
     fun restorePrivateKey(password: String): Completable =
             backupWorker.restorePrivateKey(password)
@@ -432,8 +441,10 @@ abstract class EThreeCore {
      *
      * To start execution of the current function, please see [Completable] description.
      *
-     * @throws WrongPasswordException If [oldPassword] is wrong.
-     * @throws ChangePasswordException If [newPassword] is the same as [oldPassword].
+     * @throws EThreeException(EThreeException.Description.WRONG_PASSWORD) If [oldPassword] is
+     * wrong.
+     * @throws EThreeException(EThreeException.Description.SAME_PASSWORD) If [newPassword] is the
+     * same as [oldPassword].
      */
     fun changePassword(oldPassword: String,
                        newPassword: String): Completable =
@@ -445,8 +456,8 @@ abstract class EThreeCore {
      *
      * To start execution of the current function, please see [Completable] description. // TODO add this to new func descriptions
      *
-     * @throws WrongPasswordException If [password] is wrong.
-     * @throws PrivateKeyNotFoundException
+     * @throws EThreeException(EThreeException.Description.WRONG_PASSWORD) If [password] is wrong.
+     * @throws EThreeException.Description.MISSING_PRIVATE_KEY
      */
     fun resetPrivateKeyBackup(): Completable =
             backupWorker.resetPrivateKeyBackup()
@@ -461,8 +472,8 @@ abstract class EThreeCore {
      *
      * To start execution of the current function, please see [Completable] description.
      *
-     * @throws WrongPasswordException If [password] is wrong.
-     * @throws PrivateKeyNotFoundException
+     * @throws EThreeException(EThreeException.Description.WRONG_PASSWORD) If [password] is wrong.
+     * @throws EThreeException.Description.MISSING_PRIVATE_KEY
      */
     @Deprecated("Check 'replace with' section.",
                 ReplaceWith("Please, use resetPrivateKeyBackup without password instead."))
@@ -479,8 +490,8 @@ abstract class EThreeCore {
      *
      * @return New [Group].
      *
-     * @throws InvalidParticipantsCountGroupException If participants count is out of
-     * [Group.VALID_PARTICIPANTS_COUNT_RANGE] range.
+     * @throws GroupException.Description.INVALID_PARTICIPANTS_COUNT If participants count is out
+     * of [Group.VALID_PARTICIPANTS_COUNT_RANGE] range.
      */
     fun createGroup(identifier: Data, users: FindUsersResult? = null): Result<Group> =
             groupWorker.createGroup(identifier, users)
@@ -514,7 +525,7 @@ abstract class EThreeCore {
      *
      * @param identifier Identifier of group. Should be *> 10* length.
      *
-     * @throws GroupNotFoundException If group was not found.
+     * @throws GroupException.Description.GROUP_WAS_NOT_FOUND If group was not found.
      */
     fun deleteGroup(identifier: Data): Completable = groupWorker.deleteGroup(identifier)
 
@@ -592,7 +603,8 @@ abstract class EThreeCore {
      *
      * @return Decrypted Data.
      *
-     * @throws SignatureVerificationException If verification of message failed.
+     * @throws EThreeException(EThreeException.Description.VERIFICATION_FAILED) If verification
+     * of message failed.
      */
     @Deprecated("Check 'replace with' section.", ReplaceWith("authDecrypt"))
     @JvmOverloads
@@ -609,7 +621,8 @@ abstract class EThreeCore {
      *
      * @return Decrypted Data.
      *
-     * @throws SignatureVerificationException If verification of message failed.
+     * @throws EThreeException(EThreeException.Description.VERIFICATION_FAILED) If verification
+     * of message failed.
      */
     @Deprecated("Check 'replace with' section.", ReplaceWith("authDecrypt"))
     fun decrypt(data: Data, user: Card, date: Date): Data = p2pWorker.decrypt(data, user, date)
@@ -643,7 +656,7 @@ abstract class EThreeCore {
      * @param inputStream Stream with encrypted data.
      * @param outputStream Stream with decrypted data.
      *
-     * @throws PrivateKeyNotFoundException
+     * @throws EThreeException.Description.MISSING_PRIVATE_KEY
      * @throws CryptoException
      */
     @Deprecated("Check 'replace with' section.", ReplaceWith("authDecrypt"))
@@ -1027,7 +1040,7 @@ abstract class EThreeCore {
      * @param lookupResult Result of lookupPublicKeys call recipient PublicKeys to sign and
      * encrypt with.
      *
-     * @throws PrivateKeyNotFoundException
+     * @throws EThreeException.Description.MISSING_PRIVATE_KEY
      * @throws CryptoException
      */
     @Deprecated("Check 'replace with' section.", ReplaceWith("authEncrypt"))
@@ -1049,7 +1062,7 @@ abstract class EThreeCore {
      *
      * @return Encrypted Data.
      *
-     * @throws PrivateKeyNotFoundException
+     * @throws EThreeException.Description.MISSING_PRIVATE_KEY
      * @throws CryptoException
      */
     @Deprecated("Check 'replace with' section.", ReplaceWith("authEncrypt"))
@@ -1070,7 +1083,7 @@ abstract class EThreeCore {
      * @param lookupResult Result of lookupPublicKeys call recipient PublicKeys to sign and
      * encrypt with.
      *
-     * @throws PrivateKeyNotFoundException
+     * @throws EThreeException.Description.MISSING_PRIVATE_KEY
      * @throws CryptoException
      */
     @Deprecated("Check 'replace with' section.", ReplaceWith("authEncrypt"))
@@ -1093,8 +1106,9 @@ abstract class EThreeCore {
      *
      * @return Decrypted String.
      *
-     * @throws SignatureVerificationException If verification of message failed.
-     * @throws PrivateKeyNotFoundException
+     * @throws EThreeException(EThreeException.Description.VERIFICATION_FAILED) If verification
+     * of message failed.
+     * @throws EThreeException.Description.MISSING_PRIVATE_KEY
      * @throws CryptoException
      */
     @Deprecated("Check 'replace with' section.", ReplaceWith("authDecrypt"))
@@ -1109,8 +1123,9 @@ abstract class EThreeCore {
      * @param data Data to decrypt.
      * @param sendersKey Sender PublicKey to verify with.
      *
-     * @throws SignatureVerificationException If verification of message failed.
-     * @throws PrivateKeyNotFoundException
+     * @throws EThreeException(EThreeException.Description.VERIFICATION_FAILED) If verification
+     * of message failed.
+     * @throws EThreeException.Description.MISSING_PRIVATE_KEY
      * @throws CryptoException
      */
     @Deprecated("Check 'replace with' section.", ReplaceWith("authDecrypt"))
@@ -1146,9 +1161,8 @@ abstract class EThreeCore {
     }
 
     internal fun computeSessionId(identifier: Data): Data {
-        if (identifier.value.size <= 10) {
-            throw GroupIdTooShortException("Group Id length should be > 10")
-        }
+        if (identifier.value.size <= 10)
+            throw GroupException(GroupException.Description.SHORT_GROUP_ID)
 
         val hash = crypto.computeHash(identifier.value, HashAlgorithm.SHA512)
                 .sliceArray(IntRange(0, 31))

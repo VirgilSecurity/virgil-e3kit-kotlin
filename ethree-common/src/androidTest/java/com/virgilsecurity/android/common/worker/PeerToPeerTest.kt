@@ -36,15 +36,11 @@ package com.virgilsecurity.android.common.worker
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.common.exception.EThreeException
-import com.virgilsecurity.android.common.exception.PrivateKeyNotFoundException
-import com.virgilsecurity.android.common.exception.PrivateKeyPresentException
-import com.virgilsecurity.android.common.exception.SignatureVerificationException
 import com.virgilsecurity.android.common.model.FindUsersResult
 import com.virgilsecurity.android.common.utils.TestConfig
 import com.virgilsecurity.android.common.utils.TestUtils
 import com.virgilsecurity.android.ethree.interaction.EThree
 import com.virgilsecurity.common.model.Data
-import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.common.TimeSpan
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
@@ -57,7 +53,6 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.util.*
 import java.util.concurrent.TimeUnit
-import kotlin.String.Companion
 
 /**
  * PeerToPeerTest
@@ -157,16 +152,14 @@ class PeerToPeerTest {
 
         try {
             ethree.authEncrypt(TEXT, FindUsersResult(mapOf(ethree.identity to card)))
-        } catch (throwable: Throwable) {
-            if (throwable !is PrivateKeyNotFoundException)
-                fail()
+        } catch (exception: EThreeException) {
+            assertTrue(exception.description == EThreeException.Description.MISSING_PRIVATE_KEY)
         }
 
         try {
             ethree.authDecrypt(Data(TEXT.toByteArray()).toBase64String(), card)
-        } catch (throwable: Throwable) {
-            if (throwable !is PrivateKeyNotFoundException)
-                fail()
+        } catch (exception: EThreeException) {
+            assertTrue(exception.description == EThreeException.Description.MISSING_PRIVATE_KEY)
         }
     }
 
@@ -356,9 +349,8 @@ class PeerToPeerTest {
         try {
             ethreeTwo.decrypt(encrypted, cardOne)
             fail()
-        } catch (throwable: Throwable) {
-            if (throwable !is SignatureVerificationException)
-                fail()
+        } catch (exception: EThreeException) {
+            assertTrue(exception.description == EThreeException.Description.VERIFICATION_FAILED)
         }
     }
 

@@ -138,9 +138,11 @@ class SearchTests {
 
         try {
             ethree.findUser(cardOne.identity).get()
+            fail()
         } catch (throwable: Throwable) {
-            if (throwable !is FindUsersException)
-                fail()
+            if (throwable is FindUsersException) {
+                assertTrue(throwable.description == FindUsersException.Description.DUPLICATE_CARDS)
+            }
         }
     }
 
@@ -189,8 +191,8 @@ class SearchTests {
         try {
             ethree.findUsers(identities).get()
             fail()
-        } catch (throwable: Throwable) {
-            assertTrue(throwable is FindUsersException)
+        } catch (throwable: FindUsersException) {
+            assertTrue(throwable.description == FindUsersException.Description.CARD_WAS_NOT_FOUND)
         }
 
         val cards = ethree.findUsers(identities, checkResult = false).get()

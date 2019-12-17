@@ -33,22 +33,16 @@
 
 package com.virgilsecurity.android.common.exception
 
-open class KeyException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : EThreeException(message, throwable)
+/**
+ * FileGroupStorageException
+ */
+class FileGroupStorageException @JvmOverloads constructor(
+        val description: Description,
+        throwable: Throwable? = null
+) : RuntimeException(description.errorMessage, throwable) { // FIXME extend EThreeException everywhere
 
-class BackupKeyException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : KeyException(message, throwable)
-
-class NoPrivateKeyBackupException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : KeyException(message, throwable)
-
-class PrivateKeyNotFoundException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : KeyException(message, throwable)
-
-class PrivateKeyPresentException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : KeyException(message, throwable)
+    enum class Description(val errorCode: Int, val errorMessage: String) {
+        INVALID_FILE_NAME(ErrorCode.FILE_GROUP_STORAGE + 1, "Invalid file name."),
+        EMPTY_FILE(ErrorCode.FILE_GROUP_STORAGE + 2, "File is empty."),
+    }
+}
