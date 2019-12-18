@@ -475,7 +475,7 @@ class GroupTests {
         assertEquals(message2, selfDecrypted2)
 
         // Other updates, decrypts
-        group2.update()
+        group2.update().execute()
         val group3 = ethree3.loadGroup(groupId, card1).get()
 
         val decrypted22 = group2.decrypt(encrypted2, card1)
@@ -497,7 +497,7 @@ class GroupTests {
             group2.decrypt(encrypted3, card1)
             fail()
         } catch (exception: GroupException) {
-            assertTrue(exception.description == GroupException.Description.INVALID_GROUP)
+            assertTrue(exception.description == GroupException.Description.GROUP_IS_OUTDATED)
         }
 
         group3.update().execute()

@@ -196,21 +196,6 @@ class EThreeSyncNegative {
         }
     }
 
-    @Test fun change_password_without_backup() {
-        val password = UUID.randomUUID().toString()
-        val passwordNew = UUID.randomUUID().toString()
-        val eThreeWithPass = initAndRegisterEThree(identity)
-
-        eThreeWithPass.backupPrivateKey(password)
-
-        try {
-            eThreeWithPass.changePassword(passwordNew, password).execute()
-            fail()
-        } catch (exception: EThreeException) {
-            assertTrue(exception.description == EThreeException.Description.WRONG_PASSWORD)
-        }
-    }
-
     //STE-2
     @Test fun lookup_zero_users() {
         val eThree = initEThree(identity)
