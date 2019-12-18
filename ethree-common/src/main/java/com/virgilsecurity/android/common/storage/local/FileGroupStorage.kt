@@ -181,7 +181,6 @@ internal class FileGroupStorage internal constructor(
         } catch (exception: FileNotFoundException) {
             throw FileGroupStorageException(FileGroupStorageException.Description.EMPTY_FILE)
         }
-        // FIXME maybe add to high-level signature methods info about exception. data won't be empty, it'll just throw FileNotFOund exception
 
         return GroupInfo.deserialize(data)
     }

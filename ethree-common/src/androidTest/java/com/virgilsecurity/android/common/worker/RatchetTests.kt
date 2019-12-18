@@ -50,9 +50,7 @@ import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
 import org.junit.Assert.*
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Test
-import java.lang.Exception
 import java.util.*
 
 /**
@@ -91,7 +89,7 @@ class RatchetTests {
         return Pair(ethree, card)
     }
 
-    fun encryptDecrypt100Times(channel1: RatchetChannel, channel2: RatchetChannel) {
+    private fun encryptDecrypt100Times(channel1: RatchetChannel, channel2: RatchetChannel) {
         for (i in 1..100) {
             val sender: RatchetChannel
             val receiver: RatchetChannel
@@ -394,7 +392,7 @@ class RatchetTests {
 
         val chat1 = ethree1.createRatchetChannel(card2).get()
 
-        var messages = mutableListOf<String>()
+        val messages = mutableListOf<String>()
         for (i in 0 until 100) {
             messages.add(UUID.randomUUID().toString())
         }
@@ -407,7 +405,7 @@ class RatchetTests {
 
         for (i in 0 until messages.size) {
             assertEquals(messages[i],
-                         decrypted.multipleText.toList()[i]) // TODO do we need Iterable really here?
+                         decrypted.multipleText[i])
         }
     }
 

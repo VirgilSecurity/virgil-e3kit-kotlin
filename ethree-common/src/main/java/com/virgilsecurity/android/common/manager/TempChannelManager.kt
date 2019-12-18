@@ -75,7 +75,7 @@ internal class TempChannelManager(
 
         try {
             cloudStorage.store(tempKeyPair.privateKey, identity)
-        } catch (exception: KeyknoxServiceException) { // TODO test this case or do we need to catch other exception
+        } catch (exception: KeyknoxServiceException) {
             if (exception.errorCode == ServiceErrorCodes.INVALID_PREVIOUS_HASH) {
                 throw TemporaryChannelException(
                     TemporaryChannelException.Description.CHANNEL_ALREADY_EXISTS

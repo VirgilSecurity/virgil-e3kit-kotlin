@@ -90,7 +90,7 @@ internal class CloudTempKeysStorage(
     }
 
     companion object {
-        private const val TEMP_KEYS_ROOT = "unsafe-keys" // TODO do we have compat tests?
+        private const val TEMP_KEYS_ROOT = "unsafe-keys"
         private const val META = "unencrypted"
     }
 }

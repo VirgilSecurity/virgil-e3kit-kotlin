@@ -75,6 +75,10 @@ class AuthenticationTests {
                              },
                              TestConfig.context)
 
+        this.ethree = EThree(identity,
+                             { TestUtils.generateTokenString(identity) },
+                             TestConfig.context)
+
         assertNotNull(this.ethree)
     }
 

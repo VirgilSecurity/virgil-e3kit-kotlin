@@ -35,6 +35,7 @@ package com.virgilsecurity.android.common.model.ratchet
 
 import com.virgilsecurity.android.common.exception.EThreeException
 import com.virgilsecurity.android.common.exception.EThreeRatchetException
+import com.virgilsecurity.common.extension.toData
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.crypto.ratchet.RatchetMessage
 import com.virgilsecurity.ratchet.securechat.SecureSession
@@ -63,7 +64,7 @@ class RatchetChannel(
         val ratchetMessage = this.session.encrypt(data.value)
         sessionStorage.storeSession(this.session)
 
-        return Data(ratchetMessage.serialize())
+        return ratchetMessage.serialize().toData()
     }
 
     /**
@@ -75,11 +76,11 @@ class RatchetChannel(
         require(data.value.isNotEmpty()) { "\'data\' should not be empty" }
 
         val message = RatchetMessage.deserialize(data.value)
-        val decrypted = session.decryptData(message)
+        val decrypted = session.decryptData(message).toData()
 
         sessionStorage.storeSession(this.session)
 
-        return Data(decrypted)
+        return decrypted
     }
 
     /**
@@ -91,7 +92,7 @@ class RatchetChannel(
         require(text.isNotEmpty()) { "\'text\' should not be empty" }
 
         val data = try {
-            Data(text.toByteArray(StandardCharsets.UTF_8))
+            text.toByteArray(StandardCharsets.UTF_8).toData()
         } catch (exception: IllegalArgumentException) {
             throw EThreeException(EThreeException.Description.STR_TO_DATA_FAILED, exception)
         }
@@ -118,7 +119,7 @@ class RatchetChannel(
         return String(decryptedData.value, Charsets.UTF_8)
     }
 
-    data class MultipleData(val multipleData: Iterable<Data>)
+    data class MultipleData(val multipleData: List<Data>)
 
     /**
      * Encrypts multiple of data.
@@ -133,9 +134,9 @@ class RatchetChannel(
 
         data.multipleData.forEach {
             val ratchetMessage = session.encrypt(it.value)
-            val encrypted = ratchetMessage.serialize()
+            val encrypted = ratchetMessage.serialize().toData()
 
-            result.add(Data(encrypted))
+            result.add(encrypted)
         }
 
         sessionStorage.storeSession(this.session)
@@ -158,9 +159,9 @@ class RatchetChannel(
 
         data.multipleData.forEach {
             val ratchetMessage = RatchetMessage.deserialize(it.value)
-            val decrypted = session.decryptData(ratchetMessage)
+            val decrypted = session.decryptData(ratchetMessage).toData()
 
-            result.add(Data(decrypted))
+            result.add(decrypted)
         }
 
         sessionStorage.storeSession(this.session)
@@ -168,7 +169,7 @@ class RatchetChannel(
         return MultipleData(result)
     }
 
-    data class MultipleString(val multipleText: Iterable<String>)
+    data class MultipleString(val multipleText: List<String>)
 
     /**
      * Encrypts multiple strings.
@@ -178,7 +179,7 @@ class RatchetChannel(
     fun encryptMultiple(text: MultipleString): MultipleString {
         val data = text.multipleText.map {
             try {
-                Data(it.toByteArray(StandardCharsets.UTF_8))
+                it.toByteArray(StandardCharsets.UTF_8).toData()
             } catch (exception: IllegalArgumentException) {
                 throw EThreeException(EThreeException.Description.STR_TO_DATA_FAILED, exception)
             }

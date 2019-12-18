@@ -51,7 +51,8 @@ import com.virgilsecurity.sdk.storage.KeyStorage
  * [EThree] class simplifies work with Virgil Services to easily implement End to End Encrypted
  * communication.
  */
-class EThree(
+class EThree
+@JvmOverloads constructor(
         identity: String,
         tokenCallback: OnGetTokenCallback,
         context: Context,
@@ -76,9 +77,28 @@ class EThree(
     constructor(params: EThreeParams) : this(params.identity,
                                              params.tokenCallback,
                                              params.context,
-                                             params.changedKeyDelegate,
+                                             params.keyChangedCallback,
                                              params.enableRatchet,
                                              params.keyRotationInterval)
+
+    @JvmOverloads constructor(
+            identity: String,
+            tokenCallback: () -> String,
+            context: Context,
+            keyChangedCallback: OnKeyChangedCallback? = null,
+            enableRatchet: Boolean = Defaults.enableRatchet,
+            keyRotationInterval: TimeSpan = Defaults.keyRotationInterval
+    ) : this(identity,
+             object : OnGetTokenCallback {
+                 override fun onGetToken(): String {
+                     return tokenCallback()
+                 }
+
+             },
+             context,
+             keyChangedCallback,
+             enableRatchet,
+             keyRotationInterval)
 
     companion object {
         /**

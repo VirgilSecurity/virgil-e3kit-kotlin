@@ -53,7 +53,7 @@ class EThreeParams(
         val context: Context) {
 
     // Callback to notify the change of User's keys.
-    var changedKeyDelegate: OnKeyChangedCallback? = null
+    var keyChangedCallback: OnKeyChangedCallback? = null
 
     // Enables ratchet operations.
     var enableRatchet: Boolean = Defaults.enableRatchet

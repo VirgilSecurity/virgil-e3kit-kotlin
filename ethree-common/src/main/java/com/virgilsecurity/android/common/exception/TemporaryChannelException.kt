@@ -39,7 +39,8 @@ package com.virgilsecurity.android.common.exception
 class TemporaryChannelException @JvmOverloads constructor(
         val description: Description,
         throwable: Throwable? = null
-) : RuntimeException(description.errorMessage, throwable) {
+) : EThreeBaseException("${description.errorCode}: ${description.errorMessage}",
+                        throwable) {
 
     enum class Description(val errorCode: Int, val errorMessage: String) {
         CHANNEL_ALREADY_EXISTS(ErrorCode.TEMP_CHANNEL + 1,

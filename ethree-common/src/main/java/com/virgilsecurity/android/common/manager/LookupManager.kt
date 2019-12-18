@@ -172,8 +172,6 @@ internal class LookupManager internal constructor(
                ?: throw FindUsersException(FindUsersException.Description.CARD_WAS_NOT_FOUND)
     }
 
-    // TODO Add benchmarks
-
     companion object {
         private const val MAX_SEARCH_COUNT = 50
         private const val MAX_GET_OUTDATED_COUNT = 1_000

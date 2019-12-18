@@ -41,7 +41,8 @@ open class EThreeException
 constructor(
         val description: Description,
         throwable: Throwable? = null
-) : RuntimeException(description.errorMessage, throwable) { // FIXME add to all exception string to super("errCode: errMsg")
+) : EThreeBaseException("${description.errorCode}: ${description.errorMessage}",
+                        throwable) {
 
     enum class Description(val errorCode: Int, val errorMessage: String) {
         VERIFIER_INIT_FAILED(ErrorCode.BASE + 1,

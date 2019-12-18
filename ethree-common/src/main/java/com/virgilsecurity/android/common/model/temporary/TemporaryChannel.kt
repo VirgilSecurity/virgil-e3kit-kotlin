@@ -67,7 +67,7 @@ class TemporaryChannel(
         require(text.isNotEmpty()) { "\'text\' should not be empty" }
 
         val data = try {
-            Data(text.toByteArray(StandardCharsets.UTF_8))
+            text.toData(StandardCharsets.UTF_8)
         } catch (exception: IllegalArgumentException) {
             throw EThreeException(EThreeException.Description.STR_TO_DATA_FAILED, exception)
         }

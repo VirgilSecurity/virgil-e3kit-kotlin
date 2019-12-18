@@ -39,7 +39,8 @@ package com.virgilsecurity.android.common.exception
 class FindUsersException @JvmOverloads constructor(
         val description: Description,
         throwable: Throwable? = null
-) : RuntimeException(description.errorMessage, throwable) { // FIXME extend EThreeException everywhere
+) : EThreeBaseException("${description.errorCode}: ${description.errorMessage}",
+                        throwable) {
 
     enum class Description(val errorCode: Int, val errorMessage: String) {
         DUPLICATE_CARDS(ErrorCode.FIND_USERS + 1, "Found duplicated Cards."),

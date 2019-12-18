@@ -40,6 +40,7 @@ import com.virgilsecurity.android.common.model.FindUsersResult
 import com.virgilsecurity.android.common.utils.TestConfig
 import com.virgilsecurity.android.common.utils.TestUtils
 import com.virgilsecurity.android.ethree.interaction.EThree
+import com.virgilsecurity.common.extension.toData
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.sdk.common.TimeSpan
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
@@ -157,7 +158,7 @@ class PeerToPeerTest {
         }
 
         try {
-            ethree.authDecrypt(Data(TEXT.toByteArray()).toBase64String(), card)
+            ethree.authDecrypt(TEXT.toData().toBase64String(), card)
         } catch (exception: EThreeException) {
             assertTrue(exception.description == EThreeException.Description.MISSING_PRIVATE_KEY)
         }

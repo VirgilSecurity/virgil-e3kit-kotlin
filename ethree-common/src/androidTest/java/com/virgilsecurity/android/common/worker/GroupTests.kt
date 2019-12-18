@@ -50,6 +50,7 @@ import com.virgilsecurity.android.common.util.Const
 import com.virgilsecurity.android.common.utils.TestConfig
 import com.virgilsecurity.android.common.utils.TestUtils
 import com.virgilsecurity.android.ethree.interaction.EThree
+import com.virgilsecurity.common.extension.toData
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.crypto.foundation.Base64
 import com.virgilsecurity.sdk.cards.CardManager
@@ -83,7 +84,7 @@ class GroupTests {
         this.crypto = TestConfig.virgilCrypto
 
         this.ethree = createEThree()
-        this.groupId = Data(this.crypto.generateRandomData(100))
+        this.groupId = this.crypto.generateRandomData(100).toData()
     }
 
     // test001 STE_26
@@ -117,7 +118,7 @@ class GroupTests {
     @Test fun create_should_add_self() {
         val ethree2 = createEThree()
 
-        val groupId2 = Data(this.crypto.generateRandomData(100))
+        val groupId2 = this.crypto.generateRandomData(100).toData()
 
         val users = this.ethree.findUsers(listOf(ethree.identity, ethree2.identity)).get()
 
@@ -136,7 +137,7 @@ class GroupTests {
     // test003 STE_28
     @Test fun groupId_should_not_be_short() {
         val ethree2 = createEThree()
-        val invalidGroupId = Data(this.crypto.generateRandomData(5))
+        val invalidGroupId = this.crypto.generateRandomData(5).toData()
 
         val lookup = this.ethree.findUsers(listOf(ethree2.identity)).get()
 
@@ -284,7 +285,7 @@ class GroupTests {
             participants.add(identity)
         }
 
-        val sessionId = Data(this.crypto.generateRandomData(32))
+        val sessionId = this.crypto.generateRandomData(32).toData()
 
         val ticket = Ticket(this.crypto, sessionId, participants)
         val rawGroup = RawGroup(GroupInfo(identity), listOf(ticket))
@@ -671,7 +672,7 @@ class GroupTests {
     @Test fun string_identifier() {
         val ethree2 = createEThree()
 
-        val identifier = Data(this.crypto.generateRandomData(32))
+        val identifier = this.crypto.generateRandomData(32).toData()
 
         val result = this.ethree.findUsers(listOf(ethree2.identity)).get()
         this.ethree.createGroup(identifier, result).get()

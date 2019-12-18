@@ -36,6 +36,7 @@ package com.virgilsecurity.android.common.worker
 import com.virgilsecurity.android.common.exception.EThreeException
 import com.virgilsecurity.android.common.model.FindUsersResult
 import com.virgilsecurity.android.common.storage.local.LocalKeyStorage
+import com.virgilsecurity.common.extension.toData
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
@@ -52,7 +53,6 @@ internal class AuthEncryptWorker internal constructor(
         private val crypto: VirgilCrypto
 ) {
 
-    // TODO add extension like ByteArray.toData()
     internal fun authEncrypt(data: Data, user: Card): Data =
             authEncrypt(data, FindUsersResult(mapOf(user.identity to user)))
 
@@ -110,7 +110,7 @@ internal class AuthEncryptWorker internal constructor(
         if (users != null) require(users.isNotEmpty()) { "Passed empty FindUsersResult" }
 
         val data = try {
-            Data(text.toByteArray(StandardCharsets.UTF_8))
+            text.toData(StandardCharsets.UTF_8)
         } catch (exception: IllegalArgumentException) {
             throw EThreeException(EThreeException.Description.STR_TO_DATA_FAILED, exception)
         }
@@ -133,7 +133,7 @@ internal class AuthEncryptWorker internal constructor(
             pubKeys += publicKeys
         }
 
-        return Data(crypto.authEncrypt(data.value, selfKeyPair.privateKey, pubKeys))
+        return crypto.authEncrypt(data.value, selfKeyPair.privateKey, pubKeys).toData()
     }
 
     private fun decryptInternal(data: Data, publicKey: VirgilPublicKey?): Data {
@@ -143,7 +143,7 @@ internal class AuthEncryptWorker internal constructor(
         val pubKey = publicKey ?: selfKeyPair.publicKey
 
         return try {
-            Data(crypto.authDecrypt(data.value, selfKeyPair.privateKey, pubKey))
+            crypto.authDecrypt(data.value, selfKeyPair.privateKey, pubKey).toData()
         } catch (exception: Throwable) {
             when (exception.cause) {
                 is VerificationException -> {

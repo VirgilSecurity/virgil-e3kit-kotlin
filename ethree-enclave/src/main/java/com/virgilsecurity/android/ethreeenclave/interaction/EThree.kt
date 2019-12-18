@@ -117,9 +117,34 @@ class EThree
                                                     params.alias,
                                                     params.isAuthenticationRequired,
                                                     params.keyValidityDuration,
-                                                    params.changedKeyDelegate,
+                                                    params.keyChangedCallback,
                                                     params.enableRatchet,
                                                     params.keyRotationInterval)
+
+    @JvmOverloads constructor(
+            identity: String,
+            tokenCallback: () -> String,
+            context: Context,
+            alias: String = "VirgilAndroidKeyStorage",
+            isAuthenticationRequired: Boolean = true,
+            keyValidityDuration: Int = 60 * 5, // 5 min
+            keyChangedCallback: OnKeyChangedCallback? = null,
+            enableRatchet: Boolean = Defaults.enableRatchet,
+            keyRotationInterval: TimeSpan = Defaults.keyRotationInterval
+    ) : this(identity,
+             object : OnGetTokenCallback {
+                 override fun onGetToken(): String {
+                     return tokenCallback()
+                 }
+
+             },
+             context,
+             alias,
+             isAuthenticationRequired,
+             keyValidityDuration,
+             keyChangedCallback,
+             enableRatchet,
+             keyRotationInterval)
 
     companion object {
         /**

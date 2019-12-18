@@ -39,7 +39,8 @@ package com.virgilsecurity.android.common.exception
 class RawGroupException @JvmOverloads constructor(
         val description: Description,
         throwable: Throwable? = null
-) : RuntimeException(description.errorMessage, throwable) {
+) : EThreeBaseException("${description.errorCode}: ${description.errorMessage}",
+                        throwable) {
 
     enum class Description(val errorCode: Int, val errorMessage: String) {
         EMPTY_TICKETS(ErrorCode.RAW_GROUP + 1, "Tickets are empty."),

@@ -62,7 +62,7 @@ data class EThreeParamsEnclave(
     var keyValidityDuration: Int = 60 * 5
 
     // Callback to notify the change of User's keys.
-    var changedKeyDelegate: OnKeyChangedCallback? = null
+    var keyChangedCallback: OnKeyChangedCallback? = null
 
     // Enables ratchet operations.
     var enableRatchet: Boolean = Defaults.enableRatchet

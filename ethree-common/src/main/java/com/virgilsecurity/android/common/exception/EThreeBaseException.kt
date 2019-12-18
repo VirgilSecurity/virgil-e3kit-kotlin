@@ -34,16 +34,10 @@
 package com.virgilsecurity.android.common.exception
 
 /**
- * FileGroupStorageException
+ * EThreeBaseException is a base class for all EThree exceptions.
  */
-class FileGroupStorageException @JvmOverloads constructor(
-        val description: Description,
-        throwable: Throwable? = null
-) : EThreeBaseException("${description.errorCode}: ${description.errorMessage}",
-                        throwable) {
-
-    enum class Description(val errorCode: Int, val errorMessage: String) {
-        INVALID_FILE_NAME(ErrorCode.FILE_GROUP_STORAGE + 1, "Invalid file name."),
-        EMPTY_FILE(ErrorCode.FILE_GROUP_STORAGE + 2, "File is empty."),
-    }
-}
+abstract class EThreeBaseException(
+        message: String?,
+        throwable: Throwable?
+) : RuntimeException(message,
+                     throwable)

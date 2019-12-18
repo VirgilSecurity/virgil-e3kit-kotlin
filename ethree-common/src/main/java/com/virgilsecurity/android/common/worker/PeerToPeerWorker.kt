@@ -38,6 +38,7 @@ import com.virgilsecurity.android.common.model.FindUsersResult
 import com.virgilsecurity.android.common.model.LookupResult
 import com.virgilsecurity.android.common.model.toPublicKeys
 import com.virgilsecurity.android.common.storage.local.LocalKeyStorage
+import com.virgilsecurity.common.extension.toData
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
@@ -106,7 +107,7 @@ internal class PeerToPeerWorker internal constructor(
         if (users != null) require(users.isNotEmpty()) { "Passed empty FindUsersResult" }
 
         val data = try {
-            Data(text.toByteArray(StandardCharsets.UTF_8))
+            text.toByteArray(StandardCharsets.UTF_8).toData()
         } catch (exception: IllegalArgumentException) {
             throw EThreeException(EThreeException.Description.STR_TO_DATA_FAILED, exception)
         }
@@ -189,7 +190,7 @@ internal class PeerToPeerWorker internal constructor(
             pubKeys += publicKeys
         }
 
-        return Data(crypto.signThenEncrypt(data.value, selfKeyPair.privateKey, pubKeys))
+        return crypto.signThenEncrypt(data.value, selfKeyPair.privateKey, pubKeys).toData()
     }
 
     private fun oldDecryptInternal(data: Data, publicKey: VirgilPublicKey?): Data {
@@ -199,7 +200,7 @@ internal class PeerToPeerWorker internal constructor(
         val pubKey = publicKey ?: selfKeyPair.publicKey
 
         return try {
-            Data(crypto.decryptThenVerify(data.value, selfKeyPair.privateKey, pubKey))
+            crypto.decryptThenVerify(data.value, selfKeyPair.privateKey, pubKey).toData()
         } catch (exception: Throwable) {
             when (exception.cause) {
                 is VerificationException -> {
@@ -217,7 +218,7 @@ internal class PeerToPeerWorker internal constructor(
         require(text.isNotEmpty()) { "\'text\' should not be empty" }
 
         val data = try {
-            Data(text.toByteArray(StandardCharsets.UTF_8))
+            text.toData(StandardCharsets.UTF_8)
         } catch (exception: IllegalArgumentException) {
             throw EThreeException(EThreeException.Description.STR_TO_DATA_FAILED, exception)
         }
@@ -228,7 +229,7 @@ internal class PeerToPeerWorker internal constructor(
     @Deprecated("Check 'replace with' section.", ReplaceWith("authEncrypt"))
     @JvmOverloads internal fun encrypt(data: ByteArray,
                                        lookupResult: LookupResult? = null): ByteArray =
-            oldEncryptInternal(Data(data), lookupResult.toPublicKeys()).value
+            oldEncryptInternal(data.toData(), lookupResult.toPublicKeys()).value
 
     @Deprecated("Check 'replace with' section.", ReplaceWith("authEncrypt"))
     internal fun encrypt(inputStream: InputStream,
@@ -254,5 +255,5 @@ internal class PeerToPeerWorker internal constructor(
     @Deprecated("Check 'replace with' section.", ReplaceWith("authDecrypt"))
     @JvmOverloads internal fun decrypt(data: ByteArray,
                                        sendersKey: VirgilPublicKey? = null): ByteArray =
-            oldDecryptInternal(Data(data), sendersKey).value
+            oldDecryptInternal(data.toData(), sendersKey).value
 }

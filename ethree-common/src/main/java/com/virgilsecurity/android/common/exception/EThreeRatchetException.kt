@@ -39,7 +39,8 @@ package com.virgilsecurity.android.common.exception
 class EThreeRatchetException @JvmOverloads constructor(
         val description: Description,
         throwable: Throwable? = null
-) : RuntimeException(description.errorMessage, throwable) {
+) : EThreeBaseException("${description.errorCode}: ${description.errorMessage}",
+                        throwable) {
 
     enum class Description(val errorCode: Int, val errorMessage: String) {
         ENCRYPT_EMPTY_ARRAY(ErrorCode.RATCHET + 1, "Trying to encrypt empty array."),
@@ -47,8 +48,8 @@ class EThreeRatchetException @JvmOverloads constructor(
         CHANNEL_ALREADY_EXISTS(ErrorCode.RATCHET + 4,
                                "Channel with provided user and name already exists."),
         SELF_CHANNEL_IS_FORBIDDEN(ErrorCode.RATCHET + 5,
-                               "Channel with self is forbidden. Use regular encryption for this " +
-                               "purpose."),
+                                  "Channel with self is forbidden. Use regular encryption for this " +
+                                  "purpose."),
         RATCHET_IS_DISABLED(ErrorCode.RATCHET + 6, "enableRatchet parameter is set to false."),
         USER_IS_NOT_USING_RATCHET(ErrorCode.RATCHET + 7,
                                   "Provided user has been never initialized with ratchet enabled."),

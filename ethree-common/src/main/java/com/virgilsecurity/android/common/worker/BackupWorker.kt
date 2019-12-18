@@ -39,6 +39,7 @@ import com.virgilsecurity.android.common.manager.LookupManager
 import com.virgilsecurity.android.common.model.DerivedPasswords
 import com.virgilsecurity.android.common.storage.cloud.CloudKeyManager
 import com.virgilsecurity.android.common.storage.local.LocalKeyStorage
+import com.virgilsecurity.common.extension.toData
 import com.virgilsecurity.common.model.Completable
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.keyknox.exception.EntryAlreadyExistsException
@@ -65,8 +66,8 @@ internal class BackupWorker internal constructor(
         val hash1 = crypto.computeHash(passwordData, HashAlgorithm.SHA256)
         val hash2 = crypto.computeHash(hash1, HashAlgorithm.SHA512)
 
-        val loginPassword = Data(hash2.sliceArray(0 until 32)).toBase64String()
-        val backupPassword = Data(hash2.sliceArray(32 until 64)).toBase64String()
+        val loginPassword = hash2.sliceArray(0 until 32).toData().toBase64String()
+        val backupPassword = hash2.sliceArray(32 until 64).toData().toBase64String()
 
         return DerivedPasswords(loginPassword, backupPassword)
     }
@@ -99,7 +100,7 @@ internal class BackupWorker internal constructor(
 
                 val card = lookupManager.lookupCard(this@BackupWorker.identity)
 
-                localKeyStorage.store(Data(entry.data))
+                localKeyStorage.store(entry.data.toData())
 
                 val params = EThreeCore.PrivateKeyChangedParams(card, isNew = false)
 

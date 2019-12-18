@@ -37,6 +37,7 @@ import com.virgilsecurity.android.common.manager.GroupManager
 import com.virgilsecurity.android.common.model.FindUsersResult
 import com.virgilsecurity.android.common.model.Group
 import com.virgilsecurity.android.common.model.Ticket
+import com.virgilsecurity.common.extension.toData
 import com.virgilsecurity.common.model.Completable
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.common.model.Result
@@ -101,7 +102,7 @@ internal class GroupWorker internal constructor(
     internal fun createGroup(identifier: String, users: FindUsersResult? = null): Result<Group> {
         require(identifier.isNotEmpty()) { "\'identifier\' should not be empty" }
 
-        val identifierData = Data(identifier.toByteArray(StandardCharsets.UTF_8))
+        val identifierData = identifier.toData(StandardCharsets.UTF_8)
 
         return createGroup(identifierData, users)
     }
@@ -109,7 +110,7 @@ internal class GroupWorker internal constructor(
     internal fun getGroup(identifier: String): Group? {
         require(identifier.isNotEmpty()) { "\'identifier\' should not be empty" }
 
-        val identifierData = Data(identifier.toByteArray(StandardCharsets.UTF_8))
+        val identifierData = identifier.toData(StandardCharsets.UTF_8)
 
         return getGroup(identifierData)
     }
@@ -117,7 +118,7 @@ internal class GroupWorker internal constructor(
     internal fun loadGroup(identifier: String, card: Card): Result<Group> {
         require(identifier.isNotEmpty()) { "\'identifier\' should not be empty" }
 
-        val identifierData = Data(identifier.toByteArray(StandardCharsets.UTF_8))
+        val identifierData = identifier.toData(StandardCharsets.UTF_8)
 
         return loadGroup(identifierData, card)
     }
@@ -125,7 +126,7 @@ internal class GroupWorker internal constructor(
     internal fun deleteGroup(identifier: String): Completable {
         require(identifier.isNotEmpty()) { "\'identifier\' should not be empty" }
 
-        val identifierData = Data(identifier.toByteArray(StandardCharsets.UTF_8))
+        val identifierData = identifier.toData(StandardCharsets.UTF_8)
 
         return deleteGroup(identifierData)
     }

@@ -56,6 +56,7 @@ import com.virgilsecurity.android.common.util.Const.VIRGIL_BASE_URL
 import com.virgilsecurity.android.common.util.Const.VIRGIL_CARDS_SERVICE_PATH
 import com.virgilsecurity.android.common.util.RepeatingTimer
 import com.virgilsecurity.android.common.worker.*
+import com.virgilsecurity.common.extension.toData
 import com.virgilsecurity.common.model.Completable
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.common.model.Result
@@ -123,7 +124,7 @@ abstract class EThreeCore {
 
     protected constructor(params: EThreeParams) : this(params.identity,
                                                        params.tokenCallback,
-                                                       params.changedKeyDelegate,
+                                                       params.keyChangedCallback,
                                                        params.enableRatchet,
                                                        params.keyRotationInterval,
                                                        params.context)
@@ -1165,9 +1166,9 @@ abstract class EThreeCore {
             throw GroupException(GroupException.Description.SHORT_GROUP_ID)
 
         val hash = crypto.computeHash(identifier.value, HashAlgorithm.SHA512)
-                .sliceArray(IntRange(0, 31))
+                .sliceArray(IntRange(0, 31)).toData()
 
-        return Data(hash)
+        return hash
     }
 
     internal fun publishCardThenSaveLocal(keyPair: VirgilKeyPair? = null,
@@ -1185,7 +1186,7 @@ abstract class EThreeCore {
                                     this.identity)
         }
 
-        val privateKeyData = Data(crypto.exportPrivateKey(virgilKeyPair.privateKey))
+        val privateKeyData = crypto.exportPrivateKey(virgilKeyPair.privateKey).toData()
 
         localKeyStorage.store(privateKeyData)
         privateKeyChanged(PrivateKeyChangedParams(card, isNew = true))
