@@ -70,7 +70,7 @@ dependencies {
     }
 
     // Ratchet
-//    implementation("com.virgilsecurity:ratchet-android:$versions.ratchet") {
+//    implementation("com.virgilsecurity:ratchet-android:$versions.ratchet") { // FIXME check why we cannot import like this
 //        exclude group: 'com.virgilsecurity.sdk', module: 'skd'
 //        exclude group: 'com.virgilsecurity.sdk', module: 'crypto'
 //    }
