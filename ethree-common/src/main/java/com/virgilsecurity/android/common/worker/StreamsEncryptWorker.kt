@@ -75,7 +75,7 @@ internal class StreamsEncryptWorker internal constructor(
                                            user: Card? = null) =
             decryptInternal(inputStream,
                             outputStream,
-                            user?.publicKey) // FIXME do we need null instead of public key? (like in swift)
+                            user?.publicKey)
 
     internal fun authDecrypt(inputStream: InputStream,
                              outputStream: OutputStream,

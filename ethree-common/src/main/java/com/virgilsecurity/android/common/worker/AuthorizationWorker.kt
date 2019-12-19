@@ -52,7 +52,7 @@ internal class AuthorizationWorker internal constructor(
 
     @Synchronized
     @JvmOverloads
-    internal fun register(keyPair: VirgilKeyPair? = null) = object : Completable { // FIXME add Coroutine scope argument everywhere
+    internal fun register(keyPair: VirgilKeyPair? = null) = object : Completable {
         override fun execute() {
             if (localKeyStorage.exists())
                 throw EThreeException(EThreeException.Description.PRIVATE_KEY_EXISTS)

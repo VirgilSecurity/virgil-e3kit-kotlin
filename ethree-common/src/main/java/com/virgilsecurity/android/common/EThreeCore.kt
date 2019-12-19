@@ -62,6 +62,7 @@ import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.common.model.Result
 import com.virgilsecurity.keyknox.utils.unwrapCompanionClass
 import com.virgilsecurity.ratchet.exception.ProtocolException
+import com.virgilsecurity.ratchet.exception.SecureChatException
 import com.virgilsecurity.ratchet.securechat.SecureChat
 import com.virgilsecurity.ratchet.securechat.SecureChatContext
 import com.virgilsecurity.ratchet.securechat.SecureSession
@@ -455,7 +456,7 @@ abstract class EThreeCore {
      * Deletes Private Key stored on Virgil's cloud. This will disable user to log in from
      * other devices.
      *
-     * To start execution of the current function, please see [Completable] description. // TODO add this to new func descriptions
+     * To start execution of the current function, please see [Completable] description.
      *
      * @throws EThreeException(EThreeException.Description.WRONG_PASSWORD) If [password] is wrong.
      * @throws EThreeException.Description.MISSING_PRIVATE_KEY
@@ -771,6 +772,10 @@ abstract class EThreeCore {
      * @param card User Card to encrypt for.
      *
      * @return Encrypted data.
+     *
+     * @throws EThreeException(EThreeException.Description.MISSING_PRIVATE_KEY)
+     * @throws EThreeException(EThreeException.Description.MISSING_PUBLIC_KEY)
+     * @throws rethrows [VirgilCrypto.authEncrypt]
      */
     fun authEncrypt(data: Data, user: Card): Data =
             authEncryptWorker.authEncrypt(data, user)
@@ -788,6 +793,11 @@ abstract class EThreeCore {
      * @param card User Card to encrypt for.
      *
      * @return Encrypted string.
+     *
+     * @throws EThreeException(EThreeException.Description.MISSING_PRIVATE_KEY)
+     * @throws EThreeException(EThreeException.Description.MISSING_PUBLIC_KEY)
+     * @throws EThreeException(EThreeException.Description.STR_TO_DATA_FAILED)
+     * @throws rethrows [VirgilCrypto.authEncrypt]
      */
     fun authEncrypt(text: String, user: Card): String =
             authEncryptWorker.authEncrypt(text, user)
@@ -802,6 +812,10 @@ abstract class EThreeCore {
      * Use null to decrypt and verify from self.
      *
      * @return Decrypted Data.
+     *
+     * @throws EThreeException(EThreeException.Description.MISSING_PRIVATE_KEY)
+     * @throws EThreeException(EThreeException.Description.VERIFICATION_FAILED)
+     * @throws rethrows [VirgilCrypto.authDecrypt]
      */
     @JvmOverloads fun authDecrypt(data: Data, user: Card? = null): Data =
             authEncryptWorker.authDecrypt(data, user)
@@ -816,6 +830,10 @@ abstract class EThreeCore {
      * @param date Date of encryption to use proper card version.
      *
      * @return Decrypted Data.
+     *
+     * @throws EThreeException(EThreeException.Description.MISSING_PRIVATE_KEY)
+     * @throws EThreeException(EThreeException.Description.VERIFICATION_FAILED)
+     * @throws rethrows [VirgilCrypto.authDecrypt]
      */
     fun authDecrypt(data: Data, user: Card, date: Date): Data =
             authEncryptWorker.authDecrypt(data, user, date)
@@ -830,6 +848,11 @@ abstract class EThreeCore {
      * Use null to decrypt and verify from self.
      *
      * @return Decrypted String.
+     *
+     * @throws EThreeException(EThreeException.Description.MISSING_PRIVATE_KEY)
+     * @throws EThreeException(EThreeException.Description.VERIFICATION_FAILED)
+     * @throws EThreeException(EThreeException.Description.STR_TO_DATA_FAILED)
+     * @throws rethrows [VirgilCrypto.authDecrypt]
      */
     @JvmOverloads fun authDecrypt(text: String, user: Card? = null): String =
             authEncryptWorker.authDecrypt(text, user)
@@ -844,6 +867,11 @@ abstract class EThreeCore {
      * @param date Date of encryption to use proper card version.
      *
      * @return Decrypted String.
+     *
+     * @throws EThreeException(EThreeException.Description.MISSING_PRIVATE_KEY)
+     * @throws EThreeException(EThreeException.Description.VERIFICATION_FAILED)
+     * @throws EThreeException(EThreeException.Description.STR_TO_DATA_FAILED)
+     * @throws rethrows [VirgilCrypto.authDecrypt]
      */
     fun authDecrypt(text: String, user: Card, date: Date): String =
             authEncryptWorker.authDecrypt(text, user, date)
@@ -864,6 +892,11 @@ abstract class EThreeCore {
      * encrypt with. Use null to sign and encrypt for self.
      *
      * @return Encrypted base64String.
+     *
+     * @throws EThreeException(EThreeException.Description.MISSING_PRIVATE_KEY)
+     * @throws EThreeException(EThreeException.Description.MISSING_PUBLIC_KEY)
+     * @throws EThreeException(EThreeException.Description.STR_TO_DATA_FAILED)
+     * @throws rethrows [VirgilCrypto.authEncrypt]
      */
     @JvmOverloads fun authEncrypt(text: String, users: FindUsersResult? = null): String =
             authEncryptWorker.authEncrypt(text, users)
@@ -884,6 +917,10 @@ abstract class EThreeCore {
      * encrypt with. Use null to sign and encrypt for self.
      *
      * @return Encrypted data.
+     *
+     * @throws EThreeException(EThreeException.Description.MISSING_PRIVATE_KEY)
+     * @throws EThreeException(EThreeException.Description.MISSING_PUBLIC_KEY)
+     * @throws rethrows [VirgilCrypto.authEncrypt]
      */
     @JvmOverloads fun authEncrypt(data: Data, users: FindUsersResult? = null): Data =
             authEncryptWorker.authEncrypt(data, users)
@@ -899,6 +936,10 @@ abstract class EThreeCore {
      * @param streamSize
      * @param outputStream Stream with encrypted data
      * @param user User Card to encrypt for.
+     *
+     * @throws EThreeException(EThreeException.Description.MISSING_PRIVATE_KEY)
+     * @throws EThreeException(EThreeException.Description.MISSING_PUBLIC_KEY)
+     * @throws rethrows [VirgilCrypto.authEncrypt]
      */
     fun authEncrypt(inputStream: InputStream,
                     streamSize: Int,
@@ -919,6 +960,10 @@ abstract class EThreeCore {
      * @param streamSize
      * @param outputStream Stream with encrypted data
      * @param users User Card to encrypt for.
+     *
+     * @throws EThreeException(EThreeException.Description.MISSING_PRIVATE_KEY)
+     * @throws EThreeException(EThreeException.Description.MISSING_PUBLIC_KEY)
+     * @throws rethrows [VirgilCrypto.authEncrypt]
      */
     @JvmOverloads fun authEncrypt(inputStream: InputStream,
                                   streamSize: Int,
@@ -935,6 +980,10 @@ abstract class EThreeCore {
      * @param outputStream Stream with decrypted data.
      * @param user Sender Card with Public Key to verify with. Use null to decrypt and verify
      * from self.
+     *
+     * @throws EThreeException(EThreeException.Description.MISSING_PRIVATE_KEY)
+     * @throws EThreeException(EThreeException.Description.VERIFICATION_FAILED)
+     * @throws rethrows [VirgilCrypto.authDecrypt]
      */
     fun authDecrypt(inputStream: InputStream, outputStream: OutputStream, user: Card? = null) =
             streamsEncryptWorker.authDecrypt(inputStream, outputStream, user)
@@ -949,6 +998,10 @@ abstract class EThreeCore {
      * @param user Sender Card with Public Key to verify with. Use null to decrypt and verify
      * from self.
      * @param date Date of encryption to use proper card version.
+     *
+     * @throws EThreeException(EThreeException.Description.MISSING_PRIVATE_KEY)
+     * @throws EThreeException(EThreeException.Description.VERIFICATION_FAILED)
+     * @throws rethrows [VirgilCrypto.authDecrypt]
      */
     fun authDecrypt(inputStream: InputStream,
                     outputStream: OutputStream,
@@ -957,10 +1010,17 @@ abstract class EThreeCore {
             streamsEncryptWorker.authDecrypt(inputStream, outputStream, user, date)
 
     /**
-     * Creates double ratchet channel with user, saves it locally. // TODO add throws to ratchet methods
+     * Creates double ratchet channel with user, saves it locally.
+     *
+     * To start execution of the current function, please see [Result] description.
      *
      * @param card Card of participant.
      * @param name Name of channel.
+     *
+     * @throws EThreeRatchetException(EThreeRatchetException.Description.CHANNEL_ALREADY_EXISTS)
+     * @throws EThreeRatchetException(EThreeRatchetException.Description.SELF_CHANNEL_IS_FORBIDDEN)
+     * @throws EThreeRatchetException(EThreeRatchetException.Description.RATCHET_IS_DISABLED)
+     * @throws EThreeRatchetException(EThreeRatchetException.Description.USER_IS_NOT_USING_RATCHET)
      */
     @JvmOverloads fun createRatchetChannel(card: Card,
                                            name: String? = null): Result<RatchetChannel> =
@@ -969,14 +1029,24 @@ abstract class EThreeCore {
     /**
      * Joins double ratchet channel with user, saves it locally.
      *
+     * To start execution of the current function, please see [Result] description.
+     *
      * @param card Card of initiator.
      * @param name Name of channel.
+     *
+     * @throws EThreeRatchetException(EThreeRatchetException.Description.CHANNEL_ALREADY_EXISTS)
+     * @throws EThreeRatchetException(EThreeRatchetException.Description.SELF_CHANNEL_IS_FORBIDDEN)
+     * @throws EThreeRatchetException(EThreeRatchetException.Description.RATCHET_IS_DISABLED)
+     * @throws EThreeRatchetException(EThreeRatchetException.Description.NO_INVITE)
+     * @throws SecureChatException rethrows [SecureChat.startNewSessionAsReceiver]
      */
     @JvmOverloads fun joinRatchetChannel(card: Card, name: String? = null): Result<RatchetChannel> =
             ratchetWorker.joinRatchetChannel(card, name)
 
     /**
      * Retrieves a double ratchet channel from the local storage.
+     *
+     * @throws EThreeRatchetException(EThreeRatchetException.Description.RATCHET_IS_DISABLED)
      */
     @JvmOverloads fun getRatchetChannel(card: Card, name: String? = null): RatchetChannel? =
             ratchetWorker.getRatchetChannel(card, name)
@@ -984,8 +1054,12 @@ abstract class EThreeCore {
     /**
      * Deletes double ratchet channel.
      *
+     * To start execution of the current function, please see [Completable] description.
+     *
      * @param card Card of participant.
      * @param name Name of channel.
+     *
+     * @throws EThreeRatchetException(EThreeRatchetException.Description.RATCHET_IS_DISABLED)
      */
     @JvmOverloads fun deleteRatchetChannel(card: Card, name: String? = null): Completable =
             ratchetWorker.deleteRatchetChannel(card, name)
@@ -995,7 +1069,16 @@ abstract class EThreeCore {
      *
      * - *Important* Temporary key for unregistered user is stored unencrypted on Cloud.
      *
+     * To start execution of the current function, please see [Result] description.
+     *
      * @param identity Identity of unregistered user.
+     *
+     * @throws TemporaryChannelException(TemporaryChannelException.Description
+     * .SELF_CHANNEL_IS_FORBIDDEN)
+     * @throws TemporaryChannelException(TemporaryChannelException.Description.USER_IS_REGISTERED)
+     * @throws EThreeException(EThreeException.Description.MISSING_PRIVATE_KEY)
+     * @throws EThreeException(EThreeException.Description.CHANNEL_ALREADY_EXISTS)
+     * @throws rethrows [VirgilCrypto.generateKeyPair]
      */
     fun createTemporaryChannel(identity: String): Result<TemporaryChannel> =
             tempChannelWorker.createTemporaryChannel(identity)
@@ -1003,8 +1086,17 @@ abstract class EThreeCore {
     /**
      * Loads temporary channel by fetching temporary key form Cloud.
      *
+     * To start execution of the current function, please see [Result] description.
+     *
      * @param asCreator Specifies whether caller is creator of channel or not.
      * @param identity Identity of participant.
+     *
+     * @throws EThreeException(EThreeException.Description.MISSING_PRIVATE_KEY)
+     * @throws TemporaryChannelException(TemporaryChannelException.Description
+     * .SELF_CHANNEL_IS_FORBIDDEN)
+     * @throws TemporaryChannelException(TemporaryChannelException.Description.CHANNEL_NOT_FOUND)
+     * @throws rethrows [VirgilCrypto.importPrivateKey]
+     * @throws FindUsersException(FindUsersException.Description.CARD_WAS_NOT_FOUND)
      */
     fun loadTemporaryChannel(asCreator: Boolean, identity: String): Result<TemporaryChannel> =
             tempChannelWorker.loadTemporaryChannel(asCreator, identity)
@@ -1013,6 +1105,11 @@ abstract class EThreeCore {
      * Returns cached temporary channel.
      *
      * @param identity Identity of participant.
+     *
+     * @throws EThreeException(EThreeException.Description.MISSING_PRIVATE_KEY)
+     * @throws rethrows [VirgilCrypto.importPrivateKey], [VirgilCrypto.importPublicKey]
+     * @throws FindUsersException(FindUsersException.Description.DUPLICATE_CARDS)
+     * @throws FindUsersException(FindUsersException.Description.MISSING_CACHED_CARD)
      */
     fun getTemporaryChannel(identity: String): TemporaryChannel? =
             tempChannelWorker.getTemporaryChannel(identity)
@@ -1021,7 +1118,11 @@ abstract class EThreeCore {
      * Deletes temporary channel from the cloud (if the user is a creator) and from the
      * local storage.
      *
+     * To start execution of the current function, please see [Completable] description.
+     *
      * @param identity Identity of participant.
+     *
+     * @throws EThreeException(EThreeException.Description.MISSING_PRIVATE_KEY)
      */
     fun deleteTemporaryChannel(identity: String): Completable =
             tempChannelWorker.deleteTemporaryChannel(identity)
@@ -1258,7 +1359,7 @@ abstract class EThreeCore {
         } else {
             val card = findCachedUser(this.identity).get() ?: throw EThreeRatchetException(
                 EThreeRatchetException.Description.NO_SELF_CARD_LOCALLY
-            ) // FIXME should Card be nullable?
+            )
 
             val chat = setupSecureChat(keyPair, card)
 

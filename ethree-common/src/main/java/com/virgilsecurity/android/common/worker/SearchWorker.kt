@@ -33,6 +33,7 @@
 
 package com.virgilsecurity.android.common.worker
 
+import com.virgilsecurity.android.common.exception.FindUsersException
 import com.virgilsecurity.android.common.manager.LookupManager
 import com.virgilsecurity.android.common.model.FindUsersResult
 import com.virgilsecurity.android.common.model.LookupResult
@@ -57,7 +58,11 @@ internal class SearchWorker internal constructor(
 
     internal fun findCachedUser(identity: String): Result<Card?> = object : Result<Card?> {
         override fun get(): Card? {
-            return lookupManager.lookupCachedCard(identity)
+            return try {
+                lookupManager.lookupCachedCard(identity)
+            } catch (exception: FindUsersException) {
+                null
+            }
         }
     }
 
