@@ -68,7 +68,7 @@ buildscript {
             virgilTestCommon: '0.1',
 
             // Benchmark
-            androidBenchmark: '1.0.0-alpha01',
+            androidBenchmark: '1.0.0',
     ]
     ext.androidOptions = [
             compileSdkVersion   : 28,
@@ -88,7 +88,8 @@ buildscript {
         classpath "org.jetbrains.dokka:dokka-gradle-plugin:$versions.dokka"
         classpath "digital.wup:android-maven-publish:$versions.mavenPublish"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath 'androidx.benchmark:benchmark-gradle-plugin:1.0.0-alpha01'
+        classpath "androidx.benchmark:benchmark-gradle-plugin:1.0.0"
+
     }
 }
 
@@ -111,17 +112,23 @@ subprojects {
     group BASE_VIRGIL_PACKAGE
     version SDK_VERSION
 
+    def isRegular = (it.name == 'ethree-common'
+            || it.name == 'ethree-kotlin'
+            || it.name == 'ethree-enclave')
     def isTest = (it.name == 'tests' || it.name == 'testsenclave')
+    def isBenchmark = (it.name == 'ethree-benchmark')
 
-    if (!isTest) {
+    if (isRegular) {
         apply plugin: 'com.android.library'
         apply plugin: 'digital.wup.android-maven-publish'
         apply plugin: 'org.jetbrains.dokka'
         apply plugin: 'signing'
         apply plugin: 'maven-publish'
-    } else {
+    } else if (isTest) {
         apply plugin: 'com.android.application'
         apply from: '../tests-verbal-output.gradle'
+    } else if (isBenchmark) {
+        apply plugin: 'com.android.library'
     }
 
     apply plugin: 'kotlin-android'
@@ -155,7 +162,7 @@ subprojects {
     sourceCompatibility = "8"
     targetCompatibility = "8"
 
-    if (!isTest) {
+    if (isRegular) {
         task sourcesJar(type: Jar) {
             from(project.android.sourceSets.main.java.srcDirs)
             classifier = 'sources'

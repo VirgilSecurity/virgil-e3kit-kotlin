@@ -34,22 +34,28 @@
 package com.virgilsecurity.android.ethree_benchmark
 
 import android.util.Log
-import androidx.benchmark.BenchmarkRule
-import androidx.benchmark.measureRepeated
+import androidx.benchmark.junit4.BenchmarkRule
+import androidx.benchmark.junit4.measureRepeated
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.filters.LargeTest
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.common.utils.TestConfig
 import com.virgilsecurity.android.common.utils.TestUtils
 import com.virgilsecurity.android.ethree.interaction.EThree
 import com.virgilsecurity.sdk.crypto.KeyType
 import com.virgilsecurity.sdk.crypto.VirgilKeyPair
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.junit.runners.Parameterized
 import java.util.*
 
-@RunWith(AndroidJUnit4::class)
-class EThreeBenchmark {
+@LargeTest
+@RunWith(Parameterized::class)
+class EThreeBenchmark(
+        private val keyType: KeyType
+) {
 
     @get:Rule
     val benchmarkRule = BenchmarkRule()
@@ -71,9 +77,13 @@ class EThreeBenchmark {
     }
 
     // test01
-    @Test fun findUser_encrypt() {
-        val aliceKeyPair = TestConfig.virgilCrypto.generateKeyPair(KeyType.ED25519) // FIXME add all other types
-        val bobKeyPair = TestConfig.virgilCrypto.generateKeyPair(KeyType.ED25519)
+    @Ignore("Run only on a purpose on a real device (takes a lot of time ~1h+)")
+    @Test
+    fun findUser_encrypt() {
+        println("Testing $keyType")
+
+        val aliceKeyPair = TestConfig.virgilCrypto.generateKeyPair(keyType)
+        val bobKeyPair = TestConfig.virgilCrypto.generateKeyPair(keyType)
 
         val alice = setupDevice(aliceKeyPair)
         val bob = setupDevice(bobKeyPair)
@@ -88,9 +98,11 @@ class EThreeBenchmark {
     }
 
     // test02
-    @Test fun findUser_decrypt() {
-        val aliceKeyPair = TestConfig.virgilCrypto.generateKeyPair(KeyType.ED25519) // FIXME add all other types
-        val bobKeyPair = TestConfig.virgilCrypto.generateKeyPair(KeyType.ED25519)
+    @Ignore("Run only on a purpose on a real device (takes a lot of time ~1h+)")
+    @Test
+    fun findUser_decrypt() {
+        val aliceKeyPair = TestConfig.virgilCrypto.generateKeyPair(keyType)
+        val bobKeyPair = TestConfig.virgilCrypto.generateKeyPair(keyType)
 
         val alice = setupDevice(aliceKeyPair)
         val bob = setupDevice(bobKeyPair)
@@ -108,7 +120,9 @@ class EThreeBenchmark {
     }
 
     // test03
-    @Test fun group_update() {
+    @Ignore("Run only on a purpose on a real device (takes a lot of time ~1h+)")
+    @Test
+    fun group_update() {
         val ethree1 = setupDevice()
         val ethree2 = setupDevice()
         val ethree3 = setupDevice()
@@ -137,22 +151,14 @@ class EThreeBenchmark {
         }
     }
 
-    @Test fun simple() {
-        val state = benchmarkRule.getState()
-
-        var count = 0
-        while (state.keepRunning()) {
-            state.pauseTiming()
-
-            count++
-
-            state.resumeTiming()
-
-            Log.d("SomeTag", "measuring")
-        }
-    }
-
     companion object {
         private const val TEXT = "Hello, my name is text. I am here to be encrypted (:"
+
+        @JvmStatic
+        @Parameterized.Parameters
+        fun data(): Collection<Array<KeyType>> = arrayListOf(
+            arrayOf(KeyType.ED25519),
+            arrayOf(KeyType.SECP256R1)
+        )
     }
 }

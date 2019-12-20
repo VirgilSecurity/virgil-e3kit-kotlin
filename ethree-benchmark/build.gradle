@@ -31,14 +31,12 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-apply plugin: 'com.android.library'
 apply plugin: 'androidx.benchmark'
-apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
+
 android {
     defaultConfig {
         minSdkVersion androidOptions.minSdkVersionRegular
-        testInstrumentationRunner 'androidx.benchmark.AndroidBenchmarkRunner'
+        testInstrumentationRunner 'androidx.benchmark.junit4.AndroidBenchmarkRunner'
     }
 
     buildTypes {
@@ -48,7 +46,7 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'benchmark-proguard-rules.pro'
         }
-    } // FIXME exclude from publishing
+    }
 }
 
 dependencies {
@@ -62,7 +60,13 @@ dependencies {
     androidTestImplementation "androidx.test:runner:$versions.testsRunner"
     androidTestImplementation "androidx.test.ext:junit:$versions.testsRunner"
     androidTestImplementation "junit:junit:$versions.junit"
-    androidTestImplementation "androidx.benchmark:benchmark:$versions.androidBenchmark"
+    androidTestImplementation "androidx.benchmark:benchmark-junit4:$versions.androidBenchmark"
+}
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
 }
 
 tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
