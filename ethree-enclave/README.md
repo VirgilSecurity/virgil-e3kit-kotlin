@@ -3,7 +3,7 @@
 
 ## Installation of E3Kit Enclave
 
-> Android API 21+ is required.
+> Android API 23+ is required.
 
 This `e3kit` module uses [Android Keystore](https://developer.android.com/training/articles/keystore) to store symmetric key which is used to encrypt `e3kit` user's local private key.
 If you use this module after using [Standard e3kit module](../ethree-kotlin) all local private keys will be migrated to Android Keystore, so you won't be able to use them with [Standard e3kit module](../ethree-kotlin) any more. (You can migrate them to [Standard e3kit module](../ethree-kotlin) on your own if needed)
