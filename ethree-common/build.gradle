@@ -54,37 +54,19 @@ dependencies {
     compileOnly "org.jetbrains.kotlin:kotlin-stdlib:$versions.kotlin"
     compileOnly "org.jetbrains.kotlinx:kotlinx-coroutines-core:$versions.coroutines"
 
-    // Virgil Crypto
-    implementation "com.virgilsecurity.crypto:pythia-android:$versions.virgilCrypto"
-
     // Virgil SDK
+    api "com.virgilsecurity.sdk:sdk-android:$versions.virgilSdk"
     api "com.virgilsecurity.sdk:crypto-android:$versions.virgilSdk"
 
-    api "com.virgilsecurity:common:$versions.virgilSdk"
-    api("com.virgilsecurity.sdk:sdk:$versions.virgilSdk") {
-        exclude group: 'com.virgilsecurity.crypto'
-    }
+    // Virgil Pythia
     api("com.virgilsecurity:pythia:$versions.pythia") {
         exclude group: 'com.virgilsecurity.crypto'
         exclude group: 'com.virgilsecurity.sdk'
     }
+    api "com.virgilsecurity.crypto:pythia-android:$versions.virgilCrypto"
 
-    // Ratchet
-//    implementation("com.virgilsecurity:ratchet-android:$versions.ratchet") { // FIXME check why we cannot import like this
-//        exclude group: 'com.virgilsecurity.sdk', module: 'skd'
-//        exclude group: 'com.virgilsecurity.sdk', module: 'crypto'
-//    }
-    implementation("com.virgilsecurity:ratchet-android:$versions.ratchet") {
-        exclude group: 'com.virgilsecurity.crypto', module: 'common'
-        exclude group: 'com.virgilsecurity.crypto', module: 'foundation'
-        exclude group: 'com.virgilsecurity.crypto', module: 'ratchet'
-
-        exclude group: 'com.virgilsecurity.sdk', module: 'sdk'
-        exclude group: 'com.virgilsecurity.sdk', module: 'crypto'
-    }
-    api "com.virgilsecurity.crypto:common-android:$versions.virgilCrypto"
-    api "com.virgilsecurity.crypto:foundation-android:$versions.virgilCrypto"
-    api "com.virgilsecurity.crypto:ratchet-android:$versions.virgilCrypto"
+    // Virgil Ratchet
+    api "com.virgilsecurity:ratchet-android:$versions.ratchet"
 
     // Android
     compileOnly "com.google.android:android:$versions.android"
@@ -93,6 +75,9 @@ dependencies {
     implementation "androidx.room:room-runtime:$versions.room"
     implementation "androidx.room:room-ktx:$versions.room"
     kapt "androidx.room:room-compiler:$versions.room"
+
+    // Gson
+    implementation "com.google.code.gson:gson:$versions.gson"
 
     // Tests core
     testImplementation "junit:junit:$versions.junit"

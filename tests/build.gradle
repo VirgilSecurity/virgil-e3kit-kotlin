@@ -56,11 +56,6 @@ dependencies {
     androidTestImplementation "androidx.test.ext:junit:$versions.testsRunner"
     androidTestImplementation "androidx.test:runner:$versions.testsRunner"
 
-    // Room
-    implementation "androidx.room:room-runtime:$versions.room"
-    implementation "androidx.room:room-ktx:$versions.room"
-    testImplementation "androidx.room:room-testing:$versions.room"
-
     // Virgil test common
     implementation "com.virgilsecurity:test-common:$versions.virgilTestCommon"
 }

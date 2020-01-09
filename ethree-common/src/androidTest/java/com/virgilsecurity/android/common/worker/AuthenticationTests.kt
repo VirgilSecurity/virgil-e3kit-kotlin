@@ -68,14 +68,6 @@ class AuthenticationTests {
         this.crypto = VirgilCrypto()
         this.keyStorage = DefaultKeyStorage(TestConfig.DIRECTORY_PATH, TestConfig.KEYSTORE_NAME)
         this.ethree = EThree(identity,
-                             object : OnGetTokenCallback {
-                                 override fun onGetToken(): String {
-                                     return TestUtils.generateTokenString(identity)
-                                 }
-                             },
-                             TestConfig.context)
-
-        this.ethree = EThree(identity,
                              { TestUtils.generateTokenString(identity) },
                              TestConfig.context)
 

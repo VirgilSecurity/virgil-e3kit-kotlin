@@ -125,7 +125,8 @@ internal class FileTempKeysStorage(
             KeyType.PRIVATE -> {
                 val decryptedKey = crypto.authDecrypt(temporaryKey.key.value,
                                                       this.identityKeyPair.privateKey,
-                                                      this.identityKeyPair.publicKey).toData()
+                                                      this.identityKeyPair.publicKey,
+                                                      true).toData()
                 temporaryKey.copy(key = decryptedKey)
             }
             KeyType.PUBLIC -> {

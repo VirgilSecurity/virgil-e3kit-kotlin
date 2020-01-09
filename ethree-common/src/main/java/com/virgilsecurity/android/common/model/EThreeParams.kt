@@ -37,7 +37,9 @@ import android.content.Context
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.common.callback.OnKeyChangedCallback
 import com.virgilsecurity.android.common.util.Defaults
+import com.virgilsecurity.sdk.client.CardClient
 import com.virgilsecurity.sdk.common.TimeSpan
+import com.virgilsecurity.sdk.crypto.KeyPairType
 
 /**
  * EThreeParams
@@ -60,4 +62,7 @@ class EThreeParams(
 
     // TimeSpan of automatic rotate keys for double ratchet.
     var keyRotationInterval: TimeSpan = Defaults.keyRotationInterval
+
+    // Default key pair type
+    var keyPairType: KeyPairType = Defaults.keyPairType
 }

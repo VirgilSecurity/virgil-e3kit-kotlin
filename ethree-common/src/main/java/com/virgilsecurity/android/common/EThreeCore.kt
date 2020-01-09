@@ -76,7 +76,6 @@ import com.virgilsecurity.sdk.crypto.*
 import com.virgilsecurity.sdk.jwt.Jwt
 import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
 import com.virgilsecurity.sdk.jwt.contract.AccessTokenProvider
-import com.virgilsecurity.sdk.storage.DefaultKeyStorage
 import com.virgilsecurity.sdk.storage.KeyStorage
 import java.io.InputStream
 import java.io.OutputStream
@@ -115,6 +114,7 @@ abstract class EThreeCore {
     internal val enableRatchet: Boolean
     internal val keyRotationInterval: TimeSpan
     internal var timer: RepeatingTimer? = null
+    internal val keyPairType: KeyPairType
 
     protected val crypto: VirgilCrypto = VirgilCrypto()
 
@@ -126,18 +126,15 @@ abstract class EThreeCore {
     protected constructor(params: EThreeParams) : this(params.identity,
                                                        params.tokenCallback,
                                                        params.keyChangedCallback,
+                                                       params.keyPairType,
                                                        params.enableRatchet,
                                                        params.keyRotationInterval,
                                                        params.context)
 
-    /**
-     * Initializes [CardManager] with provided in [EThreeCore.initialize] callback
-     * [onGetTokenCallback] using [CachingJwtProvider] also initializing [DefaultKeyStorage] with
-     * default settings.
-     */
     protected constructor(identity: String,
                           getTokenCallback: OnGetTokenCallback,
                           keyChangedCallback: OnKeyChangedCallback?,
+                          keyPairType: KeyPairType,
                           enableRatchet: Boolean,
                           keyRotationInterval: TimeSpan,
                           context: Context) {
@@ -164,6 +161,7 @@ abstract class EThreeCore {
         this.lookupManager = LookupManager(cardStorageSqlite, cardManager, keyChangedCallback)
         this.rootPath = context.filesDir.absolutePath
 
+        this.keyPairType = keyPairType
         this.enableRatchet = enableRatchet
         this.keyRotationInterval = keyRotationInterval
     }
@@ -387,14 +385,6 @@ abstract class EThreeCore {
                 ReplaceWith("findUsers(List<String>)"))
     fun lookupPublicKeys(identities: List<String>): Result<LookupResult> =
             searchWorker.lookupPublicKeys(identities)
-
-    /**
-     * Derives different passwords for login and for backup from the one provided.
-     *
-     * @param password Password to derive from.
-     */
-    fun derivePasswords(password: String): DerivedPasswords =
-            backupWorker.derivePasswords(password)
 
     /**
      * Encrypts the user's private key using the user's [password] and backs up the encrypted
@@ -1274,7 +1264,7 @@ abstract class EThreeCore {
 
     internal fun publishCardThenSaveLocal(keyPair: VirgilKeyPair? = null,
                                           previousCardId: String? = null) {
-        val virgilKeyPair = keyPair ?: crypto.generateKeyPair()
+        val virgilKeyPair = keyPair ?: crypto.generateKeyPair(this.keyPairType)
 
         val card = if (previousCardId != null) {
             cardManager.publishCard(virgilKeyPair.privateKey,
@@ -1321,6 +1311,7 @@ abstract class EThreeCore {
 
     private fun setupTempChannelManager(keyPair: VirgilKeyPair) {
         tempChannelManager = TempChannelManager(crypto,
+                                                this.keyPairType,
                                                 accessTokenProvider,
                                                 localKeyStorage,
                                                 lookupManager,
@@ -1401,5 +1392,23 @@ abstract class EThreeCore {
 
     companion object {
         private val logger = Logger.getLogger(unwrapCompanionClass(this.javaClass).name)
+
+        /**
+         * Derives different passwords for login and for backup from the one provided.
+         *
+         * @param password Password to derive from.
+         */
+        @JvmStatic fun derivePasswordsInternal(password: String): DerivedPasswords {
+            val passwordData = password.toByteArray(Charsets.UTF_8)
+            val crypto = VirgilCrypto()
+
+            val hash1 = crypto.computeHash(passwordData, HashAlgorithm.SHA256)
+            val hash2 = crypto.computeHash(hash1, HashAlgorithm.SHA512)
+
+            val loginPassword = hash2.sliceArray(0 until 32).toData().toBase64String()
+            val backupPassword = hash2.sliceArray(32 until 64).toData().toBase64String()
+
+            return DerivedPasswords(loginPassword, backupPassword)
+        }
     }
 }

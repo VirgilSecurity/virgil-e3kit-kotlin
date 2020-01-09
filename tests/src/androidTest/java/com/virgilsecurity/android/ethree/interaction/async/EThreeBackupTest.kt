@@ -37,6 +37,9 @@ import android.util.Log
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.common.exception.EThreeException
+import com.virgilsecurity.android.common.model.FindUsersResult
+import com.virgilsecurity.android.common.model.ratchet.RatchetChannel
+import com.virgilsecurity.android.common.model.temporary.TemporaryChannel
 import com.virgilsecurity.android.ethree.interaction.EThree
 import com.virgilsecurity.android.ethree.utils.TestConfig
 import com.virgilsecurity.android.ethree.utils.TestConfig.Companion.virgilServiceAddress

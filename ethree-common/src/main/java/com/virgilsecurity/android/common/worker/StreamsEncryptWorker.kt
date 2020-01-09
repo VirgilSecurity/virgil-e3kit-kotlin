@@ -36,10 +36,10 @@ package com.virgilsecurity.android.common.worker
 import com.virgilsecurity.android.common.exception.EThreeException
 import com.virgilsecurity.android.common.model.FindUsersResult
 import com.virgilsecurity.android.common.storage.local.LocalKeyStorage
+import com.virgilsecurity.common.exception.EmptyArgumentException
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilPublicKey
-import com.virgilsecurity.sdk.exception.EmptyArgumentException
 import java.io.InputStream
 import java.io.OutputStream
 import java.util.*

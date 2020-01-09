@@ -41,10 +41,7 @@ import com.virgilsecurity.android.common.storage.local.FileTempKeysStorage
 import com.virgilsecurity.android.common.storage.local.LocalKeyStorage
 import com.virgilsecurity.keyknox.exception.KeyknoxServiceException
 import com.virgilsecurity.ratchet.exception.ProtocolException
-import com.virgilsecurity.sdk.crypto.VirgilCrypto
-import com.virgilsecurity.sdk.crypto.VirgilKeyPair
-import com.virgilsecurity.sdk.crypto.VirgilPrivateKey
-import com.virgilsecurity.sdk.crypto.VirgilPublicKey
+import com.virgilsecurity.sdk.crypto.*
 import com.virgilsecurity.sdk.jwt.contract.AccessTokenProvider
 
 /**
@@ -52,6 +49,7 @@ import com.virgilsecurity.sdk.jwt.contract.AccessTokenProvider
  */
 internal class TempChannelManager(
         private val crypto: VirgilCrypto,
+        private val keyPairType: KeyPairType,
         accessTokenProvider: AccessTokenProvider,
         private val localKeyStorage: LocalKeyStorage,
         private val lookupManager: LookupManager,
@@ -71,7 +69,7 @@ internal class TempChannelManager(
 
     internal fun create(identity: String): TemporaryChannel {
         val selfKeyPair = localKeyStorage.retrieveKeyPair()
-        val tempKeyPair = crypto.generateKeyPair()
+        val tempKeyPair = crypto.generateKeyPair(this.keyPairType)
 
         try {
             cloudStorage.store(tempKeyPair.privateKey, identity)

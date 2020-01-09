@@ -34,6 +34,7 @@
 package com.virgilsecurity.android.common.util
 
 import com.virgilsecurity.sdk.common.TimeSpan
+import com.virgilsecurity.sdk.crypto.KeyPairType
 import java.util.concurrent.TimeUnit
 
 /**
@@ -47,4 +48,6 @@ object Defaults {
     // TimeSpan of automatic rotate keys for double ratchet
     @JvmStatic
     val keyRotationInterval: TimeSpan = TimeSpan.fromTime(3_600L, TimeUnit.SECONDS)
+
+    @JvmStatic val keyPairType: KeyPairType = KeyPairType.ED25519
 }

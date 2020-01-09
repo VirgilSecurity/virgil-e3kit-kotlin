@@ -43,6 +43,7 @@ import com.virgilsecurity.android.ethree.interaction.EThree
 import com.virgilsecurity.common.extension.toData
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.sdk.common.TimeSpan
+import com.virgilsecurity.sdk.crypto.KeyPairType
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
 import com.virgilsecurity.sdk.utils.ConvertionUtils
@@ -131,7 +132,7 @@ class PeerToPeerTest {
 
         val plainData = TEXT.toByteArray()
         val card = ethree.findUser(ethree.identity).get()
-        val encryptedData = crypto.encrypt(plainData, card.publicKey)
+        val encryptedData = crypto.encrypt(plainData, card.publicKey, false)
         val encryptedString = ConvertionUtils.toBase64String(encryptedData)
 
         val otherCard = TestUtils.publishCard()
@@ -199,6 +200,7 @@ class PeerToPeerTest {
                                    }
                                },
                                TestConfig.context,
+                               keyPairType = KeyPairType.ED25519,
                                enableRatchet = false,
                                keyRotationInterval = TimeSpan.fromTime(3600, TimeUnit.SECONDS))
 
@@ -299,6 +301,7 @@ class PeerToPeerTest {
                                    }
                                },
                                TestConfig.context,
+                               keyPairType = KeyPairType.ED25519,
                                enableRatchet = false,
                                keyRotationInterval = TimeSpan.fromTime(3600, TimeUnit.SECONDS))
 

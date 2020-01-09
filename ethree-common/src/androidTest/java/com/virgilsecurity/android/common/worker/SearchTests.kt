@@ -40,8 +40,8 @@ import com.virgilsecurity.android.common.exception.FindUsersException
 import com.virgilsecurity.android.common.utils.TestConfig
 import com.virgilsecurity.android.common.utils.TestUtils
 import com.virgilsecurity.android.ethree.interaction.EThree
+import com.virgilsecurity.common.exception.EmptyArgumentException
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
-import com.virgilsecurity.sdk.exception.EmptyArgumentException
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
 import org.junit.Assert.*
 import org.junit.Before

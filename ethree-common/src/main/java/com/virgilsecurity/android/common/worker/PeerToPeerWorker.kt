@@ -38,13 +38,13 @@ import com.virgilsecurity.android.common.model.FindUsersResult
 import com.virgilsecurity.android.common.model.LookupResult
 import com.virgilsecurity.android.common.model.toPublicKeys
 import com.virgilsecurity.android.common.storage.local.LocalKeyStorage
+import com.virgilsecurity.common.exception.EmptyArgumentException
 import com.virgilsecurity.common.extension.toData
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilPublicKey
 import com.virgilsecurity.sdk.crypto.exceptions.VerificationException
-import com.virgilsecurity.sdk.exception.EmptyArgumentException
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.charset.StandardCharsets

@@ -143,7 +143,7 @@ internal class AuthEncryptWorker internal constructor(
         val pubKey = publicKey ?: selfKeyPair.publicKey
 
         return try {
-            crypto.authDecrypt(data.value, selfKeyPair.privateKey, pubKey).toData()
+            crypto.authDecrypt(data.value, selfKeyPair.privateKey, pubKey, true).toData()
         } catch (exception: Throwable) {
             when (exception.cause) {
                 is VerificationException -> {

@@ -42,6 +42,7 @@ import com.virgilsecurity.android.common.util.Const.NO_CONTEXT
 import com.virgilsecurity.android.common.util.Defaults
 import com.virgilsecurity.common.model.Result
 import com.virgilsecurity.sdk.common.TimeSpan
+import com.virgilsecurity.sdk.crypto.KeyPairType
 import com.virgilsecurity.sdk.jwt.Jwt
 import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
@@ -57,11 +58,13 @@ class EThree
         tokenCallback: OnGetTokenCallback,
         context: Context,
         keyChangedCallback: OnKeyChangedCallback? = null,
+        keyPairType: KeyPairType = Defaults.keyPairType,
         enableRatchet: Boolean = Defaults.enableRatchet,
         keyRotationInterval: TimeSpan = Defaults.keyRotationInterval
 ) : EThreeCore(identity,
                tokenCallback,
                keyChangedCallback,
+               keyPairType,
                enableRatchet,
                keyRotationInterval,
                context) {
@@ -78,25 +81,28 @@ class EThree
                                              params.tokenCallback,
                                              params.context,
                                              params.keyChangedCallback,
+                                             params.keyPairType,
                                              params.enableRatchet,
                                              params.keyRotationInterval)
 
     @JvmOverloads constructor(
             identity: String,
-            tokenCallback: () -> String,
+            tokenStringCallback: () -> String,
             context: Context,
             keyChangedCallback: OnKeyChangedCallback? = null,
+            keyPairType: KeyPairType = Defaults.keyPairType,
             enableRatchet: Boolean = Defaults.enableRatchet,
             keyRotationInterval: TimeSpan = Defaults.keyRotationInterval
     ) : this(identity,
              object : OnGetTokenCallback {
                  override fun onGetToken(): String {
-                     return tokenCallback()
+                     return tokenStringCallback()
                  }
 
              },
              context,
              keyChangedCallback,
+             keyPairType,
              enableRatchet,
              keyRotationInterval)
 
@@ -135,6 +141,9 @@ class EThree
                         return ethree
                     }
                 }
+
+        @JvmStatic
+        fun derivePasswords(password: String) = derivePasswordsInternal(password)
 
         private const val KEYSTORE_NAME = "virgil.keystore"
     }

@@ -59,19 +59,6 @@ internal class BackupWorker internal constructor(
         private val identity: String
 ) {
 
-    internal fun derivePasswords(password: String): DerivedPasswords {
-        val passwordData = password.toByteArray(Charsets.UTF_8)
-        val crypto = VirgilCrypto()
-
-        val hash1 = crypto.computeHash(passwordData, HashAlgorithm.SHA256)
-        val hash2 = crypto.computeHash(hash1, HashAlgorithm.SHA512)
-
-        val loginPassword = hash2.sliceArray(0 until 32).toData().toBase64String()
-        val backupPassword = hash2.sliceArray(32 until 64).toData().toBase64String()
-
-        return DerivedPasswords(loginPassword, backupPassword)
-    }
-
     internal fun backupPrivateKey(password: String): Completable = object : Completable {
         override fun execute() {
             try {

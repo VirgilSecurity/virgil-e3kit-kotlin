@@ -42,7 +42,7 @@ import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.common.utils.TestConfig
 import com.virgilsecurity.android.common.utils.TestUtils
 import com.virgilsecurity.android.ethree.interaction.EThree
-import com.virgilsecurity.sdk.crypto.KeyType
+import com.virgilsecurity.sdk.crypto.KeyPairType
 import com.virgilsecurity.sdk.crypto.VirgilKeyPair
 import org.junit.Ignore
 import org.junit.Rule
@@ -54,7 +54,7 @@ import java.util.*
 @LargeTest
 @RunWith(Parameterized::class)
 class EThreeBenchmark(
-        private val keyType: KeyType
+        private val keyType: KeyPairType
 ) {
 
     @get:Rule
@@ -156,9 +156,9 @@ class EThreeBenchmark(
 
         @JvmStatic
         @Parameterized.Parameters
-        fun data(): Collection<Array<KeyType>> = arrayListOf(
-            arrayOf(KeyType.ED25519),
-            arrayOf(KeyType.SECP256R1)
+        fun data(): Collection<Array<KeyPairType>> = arrayListOf(
+            arrayOf(KeyPairType.ED25519),
+            arrayOf(KeyPairType.SECP256R1)
         )
     }
 }

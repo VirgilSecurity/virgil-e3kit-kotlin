@@ -54,13 +54,15 @@ class TemporaryChannel(
     fun encrypt(data: Data): Data {
         require(data.value.isNotEmpty()) { "\'data\' should not be empty" }
 
-        return crypto.authEncrypt(data.value, this.selfPrivateKey, this.participantPublicKey).toData()
+        return crypto.authEncrypt(data.value, this.selfPrivateKey, this.participantPublicKey)
+                .toData()
     }
 
     fun decrypt(data: Data): Data {
         require(data.value.isNotEmpty()) { "\'data\' should not be empty" }
 
-        return crypto.authDecrypt(data.value, this.selfPrivateKey, this.participantPublicKey).toData()
+        return crypto.authDecrypt(data.value, this.selfPrivateKey, this.participantPublicKey, true)
+                .toData()
     }
 
     fun encrypt(text: String): String {
