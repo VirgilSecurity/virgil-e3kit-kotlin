@@ -36,7 +36,7 @@ buildscript {
 
     ext.versions = [
             // Virgil
-            virgilSdk       : '6.0.2',
+            virgilSdk       : '6.1.0',
             virgilCrypto    : '0.12.0',
             pythia          : '0.3.3',
             ratchet         : '0.2.0',
