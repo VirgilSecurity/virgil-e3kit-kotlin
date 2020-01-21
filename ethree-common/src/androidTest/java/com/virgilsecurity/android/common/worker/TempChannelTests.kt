@@ -54,7 +54,6 @@ import com.virgilsecurity.sdk.storage.DefaultKeyStorage
 import org.junit.Assert
 import org.junit.Assert.*
 import org.junit.Before
-import org.junit.Ignore
 import org.junit.Test
 import java.io.InputStreamReader
 import java.util.*

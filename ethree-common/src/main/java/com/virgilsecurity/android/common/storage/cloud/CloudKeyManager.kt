@@ -33,7 +33,7 @@
 
 package com.virgilsecurity.android.common.storage.cloud
 
-import com.virgilsecurity.android.common.build.VersionVirgilAgent
+import com.virgilsecurity.android.common.build.VirgilInfo
 import com.virgilsecurity.android.common.exception.EThreeException
 import com.virgilsecurity.android.common.util.Const
 import com.virgilsecurity.android.common.util.Const.VIRGIL_BASE_URL
@@ -67,13 +67,13 @@ internal class CloudKeyManager internal constructor(
     private val brainKey: BrainKey
 
     init {
-        val httpClient = HttpClient(tokenProvider, Const.ETHREE_NAME, VersionVirgilAgent.VERSION)
+        val httpClient = HttpClient(tokenProvider, Const.ETHREE_NAME, VirgilInfo.VERSION)
         val keyknoxClient = KeyknoxClient(httpClient, URL(baseUrl))
         this.keyknoxManager = KeyknoxManager(keyknoxClient)
 
         // TODO change VirgilPythiaClient to have tokenProvider inside
         val pythiaClient = VirgilPythiaClient(baseUrl, Const.ETHREE_NAME, Const.ETHREE_NAME,
-                                              VersionVirgilAgent.VERSION)
+                                              VirgilInfo.VERSION)
         val brainKeyContext = BrainKeyContext.Builder()
                 .setAccessTokenProvider(tokenProvider)
                 .setPythiaClient(pythiaClient)
@@ -104,8 +104,6 @@ internal class CloudKeyManager internal constructor(
 
     internal fun changePassword(oldPassword: String, newPassword: String) {
         val cloudKeyStorage = setupCloudKeyStorage(oldPassword)
-
-        Thread.sleep(2000)
 
         val brainKeyPair = this.brainKey.generateKeyPair(newPassword)
 

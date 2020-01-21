@@ -36,7 +36,7 @@ package com.virgilsecurity.android.common.worker
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
-import com.virgilsecurity.android.common.build.VersionVirgilAgent
+import com.virgilsecurity.android.common.build.VirgilInfo
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.common.exception.*
 import com.virgilsecurity.android.common.manager.GroupManager
@@ -265,7 +265,7 @@ class GroupTests {
                                                identity,
                                                crypto,
                                                virgilCardVerifier)
-        val httpClient = HttpClient(Const.ETHREE_NAME, VersionVirgilAgent.VERSION)
+        val httpClient = HttpClient(Const.ETHREE_NAME, VirgilInfo.VERSION)
         val cardManager = CardManager(VirgilCardCrypto(crypto),
                                       accessTokenProvider,
                                       VirgilCardVerifier(VirgilCardCrypto(crypto), false, false),

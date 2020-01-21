@@ -76,8 +76,6 @@ class EThreeAuthTest {
     private lateinit var keyStorage: KeyStorage
 
     @Before fun setup() {
-        TestUtils.pause()
-
         jwtGenerator = JwtGenerator(
             TestConfig.appId,
             TestConfig.appKey,
@@ -119,7 +117,7 @@ class EThreeAuthTest {
 
                 })
 
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        waiter.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
 
         return eThree!!
     }
@@ -139,7 +137,7 @@ class EThreeAuthTest {
             }
         })
 
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        waiter.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
 
         return eThree
     }
@@ -200,7 +198,7 @@ class EThreeAuthTest {
                 waiter.countDown()
             }
         })
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        waiter.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
     }
 
     // STE-Auth-11
@@ -224,7 +222,7 @@ class EThreeAuthTest {
                 waiter.countDown()
             }
         })
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        waiter.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
     }
 
     // STE-Auth-12
@@ -248,7 +246,7 @@ class EThreeAuthTest {
                 }
             }
         )
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        waiter.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
     }
 
     // STE-Auth-13
@@ -271,7 +269,7 @@ class EThreeAuthTest {
                 waiterTwo.countDown()
             }
         })
-        waiterTwo.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        waiterTwo.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
     }
 
     // STE-Auth-14
@@ -291,7 +289,7 @@ class EThreeAuthTest {
                 fail(throwable.message)
             }
         })
-        waiterTwo.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        waiterTwo.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
 
         assertTrue(cardManager.searchCards(identity).last().previousCardId != null)
 
@@ -322,7 +320,7 @@ class EThreeAuthTest {
                 // Just leave encrypted == null
             }
         })
-        waiterTwo.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        waiterTwo.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
 
         assertNotNull("Error during keys rotation", encrypted)
     }
@@ -350,7 +348,7 @@ class EThreeAuthTest {
                 waiterTwo.countDown()
             }
         })
-        waiterTwo.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        waiterTwo.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
 
         assertTrue(rotateFailed)
     }
@@ -383,7 +381,7 @@ class EThreeAuthTest {
                     }
 
                 })
-        waiterTwo.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        waiterTwo.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
 
         assertTrue(rotateFailed)
     }
@@ -406,7 +404,7 @@ class EThreeAuthTest {
                 fail(throwable.message)
             }
         })
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        waiter.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
         assertFalse(keyStorage.exists(identity))
 
         val cardsUnregistered = initCardManager(identity).searchCards(identity)
@@ -439,7 +437,7 @@ class EThreeAuthTest {
                 waiter.countDown()
             }
         })
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        waiter.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
         assertFalse(keyStorage.exists(identity))
 
         val cardsUnregistered = initCardManager(identity).searchCards(identity)

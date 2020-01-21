@@ -213,7 +213,7 @@ class PeerToPeerTest {
 
         val dateOne = Date()
 
-        TestUtils.pause(1000) // 1 sec
+        Thread.sleep(1000) // 1 sec
 
         val encrypted = ethree.authEncrypt(TEXT, FindUsersResult(mapOf(card.identity to card)))
 

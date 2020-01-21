@@ -70,8 +70,6 @@ class EThreeScopesTest {
     private lateinit var keyStorage: KeyStorage
 
     @Before fun setup() {
-        TestUtils.pause()
-
         jwtGenerator = JwtGenerator(
             TestConfig.appId,
             TestConfig.appKey,

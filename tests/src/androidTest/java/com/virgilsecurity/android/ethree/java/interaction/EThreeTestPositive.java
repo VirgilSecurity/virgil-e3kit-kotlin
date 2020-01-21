@@ -63,9 +63,6 @@ import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import kotlin.Function;
-import kotlin.jvm.functions.Function0;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -109,7 +106,7 @@ public class EThreeTestPositive {
                 fail(throwable.getMessage());
             }
         });
-        lock.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS);
+        lock.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS);
     }
 
     private CardManager initCardManager(String identity) {
@@ -144,7 +141,7 @@ public class EThreeTestPositive {
                 fail();
             }
         });
-        lock.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS);
+        lock.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS);
 
         CardManager cardManager = initCardManager(identity);
         List<Card> cards = cardManager.searchCards(identity);
@@ -171,6 +168,6 @@ public class EThreeTestPositive {
                 lock.countDown();
             }
         });
-        lock.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS);
+        lock.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS);
     }
 }

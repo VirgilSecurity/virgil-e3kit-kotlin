@@ -69,8 +69,6 @@ class EThreeSyncNegative {
     private lateinit var keyStorage: KeyStorage
 
     @Before fun setup() {
-        TestUtils.pause()
-
         jwtGenerator = JwtGenerator(
             TestConfig.appId,
             TestConfig.appKey,
@@ -160,8 +158,6 @@ class EThreeSyncNegative {
     @Test fun reset_key_backup_before_backup() {
         val password = UUID.randomUUID().toString()
         val eThreeWithPass = initEThree(identity)
-
-        TestUtils.pause()
 
         try {
             eThreeWithPass.resetPrivateKeyBackup(password).execute()

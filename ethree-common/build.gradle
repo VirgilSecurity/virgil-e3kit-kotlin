@@ -52,17 +52,14 @@ android {
 dependencies {
     // Kotlin
     compileOnly "org.jetbrains.kotlin:kotlin-stdlib:$versions.kotlin"
-    compileOnly "org.jetbrains.kotlinx:kotlinx-coroutines-core:$versions.coroutines"
+    api "org.jetbrains.kotlinx:kotlinx-coroutines-core:$versions.coroutines"
 
     // Virgil SDK
     api "com.virgilsecurity.sdk:sdk-android:$versions.virgilSdk"
     api "com.virgilsecurity.sdk:crypto-android:$versions.virgilSdk"
 
     // Virgil Pythia
-    api("com.virgilsecurity:pythia:$versions.pythia") {
-        exclude group: 'com.virgilsecurity.crypto'
-        exclude group: 'com.virgilsecurity.sdk'
-    }
+    api "com.virgilsecurity:pythia-android:$versions.pythia"
     api "com.virgilsecurity.crypto:pythia-android:$versions.virgilCrypto"
 
     // Virgil Ratchet
@@ -91,16 +88,16 @@ dependencies {
     implementation "com.virgilsecurity:test-common:$versions.virgilTestCommon"
 }
 
-task generateVersionVirgilAgent {
+task generateVirgilInfo {
     outputs.dir "$buildDir/generated"
     doFirst {
-        def versionFile = file("$buildDir/generated/release/com/virgilsecurity/android/common/build/VersionVirgilAgent.kt")
+        def versionFile = file("$buildDir/generated/release/com/virgilsecurity/android/common/build/VirgilInfo.kt")
         versionFile.parentFile.mkdirs()
         versionFile.text =
                 """
 package com.virgilsecurity.android.common.build;
 
-object VersionVirgilAgent {
+object VirgilInfo {
     const val VERSION = "$project.version"
 }
 """
@@ -110,7 +107,7 @@ object VersionVirgilAgent {
 project.android.sourceSets.main.java.srcDirs = ["${buildDir}/generated/release/", "src/main/java"]
 
 tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
-    dependsOn(generateVersionVirgilAgent)
+    dependsOn(generateVirgilInfo)
     dependsOn(copyEnvFile)
 }
 

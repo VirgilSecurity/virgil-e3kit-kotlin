@@ -125,8 +125,6 @@ class BackupTests {
             assertTrue(exception.description == EThreeException.Description.MISSING_PRIVATE_KEY)
         }
 
-        TestUtils.pause()
-
         val keyPair = TestConfig.virgilCrypto.generateKeyPair()
         val data = TestConfig.virgilCrypto.exportPrivateKey(keyPair.privateKey)
 
@@ -134,15 +132,11 @@ class BackupTests {
 
         ethree.backupPrivateKey(password).execute()
 
-        TestUtils.pause()
-
         val syncKeyStorage = initSyncKeyStorage(ethree.identity, password)
 
         val syncEntry = syncKeyStorage.retrieve(ethree.identity)
         assertNotNull(syncEntry)
         assertArrayEquals(data, syncEntry.value)
-
-        TestUtils.pause()
 
         try {
             ethree.backupPrivateKey(password).execute()
@@ -162,8 +156,6 @@ class BackupTests {
         val syncKeyStorage = initSyncKeyStorage(ethree.identity, password)
         syncKeyStorage.store(ethree.identity, data)
 
-        TestUtils.pause()
-
         try {
             ethree.restorePrivateKey(WRONG_PASSWORD).execute()
         } catch (exception: EThreeException) {
@@ -172,15 +164,11 @@ class BackupTests {
         }
 
 
-        TestUtils.pause()
-
         ethree.restorePrivateKey(password).execute()
 
         val retrievedEntry = keyStorage.load(ethree.identity)
         assertNotNull(retrievedEntry)
         assertArrayEquals(data, retrievedEntry.value)
-
-        TestUtils.pause()
 
         try {
             ethree.restorePrivateKey(password).execute()
@@ -200,13 +188,9 @@ class BackupTests {
         val syncKeyStorage = initSyncKeyStorage(ethree.identity, password)
         syncKeyStorage.store(ethree.identity, data)
 
-        TestUtils.pause()
-
         val passwordNew = UUID.randomUUID().toString()
 
         ethree.changePassword(password, passwordNew).execute()
-
-        TestUtils.pause()
 
         try {
             ethree.restorePrivateKey(password).execute()
@@ -214,8 +198,6 @@ class BackupTests {
             if (exception.description != EThreeException.Description.WRONG_PASSWORD)
                 fail()
         }
-
-        TestUtils.pause()
 
         ethree.restorePrivateKey(passwordNew).execute()
 
@@ -236,12 +218,8 @@ class BackupTests {
         val keyPair = TestConfig.virgilCrypto.generateKeyPair()
         val data = TestConfig.virgilCrypto.exportPrivateKey(keyPair.privateKey)
 
-        TestUtils.pause()
-
         val syncKeyStorage = initSyncKeyStorage(ethree.identity, password)
         syncKeyStorage.store(ethree.identity, data)
-
-        TestUtils.pause()
 
         ethree.resetPrivateKeyBackup(password).execute()
 
@@ -260,12 +238,8 @@ class BackupTests {
         val keyPair = TestConfig.virgilCrypto.generateKeyPair()
         val data = TestConfig.virgilCrypto.exportPrivateKey(keyPair.privateKey)
 
-        TestUtils.pause()
-
         val syncKeyStorage = initSyncKeyStorage(ethree.identity, password)
         syncKeyStorage.store(ethree.identity, data)
-
-        TestUtils.pause()
 
         ethree.resetPrivateKeyBackup().execute()
 

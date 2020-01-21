@@ -35,7 +35,7 @@ package com.virgilsecurity.android.common
 
 import android.content.Context
 import com.google.gson.Gson
-import com.virgilsecurity.android.common.build.VersionVirgilAgent
+import com.virgilsecurity.android.common.build.VirgilInfo
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.common.callback.OnKeyChangedCallback
 import com.virgilsecurity.android.common.exception.*
@@ -61,6 +61,7 @@ import com.virgilsecurity.common.model.Completable
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.common.model.Result
 import com.virgilsecurity.keyknox.utils.unwrapCompanionClass
+import com.virgilsecurity.ratchet.client.RatchetClient
 import com.virgilsecurity.ratchet.exception.ProtocolException
 import com.virgilsecurity.ratchet.exception.SecureChatException
 import com.virgilsecurity.ratchet.securechat.SecureChat
@@ -143,7 +144,7 @@ abstract class EThreeCore {
 
         val cardCrypto = VirgilCardCrypto(crypto)
         val virgilCardVerifier = VirgilCardVerifier(cardCrypto)
-        val httpClient = HttpClient(Const.ETHREE_NAME, VersionVirgilAgent.VERSION)
+        val httpClient = HttpClient(Const.ETHREE_NAME, VirgilInfo.VERSION)
         this.accessTokenProvider = CachingJwtProvider { Jwt(getTokenCallback.onGetToken()) }
 
         cardManager = CardManager(cardCrypto,
@@ -1359,10 +1360,12 @@ abstract class EThreeCore {
     }
 
     private fun setupSecureChat(keyPair: VirgilKeyPair, card: Card): SecureChat {
+        val ratchetClient = RatchetClient(product = Const.ETHREE_NAME, version = VirgilInfo.VERSION)
         val context = SecureChatContext(card,
                                         keyPair,
                                         this.accessTokenProvider,
-                                        rootPath)
+                                        rootPath,
+                                        ratchetClient = ratchetClient)
 
         val chat = SecureChat(context)
         this.secureChat = chat

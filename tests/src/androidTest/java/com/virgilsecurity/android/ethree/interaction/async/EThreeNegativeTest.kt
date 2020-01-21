@@ -134,7 +134,7 @@ class EThreeNegativeTest {
 
                 })
 
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        waiter.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
 
         return eThree!!
     }
@@ -154,7 +154,7 @@ class EThreeNegativeTest {
             }
         })
 
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        waiter.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
 
         return eThree
     }
@@ -181,7 +181,7 @@ class EThreeNegativeTest {
                 waiter.countDown()
             }
         })
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        waiter.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
         assertTrue(failed)
     }
 
@@ -198,7 +198,7 @@ class EThreeNegativeTest {
                 waiter.countDown()
             }
         })
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        waiter.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
         assertTrue(failed)
     }
 
@@ -216,7 +216,7 @@ class EThreeNegativeTest {
                         waiter.countDown()
                     }
                 })
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        waiter.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
         assertTrue(failed)
     }
 
@@ -254,7 +254,7 @@ class EThreeNegativeTest {
                         waiter.countDown()
                     }
                 })
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        waiter.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
         assertTrue(failed)
     }
 
@@ -280,7 +280,7 @@ class EThreeNegativeTest {
                         waiter.countDown()
                     }
                 })
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        waiter.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
         assertTrue(failed)
     }
 
@@ -303,7 +303,7 @@ class EThreeNegativeTest {
                         waiter.countDown()
                     }
                 })
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        waiter.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
         assertTrue(failed)
     }
 
@@ -326,7 +326,7 @@ class EThreeNegativeTest {
                 waiter.countDown()
             }
         })
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        waiter.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
         assertTrue(failed)
     }
 
@@ -355,7 +355,7 @@ class EThreeNegativeTest {
                 waiter.countDown()
             }
         })
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        waiter.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
         assertTrue(failed)
     }
 
@@ -378,7 +378,7 @@ class EThreeNegativeTest {
                 waiter.countDown()
             }
         })
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        waiter.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
         assertTrue(failed)
     }
 

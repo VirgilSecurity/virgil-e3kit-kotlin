@@ -173,8 +173,6 @@ class SearchTests {
                                TestConfig.context,
                                onKeyChangedCallback)
 
-        TestUtils.pause(3 * 1000) // 3 sec
-
         assertTrue(onKeyChangedCallback.called)
 
         val cardCached = ethreeNew.findCachedUser(card.identity).get() ?: error("")

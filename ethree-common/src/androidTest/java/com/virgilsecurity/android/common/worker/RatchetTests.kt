@@ -368,8 +368,6 @@ class RatchetTests {
 
         ethree1.joinRatchetChannel(card2).get()
 
-        TestUtils.pause(5)
-
         secureChat1.oneTimeKeysStorage.startInteraction()
         val keys2 = secureChat1.oneTimeKeysStorage.retrieveAllKeys()
         secureChat1.oneTimeKeysStorage.stopInteraction()

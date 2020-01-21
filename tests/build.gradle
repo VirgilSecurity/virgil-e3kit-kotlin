@@ -48,9 +48,6 @@ dependencies {
     androidTestImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$versions.kotlin"
     implementation "androidx.appcompat:appcompat:$versions.appCompat"
 
-    // Coroutines
-    androidTestImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$versions.coroutines"
-
     // Tests core
     testImplementation "junit:junit:$versions.junit"
     androidTestImplementation "androidx.test.ext:junit:$versions.testsRunner"
