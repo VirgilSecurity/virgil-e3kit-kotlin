@@ -109,6 +109,7 @@ project.android.sourceSets.main.java.srcDirs = ["${buildDir}/generated/release/"
 tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
     dependsOn(generateVirgilInfo)
     dependsOn(copyEnvFile)
+    dependsOn(copyCompatDataFile)
 }
 
 publishing {
@@ -127,5 +128,13 @@ task copyEnvFile(type: Copy) {
     if (!resourcesFolder.exists()) resourcesFolder.mkdirs()
 
     from rootProject.projectDir.absolutePath + '/env.json'
+    into resourcesFolder.absolutePath
+}
+
+task copyCompatDataFile(type: Copy) {
+    def resourcesFolder = new File(project.projectDir.absolutePath + '/src/androidTest/resources/compat')
+    if (!resourcesFolder.exists()) resourcesFolder.mkdirs()
+
+    from rootProject.projectDir.absolutePath + '/compat_data.json'
     into resourcesFolder.absolutePath
 }

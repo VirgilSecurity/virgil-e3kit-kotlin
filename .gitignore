@@ -178,4 +178,4 @@ fabric.properties
 !crypto/libs/virgil_crypto_java.jar
 publishArtifacts.sh
 env.json
-publish.properties
+compat_data.json

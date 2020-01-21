@@ -101,6 +101,24 @@ allprojects {
 }
 
 /**
+ * Gets property from system properties.
+ *
+ * @param name Of System property to get.
+ *
+ * @return System property or null if not found.
+ */
+def static getSystemProperty(String name) {
+    def property
+    if (System.getProperty(name) != null) {
+        property = System.getProperty(name)
+    } else {
+        property = System.getenv(name)
+    }
+
+    return property
+}
+
+/**
  * Gets property from both - gradle properties and system properties.
  *
  * @param name Of property to get.

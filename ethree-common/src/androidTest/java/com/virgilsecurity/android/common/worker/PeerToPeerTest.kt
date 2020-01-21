@@ -41,10 +41,10 @@ import com.virgilsecurity.android.common.utils.TestConfig
 import com.virgilsecurity.android.common.utils.TestUtils
 import com.virgilsecurity.android.ethree.interaction.EThree
 import com.virgilsecurity.common.extension.toData
-import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.sdk.common.TimeSpan
 import com.virgilsecurity.sdk.crypto.KeyPairType
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
+import com.virgilsecurity.sdk.crypto.exceptions.VerificationException
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
 import com.virgilsecurity.sdk.utils.ConvertionUtils
 import org.junit.Assert.*
@@ -233,14 +233,14 @@ class PeerToPeerTest {
             ethreeTwo.authDecrypt(encrypted, cardTwo)
             fail()
         } catch (throwable: Throwable) {
-            // We're good
+            assertTrue(throwable is VerificationException)
         }
 
         try {
             ethreeTwo.authDecrypt(encrypted, cardTwo, dateTwo)
             fail()
         } catch (throwable: Throwable) {
-            // We're good
+            assertTrue(throwable is VerificationException)
         }
 
         val decrypted = ethreeTwo.authDecrypt(encrypted, cardTwo, dateOne)
@@ -250,7 +250,7 @@ class PeerToPeerTest {
             ethreeTwo.authDecrypt(encryptedTwo, cardTwo, dateOne)
             fail()
         } catch (throwable: Throwable) {
-            // We're good
+            assertTrue(throwable is VerificationException)
         }
 
         val decryptedTwo = ethreeTwo.authDecrypt(encryptedTwo, cardTwo, dateTwo)
@@ -320,7 +320,8 @@ class PeerToPeerTest {
             ethreeTwo.decrypt(encrypted, otherCard)
             fail()
         } catch (throwable: Throwable) {
-            // We're good
+            assertTrue(throwable is EThreeException
+                       && throwable.description == EThreeException.Description.VERIFICATION_FAILED)
         }
 
         val cardTwo = ethreeTwo.findUser(ethree.identity, forceReload = false).get()

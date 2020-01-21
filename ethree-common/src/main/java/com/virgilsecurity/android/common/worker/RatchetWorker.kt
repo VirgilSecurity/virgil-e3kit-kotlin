@@ -38,11 +38,13 @@ import com.virgilsecurity.android.common.model.ratchet.RatchetChannel
 import com.virgilsecurity.android.common.storage.cloud.CloudRatchetStorage
 import com.virgilsecurity.common.model.Completable
 import com.virgilsecurity.common.model.Result
+import com.virgilsecurity.keyknox.utils.unwrapCompanionClass
 import com.virgilsecurity.ratchet.exception.FileDeletionException
 import com.virgilsecurity.ratchet.securechat.SecureChat
 import com.virgilsecurity.ratchet.securechat.SecureSession
 import com.virgilsecurity.sdk.cards.Card
 import java.util.*
+import java.util.logging.Logger
 
 /**
  * RatchetWorker
@@ -129,8 +131,13 @@ internal class RatchetWorker internal constructor(
 
                     try {
                         secureChat.deleteSession(card.identity, name)
-                    } catch (_: FileDeletionException) {
+                    } catch (exception: FileDeletionException) {
+                        logger.fine("Delete session failed: ${exception.localizedMessage}")
                     }
                 }
             }
+
+    companion object {
+        private val logger = Logger.getLogger(unwrapCompanionClass(this.javaClass).name)
+    }
 }

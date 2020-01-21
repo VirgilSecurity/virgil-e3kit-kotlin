@@ -142,6 +142,8 @@ class SearchTests {
         } catch (throwable: Throwable) {
             if (throwable is FindUsersException) {
                 assertTrue(throwable.description == FindUsersException.Description.DUPLICATE_CARDS)
+            } else {
+                fail()
             }
         }
     }
