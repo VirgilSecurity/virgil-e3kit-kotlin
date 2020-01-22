@@ -2,6 +2,12 @@ language: android
 sudo: required
 jdk: oraclejdk8
 
+# Build all branches including gh-pages. Without this gh-pages will not be built.
+branches:
+  only:
+    - gh-pages
+    - /.*/
+
 before_cache:
   - rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
   - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
