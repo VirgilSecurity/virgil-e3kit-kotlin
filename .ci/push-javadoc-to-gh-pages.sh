@@ -43,9 +43,9 @@ get_version () {
 
   while read line; do
 
-    firstWord="$(cut -d' ' -f1 <<< "$line")"
+    firstWord="$(cut -d'=' -f1 <<< "$line")"
 
-    if [[ "$firstWord" = "version" ]];
+    if [[ "$firstWord" = "final String SDK_VERSION " ]];
     then
       version="$(cut -d"'" -f2 <<< "$line")"
     fi
@@ -79,8 +79,8 @@ generate_index_page() {
       <h3>E3Kit</h3>
       <ul><li><a href="content/ethree-kotlin/${2}/ethree-kotlin/index.html">${2}</a></li></ul>
 
-      <h3>E3Kit Coroutines</h3>
-      <ul><li><a href="content/ethree-kotlin-coroutines/${3}/ethree-kotlin-coroutines/index.html">${3}</a></li></ul>
+      <h3>E3Kit Enclave</h3>
+      <ul><li><a href="content/ethree-enclave/${3}/ethree-enclave/index.html">${3}</a></li></ul>
 
       <p>&nbsp;</p>
       <h2 style="color:#110B91B1;">Internal modules</h2>
@@ -99,32 +99,28 @@ generate_index_page() {
 EOL
 }
 
-if [[ "$TRAVIS_REPO_SLUG" == "VirgilSecurity/virgil-e3kit-kotlin" ]] && [[ "$TRAVIS_PULL_REQUEST" == "false" ]] && [[ "$TRAVIS_BRANCH" == "master" ]]; then
+if [[ "$TRAVIS_REPO_SLUG" == "VirgilSecurity/virgil-e3kit-kotlin" ]] && [[ "$TRAVIS_PULL_REQUEST" == "false" ]] && [[ "$TRAVIS_BRANCH" == "master" ]] && [[ "$TRAVIS_BRANCH" == "fix/gh-pages" ]]; then
 
   echo -e "Publishing javadoc...\n"
 
   # Generate docs
   ./gradlew :ethree-common:javadocJar
   ./gradlew :ethree-kotlin:javadocJar
-  ./gradlew :ethree-kotlin-coroutines:javadocJar
+  ./gradlew :ethree-enclave:javadocJar
 
-  versionCommon="-1"
-  versionEthree="-1"
-  versionEthreeCoroutines="-1"
+  version="-1"
 
   # Get each module version
-  get_version "ethree-common/build.gradle" versionCommon
-  get_version "ethree-kotlin/build.gradle" versionEthree
-  get_version "ethree-kotlin-coroutines/build.gradle" versionEthreeCoroutines
+  get_version "build.gradle" version
 
   # Create each module docs temporary folder
   mkdir $HOME/javadoc-latest/
-  mkdir $HOME/javadoc-latest/${versionCommon}/
-  mkdir $HOME/javadoc-latest/${versionEthree}/
-  mkdir $HOME/javadoc-latest/${versionEthreeCoroutines}/
-  cp -R ethree-common/build/javadoc/. $HOME/javadoc-latest/${versionCommon}/
-  cp -R ethree-kotlin/build/javadoc/. $HOME/javadoc-latest/${versionEthree}/
-  cp -R ethree-kotlin-coroutines/build/javadoc/. $HOME/javadoc-latest/${versionEthreeCoroutines}/
+  mkdir $HOME/javadoc-latest/${version}/
+  mkdir $HOME/javadoc-latest/${version}/
+  mkdir $HOME/javadoc-latest/${version}/
+  cp -R ethree-common/build/javadoc/. $HOME/javadoc-latest/${version}/
+  cp -R ethree-kotlin/build/javadoc/. $HOME/javadoc-latest/${version}/
+  cp -R ethree-enclave/build/javadoc/. $HOME/javadoc-latest/${version}/
 
   # Get last gh-pages docs
   cd $HOME
@@ -138,17 +134,17 @@ if [[ "$TRAVIS_REPO_SLUG" == "VirgilSecurity/virgil-e3kit-kotlin" ]] && [[ "$TRA
   git rm -rf content
 
   # Create main index page for all modules
-  versions=(${versionCommon} ${versionEthree} ${versionEthreeCoroutines})
+  versions=(${version} ${version} ${version})
   generate_index_page ${versions[*]}
 
   # Move each module docs to actual folder
   mkdir content
   mkdir content/ethree-common/
   mkdir content/ethree-kotlin/
-  mkdir content/ethree-kotlin-coroutines/
-  mv $HOME/javadoc-latest/${versionCommon} content/ethree-common/
-  mv $HOME/javadoc-latest/${versionEthree} content/ethree-kotlin/
-  mv $HOME/javadoc-latest/${versionEthreeCoroutines} content/ethree-kotlin-coroutines/
+  mkdir content/ethree-enclave/
+  mv $HOME/javadoc-latest/${version} content/ethree-common/
+  mv $HOME/javadoc-latest/${version} content/ethree-kotlin/
+  mv $HOME/javadoc-latest/${version} content/ethree-enclave/
 
   # Add new docs to index and commit
   git add -f .
