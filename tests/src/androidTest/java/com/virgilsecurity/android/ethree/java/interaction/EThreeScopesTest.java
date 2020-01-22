@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019, Virgil Security, Inc.
+ * Copyright (c) 2015-2020, Virgil Security, Inc.
  *
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  *
@@ -87,8 +87,8 @@ public class EThreeScopesTest {
     @Before
     public void setup() {
         jwtGenerator = new JwtGenerator(TestConfig.Companion.getAppId(),
-                                        TestConfig.Companion.getApiKey(),
-                                        TestConfig.Companion.getApiPublicKeyId(),
+                                        TestConfig.Companion.getAppKey(),
+                                        TestConfig.Companion.getAppPublicKeyId(),
                                         TimeSpan.fromTime(600, TimeUnit.SECONDS),
                                         new VirgilAccessTokenSigner(TestConfig.Companion.getVirgilCrypto()));
 
@@ -98,7 +98,7 @@ public class EThreeScopesTest {
             fail(e.getMessage());
         }
         keyStorage = new DefaultKeyStorage(TestConfig.Companion.getDIRECTORY_PATH(),
-                                           TestConfig.Companion.getKEYSTORE_NAME());
+                                           TestConfig.KEYSTORE_NAME);
     }
 
     private CardManager initCardManager(String identity) {
@@ -106,7 +106,7 @@ public class EThreeScopesTest {
         return new CardManager(cardCrypto,
                                new GeneratorJwtProvider(jwtGenerator, identity),
                                new VirgilCardVerifier(cardCrypto, false, false),
-                               new VirgilCardClient(TestConfig.Companion.getVirgilBaseUrl()
+                               new VirgilCardClient(TestConfig.Companion.getVirgilServiceAddress()
                                                             + TestConfig.VIRGIL_CARDS_SERVICE_PATH));
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019, Virgil Security, Inc.
+ * Copyright (c) 2015-2020, Virgil Security, Inc.
  *
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  *
@@ -33,7 +33,7 @@
 
 package com.virgilsecurity.android.common.manager
 
-import com.virgilsecurity.android.common.exception.GroupNotFoundException
+import com.virgilsecurity.android.common.exception.GroupException
 import com.virgilsecurity.android.common.model.Group
 import com.virgilsecurity.android.common.model.GroupInfo
 import com.virgilsecurity.android.common.model.RawGroup
@@ -42,8 +42,9 @@ import com.virgilsecurity.android.common.storage.cloud.CloudTicketStorage
 import com.virgilsecurity.android.common.storage.local.FileGroupStorage
 import com.virgilsecurity.android.common.storage.local.LocalKeyStorage
 import com.virgilsecurity.common.model.Data
+import com.virgilsecurity.keyknox.utils.unwrapCompanionClass
 import com.virgilsecurity.sdk.cards.Card
-import com.virgilsecurity.sdk.crypto.VirgilCrypto
+import java.util.logging.Logger
 
 /**
  * GroupManager
@@ -52,20 +53,19 @@ internal class GroupManager internal constructor(
         internal val localGroupStorage: FileGroupStorage,
         internal val cloudTicketStorage: CloudTicketStorage,
         private val localKeyStorage: LocalKeyStorage,
-        private val lookupManager: LookupManager,
-        private val crypto: VirgilCrypto
+        private val lookupManager: LookupManager
 ) {
 
     internal val identity: String = localGroupStorage.identity
 
     private fun parse(rawGroup: RawGroup): Group = Group(rawGroup,
-                                                         crypto,
                                                          localKeyStorage,
                                                          this,
                                                          lookupManager)
 
     internal fun store(ticket: Ticket, cards: List<Card>): Group {
-        val rawGroup = RawGroup(GroupInfo(this.identity), listOf(ticket))
+        val info = GroupInfo(this.identity)
+        val rawGroup = RawGroup(info, listOf(ticket))
 
         cloudTicketStorage.store(ticket, cards)
         localGroupStorage.store(rawGroup)
@@ -74,21 +74,27 @@ internal class GroupManager internal constructor(
     }
 
     internal fun pull(sessionId: Data, card: Card): Group {
-        val tickets = cloudTicketStorage.retrieve(sessionId,
-                                                  card.identity,
-                                                  card.publicKey)
+        val cloudEpochs = cloudTicketStorage.getEpochs(sessionId, card.identity)
+        val localEpochs = localGroupStorage.getEpochs(sessionId)
 
-        if (tickets.isEmpty()) {
+        val anyEpoch = cloudEpochs.firstOrNull()
+        if (anyEpoch == null) {
             localGroupStorage.delete(sessionId)
 
-            throw GroupNotFoundException("Group with provided id was not found")
+            throw GroupException(GroupException.Description.GROUP_WAS_NOT_FOUND)
         }
 
-        val rawGroup = RawGroup(GroupInfo(card.identity), tickets)
+        val epochs = cloudEpochs.subtract(localEpochs).toMutableSet()
+        epochs.add(anyEpoch)
+
+        val tickets = cloudTicketStorage.retrieve(sessionId, card.identity, card.publicKey, epochs)
+        val info = GroupInfo(card.identity)
+        val rawGroup = RawGroup(info, tickets)
 
         localGroupStorage.store(rawGroup)
 
-        return parse(rawGroup)
+        return retrieve(sessionId)
+               ?: throw GroupException(GroupException.Description.INCONSISTENT_STATE)
     }
 
     internal fun addAccess(cards: List<Card>, sessionId: Data) =
@@ -98,15 +104,27 @@ internal class GroupManager internal constructor(
             cloudTicketStorage.reAddRecipient(card, sessionId)
 
     internal fun retrieve(sessionId: Data): Group? {
-        val rawGroup = localGroupStorage.retrieve(sessionId, MAX_TICKETS_IN_GROUP)
+        val ticketsCount = MAX_TICKETS_IN_GROUP
 
-        return if (rawGroup == null) rawGroup else parse(rawGroup)
+        val rawGroup = try {
+            localGroupStorage.retrieve(sessionId, ticketsCount)
+        } catch (throwable: Throwable) {
+            logger.info(throwable.message)
+            return null
+        }
+
+        return parse(rawGroup)
     }
 
     internal fun retrieve(sessionId: Data, epoch: Long): Group? {
-        val rawGroup = localGroupStorage.retrieve(sessionId, epoch)
+        val rawGroup = try {
+            localGroupStorage.retrieve(sessionId, epoch)
+        } catch (throwable: Throwable) {
+            logger.info(throwable.message)
+            return null
+        }
 
-        return if (rawGroup == null) rawGroup else parse(rawGroup)
+        return parse(rawGroup)
     }
 
     internal fun removeAccess(identities: Set<String>, sessionId: Data) {
@@ -122,5 +140,7 @@ internal class GroupManager internal constructor(
 
     companion object {
         internal const val MAX_TICKETS_IN_GROUP = 50
+
+        private val logger = Logger.getLogger(unwrapCompanionClass(this.javaClass).name)
     }
 }

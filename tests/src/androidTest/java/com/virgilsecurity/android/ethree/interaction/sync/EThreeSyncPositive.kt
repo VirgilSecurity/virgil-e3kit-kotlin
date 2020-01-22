@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019, Virgil Security, Inc.
+ * Copyright (c) 2015-2020, Virgil Security, Inc.
  *
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  *
@@ -70,7 +70,6 @@ import org.junit.Test
 import java.net.URL
 import java.util.*
 import java.util.concurrent.TimeUnit
-import kotlin.String.Companion
 
 /**
  * EThreeSyncPositive
@@ -82,12 +81,10 @@ class EThreeSyncPositive {
     private lateinit var keyStorage: KeyStorage
 
     @Before fun setup() {
-        TestUtils.pause()
-
         jwtGenerator = JwtGenerator(
             TestConfig.appId,
-            TestConfig.apiKey,
-            TestConfig.apiPublicKeyId,
+            TestConfig.appKey,
+            TestConfig.appPublicKeyId,
             TimeSpan.fromTime(600, TimeUnit.SECONDS),
             VirgilAccessTokenSigner(TestConfig.virgilCrypto)
         )
@@ -119,7 +116,7 @@ class EThreeSyncPositive {
             cardCrypto,
             GeneratorJwtProvider(jwtGenerator, identity),
             VirgilCardVerifier(cardCrypto, false, false),
-            VirgilCardClient(TestConfig.virgilBaseUrl + TestConfig.VIRGIL_CARDS_SERVICE_PATH)
+            VirgilCardClient(TestConfig.virgilServiceAddress + TestConfig.VIRGIL_CARDS_SERVICE_PATH)
         )
     }
 
@@ -129,7 +126,7 @@ class EThreeSyncPositive {
         })
         val brainKeyContext = BrainKeyContext.Builder()
                 .setAccessTokenProvider(tokenProvider)
-                .setPythiaClient(VirgilPythiaClient(TestConfig.virgilBaseUrl))
+                .setPythiaClient(VirgilPythiaClient(TestConfig.virgilServiceAddress))
                 .setPythiaCrypto(VirgilPythiaCrypto())
                 .build()
         val keyPair = BrainKey(brainKeyContext).generateKeyPair(passwordBrainKey)
@@ -139,7 +136,7 @@ class EThreeSyncPositive {
             keyStorage,
             CloudKeyStorage(
                 KeyknoxManager(
-                    KeyknoxClient(tokenProvider, URL(TestConfig.virgilBaseUrl)),
+                    KeyknoxClient(tokenProvider, URL(TestConfig.virgilServiceAddress)),
                     KeyknoxCrypto()
                 ),
                 listOf(keyPair.publicKey),
@@ -187,11 +184,7 @@ class EThreeSyncPositive {
         val password = UUID.randomUUID().toString()
         val eThree = initAndRegisterEThree(identity)
 
-        TestUtils.pause()
-
         eThree.backupPrivateKey(password).execute()
-
-        TestUtils.pause()
 
         val syncKeyStorage = initSyncKeyStorage(identity, password)
         assertTrue(syncKeyStorage.exists(identity))
@@ -207,16 +200,10 @@ class EThreeSyncPositive {
 
         eThreeWithPass.backupPrivateKey(password).execute()
 
-        TestUtils.pause()
-
         eThreeWithPass.resetPrivateKeyBackup(password).execute()
-
-        TestUtils.pause()
 
         val syncKeyStorage = initSyncKeyStorage(identity, password)
         assertFalse(syncKeyStorage.exists(identity))
-
-        TestUtils.pause() // To avoid throttling in next test
     }
 
     // STE-16 - Sync
@@ -225,15 +212,11 @@ class EThreeSyncPositive {
         val eThreeWithPass = initAndRegisterEThree(identity)
         eThreeWithPass.backupPrivateKey(password).execute()
 
-        TestUtils.pause()
-
         val syncKeyStorage = initSyncKeyStorage(identity, password)
         assertTrue(syncKeyStorage.exists(identity))
         val retrievedKey = syncKeyStorage.retrieve(identity)
         assertEquals(TestConfig.virgilCrypto.importPrivateKey(keyStorage.load(identity).value),
                      TestConfig.virgilCrypto.importPrivateKey(retrievedKey.value))
-
-        TestUtils.pause()
 
         eThreeWithPass.cleanup()
         eThreeWithPass.restorePrivateKey(password).execute()
@@ -263,11 +246,7 @@ class EThreeSyncPositive {
         val eThreeWithPass = initAndRegisterEThree(identity)
         eThreeWithPass.backupPrivateKey(password).execute()
 
-        TestUtils.pause()
-
         eThreeWithPass.changePassword(password, passwordNew).execute()
-
-        TestUtils.pause()
 
         eThreeWithPass.cleanup()
         assertFalse(keyStorage.exists(identity))
@@ -317,5 +296,31 @@ class EThreeSyncPositive {
         assertTrue(lookupResult[identityOne] == publishedCardOne.publicKey
                    && lookupResult[identityTwo] == publishedCardTwo.publicKey
                    && lookupResult[identityThree] == publishedCardThree.publicKey)
+    }
+
+    @Test fun lookup_huge_amount_identities() {
+        val identities: MutableSet<String> = mutableSetOf()
+        while (identities.size < HUGE_AMOUNT) {
+            identities.add(UUID.randomUUID().toString())
+        }
+        assertEquals(HUGE_AMOUNT, identities.size)
+
+        identities.forEach { identity ->
+            val cardManager = initCardManager(identity)
+            val rawCard = generateRawCard(identity, cardManager).right
+            cardManager.publishCard(rawCard)
+        }
+
+        val ethree = initEThree(UUID.randomUUID().toString())
+
+        val lookupResult = ethree.lookupPublicKeys(identities.toList()).get()
+        assertEquals(HUGE_AMOUNT, lookupResult.size)
+
+        val users = ethree.findUsers(identities.toList()).get()
+        assertEquals(HUGE_AMOUNT, users.size)
+    }
+
+    companion object {
+        private const val HUGE_AMOUNT = 200
     }
 }

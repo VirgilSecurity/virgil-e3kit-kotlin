@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019, Virgil Security, Inc.
+ * Copyright (c) 2015-2020, Virgil Security, Inc.
  *
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  *
@@ -61,8 +61,8 @@ class EThreeEnclaveTest {
 
         @BeforeClass @JvmStatic fun setup() {
             jwtGenerator = JwtGenerator(TestConfig.appId,
-                                        TestConfig.apiKey,
-                                        TestConfig.apiPublicKeyId,
+                                        TestConfig.appKey,
+                                        TestConfig.appPublicKeyId,
                                         TimeSpan.fromTime(600, TimeUnit.SECONDS),
                                         VirgilAccessTokenSigner(TestConfig.virgilCrypto))
         }

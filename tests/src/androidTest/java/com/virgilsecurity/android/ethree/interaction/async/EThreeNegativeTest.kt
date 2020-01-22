@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019, Virgil Security, Inc.
+ * Copyright (c) 2015-2020, Virgil Security, Inc.
  *
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  *
@@ -35,17 +35,13 @@ package com.virgilsecurity.android.ethree.interaction.async
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
-import com.virgilsecurity.android.common.exception.EThreeException
-import com.virgilsecurity.android.common.exception.FindUsersException
-import com.virgilsecurity.android.common.exception.PrivateKeyNotFoundException
-import com.virgilsecurity.android.common.model.FindUsersResult
+import com.virgilsecurity.android.common.exception.*
 import com.virgilsecurity.android.common.model.LookupResult
 import com.virgilsecurity.android.ethree.interaction.EThree
 import com.virgilsecurity.android.ethree.utils.TestConfig
 import com.virgilsecurity.android.ethree.utils.TestUtils
 import com.virgilsecurity.common.callback.OnCompleteListener
 import com.virgilsecurity.common.callback.OnResultListener
-import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.model.RawSignedModel
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
@@ -60,6 +56,7 @@ import com.virgilsecurity.sdk.utils.Tuple
 import org.junit.Assert.assertTrue
 import org.junit.Assert.fail
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.*
@@ -86,8 +83,8 @@ class EThreeNegativeTest {
     @Before fun setup() {
         jwtGenerator = JwtGenerator(
             TestConfig.appId,
-            TestConfig.apiKey,
-            TestConfig.apiPublicKeyId,
+            TestConfig.appKey,
+            TestConfig.appPublicKeyId,
             TimeSpan.fromTime(600, TimeUnit.SECONDS),
             VirgilAccessTokenSigner(TestConfig.virgilCrypto)
         )
@@ -102,7 +99,7 @@ class EThreeNegativeTest {
             cardCrypto,
             GeneratorJwtProvider(jwtGenerator, identity),
             VirgilCardVerifier(cardCrypto, false, false),
-            VirgilCardClient(TestConfig.virgilBaseUrl + TestConfig.VIRGIL_CARDS_SERVICE_PATH)
+            VirgilCardClient(TestConfig.virgilServiceAddress + TestConfig.VIRGIL_CARDS_SERVICE_PATH)
         )
     }
 
@@ -137,7 +134,7 @@ class EThreeNegativeTest {
 
                 })
 
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        waiter.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
 
         return eThree!!
     }
@@ -157,14 +154,18 @@ class EThreeNegativeTest {
             }
         })
 
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        waiter.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
 
         return eThree
     }
 
-    @Test(expected = PrivateKeyNotFoundException::class)
+    @Test
     fun cleanup_fail_without_bootstrap() {
-        eThree.cleanup()
+        try {
+            eThree.cleanup()
+        } catch (exception: EThreeException) {
+            assertTrue(exception.description == EThreeException.Description.MISSING_PRIVATE_KEY)
+        }
     }
 
     @Test fun backup_fail_without_bootstrap() {
@@ -180,7 +181,7 @@ class EThreeNegativeTest {
                 waiter.countDown()
             }
         })
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        waiter.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
         assertTrue(failed)
     }
 
@@ -197,7 +198,7 @@ class EThreeNegativeTest {
                 waiter.countDown()
             }
         })
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        waiter.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
         assertTrue(failed)
     }
 
@@ -215,7 +216,7 @@ class EThreeNegativeTest {
                         waiter.countDown()
                     }
                 })
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        waiter.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
         assertTrue(failed)
     }
 
@@ -253,7 +254,7 @@ class EThreeNegativeTest {
                         waiter.countDown()
                     }
                 })
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        waiter.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
         assertTrue(failed)
     }
 
@@ -269,13 +270,17 @@ class EThreeNegativeTest {
                     }
 
                     override fun onError(throwable: Throwable) {
-                        if (throwable is FindUsersException)
+                        if (throwable is FindUsersException
+                            && throwable.description
+                            == FindUsersException.Description.CARD_WAS_NOT_FOUND) {
+
                             failed = true
+                        }
 
                         waiter.countDown()
                     }
                 })
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        waiter.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
         assertTrue(failed)
     }
 
@@ -298,7 +303,7 @@ class EThreeNegativeTest {
                         waiter.countDown()
                     }
                 })
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        waiter.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
         assertTrue(failed)
     }
 
@@ -312,16 +317,20 @@ class EThreeNegativeTest {
             }
 
             override fun onError(throwable: Throwable) {
-                if (throwable is EThreeException)
+                if (throwable is EThreeException
+                    && throwable.description == EThreeException.Description.SAME_PASSWORD) {
+
                     failed = true
+                }
 
                 waiter.countDown()
             }
         })
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        waiter.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
         assertTrue(failed)
     }
 
+    @Ignore("We do not check double cards no more")
     @Test fun unregister_with_multiple_card() {
         val identityTwo = UUID.randomUUID().toString()
         val cardManager = initCardManager(identityTwo)
@@ -334,7 +343,7 @@ class EThreeNegativeTest {
 
         var failed = false
         val waiter = CountDownLatch(1)
-        eThree.unregister().addCallback(object : OnCompleteListener {
+        eThreeTwo.unregister().addCallback(object : OnCompleteListener {
             override fun onSuccess() {
                 fail("Unregister should fail when there are 1+ cards published for 1 identity.")
             }
@@ -346,7 +355,7 @@ class EThreeNegativeTest {
                 waiter.countDown()
             }
         })
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        waiter.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
         assertTrue(failed)
     }
 
@@ -359,13 +368,17 @@ class EThreeNegativeTest {
             }
 
             override fun onError(throwable: Throwable) {
-                if (throwable is EThreeException)
+                if (throwable is EThreeException
+                    && throwable.description
+                    == EThreeException.Description.USER_IS_NOT_REGISTERED) {
+
                     failed = true
+                }
 
                 waiter.countDown()
             }
         })
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        waiter.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
         assertTrue(failed)
     }
 

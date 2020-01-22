@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019, Virgil Security, Inc.
+ * Copyright (c) 2015-2020, Virgil Security, Inc.
  *
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  *
@@ -34,13 +34,13 @@
 package com.virgilsecurity.android.common.manager
 
 import com.virgilsecurity.android.common.callback.OnKeyChangedCallback
+import com.virgilsecurity.android.common.exception.EThreeException
 import com.virgilsecurity.android.common.exception.FindUsersException
 import com.virgilsecurity.android.common.model.FindUsersResult
 import com.virgilsecurity.android.common.storage.CardStorage
 import com.virgilsecurity.keyknox.utils.unwrapCompanionClass
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.cards.CardManager
-import com.virgilsecurity.sdk.exception.EmptyArgumentException
 import java.util.logging.Logger
 
 /**
@@ -68,8 +68,9 @@ internal class LookupManager internal constructor(
 
                     val outdatedCard =
                             cardStorage.getCard(outdatedId)
-                            ?: throw FindUsersException("Card with id: $outdatedId was not found " +
-                                                        "locally. Try to call findUsers first")
+                            ?: throw FindUsersException(
+                                FindUsersException.Description.MISSING_CACHED_CARD
+                            )
 
                     onKeyChangedCallback?.keyChanged(outdatedCard.identity)
 
@@ -88,18 +89,21 @@ internal class LookupManager internal constructor(
         }
     }
 
-    internal fun lookupCachedCards(identities: List<String>): FindUsersResult {
-        if (identities.isEmpty()) throw EmptyArgumentException("identities")
+    internal fun lookupCachedCards(identities: List<String>,
+                                   checkResult: Boolean): FindUsersResult {
+        if (identities.isEmpty())
+            throw EThreeException(EThreeException.Description.MISSING_IDENTITIES)
 
         val result: MutableMap<String, Card> = mutableMapOf()
         val cards = cardStorage.searchCards(identities)
 
-        for (identity in identities) {
-            val card = cards.firstOrNull { it.identity == identity }
-                       ?: throw FindUsersException("Card with identity: $identity was not found " +
-                                                   "locally. Try to call findUsers first")
+        for (card in cards)
+            result[card.identity] = card
 
-            result[identity] = card
+        if (checkResult) {
+            if (result.keys != identities.toMutableSet()) {
+                throw FindUsersException(FindUsersException.Description.MISSING_CACHED_CARD)
+            }
         }
 
         return FindUsersResult(result)
@@ -111,16 +115,17 @@ internal class LookupManager internal constructor(
         val cards = cardStorage.searchCards(listOf(identity))
 
         if (cards.size >= 2)
-            throw FindUsersException("Found duplicated Cards for identity: $identity")
+            throw FindUsersException(FindUsersException.Description.DUPLICATE_CARDS)
 
         return cards.firstOrNull()
-               ?: throw FindUsersException("Card with identity: $identity was not found " +
-                                           "locally. Try to call findUsers first")
+               ?: throw FindUsersException(FindUsersException.Description.MISSING_CACHED_CARD)
     }
 
     internal fun lookupCards(identities: List<String>,
-                             forceReload: Boolean = false): FindUsersResult {
-        if (identities.isEmpty()) throw EmptyArgumentException("identities")
+                             forceReload: Boolean = false,
+                             checkResult: Boolean): FindUsersResult {
+        if (identities.isEmpty())
+            throw EThreeException(EThreeException.Description.MISSING_IDENTITIES)
 
         val result: MutableMap<String, Card> = mutableMapOf()
         val identitiesDistincted: MutableList<String> = identities.distinct().toMutableList()
@@ -128,15 +133,10 @@ internal class LookupManager internal constructor(
         if (!forceReload) {
             val cards = cardStorage.searchCards(identitiesDistincted)
 
-            val identitiesToRemove = mutableSetOf<String>()
-            for (identity in identitiesDistincted) {
-                val card = cards.firstOrNull { it.identity == identity }
-                if (card != null) {
-                    identitiesToRemove.add(identity)
-                    result[identity] = card
-                }
+            for (card in cards) {
+                result[card.identity] = card
+                identitiesDistincted.remove(card.identity)
             }
-            identitiesDistincted.removeAll(identitiesToRemove)
         }
 
         if (identitiesDistincted.isNotEmpty()) {
@@ -147,8 +147,7 @@ internal class LookupManager internal constructor(
 
                 for (card in cards) {
                     if (result[card.identity] != null) {
-                        throw FindUsersException("Found duplicated Cards for identity: " +
-                                                 card.identity)
+                        throw FindUsersException(FindUsersException.Description.DUPLICATE_CARDS)
                     }
 
                     cardStorage.storeCard(card)
@@ -157,8 +156,8 @@ internal class LookupManager internal constructor(
             }
         }
 
-        if (result.keys.toList().sorted() != identities.distinct().sorted()) {
-            throw FindUsersException("Card for one or more of provided identities was not found")
+        if (checkResult && (result.keys != identities.toMutableSet())) {
+            throw FindUsersException(FindUsersException.Description.CARD_WAS_NOT_FOUND)
         }
 
         return FindUsersResult(result)
@@ -167,11 +166,10 @@ internal class LookupManager internal constructor(
     internal fun lookupCard(identity: String, forceReload: Boolean = false): Card {
         require(identity.isNotEmpty()) { "\'identity\' should not be empty" }
 
-        val cards = lookupCards(listOf(identity), forceReload)
+        val cards = lookupCards(listOf(identity), forceReload, true)
 
         return cards[identity]
-               ?: throw FindUsersException("Card for one or more of provided identities " +
-                                           "was not found")
+               ?: throw FindUsersException(FindUsersException.Description.CARD_WAS_NOT_FOUND)
     }
 
     companion object {

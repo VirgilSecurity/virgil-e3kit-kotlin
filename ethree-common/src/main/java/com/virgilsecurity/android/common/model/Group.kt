@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019, Virgil Security, Inc.
+ * Copyright (c) 2015-2020, Virgil Security, Inc.
  *
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  *
@@ -37,6 +37,7 @@ import com.virgilsecurity.android.common.exception.*
 import com.virgilsecurity.android.common.manager.GroupManager
 import com.virgilsecurity.android.common.manager.LookupManager
 import com.virgilsecurity.android.common.storage.local.LocalKeyStorage
+import com.virgilsecurity.common.extension.toData
 import com.virgilsecurity.common.model.Completable
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.crypto.foundation.FoundationException
@@ -53,11 +54,12 @@ import kotlin.collections.HashSet
  */
 class Group internal constructor(
         rawGroup: RawGroup,
-        private val crypto: VirgilCrypto,
         private val localKeyStorage: LocalKeyStorage,
         private val groupManager: GroupManager,
         private val lookupManager: LookupManager
 ) {
+
+    private val crypto: VirgilCrypto
 
     val initiator: String = rawGroup.info.initiator
     var participants: MutableSet<String>
@@ -69,10 +71,12 @@ class Group internal constructor(
 
     init {
         val tickets = rawGroup.tickets.sortedBy { it.groupMessage.epoch }
-        val lastTicket = tickets.lastOrNull() ?: throw GroupException("Group is invalid")
+        val lastTicket = tickets.lastOrNull()
+                         ?: throw GroupException(GroupException.Description.INVALID_GROUP)
 
         validateParticipantsCount(lastTicket.participants.size)
 
+        this.crypto = localKeyStorage.crypto
         this.participants = lastTicket.participants.toMutableSet()
         this.session = generateSession(tickets)
     }
@@ -89,8 +93,8 @@ class Group internal constructor(
     }
 
     private fun shareTickets(cards: List<Card>) {
-        val sessionId = this.session.sessionId
-        groupManager.addAccess(cards, Data(sessionId))
+        val sessionId = this.session.sessionId.toData()
+        groupManager.addAccess(cards, sessionId)
         val newParticipants = cards.map { it.identity }
         this.participants.addAll(newParticipants.toSet())
     }
@@ -110,9 +114,8 @@ class Group internal constructor(
     }
 
     internal fun checkPermissions() {
-        if (selfIdentity != initiator) {
-            throw PermissionDeniedGroupException("Only group initiator can do changed on group")
-        }
+        if (selfIdentity != initiator)
+            throw GroupException(GroupException.Description.GROUP_PERMISSION_DENIED)
     }
 
     internal fun generateSession(tickets: List<Ticket>): GroupSession =
@@ -145,7 +148,7 @@ class Group internal constructor(
     fun encrypt(data: ByteArray): ByteArray {
         require(data.isNotEmpty()) { "\'data\' should not be empty" }
 
-        val selfKeyPair = this.localKeyStorage.load()
+        val selfKeyPair = this.localKeyStorage.retrieveKeyPair()
         val encrypted = this.session.encrypt(data, selfKeyPair.privateKey.privateKey)
         return encrypted.serialize()
     }
@@ -177,37 +180,38 @@ class Group internal constructor(
             }
         }
 
-        if (!Arrays.equals(this.session.sessionId, encrypted.sessionId)) {
-            throw MessageNotFromThisGroupException()
-        }
+        if (!Arrays.equals(this.session.sessionId, encrypted.sessionId))
+            throw GroupException(GroupException.Description.MESSAGE_NOT_FROM_THIS_GROUP)
 
         val messageEpoch = encrypted.epoch
         val currentEpoch = this.session.currentEpoch
 
         if (currentEpoch < messageEpoch) {
-            throw GroupIsOutdatedGroupException()
+            throw GroupException(GroupException.Description.GROUP_IS_OUTDATED)
         }
 
         try {
             return if (currentEpoch - messageEpoch < GroupManager.MAX_TICKETS_IN_GROUP) {
                 this.session.decrypt(encrypted, card.publicKey.publicKey)
             } else {
-                val sessionId = encrypted.sessionId
+                val sessionId = encrypted.sessionId.toData()
 
-                val tempGroup = this.groupManager.retrieve(Data(sessionId), messageEpoch)
-                                ?: throw MissingCachedGroupException()
+                val tempGroup = this.groupManager.retrieve(sessionId, messageEpoch)
+                                ?: throw GroupException(
+                                    GroupException.Description.MISSING_CACHED_GROUP
+                                )
 
                 tempGroup.decrypt(data, senderCard)
             }
         } catch (e: FoundationException) {
-            throw VerificationFailedGroupException()
+            throw GroupException(GroupException.Description.VERIFICATION_FAILED)
         }
     }
 
     /**
      * Decrypts and verifies base64 string from group participant.
      *
-     * @param text encryted String.
+     * @param text encrypted String.
      * @param senderCard sender Card to verify with.
      * @param date date of message. Use it to prevent verifying new messages with old card.
      *
@@ -216,14 +220,14 @@ class Group internal constructor(
     fun decrypt(text: String, senderCard: Card, date: Date? = null): String {
         require(text.isNotEmpty()) { "\'text\' should not be empty" }
 
-        val data: ByteArray
+        val data: Data
         try {
-            data = ConvertionUtils.base64ToBytes(text)
-        } catch (e: Exception) {
-            throw StringEncodingException()
+            data = Data.fromBase64String(text)
+        } catch (exception: Exception) {
+            throw EThreeException(EThreeException.Description.STR_TO_DATA_FAILED, exception)
         }
 
-        val decryptedData = this.decrypt(data, senderCard, date)
+        val decryptedData = this.decrypt(data.value, senderCard, date)
         return ConvertionUtils.toString(decryptedData)
     }
 
@@ -232,9 +236,9 @@ class Group internal constructor(
      */
     fun update(): Completable = object : Completable {
         override fun execute() {
-            val sessionId = this@Group.session.sessionId
+            val sessionId = this@Group.session.sessionId.toData()
             val card = lookupManager.lookupCard(this@Group.initiator)
-            val group = groupManager.pull(Data(sessionId), card)
+            val group = groupManager.pull(sessionId, card)
             this@Group.session = group.session
             this@Group.participants = group.participants
         }
@@ -256,13 +260,19 @@ class Group internal constructor(
 
             validateParticipantsCount(newSet.size)
 
-            if (newSet == oldSet) throw InvalidChangeParticipantsGroupException()
+            if (newSet == oldSet) {
+                throw GroupException(
+                    GroupException.Description.INVALID_CHANGE_PARTICIPANTS
+                )
+            }
 
             val addSet = newSet.subtract(oldSet)
 
             val addedCards = mutableListOf<Card>()
             addSet.forEach {
-                val card = participants[it] ?: throw InconsistentStateGroupException()
+                val card = participants[it]
+                           ?: throw GroupException(GroupException.Description.INCONSISTENT_STATE)
+
                 addedCards.add(card)
             }
 
@@ -279,7 +289,7 @@ class Group internal constructor(
         override fun execute() {
             checkPermissions()
 
-            groupManager.reAddAccess(participant, Data(this@Group.session.sessionId))
+            groupManager.reAddAccess(participant, this@Group.session.sessionId.toData())
         }
     }
 
@@ -300,13 +310,19 @@ class Group internal constructor(
 
             validateParticipantsCount(newSet.size)
 
-            if (newSet == oldSet) throw InvalidChangeParticipantsGroupException()
+            if (newSet == oldSet) {
+                throw GroupException(
+                    GroupException.Description.INVALID_CHANGE_PARTICIPANTS
+                )
+            }
 
-            val newSetLookup = lookupManager.lookupCards(newSet.toList())
+            val newSetLookup = lookupManager.lookupCards(newSet.toList(),
+                                                         forceReload = false,
+                                                         checkResult = true)
             addNewTicket(newSetLookup)
 
             val removedSet = oldSet.subtract(newSet)
-            groupManager.removeAccess(removedSet, Data(this@Group.session.sessionId))
+            groupManager.removeAccess(removedSet, this@Group.session.sessionId.toData())
         }
     }
 
@@ -318,13 +334,10 @@ class Group internal constructor(
 
     companion object {
         internal fun validateParticipantsCount(count: Int) {
-            if (count !in VALID_PARTICIPANTS_COUNT_RANGE) {
-                throw InvalidParticipantsCountGroupException("Please check valid participants " +
-                                                             "count range in " +
-                                                             "Group.VALID_PARTICIPANTS_COUNT_RANGE")
-            }
+            if (count !in VALID_PARTICIPANTS_COUNT_RANGE)
+                throw GroupException(GroupException.Description.INVALID_PARTICIPANTS_COUNT)
         }
 
-        val VALID_PARTICIPANTS_COUNT_RANGE = 2..100
+        val VALID_PARTICIPANTS_COUNT_RANGE = 1..100
     }
 }

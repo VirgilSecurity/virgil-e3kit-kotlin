@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019, Virgil Security, Inc.
+ * Copyright (c) 2015-2020, Virgil Security, Inc.
  *
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  *
@@ -52,17 +52,13 @@ import java.util.concurrent.TimeUnit
 class TestUtils {
 
     companion object {
-        const val THROTTLE_TIMEOUT = 2 * 1000L // 2 seconds
-
-        fun pause(timeout: Long = THROTTLE_TIMEOUT) {
-            Thread.sleep(timeout)
-        }
+        const val REQUEST_TIMEOUT = 5 * 1000L // 5 seconds
 
         fun generateTokenString(identity: String): String =
                 JwtGenerator(
                     TestConfig.appId,
-                    TestConfig.apiKey,
-                    TestConfig.apiPublicKeyId,
+                    TestConfig.appKey,
+                    TestConfig.appPublicKeyId,
                     TimeSpan.fromTime(600, TimeUnit.SECONDS),
                     VirgilAccessTokenSigner(virgilCrypto)
                 ).generateToken(identity).stringRepresentation()
@@ -70,8 +66,8 @@ class TestUtils {
         fun generateToken(identity: String): Jwt =
                 JwtGenerator(
                     TestConfig.appId,
-                    TestConfig.apiKey,
-                    TestConfig.apiPublicKeyId,
+                    TestConfig.appKey,
+                    TestConfig.appPublicKeyId,
                     TimeSpan.fromTime(600, TimeUnit.SECONDS),
                     VirgilAccessTokenSigner(virgilCrypto)
                 ).generateToken(identity)
@@ -91,7 +87,7 @@ class TestUtils {
             val provider = ConstAccessTokenProvider(token)
             val signer = ModelSigner(VirgilCardCrypto(virgilCrypto))
             signer.selfSign(rawCard, keyPair.privateKey)
-            val cardClient = VirgilCardClient(TestConfig.virgilBaseUrl + TestConfig.VIRGIL_CARDS_SERVICE_PATH)
+            val cardClient = VirgilCardClient(TestConfig.virgilServiceAddress + TestConfig.VIRGIL_CARDS_SERVICE_PATH)
 
             val responseRawCard =
                     cardClient.publishCard(rawCard,

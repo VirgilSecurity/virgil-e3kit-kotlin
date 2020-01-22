@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019, Virgil Security, Inc.
+ * Copyright (c) 2015-2020, Virgil Security, Inc.
  *
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  *
@@ -62,7 +62,7 @@ class EThreeProfile {
 
     @Ignore("Needed only to profile from time to time") @Test fun encrypt_debug_profile() {
         Debug.startMethodTracing("EThreeProfile_encrypt")
-        crypto.encrypt(oneMbData, keyPair.publicKey) // TODO add 1000 loops, or so
+        crypto.encrypt(oneMbData, keyPair.publicKey)
         Debug.stopMethodTracing()
     }
 

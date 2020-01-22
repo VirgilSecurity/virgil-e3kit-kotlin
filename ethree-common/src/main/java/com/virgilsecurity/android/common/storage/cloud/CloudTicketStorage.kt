@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019, Virgil Security, Inc.
+ * Copyright (c) 2015-2020, Virgil Security, Inc.
  *
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  *
@@ -64,7 +64,7 @@ internal class CloudTicketStorage internal constructor(
     }
 
     internal fun store(ticket: Ticket, cards: Collection<Card>) {
-        val selfKeyPair = localKeyStorage.load()
+        val selfKeyPair = localKeyStorage.retrieveKeyPair()
 
         val groupMessage = ticket.groupMessage
 
@@ -87,18 +87,23 @@ internal class CloudTicketStorage internal constructor(
                                  selfKeyPair.privateKey)
     }
 
-    internal fun retrieve(sessionId: Data,
-                          identity: String,
-                          identityPublicKey: VirgilPublicKey): List<Ticket> {
-        val selfKeyPair = localKeyStorage.load()
-
+    internal fun getEpochs(sessionId: Data, identity: String): Set<String> {
         val sessionIdHex = sessionId.toHexString()
 
         val getParams = KeyknoxGetKeysParams(identity,
                                              GROUP_SESSION_ROOT,
                                              sessionIdHex)
 
-        val epochs = keyknoxManager.getKeys(getParams)
+        return keyknoxManager.getKeys(getParams)
+    }
+
+    internal fun retrieve(sessionId: Data,
+                          identity: String,
+                          identityPublicKey: VirgilPublicKey,
+                          epochs: Set<String>): List<Ticket> {
+        val selfKeyPair = localKeyStorage.retrieveKeyPair()
+
+        val sessionIdHex = sessionId.toHexString()
 
         val tickets = mutableListOf<Ticket>()
         for (epoch in epochs) {
@@ -121,7 +126,7 @@ internal class CloudTicketStorage internal constructor(
     }
 
     internal fun addRecipients(cards: Collection<Card>, sessionId: Data) {
-        val selfKeyPair = localKeyStorage.load()
+        val selfKeyPair = localKeyStorage.retrieveKeyPair()
 
         val sessionIdHex = sessionId.toHexString()
 
@@ -157,7 +162,7 @@ internal class CloudTicketStorage internal constructor(
     }
 
     internal fun reAddRecipient(card: Card, sessionId: Data) {
-        val selfKeyPair = localKeyStorage.load()
+        val selfKeyPair = localKeyStorage.retrieveKeyPair()
 
         val path = sessionId.toHexString()
 

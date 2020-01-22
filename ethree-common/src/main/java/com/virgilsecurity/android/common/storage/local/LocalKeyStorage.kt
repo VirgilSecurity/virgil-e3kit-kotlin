@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019, Virgil Security, Inc.
+ * Copyright (c) 2015-2020, Virgil Security, Inc.
  *
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  *
@@ -33,7 +33,7 @@
 
 package com.virgilsecurity.android.common.storage.local
 
-import com.virgilsecurity.android.common.exception.PrivateKeyNotFoundException
+import com.virgilsecurity.android.common.exception.EThreeException
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilKeyPair
@@ -47,26 +47,24 @@ import com.virgilsecurity.sdk.storage.KeyStorage
 class LocalKeyStorage internal constructor(
         internal val identity: String,
         private val keyStorage: KeyStorage,
-        private val crypto: VirgilCrypto
+        internal val crypto: VirgilCrypto
 ) {
 
     internal fun exists() = keyStorage.exists(identity)
 
     internal fun store(privateKeyData: Data) =
-            keyStorage.store(JsonKeyEntry(identity, privateKeyData.data))
+            keyStorage.store(JsonKeyEntry(identity, privateKeyData.value))
 
-    internal fun load(): VirgilKeyPair = try {
+    internal fun retrieveKeyPair(): VirgilKeyPair = try {
         val privateKeyData = keyStorage.load(identity)
         crypto.importPrivateKey(privateKeyData.value)
     } catch (e: KeyEntryNotFoundException) {
-        throw PrivateKeyNotFoundException("No private key on device. You should call register() " +
-                                          "or retrievePrivateKey()")
+        throw EThreeException(EThreeException.Description.MISSING_PRIVATE_KEY)
     }
 
     internal fun delete() = try {
         keyStorage.delete(identity)
     } catch (exception: KeyEntryNotFoundException) {
-        throw PrivateKeyNotFoundException("No private key on device. You should call register() " +
-                                          "or retrievePrivateKey()")
+        throw EThreeException(EThreeException.Description.MISSING_PRIVATE_KEY)
     }
 }

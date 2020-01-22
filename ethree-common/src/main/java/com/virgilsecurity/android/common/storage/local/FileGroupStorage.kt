@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019, Virgil Security, Inc.
+ * Copyright (c) 2015-2020, Virgil Security, Inc.
  *
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  *
@@ -38,6 +38,7 @@ import com.virgilsecurity.android.common.exception.RawGroupException
 import com.virgilsecurity.android.common.model.GroupInfo
 import com.virgilsecurity.android.common.model.RawGroup
 import com.virgilsecurity.android.common.model.Ticket
+import com.virgilsecurity.android.common.util.Const
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.common.util.toHexString
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
@@ -46,8 +47,8 @@ import com.virgilsecurity.sdk.storage.FileSystem
 import com.virgilsecurity.sdk.storage.FileSystemEncrypted
 import com.virgilsecurity.sdk.storage.FileSystemEncryptedCredentials
 import com.virgilsecurity.sdk.storage.exceptions.DirectoryNotExistsException
-import com.virgilsecurity.sdk.utils.ConvertionUtils
 import java.io.File
+import java.io.FileNotFoundException
 
 /**
  * FileGroupStorage
@@ -65,17 +66,29 @@ internal class FileGroupStorage internal constructor(
         val credentials = FileSystemEncryptedCredentials(crypto, identityKeyPair)
         val fullPath: String = rootPath +
                                File.separator +
-                               ConvertionUtils.toHex(identityKeyPair.privateKey.identifier) +
+                               identity +
                                File.separator +
-                               STORAGE_POSTFIX_E3KIT +
+                               Const.STORAGE_POSTFIX_E3KIT +
                                File.separator +
                                STORAGE_POSTFIX_GROUPS
 
         fileSystemEncrypted = FileSystemEncrypted(fullPath, credentials)
     }
 
+    internal fun getEpochs(sessionId: Data): Set<String> {
+        val subdir = sessionId.toHexString() + File.separator + TICKETS_SUBDIR
+        val epochs = try {
+            fileSystemEncrypted.listFiles(subdir).sorted()
+        } catch (exception: DirectoryNotExistsException) {
+            setOf<String>()
+        }
+
+        return HashSet(epochs)
+    }
+
     internal fun store(group: RawGroup) {
-        val ticket = group.tickets.lastOrNull() ?: throw RawGroupException("Empty tickets")
+        val ticket = group.tickets.lastOrNull()
+                     ?: throw RawGroupException(RawGroupException.Description.EMPTY_TICKETS)
 
         val subdir = ticket.groupMessage.sessionId.toHexString()
 
@@ -86,11 +99,11 @@ internal class FileGroupStorage internal constructor(
     }
 
     private fun store(ticket: Ticket, subdir: String) {
-        val subdir = "$subdir/$TICKETS_SUBDIR"
+        val subdirNew = subdir + File.separator + TICKETS_SUBDIR
         val name = ticket.groupMessage.epoch.toString()
 
         val data = ticket.serialize()
-        fileSystemEncrypted.write(data, name, subdir)
+        fileSystemEncrypted.write(data, name, subdirNew)
     }
 
     private fun store(info: GroupInfo, subdir: String) {
@@ -98,18 +111,16 @@ internal class FileGroupStorage internal constructor(
         fileSystemEncrypted.write(data, GROUP_INFO_NAME, subdir)
     }
 
-    internal fun retrieveInfo(sessionId: Data): GroupInfo? = retrieveGroupInfo(sessionId)
-
-    internal fun retrieve(sessionId: Data, count: Int): RawGroup? {
+    internal fun retrieve(sessionId: Data, count: Int): RawGroup {
         val tickets = retrieveLastTickets(count, sessionId)
-        val groupInfo = retrieveGroupInfo(sessionId) ?: return null
+        val groupInfo = retrieveGroupInfo(sessionId)
 
         return RawGroup(groupInfo, tickets)
     }
 
-    internal fun retrieve(sessionId: Data, epoch: Long): RawGroup? {
+    internal fun retrieve(sessionId: Data, epoch: Long): RawGroup {
         val ticket = retrieveTicket(sessionId, epoch)
-        val groupInfo = retrieveGroupInfo(sessionId) ?: return null
+        val groupInfo = retrieveGroupInfo(sessionId)
 
         return RawGroup(groupInfo, listOf(ticket))
     }
@@ -122,7 +133,11 @@ internal class FileGroupStorage internal constructor(
         val subdir = sessionId.toHexString() + File.separator + TICKETS_SUBDIR
         val name = epoch.toString()
 
-        val data = fileSystemEncrypted.read(name, subdir)
+        val data = try {
+            fileSystemEncrypted.read(name, subdir)
+        } catch (exception: FileNotFoundException) {
+            throw FileGroupStorageException(FileGroupStorageException.Description.EMPTY_FILE)
+        }
 
         return Ticket.deserialize(data)
     }
@@ -139,7 +154,9 @@ internal class FileGroupStorage internal constructor(
                         try {
                             name.toLong()
                         } catch (exception: NumberFormatException) {
-                            throw FileGroupStorageException("Invalid file name")
+                            throw FileGroupStorageException(
+                                FileGroupStorageException.Description.INVALID_FILE_NAME
+                            )
                         }
                     }
                     .sorted()
@@ -149,26 +166,21 @@ internal class FileGroupStorage internal constructor(
         }
 
         epochs.forEach { epoch ->
-            try {
-                retrieveTicket(sessionId, epoch)
-            } catch (throwable: Throwable) {
-                throw FileGroupStorageException("File is empty")
-            }.also { ticket ->
-                result.add(ticket)
-            }
+            val ticket = retrieveTicket(sessionId, epoch)
+            result.add(ticket)
         }
 
         return result
     }
 
-    private fun retrieveGroupInfo(sessionId: Data): GroupInfo? {
+    private fun retrieveGroupInfo(sessionId: Data): GroupInfo {
         val subdir = sessionId.toHexString()
 
-        if (!fileSystemEncrypted.exists(GROUP_INFO_NAME, subdir)) {
-            return null
+        val data = try {
+            fileSystemEncrypted.read(GROUP_INFO_NAME, subdir)
+        } catch (exception: FileNotFoundException) {
+            throw FileGroupStorageException(FileGroupStorageException.Description.EMPTY_FILE)
         }
-
-        val data = fileSystemEncrypted.read(GROUP_INFO_NAME, subdir)
 
         return GroupInfo.deserialize(data)
     }
@@ -176,7 +188,6 @@ internal class FileGroupStorage internal constructor(
     companion object {
         private const val GROUP_INFO_NAME = "GROUP_INFO"
         private const val TICKETS_SUBDIR = "TICKETS"
-        private const val STORAGE_POSTFIX_E3KIT = "VIRGIL-E3KIT"
         private const val STORAGE_POSTFIX_GROUPS = "GROUPS"
     }
 }

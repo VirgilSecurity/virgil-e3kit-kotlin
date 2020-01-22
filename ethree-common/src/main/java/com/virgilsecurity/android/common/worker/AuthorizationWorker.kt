@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019, Virgil Security, Inc.
+ * Copyright (c) 2015-2020, Virgil Security, Inc.
  *
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  *
@@ -55,10 +55,14 @@ internal class AuthorizationWorker internal constructor(
     internal fun register(keyPair: VirgilKeyPair? = null) = object : Completable {
         override fun execute() {
             if (localKeyStorage.exists())
-                throw EThreeException("Private key already exists in local key storage")
+                throw EThreeException(EThreeException.Description.PRIVATE_KEY_EXISTS)
 
             val cards = cardManager.searchCards(this@AuthorizationWorker.identity)
-            if (cards.isNotEmpty()) throw EThreeException("User is already registered")
+            if (cards.isNotEmpty()) {
+                throw EThreeException(
+                    EThreeException.Description.USER_IS_ALREADY_REGISTERED
+                )
+            }
 
             publishCardThenSaveLocal(keyPair, null)
         }
@@ -67,7 +71,8 @@ internal class AuthorizationWorker internal constructor(
     @Synchronized internal fun unregister() = object : Completable {
         override fun execute() {
             val cards = cardManager.searchCards(this@AuthorizationWorker.identity)
-            val card = cards.firstOrNull() ?: throw EThreeException("User is not registered")
+            val card = cards.firstOrNull()
+                       ?: throw EThreeException(EThreeException.Description.USER_IS_NOT_REGISTERED)
 
             cardManager.revokeCard(card.identifier)
             localKeyStorage.delete()
@@ -78,10 +83,11 @@ internal class AuthorizationWorker internal constructor(
     @Synchronized internal fun rotatePrivateKey() = object : Completable {
         override fun execute() {
             if (localKeyStorage.exists())
-                throw EThreeException("Private key already exists in local key storage.")
+                throw EThreeException(EThreeException.Description.PRIVATE_KEY_EXISTS)
 
             val cards = cardManager.searchCards(this@AuthorizationWorker.identity)
-            val card = cards.firstOrNull() ?: throw EThreeException("User is not registered")
+            val card = cards.firstOrNull()
+                       ?: throw EThreeException(EThreeException.Description.USER_IS_NOT_REGISTERED)
 
             publishCardThenSaveLocal(null, card.identifier)
         }

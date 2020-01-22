@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019, Virgil Security, Inc.
+ * Copyright (c) 2015-2020, Virgil Security, Inc.
  *
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  *
@@ -44,6 +44,6 @@ internal class RawGroup internal constructor(
 ) {
 
     init {
-        if (tickets.isEmpty()) throw RawGroupException("Tickets are empty")
+        if (tickets.isEmpty()) throw RawGroupException(RawGroupException.Description.EMPTY_TICKETS)
     }
 }

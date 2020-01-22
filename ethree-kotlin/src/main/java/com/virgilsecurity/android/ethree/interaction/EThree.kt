@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019, Virgil Security, Inc.
+ * Copyright (c) 2015-2020, Virgil Security, Inc.
  *
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  *
@@ -37,8 +37,12 @@ import android.content.Context
 import com.virgilsecurity.android.common.EThreeCore
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.common.callback.OnKeyChangedCallback
+import com.virgilsecurity.android.common.model.EThreeParams
 import com.virgilsecurity.android.common.util.Const.NO_CONTEXT
+import com.virgilsecurity.android.common.util.Defaults
 import com.virgilsecurity.common.model.Result
+import com.virgilsecurity.sdk.common.TimeSpan
+import com.virgilsecurity.sdk.crypto.KeyPairType
 import com.virgilsecurity.sdk.jwt.Jwt
 import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
@@ -48,12 +52,22 @@ import com.virgilsecurity.sdk.storage.KeyStorage
  * [EThree] class simplifies work with Virgil Services to easily implement End to End Encrypted
  * communication.
  */
-class EThree(
+class EThree
+@JvmOverloads constructor(
         identity: String,
         tokenCallback: OnGetTokenCallback,
         context: Context,
-        keyChangedCallback: OnKeyChangedCallback? = null
-) : EThreeCore(identity, tokenCallback, keyChangedCallback, context) {
+        keyChangedCallback: OnKeyChangedCallback? = null,
+        keyPairType: KeyPairType = Defaults.keyPairType,
+        enableRatchet: Boolean = Defaults.enableRatchet,
+        keyRotationInterval: TimeSpan = Defaults.keyRotationInterval
+) : EThreeCore(identity,
+               tokenCallback,
+               keyChangedCallback,
+               keyPairType,
+               enableRatchet,
+               keyRotationInterval,
+               context) {
 
     override val keyStorage: KeyStorage
 
@@ -62,6 +76,35 @@ class EThree(
 
         initializeCore()
     }
+
+    constructor(params: EThreeParams) : this(params.identity,
+                                             params.tokenCallback,
+                                             params.context,
+                                             params.keyChangedCallback,
+                                             params.keyPairType,
+                                             params.enableRatchet,
+                                             params.keyRotationInterval)
+
+    @JvmOverloads constructor(
+            identity: String,
+            tokenStringCallback: () -> String,
+            context: Context,
+            keyChangedCallback: OnKeyChangedCallback? = null,
+            keyPairType: KeyPairType = Defaults.keyPairType,
+            enableRatchet: Boolean = Defaults.enableRatchet,
+            keyRotationInterval: TimeSpan = Defaults.keyRotationInterval
+    ) : this(identity,
+             object : OnGetTokenCallback {
+                 override fun onGetToken(): String {
+                     return tokenStringCallback()
+                 }
+
+             },
+             context,
+             keyChangedCallback,
+             keyPairType,
+             enableRatchet,
+             keyRotationInterval)
 
     companion object {
         /**
@@ -98,6 +141,9 @@ class EThree(
                         return ethree
                     }
                 }
+
+        @JvmStatic
+        fun derivePasswords(password: String) = derivePasswordsInternal(password)
 
         private const val KEYSTORE_NAME = "virgil.keystore"
     }

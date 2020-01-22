@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019, Virgil Security, Inc.
+ * Copyright (c) 2015-2020, Virgil Security, Inc.
  *
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  *
@@ -68,11 +68,7 @@ class AuthenticationTests {
         this.crypto = VirgilCrypto()
         this.keyStorage = DefaultKeyStorage(TestConfig.DIRECTORY_PATH, TestConfig.KEYSTORE_NAME)
         this.ethree = EThree(identity,
-                             object : OnGetTokenCallback {
-                                 override fun onGetToken(): String {
-                                     return TestUtils.generateTokenString(identity)
-                                 }
-                             },
+                             { TestUtils.generateTokenString(identity) },
                              TestConfig.context)
 
         assertNotNull(this.ethree)
@@ -113,9 +109,9 @@ class AuthenticationTests {
 
         try {
             ethree.register().execute()
-        } catch (throwable: Throwable) {
-            if (throwable !is EThreeException)
-                fail()
+        } catch (exception: EThreeException) {
+            assertTrue(exception.description
+                               == EThreeException.Description.USER_IS_ALREADY_REGISTERED)
         }
     }
 
@@ -128,15 +124,19 @@ class AuthenticationTests {
 
         try {
             ethree.register().execute()
-        } catch (throwable: Throwable) {
-            if (throwable !is EThreeException)
-                fail()
+            fail()
+        } catch (exception: EThreeException) {
+            assertTrue(exception.description == EThreeException.Description.PRIVATE_KEY_EXISTS)
         }
     }
 
     // test05 STE_12
-    @Test(expected = EThreeException::class) fun rotate_without_published_card() {
-        ethree.rotatePrivateKey().execute()
+    @Test fun rotate_without_published_card() {
+        try {
+            ethree.rotatePrivateKey().execute()
+        } catch (exception: EThreeException) {
+            assertTrue(exception.description == EThreeException.Description.USER_IS_NOT_REGISTERED)
+        }
     }
 
     // test06 STE_13
@@ -146,9 +146,9 @@ class AuthenticationTests {
 
         try {
             ethree.rotatePrivateKey().execute()
-        } catch (throwable: Throwable) {
-            if (throwable !is EThreeException)
-                fail()
+            fail()
+        } catch (exception: EThreeException) {
+            assertTrue(exception.description == EThreeException.Description.PRIVATE_KEY_EXISTS)
         }
     }
 
@@ -182,8 +182,9 @@ class AuthenticationTests {
         try {
             ethree.unregister().execute()
         } catch (throwable: Throwable) {
-            if (throwable !is EThreeException)
-                fail()
+            if (throwable is EThreeException)
+                assertTrue(throwable.description
+                                   == EThreeException.Description.USER_IS_NOT_REGISTERED)
         }
 
         ethree.register().execute()

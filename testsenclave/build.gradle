@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019, Virgil Security, Inc.
+ * Copyright (c) 2015-2020, Virgil Security, Inc.
  *
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  *
@@ -31,35 +31,11 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-apply plugin: 'com.android.application'
-apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
-
-def APP_ID = hasProperty('APP_ID') ? APP_ID : System.getenv('APP_ID')
-def API_PRIVATE_KEY = hasProperty('API_PRIVATE_KEY') ? API_PRIVATE_KEY : System.getenv('API_PRIVATE_KEY')
-def API_PUBLIC_KEY = hasProperty('API_PUBLIC_KEY') ? API_PUBLIC_KEY : System.getenv('API_PUBLIC_KEY')
-def API_PUBLIC_KEY_ID = hasProperty('API_PUBLIC_KEY_ID') ? API_PUBLIC_KEY_ID : System.getenv('API_PUBLIC_KEY_ID')
-def VIRGIL_BASE_URL = hasProperty('VIRGIL_BASE_URL') ? VIRGIL_BASE_URL : System.getenv('VIRGIL_BASE_URL')
-
 android {
-    compileSdkVersion androidOptions.compileSdkVersion
     defaultConfig {
-        applicationId "com.virgilsecurity.android.testsenclave"
         minSdkVersion androidOptions.minSdkVersionEnclave
-        targetSdkVersion androidOptions.targetSdkVersion
+        applicationId "com.virgilsecurity.android.testsenclave"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-    }
-    buildTypes {
-        buildTypes.each {
-            it.buildConfigField "String", "APP_ID", "$APP_ID"
-            it.buildConfigField "String", "API_PRIVATE_KEY", "$API_PRIVATE_KEY"
-            it.buildConfigField "String", "API_PUBLIC_KEY", "$API_PUBLIC_KEY"
-            it.buildConfigField "String", "API_PUBLIC_KEY_ID", "$API_PUBLIC_KEY_ID"
-            it.buildConfigField "String", "VIRGIL_BASE_URL", "$VIRGIL_BASE_URL"
-        }
-    }
-    lintOptions {
-        abortOnError false
     }
 }
 
@@ -73,11 +49,26 @@ dependencies {
 
     // Kotlin
     androidTestImplementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$versions.kotlin"
-    implementation "com.android.support:appcompat-v7:$versions.appCompat"
+    implementation "androidx.appcompat:appcompat:$versions.appCompat"
 
     // Tests core
     testImplementation "junit:junit:$versions.junit"
     androidTestImplementation "androidx.test.ext:junit:$versions.testsRunner"
     androidTestImplementation "androidx.test:runner:$versions.testsRunner"
     androidTestImplementation "androidx.test:rules:$versions.testsRunner"
+
+    // Virgil test common
+    implementation "com.virgilsecurity:test-common:$versions.virgilTestCommon"
+}
+
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
+    dependsOn(copyEnvFile)
+}
+
+task copyEnvFile(type: Copy) {
+    def assetsFolder = new File(project.projectDir.absolutePath + '/src/androidTest/resources/testProperties')
+    if (!assetsFolder.exists()) assetsFolder.mkdirs()
+
+    from rootProject.projectDir.absolutePath + '/env.json'
+    into assetsFolder.absolutePath
 }

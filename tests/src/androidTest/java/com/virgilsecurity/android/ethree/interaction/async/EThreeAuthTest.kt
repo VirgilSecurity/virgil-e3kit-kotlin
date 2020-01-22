@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019, Virgil Security, Inc.
+ * Copyright (c) 2015-2020, Virgil Security, Inc.
  *
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  *
@@ -37,11 +37,10 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.common.exception.EThreeException
 import com.virgilsecurity.android.common.exception.FindUsersException
-import com.virgilsecurity.android.common.exception.PrivateKeyNotFoundException
 import com.virgilsecurity.android.ethree.interaction.EThree
 import com.virgilsecurity.android.ethree.utils.TestConfig
-import com.virgilsecurity.android.ethree.utils.TestConfig.Companion.virgilBaseUrl
 import com.virgilsecurity.android.ethree.utils.TestConfig.Companion.virgilCrypto
+import com.virgilsecurity.android.ethree.utils.TestConfig.Companion.virgilServiceAddress
 import com.virgilsecurity.android.ethree.utils.TestUtils
 import com.virgilsecurity.common.callback.OnCompleteListener
 import com.virgilsecurity.common.callback.OnResultListener
@@ -77,12 +76,10 @@ class EThreeAuthTest {
     private lateinit var keyStorage: KeyStorage
 
     @Before fun setup() {
-        TestUtils.pause()
-
         jwtGenerator = JwtGenerator(
             TestConfig.appId,
-            TestConfig.apiKey,
-            TestConfig.apiPublicKeyId,
+            TestConfig.appKey,
+            TestConfig.appPublicKeyId,
             TimeSpan.fromTime(600, TimeUnit.SECONDS),
             VirgilAccessTokenSigner(virgilCrypto)
         )
@@ -120,7 +117,7 @@ class EThreeAuthTest {
 
                 })
 
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        waiter.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
 
         return eThree!!
     }
@@ -140,7 +137,7 @@ class EThreeAuthTest {
             }
         })
 
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        waiter.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
 
         return eThree
     }
@@ -151,7 +148,7 @@ class EThreeAuthTest {
             cardCrypto,
             GeneratorJwtProvider(jwtGenerator, identity),
             VirgilCardVerifier(cardCrypto, false, false),
-            VirgilCardClient(virgilBaseUrl + TestConfig.VIRGIL_CARDS_SERVICE_PATH)
+            VirgilCardClient(virgilServiceAddress + TestConfig.VIRGIL_CARDS_SERVICE_PATH)
         )
     }
 
@@ -194,11 +191,14 @@ class EThreeAuthTest {
             }
 
             override fun onError(throwable: Throwable) {
-                assertTrue(throwable is EThreeException)
+                assertTrue(throwable is EThreeException
+                           && throwable.description
+                           == EThreeException.Description.USER_IS_ALREADY_REGISTERED)
+
                 waiter.countDown()
             }
         })
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        waiter.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
     }
 
     // STE-Auth-11
@@ -215,11 +215,14 @@ class EThreeAuthTest {
             }
 
             override fun onError(throwable: Throwable) {
-                assertTrue(throwable is EThreeException)
+                assertTrue(throwable is EThreeException
+                           && throwable.description
+                           == EThreeException.Description.PRIVATE_KEY_EXISTS)
+
                 waiter.countDown()
             }
         })
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        waiter.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
     }
 
     // STE-Auth-12
@@ -234,12 +237,16 @@ class EThreeAuthTest {
                 }
 
                 override fun onError(throwable: Throwable) {
-                    assertTrue(throwable is EThreeException)
+                    if (throwable is EThreeException) {
+                        assertTrue(throwable.description
+                                           == EThreeException.Description.USER_IS_NOT_REGISTERED)
+                    }
+
                     waiter.countDown()
                 }
             }
         )
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        waiter.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
     }
 
     // STE-Auth-13
@@ -255,11 +262,14 @@ class EThreeAuthTest {
             }
 
             override fun onError(throwable: Throwable) {
-                assertTrue(throwable is EThreeException)
+                assertTrue(throwable is EThreeException
+                           && throwable.description
+                           == EThreeException.Description.PRIVATE_KEY_EXISTS)
+
                 waiterTwo.countDown()
             }
         })
-        waiterTwo.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        waiterTwo.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
     }
 
     // STE-Auth-14
@@ -279,7 +289,7 @@ class EThreeAuthTest {
                 fail(throwable.message)
             }
         })
-        waiterTwo.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        waiterTwo.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
 
         assertTrue(cardManager.searchCards(identity).last().previousCardId != null)
 
@@ -310,7 +320,7 @@ class EThreeAuthTest {
                 // Just leave encrypted == null
             }
         })
-        waiterTwo.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        waiterTwo.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
 
         assertNotNull("Error during keys rotation", encrypted)
     }
@@ -338,7 +348,7 @@ class EThreeAuthTest {
                 waiterTwo.countDown()
             }
         })
-        waiterTwo.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        waiterTwo.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
 
         assertTrue(rotateFailed)
     }
@@ -360,14 +370,18 @@ class EThreeAuthTest {
                     }
 
                     override fun onError(throwable: Throwable) {
-                        if (throwable is FindUsersException)
+                        if (throwable is FindUsersException &&
+                            throwable.description
+                            == FindUsersException.Description.DUPLICATE_CARDS) {
+
                             rotateFailed = true
+                        }
 
                         waiterTwo.countDown()
                     }
 
                 })
-        waiterTwo.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        waiterTwo.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
 
         assertTrue(rotateFailed)
     }
@@ -390,7 +404,7 @@ class EThreeAuthTest {
                 fail(throwable.message)
             }
         })
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        waiter.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
         assertFalse(keyStorage.exists(identity))
 
         val cardsUnregistered = initCardManager(identity).searchCards(identity)
@@ -416,13 +430,14 @@ class EThreeAuthTest {
             }
 
             override fun onError(throwable: Throwable) {
-                if (throwable !is PrivateKeyNotFoundException)
-                    fail(throwable.message)
+                assertTrue(throwable is EThreeException
+                           && throwable.description
+                           == EThreeException.Description.MISSING_PRIVATE_KEY)
 
                 waiter.countDown()
             }
         })
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        waiter.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
         assertFalse(keyStorage.exists(identity))
 
         val cardsUnregistered = initCardManager(identity).searchCards(identity)

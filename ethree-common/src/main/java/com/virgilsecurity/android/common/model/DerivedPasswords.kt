@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019, Virgil Security, Inc.
+ * Copyright (c) 2015-2020, Virgil Security, Inc.
  *
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  *
@@ -31,20 +31,15 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.testsenclave;
-
-import org.junit.Test;
-
-import static org.junit.Assert.*;
+package com.virgilsecurity.android.common.model
 
 /**
- * Example local unit test, which will execute on the development machine (host).
- *
- * @see <a href="http://d.android.com/tools/testing">Testing documentation</a>
+ * DerivedPasswords class represents result of derivePasswords call.
  */
-public class ExampleUnitTest {
-    @Test
-    public void addition_isCorrect() {
-        assertEquals(4, 2 + 2);
-    }
-}
+data class DerivedPasswords(
+    // Password which can be used for authorization
+    val loginPassword: String,
+
+    // Password to backup and restore Private Key
+    val backupPassword: String
+)

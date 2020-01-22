@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019, Virgil Security, Inc.
+ * Copyright (c) 2015-2020, Virgil Security, Inc.
  *
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  *
@@ -80,8 +80,8 @@ public class EThreeTestPositive {
     @Before
     public void setup() throws InterruptedException {
         jwtGenerator = new JwtGenerator(TestConfig.Companion.getAppId(),
-                                        TestConfig.Companion.getApiKey(),
-                                        TestConfig.Companion.getApiPublicKeyId(),
+                                        TestConfig.Companion.getAppKey(),
+                                        TestConfig.Companion.getAppPublicKeyId(),
                                         TimeSpan.fromTime(600, TimeUnit.SECONDS),
                                         new VirgilAccessTokenSigner(TestConfig.Companion.getVirgilCrypto()));
 
@@ -106,7 +106,7 @@ public class EThreeTestPositive {
                 fail(throwable.getMessage());
             }
         });
-        lock.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS);
+        lock.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS);
     }
 
     private CardManager initCardManager(String identity) {
@@ -114,7 +114,7 @@ public class EThreeTestPositive {
         return new CardManager(cardCrypto,
                                new GeneratorJwtProvider(jwtGenerator, identity),
                                new VirgilCardVerifier(cardCrypto, false, false),
-                               new VirgilCardClient(TestConfig.Companion.getVirgilBaseUrl()
+                               new VirgilCardClient(TestConfig.Companion.getVirgilServiceAddress()
                                                             + TestConfig.VIRGIL_CARDS_SERVICE_PATH));
     }
 
@@ -141,7 +141,7 @@ public class EThreeTestPositive {
                 fail();
             }
         });
-        lock.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS);
+        lock.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS);
 
         CardManager cardManager = initCardManager(identity);
         List<Card> cards = cardManager.searchCards(identity);
@@ -168,6 +168,6 @@ public class EThreeTestPositive {
                 lock.countDown();
             }
         });
-        lock.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS);
+        lock.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS);
     }
 }

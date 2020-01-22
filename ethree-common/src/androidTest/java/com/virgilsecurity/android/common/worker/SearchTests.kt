@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019, Virgil Security, Inc.
+ * Copyright (c) 2015-2020, Virgil Security, Inc.
  *
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  *
@@ -40,8 +40,8 @@ import com.virgilsecurity.android.common.exception.FindUsersException
 import com.virgilsecurity.android.common.utils.TestConfig
 import com.virgilsecurity.android.common.utils.TestUtils
 import com.virgilsecurity.android.ethree.interaction.EThree
+import com.virgilsecurity.common.exception.EmptyArgumentException
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
-import com.virgilsecurity.sdk.exception.EmptyArgumentException
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
 import org.junit.Assert.*
 import org.junit.Before
@@ -138,9 +138,13 @@ class SearchTests {
 
         try {
             ethree.findUser(cardOne.identity).get()
+            fail()
         } catch (throwable: Throwable) {
-            if (throwable !is FindUsersException)
+            if (throwable is FindUsersException) {
+                assertTrue(throwable.description == FindUsersException.Description.DUPLICATE_CARDS)
+            } else {
                 fail()
+            }
         }
     }
 
@@ -171,12 +175,45 @@ class SearchTests {
                                TestConfig.context,
                                onKeyChangedCallback)
 
-        TestUtils.pause(3 * 1000) // 3 sec
-
         assertTrue(onKeyChangedCallback.called)
 
         val cardCached = ethreeNew.findCachedUser(card.identity).get() ?: error("")
 
         assertEquals(cardNew.identifier, cardCached.identifier)
+    }
+
+    // test06 STE_47
+    @Test fun checkResult() {
+        val card = TestUtils.publishCard()
+
+        val identities = listOf(card.identity, this.identity)
+
+        try {
+            ethree.findUsers(identities).get()
+            fail()
+        } catch (throwable: FindUsersException) {
+            assertTrue(throwable.description == FindUsersException.Description.CARD_WAS_NOT_FOUND)
+        }
+
+        val cards = ethree.findUsers(identities, checkResult = false).get()
+
+        assertEquals(1, cards.size)
+        assertEquals(card.identifier, cards[card.identity]!!.identifier)
+    }
+
+    // test07 STE_48
+    @Test fun updateCachedCards() {
+        val ethree2 = setupDevice()
+
+        val card2 = ethree.findUser(ethree2.identity, forceReload = false).get()
+
+        ethree2.cleanup()
+        ethree2.rotatePrivateKey().execute()
+
+        ethree.updateCachedUsers().execute()
+
+        val newCard2 = ethree.findUser(ethree2.identity, forceReload = false).get()
+
+        assertEquals(card2.identifier, newCard2.previousCardId)
     }
 }

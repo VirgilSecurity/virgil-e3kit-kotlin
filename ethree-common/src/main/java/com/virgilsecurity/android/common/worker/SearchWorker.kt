@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019, Virgil Security, Inc.
+ * Copyright (c) 2015-2020, Virgil Security, Inc.
  *
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  *
@@ -33,9 +33,11 @@
 
 package com.virgilsecurity.android.common.worker
 
+import com.virgilsecurity.android.common.exception.FindUsersException
 import com.virgilsecurity.android.common.manager.LookupManager
 import com.virgilsecurity.android.common.model.FindUsersResult
 import com.virgilsecurity.android.common.model.LookupResult
+import com.virgilsecurity.common.model.Completable
 import com.virgilsecurity.common.model.Result
 import com.virgilsecurity.sdk.cards.Card
 
@@ -46,24 +48,30 @@ internal class SearchWorker internal constructor(
         private val lookupManager: LookupManager
 ) {
 
-    internal fun findCachedUsers(identities: List<String>): Result<FindUsersResult> =
+    internal fun findCachedUsers(identities: List<String>,
+                                 checkResult: Boolean = true): Result<FindUsersResult> =
             object : Result<FindUsersResult> {
                 override fun get(): FindUsersResult {
-                    return lookupManager.lookupCachedCards(identities)
+                    return lookupManager.lookupCachedCards(identities, checkResult)
                 }
             }
 
     internal fun findCachedUser(identity: String): Result<Card?> = object : Result<Card?> {
         override fun get(): Card? {
-            return lookupManager.lookupCachedCard(identity)
+            return try {
+                lookupManager.lookupCachedCard(identity)
+            } catch (exception: FindUsersException) {
+                null
+            }
         }
     }
 
     internal fun findUsers(identities: List<String>,
-                           forceReload: Boolean = false): Result<FindUsersResult> =
+                           forceReload: Boolean = false,
+                           checkResult: Boolean = true): Result<FindUsersResult> =
             object : Result<FindUsersResult> {
                 override fun get(): FindUsersResult {
-                    return lookupManager.lookupCards(identities, forceReload)
+                    return lookupManager.lookupCards(identities, forceReload, checkResult)
                 }
             }
 
@@ -71,6 +79,12 @@ internal class SearchWorker internal constructor(
                           forceReload: Boolean = false): Result<Card> = object : Result<Card> {
         override fun get(): Card {
             return lookupManager.lookupCard(identity, forceReload)
+        }
+    }
+
+    internal fun updateCachedUsers(): Completable = object : Completable {
+        override fun execute() {
+            lookupManager.startUpdateCachedCards()
         }
     }
 
@@ -84,7 +98,7 @@ internal class SearchWorker internal constructor(
                 override fun get(): LookupResult {
                     require(identities.isNotEmpty()) { "\'identities\' should not be empty" }
 
-                    val cards = findUsers(identities, true).get()
+                    val cards = findUsers(identities, forceReload = true, checkResult = true).get()
                     return cards.mapValues { it.component2().publicKey }
                 }
             }

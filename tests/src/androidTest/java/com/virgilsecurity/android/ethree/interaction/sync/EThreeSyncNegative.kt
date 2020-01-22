@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019, Virgil Security, Inc.
+ * Copyright (c) 2015-2020, Virgil Security, Inc.
  *
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  *
@@ -35,12 +35,9 @@ package com.virgilsecurity.android.ethree.interaction.sync
 
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.common.exception.EThreeException
-import com.virgilsecurity.android.common.exception.PrivateKeyNotFoundException
-import com.virgilsecurity.android.common.exception.WrongPasswordException
 import com.virgilsecurity.android.ethree.interaction.EThree
 import com.virgilsecurity.android.ethree.utils.TestConfig
 import com.virgilsecurity.android.ethree.utils.TestUtils
-import com.virgilsecurity.keyknox.exception.EntryNotFoundException
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.model.RawSignedModel
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
@@ -56,6 +53,7 @@ import com.virgilsecurity.sdk.storage.DefaultKeyStorage
 import com.virgilsecurity.sdk.storage.KeyStorage
 import com.virgilsecurity.sdk.utils.Tuple
 import org.junit.Assert.assertTrue
+import org.junit.Assert.fail
 import org.junit.Before
 import org.junit.Test
 import java.util.*
@@ -71,12 +69,10 @@ class EThreeSyncNegative {
     private lateinit var keyStorage: KeyStorage
 
     @Before fun setup() {
-        TestUtils.pause()
-
         jwtGenerator = JwtGenerator(
             TestConfig.appId,
-            TestConfig.apiKey,
-            TestConfig.apiPublicKeyId,
+            TestConfig.appKey,
+            TestConfig.appPublicKeyId,
             TimeSpan.fromTime(600, TimeUnit.SECONDS),
             VirgilAccessTokenSigner(TestConfig.virgilCrypto)
         )
@@ -108,7 +104,7 @@ class EThreeSyncNegative {
             cardCrypto,
             GeneratorJwtProvider(jwtGenerator, identity),
             VirgilCardVerifier(cardCrypto, false, false),
-            VirgilCardClient(TestConfig.virgilBaseUrl + TestConfig.VIRGIL_CARDS_SERVICE_PATH)
+            VirgilCardClient(TestConfig.virgilServiceAddress + TestConfig.VIRGIL_CARDS_SERVICE_PATH)
         )
     }
 
@@ -126,8 +122,11 @@ class EThreeSyncNegative {
 
         try {
             eThree.register().execute()
+            fail()
         } catch (throwable: Throwable) {
-            assertTrue(throwable is EThreeException)
+            assertTrue(throwable is EThreeException
+                       && throwable.description ==
+                       EThreeException.Description.USER_IS_ALREADY_REGISTERED)
         }
     }
 
@@ -136,8 +135,9 @@ class EThreeSyncNegative {
 
         try {
             eThree.unregister().execute()
-        } catch (throwable: Throwable) {
-            assertTrue(throwable is EThreeException)
+            fail()
+        } catch (throwable: EThreeException) {
+            assertTrue(throwable.description == EThreeException.Description.USER_IS_NOT_REGISTERED)
         }
     }
 
@@ -148,8 +148,9 @@ class EThreeSyncNegative {
 
         try {
             eThree.backupPrivateKey(password).execute()
-        } catch (throwable: Throwable) {
-            assertTrue(throwable is EThreeException)
+            fail()
+        } catch (exception: EThreeException) {
+            assertTrue(exception.description == EThreeException.Description.MISSING_PRIVATE_KEY)
         }
     }
 
@@ -158,12 +159,11 @@ class EThreeSyncNegative {
         val password = UUID.randomUUID().toString()
         val eThreeWithPass = initEThree(identity)
 
-        TestUtils.pause()
-
         try {
             eThreeWithPass.resetPrivateKeyBackup(password).execute()
-        } catch (throwable: Throwable) {
-            assertTrue(throwable is PrivateKeyNotFoundException)
+            fail()
+        } catch (exception: EThreeException) {
+            assertTrue(exception.description == EThreeException.Description.MISSING_PRIVATE_KEY)
         }
     }
 
@@ -174,8 +174,9 @@ class EThreeSyncNegative {
         eThree.cleanup()
         try {
             eThree.restorePrivateKey(password).execute()
-        } catch (throwable: Throwable) {
-            assertTrue(throwable is EntryNotFoundException)
+            fail()
+        } catch (exception: EThreeException) {
+            assertTrue(exception.description == EThreeException.Description.NO_PRIVATE_KEY_BACKUP)
         }
     }
 
@@ -185,22 +186,9 @@ class EThreeSyncNegative {
 
         try {
             eThree.rotatePrivateKey().execute()
-        } catch (throwable: Throwable) {
-            assertTrue(throwable is EThreeException)
-        }
-    }
-
-    @Test fun change_password_without_backup() {
-        val password = UUID.randomUUID().toString()
-        val passwordNew = UUID.randomUUID().toString()
-        val eThreeWithPass = initAndRegisterEThree(identity)
-
-        eThreeWithPass.backupPrivateKey(password)
-
-        try {
-            eThreeWithPass.changePassword(passwordNew, password).execute()
-        } catch (throwable: Throwable) {
-            assertTrue(throwable is WrongPasswordException)
+            fail()
+        } catch (throwable: EThreeException) {
+            assertTrue(throwable.description == EThreeException.Description.USER_IS_NOT_REGISTERED)
         }
     }
 
@@ -209,6 +197,7 @@ class EThreeSyncNegative {
         val eThree = initEThree(identity)
         try {
             eThree.lookupPublicKeys(listOf()).get()
+            fail()
         } catch (throwable: Throwable) {
             assertTrue(throwable is IllegalArgumentException)
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019, Virgil Security, Inc.
+ * Copyright (c) 2015-2020, Virgil Security, Inc.
  *
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  *
@@ -38,9 +38,12 @@ package com.virgilsecurity.android.common.util
  */
 object Const {
 
-    const val VIRGIL_BASE_URL = "https://api.virgilsecurity.com"
-    const val VIRGIL_CARDS_SERVICE_PATH = "/card/v5/"
-    const val ETHREE_NAME = "e3kit"
+    internal const val VIRGIL_BASE_URL = "https://api.virgilsecurity.com"
+    internal const val VIRGIL_CARDS_SERVICE_PATH = "/card/v5/"
+    internal const val ETHREE_NAME = "e3kit"
+
+    internal const val STORAGE_POSTFIX_E3KIT = "VIRGIL-E3KIT"
+    internal const val DEFAULT_NAME = "default"
 
     val NO_CONTEXT = null
 }
