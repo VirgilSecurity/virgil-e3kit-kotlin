@@ -81,8 +81,6 @@ class EThreeSyncPositive {
     private lateinit var keyStorage: KeyStorage
 
     @Before fun setup() {
-        TestUtils.pause()
-
         jwtGenerator = JwtGenerator(
             TestConfig.appId,
             TestConfig.appKey,
@@ -186,11 +184,7 @@ class EThreeSyncPositive {
         val password = UUID.randomUUID().toString()
         val eThree = initAndRegisterEThree(identity)
 
-        TestUtils.pause()
-
         eThree.backupPrivateKey(password).execute()
-
-        TestUtils.pause()
 
         val syncKeyStorage = initSyncKeyStorage(identity, password)
         assertTrue(syncKeyStorage.exists(identity))
@@ -206,16 +200,10 @@ class EThreeSyncPositive {
 
         eThreeWithPass.backupPrivateKey(password).execute()
 
-        TestUtils.pause()
-
         eThreeWithPass.resetPrivateKeyBackup(password).execute()
-
-        TestUtils.pause()
 
         val syncKeyStorage = initSyncKeyStorage(identity, password)
         assertFalse(syncKeyStorage.exists(identity))
-
-        TestUtils.pause() // To avoid throttling in next test
     }
 
     // STE-16 - Sync
@@ -224,15 +212,11 @@ class EThreeSyncPositive {
         val eThreeWithPass = initAndRegisterEThree(identity)
         eThreeWithPass.backupPrivateKey(password).execute()
 
-        TestUtils.pause()
-
         val syncKeyStorage = initSyncKeyStorage(identity, password)
         assertTrue(syncKeyStorage.exists(identity))
         val retrievedKey = syncKeyStorage.retrieve(identity)
         assertEquals(TestConfig.virgilCrypto.importPrivateKey(keyStorage.load(identity).value),
                      TestConfig.virgilCrypto.importPrivateKey(retrievedKey.value))
-
-        TestUtils.pause()
 
         eThreeWithPass.cleanup()
         eThreeWithPass.restorePrivateKey(password).execute()
@@ -262,11 +246,7 @@ class EThreeSyncPositive {
         val eThreeWithPass = initAndRegisterEThree(identity)
         eThreeWithPass.backupPrivateKey(password).execute()
 
-        TestUtils.pause()
-
         eThreeWithPass.changePassword(password, passwordNew).execute()
-
-        TestUtils.pause()
 
         eThreeWithPass.cleanup()
         assertFalse(keyStorage.exists(identity))

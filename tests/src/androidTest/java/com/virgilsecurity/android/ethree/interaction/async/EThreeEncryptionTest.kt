@@ -126,7 +126,7 @@ class EThreeEncryptionTest {
 
                 })
 
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        waiter.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
 
         return eThree!!
     }
@@ -146,7 +146,7 @@ class EThreeEncryptionTest {
             }
         })
 
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        waiter.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
 
         return eThree
     }
@@ -243,7 +243,7 @@ class EThreeEncryptionTest {
                         waiter.countDown()
                     }
                 })
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        waiter.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
     }
 
     @Test fun encrypt_adding_owner_public_key() {
@@ -264,7 +264,7 @@ class EThreeEncryptionTest {
                         fail(throwable.message)
                     }
                 })
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        waiter.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
         val lookupResult = eThreeKeys ?: error("")
         assertEquals(2, eThreeKeys?.size)
 
@@ -295,7 +295,7 @@ class EThreeEncryptionTest {
                         fail(throwable.message)
                     }
                 })
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        waiter.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
         val lookupResult = eThreeKeys ?: error("")
         assertEquals(2, eThreeKeys?.size)
 
@@ -364,7 +364,7 @@ class EThreeEncryptionTest {
 
                 })
 
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        waiter.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
 
         val encryptedText = eThreeTwo!!.encrypt(RAW_TEXT)
         val decryptedText = eThreeTwo!!.decrypt(encryptedText)
@@ -408,7 +408,7 @@ class EThreeEncryptionTest {
                 fail(throwable.message)
             }
         })
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        waiter.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
 
         assertNotNull(eThreeKeys)
         assertEquals(1, eThreeKeys?.size)
@@ -432,7 +432,7 @@ class EThreeEncryptionTest {
                         fail(throwable.message)
                     }
                 })
-        waiter.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS)
+        waiter.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
         val lookupResult = eThreeKeys ?: error("")
         assertEquals(2, eThreeKeys?.size)
 

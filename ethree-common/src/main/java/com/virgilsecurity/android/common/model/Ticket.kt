@@ -73,7 +73,7 @@ internal class Ticket : Parcelable {
         val ticket = GroupSessionTicket()
         ticket.setRng(crypto.rng)
 
-        ticket.setupTicketAsNew(sessionId.data)
+        ticket.setupTicketAsNew(sessionId.value)
 
         this.groupMessage = ticket.ticketMessage
         this.participants = participants

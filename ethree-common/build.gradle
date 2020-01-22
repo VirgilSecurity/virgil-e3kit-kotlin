@@ -52,25 +52,18 @@ android {
 dependencies {
     // Kotlin
     compileOnly "org.jetbrains.kotlin:kotlin-stdlib:$versions.kotlin"
-    compileOnly "org.jetbrains.kotlinx:kotlinx-coroutines-core:$versions.coroutines"
-
-    // Virgil Crypto
-    implementation "com.virgilsecurity.crypto:pythia-android:$versions.virgilCrypto"
+    api "org.jetbrains.kotlinx:kotlinx-coroutines-core:$versions.coroutines"
 
     // Virgil SDK
+    api "com.virgilsecurity.sdk:sdk-android:$versions.virgilSdk"
     api "com.virgilsecurity.sdk:crypto-android:$versions.virgilSdk"
 
-    api "com.virgilsecurity:common:$versions.virgilSdk"
-    api("com.virgilsecurity.sdk:sdk:$versions.virgilSdk") {
-        exclude group: 'com.virgilsecurity.crypto'
-    }
-    api("com.virgilsecurity.sdk:keyknox:$versions.virgilSdk") {
-        exclude group: 'com.virgilsecurity.sdk', module: "sdk"
-    }
-    api("com.virgilsecurity:pythia:$versions.pythia") {
-        exclude group: 'com.virgilsecurity.crypto'
-        exclude group: 'com.virgilsecurity.sdk'
-    }
+    // Virgil Pythia
+    api "com.virgilsecurity:pythia-android:$versions.pythia"
+    api "com.virgilsecurity.crypto:pythia-android:$versions.virgilCrypto"
+
+    // Virgil Ratchet
+    api "com.virgilsecurity:ratchet-android:$versions.ratchet"
 
     // Android
     compileOnly "com.google.android:android:$versions.android"
@@ -79,6 +72,9 @@ dependencies {
     implementation "androidx.room:room-runtime:$versions.room"
     implementation "androidx.room:room-ktx:$versions.room"
     kapt "androidx.room:room-compiler:$versions.room"
+
+    // Gson
+    implementation "com.google.code.gson:gson:$versions.gson"
 
     // Tests core
     testImplementation "junit:junit:$versions.junit"
@@ -92,16 +88,16 @@ dependencies {
     implementation "com.virgilsecurity:test-common:$versions.virgilTestCommon"
 }
 
-task generateVersionVirgilAgent {
+task generateVirgilInfo {
     outputs.dir "$buildDir/generated"
     doFirst {
-        def versionFile = file("$buildDir/generated/release/com/virgilsecurity/android/common/build/VersionVirgilAgent.kt")
+        def versionFile = file("$buildDir/generated/release/com/virgilsecurity/android/common/build/VirgilInfo.kt")
         versionFile.parentFile.mkdirs()
         versionFile.text =
                 """
 package com.virgilsecurity.android.common.build;
 
-object VersionVirgilAgent {
+object VirgilInfo {
     const val VERSION = "$project.version"
 }
 """
@@ -111,8 +107,9 @@ object VersionVirgilAgent {
 project.android.sourceSets.main.java.srcDirs = ["${buildDir}/generated/release/", "src/main/java"]
 
 tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
-    dependsOn(generateVersionVirgilAgent)
+    dependsOn(generateVirgilInfo)
     dependsOn(copyEnvFile)
+    dependsOn(copyCompatDataFile)
 }
 
 publishing {
@@ -131,5 +128,13 @@ task copyEnvFile(type: Copy) {
     if (!resourcesFolder.exists()) resourcesFolder.mkdirs()
 
     from rootProject.projectDir.absolutePath + '/env.json'
+    into resourcesFolder.absolutePath
+}
+
+task copyCompatDataFile(type: Copy) {
+    def resourcesFolder = new File(project.projectDir.absolutePath + '/src/androidTest/resources/compat')
+    if (!resourcesFolder.exists()) resourcesFolder.mkdirs()
+
+    from rootProject.projectDir.absolutePath + '/compat_data.json'
     into resourcesFolder.absolutePath
 }

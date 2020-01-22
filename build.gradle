@@ -32,18 +32,21 @@
  */
 
 buildscript {
+    ext.kotlin_version = '1.3.61'
+
     ext.versions = [
             // Virgil
-            virgilSdk       : '6.0',
-            virgilCrypto    : '0.10.2',
-            pythia          : '0.3.2',
+            virgilSdk       : '7.1.0',
+            virgilCrypto    : '0.12.0',
+            pythia          : '0.3.3',
+            ratchet         : '0.1.1',
 
             // Kotlin
-            kotlin          : '1.3.50',
-            coroutines      : '1.3.0-M1',
+            kotlin          : '1.3.61',
+            coroutines      : '1.3.3',
 
             // Gradle
-            gradle          : '3.5.1',
+            gradle          : '3.5.3',
 
             // Maven
             mavenPublish    : '3.6.2',
@@ -53,7 +56,7 @@ buildscript {
             appCompat       : '1.1.0',
 
             // Room
-            room            : '2.2.1',
+            room            : '2.2.3',
 
             // Docs
             dokka           : '0.9.18',
@@ -63,6 +66,9 @@ buildscript {
             testsRunner     : '1.1.1',
             espresso        : '3.0.2',
             virgilTestCommon: '0.1',
+
+            // Benchmark
+            androidBenchmark: '1.0.0',
     ]
     ext.androidOptions = [
             compileSdkVersion   : 28,
@@ -81,6 +87,8 @@ buildscript {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$versions.kotlin"
         classpath "org.jetbrains.dokka:dokka-gradle-plugin:$versions.dokka"
         classpath "digital.wup:android-maven-publish:$versions.mavenPublish"
+        classpath "androidx.benchmark:benchmark-gradle-plugin:$versions.androidBenchmark"
+
     }
 }
 
@@ -89,40 +97,80 @@ allprojects {
         google()
         jcenter()
         mavenCentral()
-        mavenLocal()
     }
+}
+
+/**
+ * Gets property from system properties.
+ *
+ * @param name Of System property to get.
+ *
+ * @return System property or null if not found.
+ */
+def static getSystemProperty(String name) {
+    def property
+    if (System.getProperty(name) != null) {
+        property = System.getProperty(name)
+    } else {
+        property = System.getenv(name)
+    }
+
+    return property
+}
+
+/**
+ * Gets property from both - gradle properties and system properties.
+ *
+ * @param name Of property to get.
+ */
+def getGradleOrSystemProperty(String name, Project project) {
+    def property
+
+    if (project.hasProperty(name)) {
+        property = project.getProperty(name)
+    } else {
+        property = getSystemProperty(name)
+    }
+
+    return property
 }
 
 // Artifacts packages
 final String BASE_VIRGIL_PACKAGE = 'com.virgilsecurity'
 
 // Packages versions
-final String SDK_VERSION = '0.7.0'
+final String SDK_VERSION = '0.8.0'
 
 subprojects {
     group BASE_VIRGIL_PACKAGE
     version SDK_VERSION
 
+    def isRegular = (it.name == 'ethree-common'
+            || it.name == 'ethree-kotlin'
+            || it.name == 'ethree-enclave')
     def isTest = (it.name == 'tests' || it.name == 'testsenclave')
+    def isBenchmark = (it.name == 'ethree-benchmark')
 
-    if (!isTest) {
+    if (isRegular) {
         apply plugin: 'com.android.library'
         apply plugin: 'digital.wup.android-maven-publish'
         apply plugin: 'org.jetbrains.dokka'
         apply plugin: 'signing'
         apply plugin: 'maven-publish'
-    } else {
+    } else if (isTest) {
         apply plugin: 'com.android.application'
         apply from: '../tests-verbal-output.gradle'
+    } else if (isBenchmark) {
+        apply plugin: 'com.android.library'
     }
+
+    apply plugin: 'kotlin-android'
+    apply plugin: 'kotlin-android-extensions'
 
     if (it.name == 'ethree-common') {
         apply from: '../tests-verbal-output.gradle'
         apply plugin: 'kotlin-kapt'
     }
-
-    apply plugin: 'kotlin-android'
-    apply plugin: 'kotlin-android-extensions'
 
     android {
         compileSdkVersion androidOptions.compileSdkVersion
@@ -134,11 +182,9 @@ subprojects {
         buildTypes {
             debug {
                 minifyEnabled false
-                useProguard false
             }
             release {
                 minifyEnabled false
-                useProguard false
             }
         }
         lintOptions {
@@ -149,7 +195,7 @@ subprojects {
     sourceCompatibility = "8"
     targetCompatibility = "8"
 
-    if (!isTest) {
+    if (isRegular) {
         task sourcesJar(type: Jar) {
             from(project.android.sourceSets.main.java.srcDirs)
             classifier = 'sources'
@@ -160,8 +206,8 @@ subprojects {
             classifier = 'javadoc'
         }
 
-        def authentication_username = hasProperty('authentication_username') ? authentication_username : System.getenv('authentication_username')
-        def authentication_password = hasProperty('authentication_password') ? authentication_password : System.getenv('authentication_password')
+        def authentication_username = getGradleOrSystemProperty('authentication_username', project)
+        def authentication_password = getGradleOrSystemProperty('authentication_password', project)
 
         publishing {
             publications {

@@ -33,22 +33,11 @@
 
 package com.virgilsecurity.android.common.exception
 
-open class KeyException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : EThreeException(message, throwable)
-
-class BackupKeyException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : KeyException(message, throwable)
-
-class NoPrivateKeyBackupException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : KeyException(message, throwable)
-
-class PrivateKeyNotFoundException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : KeyException(message, throwable)
-
-class PrivateKeyPresentException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : KeyException(message, throwable)
+/**
+ * EThreeBaseException is a base class for all EThree exceptions.
+ */
+abstract class EThreeBaseException(
+        message: String?,
+        throwable: Throwable?
+) : RuntimeException(message,
+                     throwable)

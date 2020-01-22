@@ -52,11 +52,7 @@ import java.util.concurrent.TimeUnit
 class TestUtils {
 
     companion object {
-        const val THROTTLE_TIMEOUT = 2 * 1000L // 2 seconds
-
-        fun pause(timeout: Long = THROTTLE_TIMEOUT) {
-            Thread.sleep(timeout)
-        }
+        const val REQUEST_TIMEOUT = 5 * 1000L // 5 seconds
 
         fun generateTokenString(identity: String): String =
                 JwtGenerator(

@@ -33,14 +33,16 @@
 
 package com.virgilsecurity.android.common.exception
 
-open class CardStorageException @JvmOverloads constructor(
-        override val message: String? = null, throwable: Throwable? = null
-) : EThreeException(message, throwable)
-
-class InconsistentCardStorageException @JvmOverloads constructor(
-        override val message: String? = "Storage turned into inconsistency state",
-        throwable: Throwable? = null
-) : CardStorageException(message, throwable)
-
-class EmptyIdentitiesStorageException @JvmOverloads constructor(throwable: Throwable? = null
-) : CardStorageException("Empty identities", throwable)
+/**
+ * ErrorCode
+ */
+object ErrorCode {
+    const val BASE = 70100
+    const val RATCHET = 70200
+    const val TEMP_CHANNEL = 70300
+    const val RAW_GROUP = 70400
+    const val FILE_GROUP_STORAGE = 70500
+    const val FIND_USERS = 70600
+    const val SQLITE_STORAGE = 70700
+    const val GROUP = 70800
+}

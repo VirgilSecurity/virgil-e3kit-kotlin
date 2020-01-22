@@ -33,8 +33,7 @@
 
 package com.virgilsecurity.android.common.manager
 
-import com.virgilsecurity.android.common.exception.GroupNotFoundException
-import com.virgilsecurity.android.common.exception.InconsistentStateGroupException
+import com.virgilsecurity.android.common.exception.GroupException
 import com.virgilsecurity.android.common.model.Group
 import com.virgilsecurity.android.common.model.GroupInfo
 import com.virgilsecurity.android.common.model.RawGroup
@@ -45,7 +44,6 @@ import com.virgilsecurity.android.common.storage.local.LocalKeyStorage
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.keyknox.utils.unwrapCompanionClass
 import com.virgilsecurity.sdk.cards.Card
-import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import java.util.logging.Logger
 
 /**
@@ -55,20 +53,19 @@ internal class GroupManager internal constructor(
         internal val localGroupStorage: FileGroupStorage,
         internal val cloudTicketStorage: CloudTicketStorage,
         private val localKeyStorage: LocalKeyStorage,
-        private val lookupManager: LookupManager,
-        private val crypto: VirgilCrypto
+        private val lookupManager: LookupManager
 ) {
 
     internal val identity: String = localGroupStorage.identity
 
     private fun parse(rawGroup: RawGroup): Group = Group(rawGroup,
-                                                         crypto,
                                                          localKeyStorage,
                                                          this,
                                                          lookupManager)
 
     internal fun store(ticket: Ticket, cards: List<Card>): Group {
-        val rawGroup = RawGroup(GroupInfo(this.identity), listOf(ticket))
+        val info = GroupInfo(this.identity)
+        val rawGroup = RawGroup(info, listOf(ticket))
 
         cloudTicketStorage.store(ticket, cards)
         localGroupStorage.store(rawGroup)
@@ -80,15 +77,15 @@ internal class GroupManager internal constructor(
         val cloudEpochs = cloudTicketStorage.getEpochs(sessionId, card.identity)
         val localEpochs = localGroupStorage.getEpochs(sessionId)
 
-        val lastEpoch = cloudEpochs.max()
-        if (lastEpoch == null) {
+        val anyEpoch = cloudEpochs.firstOrNull()
+        if (anyEpoch == null) {
             localGroupStorage.delete(sessionId)
 
-            throw GroupNotFoundException("Group with provided id was not found.")
+            throw GroupException(GroupException.Description.GROUP_WAS_NOT_FOUND)
         }
 
         val epochs = cloudEpochs.subtract(localEpochs).toMutableSet()
-        epochs.add(lastEpoch)
+        epochs.add(anyEpoch)
 
         val tickets = cloudTicketStorage.retrieve(sessionId, card.identity, card.publicKey, epochs)
         val info = GroupInfo(card.identity)
@@ -96,7 +93,8 @@ internal class GroupManager internal constructor(
 
         localGroupStorage.store(rawGroup)
 
-        return retrieve(sessionId) ?: throw InconsistentStateGroupException()
+        return retrieve(sessionId)
+               ?: throw GroupException(GroupException.Description.INCONSISTENT_STATE)
     }
 
     internal fun addAccess(cards: List<Card>, sessionId: Data) =
@@ -106,8 +104,10 @@ internal class GroupManager internal constructor(
             cloudTicketStorage.reAddRecipient(card, sessionId)
 
     internal fun retrieve(sessionId: Data): Group? {
+        val ticketsCount = MAX_TICKETS_IN_GROUP
+
         val rawGroup = try {
-            localGroupStorage.retrieve(sessionId, MAX_TICKETS_IN_GROUP)
+            localGroupStorage.retrieve(sessionId, ticketsCount)
         } catch (throwable: Throwable) {
             logger.info(throwable.message)
             return null

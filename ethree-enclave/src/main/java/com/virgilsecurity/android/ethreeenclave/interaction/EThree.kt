@@ -37,10 +37,15 @@ import android.content.Context
 import com.virgilsecurity.android.common.EThreeCore
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.common.callback.OnKeyChangedCallback
+import com.virgilsecurity.android.common.model.DerivedPasswords
 import com.virgilsecurity.android.common.util.Const.NO_CONTEXT
+import com.virgilsecurity.android.common.util.Defaults
+import com.virgilsecurity.android.ethreeenclave.interaction.model.EThreeParamsEnclave
 import com.virgilsecurity.common.model.Result
 import com.virgilsecurity.sdk.androidutils.storage.AndroidKeyEntry
 import com.virgilsecurity.sdk.androidutils.storage.AndroidKeyStorage
+import com.virgilsecurity.sdk.common.TimeSpan
+import com.virgilsecurity.sdk.crypto.KeyPairType
 import com.virgilsecurity.sdk.crypto.exceptions.KeyStorageException
 import com.virgilsecurity.sdk.jwt.Jwt
 import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
@@ -59,8 +64,17 @@ class EThree
         alias: String = "VirgilAndroidKeyStorage",
         isAuthenticationRequired: Boolean = true,
         keyValidityDuration: Int = 60 * 5, // 5 min
-        keyChangedCallback: OnKeyChangedCallback? = null
-) : EThreeCore(identity, tokenCallback, keyChangedCallback, context) {
+        keyChangedCallback: OnKeyChangedCallback? = null,
+        keyPairType: KeyPairType = Defaults.keyPairType,
+        enableRatchet: Boolean = Defaults.enableRatchet,
+        keyRotationInterval: TimeSpan = Defaults.keyRotationInterval
+) : EThreeCore(identity,
+               tokenCallback,
+               keyChangedCallback,
+               keyPairType,
+               enableRatchet,
+               keyRotationInterval,
+               context) {
 
     override val keyStorage: KeyStorage
 
@@ -100,6 +114,44 @@ class EThree
 
         initializeCore()
     }
+
+    constructor(params: EThreeParamsEnclave) : this(params.identity,
+                                                    params.tokenCallback,
+                                                    params.context,
+                                                    params.alias,
+                                                    params.isAuthenticationRequired,
+                                                    params.keyValidityDuration,
+                                                    params.keyChangedCallback,
+                                                    params.keyPairType,
+                                                    params.enableRatchet,
+                                                    params.keyRotationInterval)
+
+    @JvmOverloads constructor(
+            identity: String,
+            tokenCallback: () -> String,
+            context: Context,
+            alias: String = "VirgilAndroidKeyStorage",
+            isAuthenticationRequired: Boolean = true,
+            keyValidityDuration: Int = 60 * 5, // 5 min
+            keyChangedCallback: OnKeyChangedCallback? = null,
+            keyPairType: KeyPairType = Defaults.keyPairType,
+            enableRatchet: Boolean = Defaults.enableRatchet,
+            keyRotationInterval: TimeSpan = Defaults.keyRotationInterval
+    ) : this(identity,
+             object : OnGetTokenCallback {
+                 override fun onGetToken(): String {
+                     return tokenCallback()
+                 }
+
+             },
+             context,
+             alias,
+             isAuthenticationRequired,
+             keyValidityDuration,
+             keyChangedCallback,
+             keyPairType,
+             enableRatchet,
+             keyRotationInterval)
 
     companion object {
         /**
@@ -147,6 +199,9 @@ class EThree
                 return eThree
             }
         }
+
+        @JvmStatic
+        fun derivePasswords(password: String) = derivePasswordsInternal(password)
 
         private const val KEYSTORE_NAME = "virgil.keystore"
     }

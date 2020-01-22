@@ -35,8 +35,7 @@ package com.virgilsecurity.android.common.storage.sql
 
 import android.content.Context
 import androidx.room.Room
-import com.virgilsecurity.android.common.exception.EmptyIdentitiesStorageException
-import com.virgilsecurity.android.common.exception.InconsistentCardStorageException
+import com.virgilsecurity.android.common.exception.SQLiteStorageException
 import com.virgilsecurity.android.common.storage.CardStorage
 import com.virgilsecurity.android.common.storage.sql.model.CardEntity
 import com.virgilsecurity.sdk.cards.Card
@@ -105,7 +104,7 @@ internal class SQLCardStorage internal constructor(
         card.isOutdated = cardEntity.isOutdated
 
         if (cardId != card.identifier) {
-            throw InconsistentCardStorageException()
+            throw SQLiteStorageException(SQLiteStorageException.Description.INCONSISTENT_DB)
         }
 
         return card
@@ -113,7 +112,7 @@ internal class SQLCardStorage internal constructor(
 
     override fun searchCards(identities: List<String>): List<Card> {
         if (identities.isEmpty()) {
-            throw EmptyIdentitiesStorageException()
+            throw SQLiteStorageException(SQLiteStorageException.Description.EMPTY_IDENTITIES)
         }
 
         val cards = mutableListOf<Card>()
@@ -127,7 +126,7 @@ internal class SQLCardStorage internal constructor(
         val result = mutableListOf<Card>()
         for (card in cards) {
             if (card.identity !in identities) {
-                throw InconsistentCardStorageException("Got wrong card from SQL storage")
+                throw SQLiteStorageException(SQLiteStorageException.Description.INCONSISTENT_DB)
             }
             val nextCard = cards.firstOrNull { it.previousCardId == card.identifier }
             if (nextCard != null) {

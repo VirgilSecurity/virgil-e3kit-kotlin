@@ -36,16 +36,15 @@ package com.virgilsecurity.android.common.worker
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.common.exception.EThreeException
-import com.virgilsecurity.android.common.exception.PrivateKeyNotFoundException
-import com.virgilsecurity.android.common.exception.PrivateKeyPresentException
-import com.virgilsecurity.android.common.exception.SignatureVerificationException
 import com.virgilsecurity.android.common.model.FindUsersResult
 import com.virgilsecurity.android.common.utils.TestConfig
 import com.virgilsecurity.android.common.utils.TestUtils
 import com.virgilsecurity.android.ethree.interaction.EThree
-import com.virgilsecurity.common.model.Data
-import com.virgilsecurity.sdk.cards.Card
+import com.virgilsecurity.common.extension.toData
+import com.virgilsecurity.sdk.common.TimeSpan
+import com.virgilsecurity.sdk.crypto.KeyPairType
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
+import com.virgilsecurity.sdk.crypto.exceptions.VerificationException
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
 import com.virgilsecurity.sdk.utils.ConvertionUtils
 import org.junit.Assert.*
@@ -55,7 +54,7 @@ import org.junit.runner.RunWith
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.util.*
-import kotlin.String.Companion
+import java.util.concurrent.TimeUnit
 
 /**
  * PeerToPeerTest
@@ -93,7 +92,9 @@ class PeerToPeerTest {
                                        return TestUtils.generateTokenString(identityTwo)
                                    }
                                },
-                               TestConfig.context)
+                               TestConfig.context,
+                               enableRatchet = false,
+                               keyRotationInterval = TimeSpan.fromTime(3600, TimeUnit.SECONDS))
 
         assertNotNull(ethreeTwo)
 
@@ -102,19 +103,19 @@ class PeerToPeerTest {
         val card = ethree.findUser(ethreeTwo.identity).get()
         assertNotNull(card)
 
-        val encrypted = ethree.encrypt(TEXT, card)
+        val encrypted = ethree.authEncrypt(TEXT, card)
 
         val otherCard = TestUtils.publishCard()
 
         try {
-            ethreeTwo.decrypt(encrypted, otherCard)
+            ethreeTwo.authDecrypt(encrypted, otherCard)
             fail()
         } catch (throwable: Throwable) {
             // We're good
         }
 
         val cardTwo = ethreeTwo.findUser(ethree.identity).get()
-        val decryptedTwo = ethreeTwo.decrypt(encrypted, cardTwo)
+        val decryptedTwo = ethreeTwo.authDecrypt(encrypted, cardTwo)
         assertEquals(TEXT, decryptedTwo)
     }
 
@@ -122,7 +123,7 @@ class PeerToPeerTest {
     @Test(expected = IllegalArgumentException::class) fun encrypt_empty_keys() {
         ethree.register().execute()
 
-        ethree.encrypt(TEXT, FindUsersResult())
+        ethree.authEncrypt(TEXT, FindUsersResult())
     }
 
     // test03 STE_5
@@ -131,13 +132,13 @@ class PeerToPeerTest {
 
         val plainData = TEXT.toByteArray()
         val card = ethree.findUser(ethree.identity).get()
-        val encryptedData = crypto.encrypt(plainData, card.publicKey)
+        val encryptedData = crypto.encrypt(plainData, card.publicKey, false)
         val encryptedString = ConvertionUtils.toBase64String(encryptedData)
 
         val otherCard = TestUtils.publishCard()
 
         try {
-            ethree.decrypt(encryptedString, otherCard)
+            ethree.authDecrypt(encryptedString, otherCard)
             fail()
         } catch (throwable: Throwable) {
             // We're food
@@ -152,17 +153,15 @@ class PeerToPeerTest {
         val card = TestUtils.publishCard()
 
         try {
-            ethree.encrypt(TEXT, FindUsersResult(mapOf(ethree.identity to card)))
-        } catch (throwable: Throwable) {
-            if (throwable !is PrivateKeyNotFoundException)
-                fail()
+            ethree.authEncrypt(TEXT, FindUsersResult(mapOf(ethree.identity to card)))
+        } catch (exception: EThreeException) {
+            assertTrue(exception.description == EThreeException.Description.MISSING_PRIVATE_KEY)
         }
 
         try {
-            ethree.decrypt(Data(TEXT.toByteArray()).toBase64String(), card)
-        } catch (throwable: Throwable) {
-            if (throwable !is PrivateKeyNotFoundException)
-                fail()
+            ethree.authDecrypt(TEXT.toData().toBase64String(), card)
+        } catch (exception: EThreeException) {
+            assertTrue(exception.description == EThreeException.Description.MISSING_PRIVATE_KEY)
         }
     }
 
@@ -170,16 +169,18 @@ class PeerToPeerTest {
     @Test fun encrypt_decrypt_stream() {
         ethree.register().execute()
 
-        val inputStream = ByteArrayInputStream(TEXT.toByteArray())
+        val data = TEXT.toByteArray()
+        val inputStream = ByteArrayInputStream(data)
+        val size = data.size
         val outputStream = ByteArrayOutputStream()
 
-        ethree.encrypt(inputStream, outputStream)
+        ethree.authEncrypt(inputStream, size, outputStream)
         val encryptedData = outputStream.toByteArray()
 
         val inputStreamTwo = ByteArrayInputStream(encryptedData)
         val outputStreamTwo = ByteArrayOutputStream()
 
-        ethree.decrypt(inputStreamTwo, outputStreamTwo)
+        ethree.authDecrypt(inputStreamTwo, outputStreamTwo)
 
         val decryptedData = outputStreamTwo.toByteArray()
 
@@ -198,7 +199,10 @@ class PeerToPeerTest {
                                        return TestUtils.generateTokenString(identityTwo)
                                    }
                                },
-                               TestConfig.context)
+                               TestConfig.context,
+                               keyPairType = KeyPairType.ED25519,
+                               enableRatchet = false,
+                               keyRotationInterval = TimeSpan.fromTime(3600, TimeUnit.SECONDS))
 
         assertNotNull(ethreeTwo)
 
@@ -209,9 +213,9 @@ class PeerToPeerTest {
 
         val dateOne = Date()
 
-        TestUtils.pause(1000) // 1 sec
+        Thread.sleep(1000) // 1 sec
 
-        val encrypted = ethree.encrypt(TEXT, FindUsersResult(mapOf(card.identity to card)))
+        val encrypted = ethree.authEncrypt(TEXT, FindUsersResult(mapOf(card.identity to card)))
 
         ethree.cleanup()
 
@@ -220,36 +224,36 @@ class PeerToPeerTest {
         val dateTwo = Date()
 
         val encryptedTwo =
-                ethree.encrypt(TEXT + TEXT, FindUsersResult(mapOf(card.identity to card)))
+                ethree.authEncrypt(TEXT + TEXT, FindUsersResult(mapOf(card.identity to card)))
 
         val cardTwo = ethreeTwo.findUser(ethree.identity).get()
         assertNotNull(cardTwo)
 
         try {
-            ethreeTwo.decrypt(encrypted, cardTwo)
+            ethreeTwo.authDecrypt(encrypted, cardTwo)
             fail()
         } catch (throwable: Throwable) {
-            // We're good
+            assertTrue(throwable is VerificationException)
         }
 
         try {
-            ethreeTwo.decrypt(encrypted, cardTwo, dateTwo)
+            ethreeTwo.authDecrypt(encrypted, cardTwo, dateTwo)
             fail()
         } catch (throwable: Throwable) {
-            // We're good
+            assertTrue(throwable is VerificationException)
         }
 
-        val decrypted = ethreeTwo.decrypt(encrypted, cardTwo, dateOne)
+        val decrypted = ethreeTwo.authDecrypt(encrypted, cardTwo, dateOne)
         assertEquals(TEXT, decrypted)
 
         try {
-            ethreeTwo.decrypt(encryptedTwo, cardTwo, dateOne)
+            ethreeTwo.authDecrypt(encryptedTwo, cardTwo, dateOne)
             fail()
         } catch (throwable: Throwable) {
-            // We're good
+            assertTrue(throwable is VerificationException)
         }
 
-        val decryptedTwo = ethreeTwo.decrypt(encryptedTwo, cardTwo, dateTwo)
+        val decryptedTwo = ethreeTwo.authDecrypt(encryptedTwo, cardTwo, dateTwo)
         assertEquals(TEXT + TEXT, decryptedTwo)
     }
 
@@ -284,6 +288,47 @@ class PeerToPeerTest {
         assertEquals(TEXT, decrypted)
     }
 
+    // test08 STE_71
+    @Test fun encrypt_decrypt_deprecated_methods_should_succeed() {
+        val identityTwo = UUID.randomUUID().toString()
+
+        ethree.register().execute()
+
+        val ethreeTwo = EThree(identityTwo,
+                               object : OnGetTokenCallback {
+                                   override fun onGetToken(): String {
+                                       return TestUtils.generateTokenString(identityTwo)
+                                   }
+                               },
+                               TestConfig.context,
+                               keyPairType = KeyPairType.ED25519,
+                               enableRatchet = false,
+                               keyRotationInterval = TimeSpan.fromTime(3600, TimeUnit.SECONDS))
+
+        assertNotNull(ethreeTwo)
+
+        ethreeTwo.register().execute()
+
+        val card = ethree.findUser(ethreeTwo.identity, forceReload = false).get()
+        assertNotNull(card)
+
+        val encrypted = ethree.encrypt(TEXT, card)
+
+        val otherCard = TestUtils.publishCard()
+
+        try {
+            ethreeTwo.decrypt(encrypted, otherCard)
+            fail()
+        } catch (throwable: Throwable) {
+            assertTrue(throwable is EThreeException
+                       && throwable.description == EThreeException.Description.VERIFICATION_FAILED)
+        }
+
+        val cardTwo = ethreeTwo.findUser(ethree.identity, forceReload = false).get()
+        val decryptedTwo = ethreeTwo.decrypt(encrypted, cardTwo)
+        assertEquals(TEXT, decryptedTwo)
+    }
+
     @Test fun signature_invalid_test() {
         ethree.register().execute()
 
@@ -309,9 +354,8 @@ class PeerToPeerTest {
         try {
             ethreeTwo.decrypt(encrypted, cardOne)
             fail()
-        } catch (throwable: Throwable) {
-            if (throwable !is SignatureVerificationException)
-                fail()
+        } catch (exception: EThreeException) {
+            assertTrue(exception.description == EThreeException.Description.VERIFICATION_FAILED)
         }
     }
 

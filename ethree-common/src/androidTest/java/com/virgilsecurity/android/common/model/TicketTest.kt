@@ -35,7 +35,8 @@ package com.virgilsecurity.android.common.model
 
 import android.os.Parcel
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.virgilsecurity.android.common.exception.GroupIdTooShortException
+import com.virgilsecurity.android.common.exception.GroupException
+import com.virgilsecurity.common.extension.toData
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.sdk.crypto.HashAlgorithm
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
@@ -55,7 +56,7 @@ class TicketTest {
 
     @Test fun ticket_parcelable_with_serializable_participants() {
         val crypto = VirgilCrypto()
-        val identifierData = Data(UUID.randomUUID().toString().toByteArray())
+        val identifierData = UUID.randomUUID().toString().toData()
         val sessionId = computeSessionId(identifierData, crypto)
         val participantsSet = setOf("Bob", "Alice", "Jane")
         val ticket = Ticket(crypto, sessionId, participantsSet)
@@ -75,7 +76,7 @@ class TicketTest {
     @Test(expected = IllegalArgumentException::class)
     fun ticket_parcelable_with_not_serializable_participants() {
         val crypto = VirgilCrypto()
-        val identifierData = Data(UUID.randomUUID().toString().toByteArray())
+        val identifierData = UUID.randomUUID().toString().toData()
         val sessionId = computeSessionId(identifierData, crypto)
 
         val participantsSet = NotSerializableSet("Bob", "Alice", "Jane")
@@ -85,14 +86,13 @@ class TicketTest {
     }
 
     private fun computeSessionId(identifier: Data, crypto: VirgilCrypto): Data {
-        if (identifier.data.size <= 10) {
-            throw GroupIdTooShortException("Group Id length should be > 10")
-        }
+        if (identifier.value.size <= 10)
+            throw GroupException(GroupException.Description.SHORT_GROUP_ID)
 
-        val hash = crypto.computeHash(identifier.data, HashAlgorithm.SHA512)
-                .sliceArray(IntRange(0, 31))
+        val hash = crypto.computeHash(identifier.value, HashAlgorithm.SHA512)
+                .sliceArray(IntRange(0, 31)).toData()
 
-        return Data(hash)
+        return hash
     }
 
     private class NotSerializableSet(vararg values: String) : Set<String> {

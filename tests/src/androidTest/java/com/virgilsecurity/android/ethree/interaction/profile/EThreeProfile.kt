@@ -62,7 +62,7 @@ class EThreeProfile {
 
     @Ignore("Needed only to profile from time to time") @Test fun encrypt_debug_profile() {
         Debug.startMethodTracing("EThreeProfile_encrypt")
-        crypto.encrypt(oneMbData, keyPair.publicKey) // TODO add 1000 loops, or so
+        crypto.encrypt(oneMbData, keyPair.publicKey)
         Debug.stopMethodTracing()
     }
 

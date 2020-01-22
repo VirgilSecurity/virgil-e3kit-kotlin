@@ -33,11 +33,11 @@
 
 package com.virgilsecurity.android.common.storage.cloud
 
-import com.virgilsecurity.android.common.exception.WrongPasswordException
+import com.virgilsecurity.android.common.build.VirgilInfo
+import com.virgilsecurity.android.common.exception.EThreeException
 import com.virgilsecurity.android.common.util.Const
 import com.virgilsecurity.android.common.util.Const.VIRGIL_BASE_URL
 import com.virgilsecurity.keyknox.KeyknoxManager
-import com.virgilsecurity.keyknox.build.VersionVirgilAgent
 import com.virgilsecurity.keyknox.client.HttpClient
 import com.virgilsecurity.keyknox.client.KeyknoxClient
 import com.virgilsecurity.keyknox.cloud.CloudKeyStorage
@@ -67,13 +67,13 @@ internal class CloudKeyManager internal constructor(
     private val brainKey: BrainKey
 
     init {
-        val httpClient = HttpClient(tokenProvider, Const.ETHREE_NAME, VersionVirgilAgent.VERSION)
+        val httpClient = HttpClient(tokenProvider, Const.ETHREE_NAME, VirgilInfo.VERSION)
         val keyknoxClient = KeyknoxClient(httpClient, URL(baseUrl))
         this.keyknoxManager = KeyknoxManager(keyknoxClient)
 
         // TODO change VirgilPythiaClient to have tokenProvider inside
         val pythiaClient = VirgilPythiaClient(baseUrl, Const.ETHREE_NAME, Const.ETHREE_NAME,
-                                              VersionVirgilAgent.VERSION)
+                                              VirgilInfo.VERSION)
         val brainKeyContext = BrainKeyContext.Builder()
                 .setAccessTokenProvider(tokenProvider)
                 .setPythiaClient(pythiaClient)
@@ -105,15 +105,13 @@ internal class CloudKeyManager internal constructor(
     internal fun changePassword(oldPassword: String, newPassword: String) {
         val cloudKeyStorage = setupCloudKeyStorage(oldPassword)
 
-        Thread.sleep(2000)
-
         val brainKeyPair = this.brainKey.generateKeyPair(newPassword)
 
         try {
             cloudKeyStorage.updateRecipients(listOf(brainKeyPair.publicKey),
                                              brainKeyPair.privateKey)
         } catch (e: KeyknoxCryptoException) {
-            throw WrongPasswordException()
+            throw EThreeException(EThreeException.Description.WRONG_PASSWORD)
         }
     }
 
@@ -130,7 +128,7 @@ internal class CloudKeyManager internal constructor(
         try {
             cloudKeyStorage.retrieveCloudEntries()
         } catch (e: DecryptionFailedException) {
-            throw WrongPasswordException()
+            throw EThreeException(EThreeException.Description.WRONG_PASSWORD)
         }
 
         return cloudKeyStorage

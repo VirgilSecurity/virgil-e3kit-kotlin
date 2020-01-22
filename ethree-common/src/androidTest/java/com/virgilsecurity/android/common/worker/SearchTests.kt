@@ -40,8 +40,8 @@ import com.virgilsecurity.android.common.exception.FindUsersException
 import com.virgilsecurity.android.common.utils.TestConfig
 import com.virgilsecurity.android.common.utils.TestUtils
 import com.virgilsecurity.android.ethree.interaction.EThree
+import com.virgilsecurity.common.exception.EmptyArgumentException
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
-import com.virgilsecurity.sdk.exception.EmptyArgumentException
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
 import org.junit.Assert.*
 import org.junit.Before
@@ -138,9 +138,13 @@ class SearchTests {
 
         try {
             ethree.findUser(cardOne.identity).get()
+            fail()
         } catch (throwable: Throwable) {
-            if (throwable !is FindUsersException)
+            if (throwable is FindUsersException) {
+                assertTrue(throwable.description == FindUsersException.Description.DUPLICATE_CARDS)
+            } else {
                 fail()
+            }
         }
     }
 
@@ -171,8 +175,6 @@ class SearchTests {
                                TestConfig.context,
                                onKeyChangedCallback)
 
-        TestUtils.pause(3 * 1000) // 3 sec
-
         assertTrue(onKeyChangedCallback.called)
 
         val cardCached = ethreeNew.findCachedUser(card.identity).get() ?: error("")
@@ -189,8 +191,8 @@ class SearchTests {
         try {
             ethree.findUsers(identities).get()
             fail()
-        } catch (throwable: Throwable) {
-            assertTrue(throwable is FindUsersException)
+        } catch (throwable: FindUsersException) {
+            assertTrue(throwable.description == FindUsersException.Description.CARD_WAS_NOT_FOUND)
         }
 
         val cards = ethree.findUsers(identities, checkResult = false).get()

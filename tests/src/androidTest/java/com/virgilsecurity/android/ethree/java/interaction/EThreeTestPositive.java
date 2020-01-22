@@ -106,7 +106,7 @@ public class EThreeTestPositive {
                 fail(throwable.getMessage());
             }
         });
-        lock.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS);
+        lock.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS);
     }
 
     private CardManager initCardManager(String identity) {
@@ -141,7 +141,7 @@ public class EThreeTestPositive {
                 fail();
             }
         });
-        lock.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS);
+        lock.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS);
 
         CardManager cardManager = initCardManager(identity);
         List<Card> cards = cardManager.searchCards(identity);
@@ -168,6 +168,6 @@ public class EThreeTestPositive {
                 lock.countDown();
             }
         });
-        lock.await(TestUtils.THROTTLE_TIMEOUT, TimeUnit.SECONDS);
+        lock.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS);
     }
 }

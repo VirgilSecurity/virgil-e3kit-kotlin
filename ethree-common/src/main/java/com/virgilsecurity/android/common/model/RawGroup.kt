@@ -44,6 +44,6 @@ internal class RawGroup internal constructor(
 ) {
 
     init {
-        if (tickets.isEmpty()) throw RawGroupException("Tickets are empty")
+        if (tickets.isEmpty()) throw RawGroupException(RawGroupException.Description.EMPTY_TICKETS)
     }
 }

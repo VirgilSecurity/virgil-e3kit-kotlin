@@ -33,6 +33,7 @@
 
 package com.virgilsecurity.android.common.worker
 
+import com.virgilsecurity.android.common.exception.FindUsersException
 import com.virgilsecurity.android.common.manager.LookupManager
 import com.virgilsecurity.android.common.model.FindUsersResult
 import com.virgilsecurity.android.common.model.LookupResult
@@ -48,7 +49,7 @@ internal class SearchWorker internal constructor(
 ) {
 
     internal fun findCachedUsers(identities: List<String>,
-                                 checkResult: Boolean): Result<FindUsersResult> =
+                                 checkResult: Boolean = true): Result<FindUsersResult> =
             object : Result<FindUsersResult> {
                 override fun get(): FindUsersResult {
                     return lookupManager.lookupCachedCards(identities, checkResult)
@@ -57,13 +58,17 @@ internal class SearchWorker internal constructor(
 
     internal fun findCachedUser(identity: String): Result<Card?> = object : Result<Card?> {
         override fun get(): Card? {
-            return lookupManager.lookupCachedCard(identity)
+            return try {
+                lookupManager.lookupCachedCard(identity)
+            } catch (exception: FindUsersException) {
+                null
+            }
         }
     }
 
     internal fun findUsers(identities: List<String>,
                            forceReload: Boolean = false,
-                           checkResult: Boolean): Result<FindUsersResult> =
+                           checkResult: Boolean = true): Result<FindUsersResult> =
             object : Result<FindUsersResult> {
                 override fun get(): FindUsersResult {
                     return lookupManager.lookupCards(identities, forceReload, checkResult)

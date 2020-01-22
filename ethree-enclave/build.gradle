@@ -48,7 +48,6 @@ dependencies {
 
     // Kotlin
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$versions.kotlin"
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$versions.coroutines"
 
     // Android
     compileOnly "com.google.android:android:$versions.android"
