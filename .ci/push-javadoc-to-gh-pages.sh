@@ -99,7 +99,7 @@ generate_index_page() {
 EOL
 }
 
-if [[ "$TRAVIS_REPO_SLUG" == "VirgilSecurity/virgil-e3kit-kotlin" ]] && [[ "$TRAVIS_PULL_REQUEST" == "false" ]] && [[ "$TRAVIS_BRANCH" == "master" ]] && [[ "$TRAVIS_BRANCH" == "fix/gh-pages" ]]; then
+if [[ "$TRAVIS_REPO_SLUG" == "VirgilSecurity/virgil-e3kit-kotlin" ]] && [[ "$TRAVIS_PULL_REQUEST" == "false" ]] && ([[ "$TRAVIS_BRANCH" == "master" ]] || [[ "$TRAVIS_BRANCH" == "fix/gh-pages" ]]); then
 
   echo -e "Publishing javadoc...\n"
 
