@@ -113,14 +113,19 @@ if [[ "$TRAVIS_REPO_SLUG" == "VirgilSecurity/virgil-e3kit-kotlin" ]] && [[ "$TRA
   # Get each module version
   get_version "build.gradle" version
 
+  # Folder names with module name and version
+  commonFolder="common_v${version}"
+  kotlinFolder="kotlin_v${version}"
+  enclaveFolder="enclave_v${version}"
+
   # Create each module docs temporary folder
   mkdir $HOME/javadoc-latest/
-  mkdir $HOME/javadoc-latest/"common_v${version}"/
-  mkdir $HOME/javadoc-latest/"kotlin_v${version}"/
-  mkdir $HOME/javadoc-latest/"enclave_v${version}"/
-  cp -R ethree-common/build/javadoc/. $HOME/javadoc-latest/"common_v${version}"/
-  cp -R ethree-kotlin/build/javadoc/. $HOME/javadoc-latest/"kotlin_v${version}"/
-  cp -R ethree-enclave/build/javadoc/. $HOME/javadoc-latest/"enclave_v${version}"/
+  mkdir $HOME/javadoc-latest/${commonFolder}/
+  mkdir $HOME/javadoc-latest/${kotlinFolder}/
+  mkdir $HOME/javadoc-latest/${enclaveFolder}/
+  cp -R ethree-common/build/javadoc/. $HOME/javadoc-latest/${commonFolder}/
+  cp -R ethree-kotlin/build/javadoc/. $HOME/javadoc-latest/${kotlinFolder}/
+  cp -R ethree-enclave/build/javadoc/. $HOME/javadoc-latest/${enclaveFolder}/
 
   # Get last gh-pages docs
   cd $HOME
@@ -134,17 +139,17 @@ if [[ "$TRAVIS_REPO_SLUG" == "VirgilSecurity/virgil-e3kit-kotlin" ]] && [[ "$TRA
   git rm -rf content
 
   # Create main index page for all modules
-  versions=(${version} ${version} ${version})
-  generate_index_page ${versions[*]}
+  folders=(${commonFolder} ${kotlinFolder} ${enclaveFolder})
+  generate_index_page ${folders[*]}
 
   # Move each module docs to actual folder
   mkdir content
   mkdir content/ethree-common/
   mkdir content/ethree-kotlin/
   mkdir content/ethree-enclave/
-  mv $HOME/javadoc-latest/"common_v${version}" content/ethree-common/
-  mv $HOME/javadoc-latest/"kotlin_v${version}" content/ethree-kotlin/
-  mv $HOME/javadoc-latest/"enclave_v${version}" content/ethree-enclave/
+  mv $HOME/javadoc-latest/${commonFolder} content/ethree-common/
+  mv $HOME/javadoc-latest/${kotlinFolder} content/ethree-kotlin/
+  mv $HOME/javadoc-latest/${enclaveFolder} content/ethree-enclave/
 
   # Add new docs to index and commit
   git add -f .
