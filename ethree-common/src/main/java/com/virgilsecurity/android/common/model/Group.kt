@@ -92,11 +92,10 @@ class Group internal constructor(
         return session
     }
 
-    private fun shareTickets(cards: List<Card>) {
+    private fun shareTickets(cards: List<Card>, newSet: Set<String>) {
         val sessionId = this.session.sessionId.toData()
-        groupManager.addAccess(cards, sessionId)
-        val newParticipants = cards.map { it.identity }
-        this.participants.addAll(newParticipants.toSet())
+        groupManager.addAccess(cards, newSet, sessionId)
+        this.participants = newSet.toMutableSet()
     }
 
     private fun addNewTicket(participants: FindUsersResult) {
@@ -276,7 +275,7 @@ class Group internal constructor(
                 addedCards.add(card)
             }
 
-            this@Group.shareTickets(addedCards)
+            this@Group.shareTickets(addedCards, newSet)
         }
     }
 
