@@ -1,0 +1,162 @@
+<HTML>
+<HEAD>
+<meta charset="UTF-8">
+<title>EThreeCore.authEncrypt - ethree-common</title>
+<link rel="stylesheet" href="../../../style.css">
+</HEAD>
+<BODY>
+<a href="../../index.html">ethree-common</a>&nbsp;/&nbsp;<a href="../index.html">com.virgilsecurity.android.common</a>&nbsp;/&nbsp;<a href="index.html">EThreeCore</a>&nbsp;/&nbsp;<a href="./auth-encrypt.html">authEncrypt</a><br/>
+<br/>
+<h1>authEncrypt</h1>
+<a name="com.virgilsecurity.android.common.EThreeCore$authEncrypt(com.virgilsecurity.common.model.Data, com.virgilsecurity.sdk.cards.Card)"></a>
+<code><span class="keyword">fun </span><span class="identifier">authEncrypt</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$authEncrypt(com.virgilsecurity.common.model.Data, com.virgilsecurity.sdk.cards.Card)/data">data</span><span class="symbol">:</span>&nbsp;<span class="identifier">Data</span><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$authEncrypt(com.virgilsecurity.common.model.Data, com.virgilsecurity.sdk.cards.Card)/user">user</span><span class="symbol">:</span>&nbsp;<span class="identifier">Card</span><span class="symbol">)</span><span class="symbol">: </span><span class="identifier">Data</span></code>
+<p>Signs then encrypts data (and signature) for user.</p>
+<ul><li><em>Important</em> Deprecated decrypt method is unable to decrypt result of this method.</li>
+
+<li><em>Important</em> Automatically includes self key to recipientsKeys.</li>
+
+<li><em>Important</em> Requires private key in local storage.</li>
+</ul>
+<h3>Parameters</h3>
+<p><a name="data"></a>
+<code>data</code> - Data to encrypt.</p>
+<p><a name="card"></a>
+<code>card</code> - User Card to encrypt for.</p>
+<h3>Exceptions</h3>
+<p><a name="EThreeException"></a>
+<code>EThreeException</code> - (EThreeException.Description.MISSING_PRIVATE_KEY)</p>
+<p><a name="EThreeException"></a>
+<code>EThreeException</code> - (EThreeException.Description.MISSING_PUBLIC_KEY)</p>
+<p><a name="rethrows"></a>
+<code>rethrows</code> - <a href="#">VirgilCrypto.authEncrypt</a></p>
+<p><strong>Return</strong><br/>
+Encrypted data.</p>
+<a name="com.virgilsecurity.android.common.EThreeCore$authEncrypt(kotlin.String, com.virgilsecurity.sdk.cards.Card)"></a>
+<code><span class="keyword">fun </span><span class="identifier">authEncrypt</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$authEncrypt(kotlin.String, com.virgilsecurity.sdk.cards.Card)/text">text</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$authEncrypt(kotlin.String, com.virgilsecurity.sdk.cards.Card)/user">user</span><span class="symbol">:</span>&nbsp;<span class="identifier">Card</span><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a></code>
+<p>Signs then encrypts string (and signature) for user.</p>
+<ul><li><em>Important</em> Deprecated decrypt method is unable to decrypt result of this method.</li>
+
+<li><em>Important</em> Automatically includes self key to recipientsKeys.</li>
+
+<li><em>Important</em> Requires private key in local storage.</li>
+</ul>
+<h3>Parameters</h3>
+<p><a name="data"></a>
+<code>data</code> - String to encrypt.</p>
+<p><a name="card"></a>
+<code>card</code> - User Card to encrypt for.</p>
+<h3>Exceptions</h3>
+<p><a name="EThreeException"></a>
+<code>EThreeException</code> - (EThreeException.Description.MISSING_PRIVATE_KEY)</p>
+<p><a name="EThreeException"></a>
+<code>EThreeException</code> - (EThreeException.Description.MISSING_PUBLIC_KEY)</p>
+<p><a name="EThreeException"></a>
+<code>EThreeException</code> - (EThreeException.Description.STR_TO_DATA_FAILED)</p>
+<p><a name="rethrows"></a>
+<code>rethrows</code> - <a href="#">VirgilCrypto.authEncrypt</a></p>
+<p><strong>Return</strong><br/>
+Encrypted string.</p>
+<a name="com.virgilsecurity.android.common.EThreeCore$authEncrypt(kotlin.String, com.virgilsecurity.android.common.model.FindUsersResult)"></a>
+<code><span class="identifier">@JvmOverloads</span> <span class="keyword">fun </span><span class="identifier">authEncrypt</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$authEncrypt(kotlin.String, com.virgilsecurity.android.common.model.FindUsersResult)/text">text</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$authEncrypt(kotlin.String, com.virgilsecurity.android.common.model.FindUsersResult)/users">users</span><span class="symbol">:</span>&nbsp;<a href="../../com.virgilsecurity.android.common.model/-find-users-result/index.html"><span class="identifier">FindUsersResult</span></a><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a></code>
+<p>Signs then encrypts string (and signature) for group of users.</p>
+<ul><li><em>Important</em> Deprecated decrypt method is unable to decrypt result of this method.</li>
+
+<li><em>Important</em> Automatically includes self key to recipientsKeys.</li>
+
+<li><em>Important</em> Requires private key in local storage.</li>
+
+<li><em>Note</em> Avoid key duplication.</li>
+</ul>
+<h3>Parameters</h3>
+<p><a name="text"></a>
+<code>text</code> - String to encrypt.</p>
+<p><a name="users"></a>
+<code>users</code> - Result of findUsers call recipient Cards with Public Keys to sign and
+encrypt with. Use null to sign and encrypt for self.</p>
+<h3>Exceptions</h3>
+<p><a name="EThreeException"></a>
+<code>EThreeException</code> - (EThreeException.Description.MISSING_PRIVATE_KEY)</p>
+<p><a name="EThreeException"></a>
+<code>EThreeException</code> - (EThreeException.Description.MISSING_PUBLIC_KEY)</p>
+<p><a name="EThreeException"></a>
+<code>EThreeException</code> - (EThreeException.Description.STR_TO_DATA_FAILED)</p>
+<p><a name="rethrows"></a>
+<code>rethrows</code> - <a href="#">VirgilCrypto.authEncrypt</a></p>
+<p><strong>Return</strong><br/>
+Encrypted base64String.</p>
+<a name="com.virgilsecurity.android.common.EThreeCore$authEncrypt(com.virgilsecurity.common.model.Data, com.virgilsecurity.android.common.model.FindUsersResult)"></a>
+<code><span class="identifier">@JvmOverloads</span> <span class="keyword">fun </span><span class="identifier">authEncrypt</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$authEncrypt(com.virgilsecurity.common.model.Data, com.virgilsecurity.android.common.model.FindUsersResult)/data">data</span><span class="symbol">:</span>&nbsp;<span class="identifier">Data</span><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$authEncrypt(com.virgilsecurity.common.model.Data, com.virgilsecurity.android.common.model.FindUsersResult)/users">users</span><span class="symbol">:</span>&nbsp;<a href="../../com.virgilsecurity.android.common.model/-find-users-result/index.html"><span class="identifier">FindUsersResult</span></a><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">)</span><span class="symbol">: </span><span class="identifier">Data</span></code>
+<p>Signs then encrypts string (and signature) for group of users.</p>
+<ul><li><em>Important</em> Deprecated decrypt method is unable to decrypt result of this method.</li>
+
+<li><em>Important</em> Automatically includes self key to recipientsKeys.</li>
+
+<li><em>Important</em> Requires private key in local storage.</li>
+
+<li><em>Note</em> Avoid key duplication.</li>
+</ul>
+<h3>Parameters</h3>
+<p><a name="text"></a>
+<code>text</code> - Data to encrypt.</p>
+<p><a name="users"></a>
+<code>users</code> - Result of findUsers call recipient Cards with Public Keys to sign and
+encrypt with. Use null to sign and encrypt for self.</p>
+<h3>Exceptions</h3>
+<p><a name="EThreeException"></a>
+<code>EThreeException</code> - (EThreeException.Description.MISSING_PRIVATE_KEY)</p>
+<p><a name="EThreeException"></a>
+<code>EThreeException</code> - (EThreeException.Description.MISSING_PUBLIC_KEY)</p>
+<p><a name="rethrows"></a>
+<code>rethrows</code> - <a href="#">VirgilCrypto.authEncrypt</a></p>
+<p><strong>Return</strong><br/>
+Encrypted data.</p>
+<a name="com.virgilsecurity.android.common.EThreeCore$authEncrypt(java.io.InputStream, kotlin.Int, java.io.OutputStream, com.virgilsecurity.sdk.cards.Card)"></a>
+<code><span class="keyword">fun </span><span class="identifier">authEncrypt</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$authEncrypt(java.io.InputStream, kotlin.Int, java.io.OutputStream, com.virgilsecurity.sdk.cards.Card)/inputStream">inputStream</span><span class="symbol">:</span>&nbsp;<a href="https://docs.oracle.com/javase/6/docs/api/java/io/InputStream.html"><span class="identifier">InputStream</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$authEncrypt(java.io.InputStream, kotlin.Int, java.io.OutputStream, com.virgilsecurity.sdk.cards.Card)/streamSize">streamSize</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html"><span class="identifier">Int</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$authEncrypt(java.io.InputStream, kotlin.Int, java.io.OutputStream, com.virgilsecurity.sdk.cards.Card)/outputStream">outputStream</span><span class="symbol">:</span>&nbsp;<a href="https://docs.oracle.com/javase/6/docs/api/java/io/OutputStream.html"><span class="identifier">OutputStream</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$authEncrypt(java.io.InputStream, kotlin.Int, java.io.OutputStream, com.virgilsecurity.sdk.cards.Card)/user">user</span><span class="symbol">:</span>&nbsp;<span class="identifier">Card</span><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a></code>
+<p>Signs then encrypts stream and signature for user.</p>
+<ul><li><em>Important</em> Automatically includes self key to recipientsKeys.</li>
+
+<li><em>Important</em> Requires private key in local storage.</li>
+</ul>
+<h3>Parameters</h3>
+<p><a name="inputStream"></a>
+<code>inputStream</code> - Data stream to be encrypted.</p>
+<p><a name="streamSize"></a>
+<code>streamSize</code> - </p>
+<p><a name="outputStream"></a>
+<code>outputStream</code> - Stream with encrypted data</p>
+<p><a name="user"></a>
+<code>user</code> - User Card to encrypt for.</p>
+<h3>Exceptions</h3>
+<p><a name="EThreeException"></a>
+<code>EThreeException</code> - (EThreeException.Description.MISSING_PRIVATE_KEY)</p>
+<p><a name="EThreeException"></a>
+<code>EThreeException</code> - (EThreeException.Description.MISSING_PUBLIC_KEY)</p>
+<p><a name="rethrows"></a>
+<code>rethrows</code> - <a href="#">VirgilCrypto.authEncrypt</a></p>
+<a name="com.virgilsecurity.android.common.EThreeCore$authEncrypt(java.io.InputStream, kotlin.Int, java.io.OutputStream, com.virgilsecurity.android.common.model.FindUsersResult)"></a>
+<code><span class="identifier">@JvmOverloads</span> <span class="keyword">fun </span><span class="identifier">authEncrypt</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$authEncrypt(java.io.InputStream, kotlin.Int, java.io.OutputStream, com.virgilsecurity.android.common.model.FindUsersResult)/inputStream">inputStream</span><span class="symbol">:</span>&nbsp;<a href="https://docs.oracle.com/javase/6/docs/api/java/io/InputStream.html"><span class="identifier">InputStream</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$authEncrypt(java.io.InputStream, kotlin.Int, java.io.OutputStream, com.virgilsecurity.android.common.model.FindUsersResult)/streamSize">streamSize</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html"><span class="identifier">Int</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$authEncrypt(java.io.InputStream, kotlin.Int, java.io.OutputStream, com.virgilsecurity.android.common.model.FindUsersResult)/outputStream">outputStream</span><span class="symbol">:</span>&nbsp;<a href="https://docs.oracle.com/javase/6/docs/api/java/io/OutputStream.html"><span class="identifier">OutputStream</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$authEncrypt(java.io.InputStream, kotlin.Int, java.io.OutputStream, com.virgilsecurity.android.common.model.FindUsersResult)/users">users</span><span class="symbol">:</span>&nbsp;<a href="../../com.virgilsecurity.android.common.model/-find-users-result/index.html"><span class="identifier">FindUsersResult</span></a><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a></code>
+<p>Signs then encrypts stream and signature for users.</p>
+<ul><li><em>Important</em> Automatically includes self key to recipientsKeys.</li>
+
+<li><em>Important</em> Requires private key in local storage.</li>
+
+<li><em>Note</em> Avoid key duplication.</li>
+</ul>
+<h3>Parameters</h3>
+<p><a name="inputStream"></a>
+<code>inputStream</code> - Data stream to be encrypted.</p>
+<p><a name="streamSize"></a>
+<code>streamSize</code> - </p>
+<p><a name="outputStream"></a>
+<code>outputStream</code> - Stream with encrypted data</p>
+<p><a name="users"></a>
+<code>users</code> - User Card to encrypt for.</p>
+<h3>Exceptions</h3>
+<p><a name="EThreeException"></a>
+<code>EThreeException</code> - (EThreeException.Description.MISSING_PRIVATE_KEY)</p>
+<p><a name="EThreeException"></a>
+<code>EThreeException</code> - (EThreeException.Description.MISSING_PUBLIC_KEY)</p>
+<p><a name="rethrows"></a>
+<code>rethrows</code> - <a href="#">VirgilCrypto.authEncrypt</a></p>
+</BODY>
+</HTML>

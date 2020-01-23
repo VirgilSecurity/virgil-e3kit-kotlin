@@ -1,0 +1,33 @@
+<HTML>
+<HEAD>
+<meta charset="UTF-8">
+<title>EThreeCore.loadTemporaryChannel - ethree-common</title>
+<link rel="stylesheet" href="../../../style.css">
+</HEAD>
+<BODY>
+<a href="../../index.html">ethree-common</a>&nbsp;/&nbsp;<a href="../index.html">com.virgilsecurity.android.common</a>&nbsp;/&nbsp;<a href="index.html">EThreeCore</a>&nbsp;/&nbsp;<a href="./load-temporary-channel.html">loadTemporaryChannel</a><br/>
+<br/>
+<h1>loadTemporaryChannel</h1>
+<a name="com.virgilsecurity.android.common.EThreeCore$loadTemporaryChannel(kotlin.Boolean, kotlin.String)"></a>
+<code><span class="keyword">fun </span><span class="identifier">loadTemporaryChannel</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$loadTemporaryChannel(kotlin.Boolean, kotlin.String)/asCreator">asCreator</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html"><span class="identifier">Boolean</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$loadTemporaryChannel(kotlin.Boolean, kotlin.String)/identity">identity</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">)</span><span class="symbol">: </span><span class="identifier">Result</span><span class="symbol">&lt;</span><a href="../../com.virgilsecurity.android.common.model.temporary/-temporary-channel/index.html"><span class="identifier">TemporaryChannel</span></a><span class="symbol">&gt;</span></code>
+<p>Loads temporary channel by fetching temporary key form Cloud.</p>
+<p>To start execution of the current function, please see <a href="#">Result</a> description.</p>
+<h3>Parameters</h3>
+<p><a name="asCreator"></a>
+<code>asCreator</code> - Specifies whether caller is creator of channel or not.</p>
+<p><a name="identity"></a>
+<code>identity</code> - Identity of participant.</p>
+<h3>Exceptions</h3>
+<p><a name="EThreeException"></a>
+<code>EThreeException</code> - (EThreeException.Description.MISSING_PRIVATE_KEY)</p>
+<p><a name="TemporaryChannelException"></a>
+<code>TemporaryChannelException</code> - (TemporaryChannelException.Description
+.SELF_CHANNEL_IS_FORBIDDEN)</p>
+<p><a name="TemporaryChannelException"></a>
+<code>TemporaryChannelException</code> - (TemporaryChannelException.Description.CHANNEL_NOT_FOUND)</p>
+<p><a name="rethrows"></a>
+<code>rethrows</code> - <a href="#">VirgilCrypto.importPrivateKey</a></p>
+<p><a name="FindUsersException"></a>
+<code>FindUsersException</code> - (FindUsersException.Description.CARD_WAS_NOT_FOUND)</p>
+</BODY>
+</HTML>

@@ -1,0 +1,448 @@
+<HTML>
+<HEAD>
+<meta charset="UTF-8">
+<title>EThreeCore - ethree-common</title>
+<link rel="stylesheet" href="../../../style.css">
+</HEAD>
+<BODY>
+<a href="../../index.html">ethree-common</a>&nbsp;/&nbsp;<a href="../index.html">com.virgilsecurity.android.common</a>&nbsp;/&nbsp;<a href="./index.html">EThreeCore</a><br/>
+<br/>
+<h1>EThreeCore</h1>
+<code><span class="keyword">abstract</span> <span class="keyword">class </span><span class="identifier">EThreeCore</span></code>
+<p><a href="./index.html">EThreeCore</a> class simplifies work with Virgil Services to easily implement End to End Encrypted
+communication.</p>
+<h3>Types</h3>
+<table>
+<tbody>
+<tr>
+<td>
+<p><a href="-private-key-changed-params/index.html">PrivateKeyChangedParams</a></p>
+</td>
+<td>
+<code><span class="keyword">data</span> <span class="keyword">class </span><span class="identifier">PrivateKeyChangedParams</span></code></td>
+</tr>
+</tbody>
+</table>
+<h3>Constructors</h3>
+<table>
+<tbody>
+<tr>
+<td>
+<p><a href="-init-.html">&lt;init&gt;</a></p>
+</td>
+<td>
+<code><span class="identifier">EThreeCore</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$<init>(com.virgilsecurity.android.common.model.EThreeParams)/params">params</span><span class="symbol">:</span>&nbsp;<a href="../../com.virgilsecurity.android.common.model/-e-three-params/index.html"><span class="identifier">EThreeParams</span></a><span class="symbol">)</span></code><br/>
+<code><span class="identifier">EThreeCore</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$<init>(kotlin.String, com.virgilsecurity.android.common.callback.OnGetTokenCallback, com.virgilsecurity.android.common.callback.OnKeyChangedCallback, com.virgilsecurity.sdk.crypto.KeyPairType, kotlin.Boolean, com.virgilsecurity.sdk.common.TimeSpan, android.content.Context)/identity">identity</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$<init>(kotlin.String, com.virgilsecurity.android.common.callback.OnGetTokenCallback, com.virgilsecurity.android.common.callback.OnKeyChangedCallback, com.virgilsecurity.sdk.crypto.KeyPairType, kotlin.Boolean, com.virgilsecurity.sdk.common.TimeSpan, android.content.Context)/getTokenCallback">getTokenCallback</span><span class="symbol">:</span>&nbsp;<a href="../../com.virgilsecurity.android.common.callback/-on-get-token-callback/index.html"><span class="identifier">OnGetTokenCallback</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$<init>(kotlin.String, com.virgilsecurity.android.common.callback.OnGetTokenCallback, com.virgilsecurity.android.common.callback.OnKeyChangedCallback, com.virgilsecurity.sdk.crypto.KeyPairType, kotlin.Boolean, com.virgilsecurity.sdk.common.TimeSpan, android.content.Context)/keyChangedCallback">keyChangedCallback</span><span class="symbol">:</span>&nbsp;<a href="../../com.virgilsecurity.android.common.callback/-on-key-changed-callback/index.html"><span class="identifier">OnKeyChangedCallback</span></a><span class="symbol">?</span><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$<init>(kotlin.String, com.virgilsecurity.android.common.callback.OnGetTokenCallback, com.virgilsecurity.android.common.callback.OnKeyChangedCallback, com.virgilsecurity.sdk.crypto.KeyPairType, kotlin.Boolean, com.virgilsecurity.sdk.common.TimeSpan, android.content.Context)/keyPairType">keyPairType</span><span class="symbol">:</span>&nbsp;<span class="identifier">KeyPairType</span><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$<init>(kotlin.String, com.virgilsecurity.android.common.callback.OnGetTokenCallback, com.virgilsecurity.android.common.callback.OnKeyChangedCallback, com.virgilsecurity.sdk.crypto.KeyPairType, kotlin.Boolean, com.virgilsecurity.sdk.common.TimeSpan, android.content.Context)/enableRatchet">enableRatchet</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html"><span class="identifier">Boolean</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$<init>(kotlin.String, com.virgilsecurity.android.common.callback.OnGetTokenCallback, com.virgilsecurity.android.common.callback.OnKeyChangedCallback, com.virgilsecurity.sdk.crypto.KeyPairType, kotlin.Boolean, com.virgilsecurity.sdk.common.TimeSpan, android.content.Context)/keyRotationInterval">keyRotationInterval</span><span class="symbol">:</span>&nbsp;<span class="identifier">TimeSpan</span><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$<init>(kotlin.String, com.virgilsecurity.android.common.callback.OnGetTokenCallback, com.virgilsecurity.android.common.callback.OnKeyChangedCallback, com.virgilsecurity.sdk.crypto.KeyPairType, kotlin.Boolean, com.virgilsecurity.sdk.common.TimeSpan, android.content.Context)/context">context</span><span class="symbol">:</span>&nbsp;<span class="identifier">Context</span><span class="symbol">)</span></code></td>
+</tr>
+</tbody>
+</table>
+<h3>Properties</h3>
+<table>
+<tbody>
+<tr>
+<td>
+<p><a href="card-manager.html">cardManager</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">cardManager</span><span class="symbol">: </span><span class="identifier">CardManager</span></code></td>
+</tr>
+<tr>
+<td>
+<p><a href="crypto.html">crypto</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">crypto</span><span class="symbol">: </span><span class="identifier">VirgilCrypto</span></code></td>
+</tr>
+<tr>
+<td>
+<p><a href="identity.html">identity</a></p>
+</td>
+<td>
+<code><span class="keyword">val </span><span class="identifier">identity</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a></code></td>
+</tr>
+<tr>
+<td>
+<p><a href="key-storage.html">keyStorage</a></p>
+</td>
+<td>
+<code><span class="keyword">abstract</span> <span class="keyword">val </span><span class="identifier">keyStorage</span><span class="symbol">: </span><span class="identifier">KeyStorage</span></code></td>
+</tr>
+</tbody>
+</table>
+<h3>Functions</h3>
+<table>
+<tbody>
+<tr>
+<td>
+<p><a href="auth-decrypt.html">authDecrypt</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><span class="identifier">authDecrypt</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$authDecrypt(com.virgilsecurity.common.model.Data, com.virgilsecurity.sdk.cards.Card)/data">data</span><span class="symbol">:</span>&nbsp;<span class="identifier">Data</span><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$authDecrypt(com.virgilsecurity.common.model.Data, com.virgilsecurity.sdk.cards.Card)/user">user</span><span class="symbol">:</span>&nbsp;<span class="identifier">Card</span><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">)</span><span class="symbol">: </span><span class="identifier">Data</span></code><br/>
+<code><span class="keyword">fun </span><span class="identifier">authDecrypt</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$authDecrypt(com.virgilsecurity.common.model.Data, com.virgilsecurity.sdk.cards.Card, java.util.Date)/data">data</span><span class="symbol">:</span>&nbsp;<span class="identifier">Data</span><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$authDecrypt(com.virgilsecurity.common.model.Data, com.virgilsecurity.sdk.cards.Card, java.util.Date)/user">user</span><span class="symbol">:</span>&nbsp;<span class="identifier">Card</span><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$authDecrypt(com.virgilsecurity.common.model.Data, com.virgilsecurity.sdk.cards.Card, java.util.Date)/date">date</span><span class="symbol">:</span>&nbsp;<a href="https://docs.oracle.com/javase/6/docs/api/java/util/Date.html"><span class="identifier">Date</span></a><span class="symbol">)</span><span class="symbol">: </span><span class="identifier">Data</span></code>
+<p>Decrypts data and signature and verifies signature of sender.</p>
+<code><span class="keyword">fun </span><span class="identifier">authDecrypt</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$authDecrypt(kotlin.String, com.virgilsecurity.sdk.cards.Card)/text">text</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$authDecrypt(kotlin.String, com.virgilsecurity.sdk.cards.Card)/user">user</span><span class="symbol">:</span>&nbsp;<span class="identifier">Card</span><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a></code><br/>
+<code><span class="keyword">fun </span><span class="identifier">authDecrypt</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$authDecrypt(kotlin.String, com.virgilsecurity.sdk.cards.Card, java.util.Date)/text">text</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$authDecrypt(kotlin.String, com.virgilsecurity.sdk.cards.Card, java.util.Date)/user">user</span><span class="symbol">:</span>&nbsp;<span class="identifier">Card</span><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$authDecrypt(kotlin.String, com.virgilsecurity.sdk.cards.Card, java.util.Date)/date">date</span><span class="symbol">:</span>&nbsp;<a href="https://docs.oracle.com/javase/6/docs/api/java/util/Date.html"><span class="identifier">Date</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a></code>
+<p>Decrypts base64 string and signature and verifies signature of sender.</p>
+<code><span class="keyword">fun </span><span class="identifier">authDecrypt</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$authDecrypt(java.io.InputStream, java.io.OutputStream, com.virgilsecurity.sdk.cards.Card)/inputStream">inputStream</span><span class="symbol">:</span>&nbsp;<a href="https://docs.oracle.com/javase/6/docs/api/java/io/InputStream.html"><span class="identifier">InputStream</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$authDecrypt(java.io.InputStream, java.io.OutputStream, com.virgilsecurity.sdk.cards.Card)/outputStream">outputStream</span><span class="symbol">:</span>&nbsp;<a href="https://docs.oracle.com/javase/6/docs/api/java/io/OutputStream.html"><span class="identifier">OutputStream</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$authDecrypt(java.io.InputStream, java.io.OutputStream, com.virgilsecurity.sdk.cards.Card)/user">user</span><span class="symbol">:</span>&nbsp;<span class="identifier">Card</span><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a></code><br/>
+<code><span class="keyword">fun </span><span class="identifier">authDecrypt</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$authDecrypt(java.io.InputStream, java.io.OutputStream, com.virgilsecurity.sdk.cards.Card, java.util.Date)/inputStream">inputStream</span><span class="symbol">:</span>&nbsp;<a href="https://docs.oracle.com/javase/6/docs/api/java/io/InputStream.html"><span class="identifier">InputStream</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$authDecrypt(java.io.InputStream, java.io.OutputStream, com.virgilsecurity.sdk.cards.Card, java.util.Date)/outputStream">outputStream</span><span class="symbol">:</span>&nbsp;<a href="https://docs.oracle.com/javase/6/docs/api/java/io/OutputStream.html"><span class="identifier">OutputStream</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$authDecrypt(java.io.InputStream, java.io.OutputStream, com.virgilsecurity.sdk.cards.Card, java.util.Date)/user">user</span><span class="symbol">:</span>&nbsp;<span class="identifier">Card</span><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$authDecrypt(java.io.InputStream, java.io.OutputStream, com.virgilsecurity.sdk.cards.Card, java.util.Date)/date">date</span><span class="symbol">:</span>&nbsp;<a href="https://docs.oracle.com/javase/6/docs/api/java/util/Date.html"><span class="identifier">Date</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a></code>
+<p>Decrypts stream and signature and verifies signature of sender.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="auth-encrypt.html">authEncrypt</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><span class="identifier">authEncrypt</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$authEncrypt(com.virgilsecurity.common.model.Data, com.virgilsecurity.sdk.cards.Card)/data">data</span><span class="symbol">:</span>&nbsp;<span class="identifier">Data</span><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$authEncrypt(com.virgilsecurity.common.model.Data, com.virgilsecurity.sdk.cards.Card)/user">user</span><span class="symbol">:</span>&nbsp;<span class="identifier">Card</span><span class="symbol">)</span><span class="symbol">: </span><span class="identifier">Data</span></code>
+<p>Signs then encrypts data (and signature) for user.</p>
+<code><span class="keyword">fun </span><span class="identifier">authEncrypt</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$authEncrypt(kotlin.String, com.virgilsecurity.sdk.cards.Card)/text">text</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$authEncrypt(kotlin.String, com.virgilsecurity.sdk.cards.Card)/user">user</span><span class="symbol">:</span>&nbsp;<span class="identifier">Card</span><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a></code>
+<p>Signs then encrypts string (and signature) for user.</p>
+<code><span class="keyword">fun </span><span class="identifier">authEncrypt</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$authEncrypt(kotlin.String, com.virgilsecurity.android.common.model.FindUsersResult)/text">text</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$authEncrypt(kotlin.String, com.virgilsecurity.android.common.model.FindUsersResult)/users">users</span><span class="symbol">:</span>&nbsp;<a href="../../com.virgilsecurity.android.common.model/-find-users-result/index.html"><span class="identifier">FindUsersResult</span></a><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a></code><br/>
+<code><span class="keyword">fun </span><span class="identifier">authEncrypt</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$authEncrypt(com.virgilsecurity.common.model.Data, com.virgilsecurity.android.common.model.FindUsersResult)/data">data</span><span class="symbol">:</span>&nbsp;<span class="identifier">Data</span><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$authEncrypt(com.virgilsecurity.common.model.Data, com.virgilsecurity.android.common.model.FindUsersResult)/users">users</span><span class="symbol">:</span>&nbsp;<a href="../../com.virgilsecurity.android.common.model/-find-users-result/index.html"><span class="identifier">FindUsersResult</span></a><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">)</span><span class="symbol">: </span><span class="identifier">Data</span></code>
+<p>Signs then encrypts string (and signature) for group of users.</p>
+<code><span class="keyword">fun </span><span class="identifier">authEncrypt</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$authEncrypt(java.io.InputStream, kotlin.Int, java.io.OutputStream, com.virgilsecurity.sdk.cards.Card)/inputStream">inputStream</span><span class="symbol">:</span>&nbsp;<a href="https://docs.oracle.com/javase/6/docs/api/java/io/InputStream.html"><span class="identifier">InputStream</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$authEncrypt(java.io.InputStream, kotlin.Int, java.io.OutputStream, com.virgilsecurity.sdk.cards.Card)/streamSize">streamSize</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html"><span class="identifier">Int</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$authEncrypt(java.io.InputStream, kotlin.Int, java.io.OutputStream, com.virgilsecurity.sdk.cards.Card)/outputStream">outputStream</span><span class="symbol">:</span>&nbsp;<a href="https://docs.oracle.com/javase/6/docs/api/java/io/OutputStream.html"><span class="identifier">OutputStream</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$authEncrypt(java.io.InputStream, kotlin.Int, java.io.OutputStream, com.virgilsecurity.sdk.cards.Card)/user">user</span><span class="symbol">:</span>&nbsp;<span class="identifier">Card</span><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a></code>
+<p>Signs then encrypts stream and signature for user.</p>
+<code><span class="keyword">fun </span><span class="identifier">authEncrypt</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$authEncrypt(java.io.InputStream, kotlin.Int, java.io.OutputStream, com.virgilsecurity.android.common.model.FindUsersResult)/inputStream">inputStream</span><span class="symbol">:</span>&nbsp;<a href="https://docs.oracle.com/javase/6/docs/api/java/io/InputStream.html"><span class="identifier">InputStream</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$authEncrypt(java.io.InputStream, kotlin.Int, java.io.OutputStream, com.virgilsecurity.android.common.model.FindUsersResult)/streamSize">streamSize</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-int/index.html"><span class="identifier">Int</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$authEncrypt(java.io.InputStream, kotlin.Int, java.io.OutputStream, com.virgilsecurity.android.common.model.FindUsersResult)/outputStream">outputStream</span><span class="symbol">:</span>&nbsp;<a href="https://docs.oracle.com/javase/6/docs/api/java/io/OutputStream.html"><span class="identifier">OutputStream</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$authEncrypt(java.io.InputStream, kotlin.Int, java.io.OutputStream, com.virgilsecurity.android.common.model.FindUsersResult)/users">users</span><span class="symbol">:</span>&nbsp;<a href="../../com.virgilsecurity.android.common.model/-find-users-result/index.html"><span class="identifier">FindUsersResult</span></a><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a></code>
+<p>Signs then encrypts stream and signature for users.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="backup-private-key.html">backupPrivateKey</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><span class="identifier">backupPrivateKey</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$backupPrivateKey(kotlin.String)/password">password</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">)</span><span class="symbol">: </span><span class="identifier">Completable</span></code>
+<p>Encrypts the user's private key using the user's <a href="backup-private-key.html#com.virgilsecurity.android.common.EThreeCore$backupPrivateKey(kotlin.String)/password">password</a> and backs up the encrypted
+private key to Virgil's cloud. This enables users to log in from other devices and have
+access to their private key to decrypt data.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="change-password.html">changePassword</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><span class="identifier">changePassword</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$changePassword(kotlin.String, kotlin.String)/oldPassword">oldPassword</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$changePassword(kotlin.String, kotlin.String)/newPassword">newPassword</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">)</span><span class="symbol">: </span><span class="identifier">Completable</span></code>
+<p>Changes the password on a backed-up private key.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="cleanup.html">cleanup</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><span class="identifier">cleanup</span><span class="symbol">(</span><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a></code><ul><li>! <em>WARNING</em> ! If you call this function after <a href="register.html">register</a> without using <a href="backup-private-key.html">backupPrivateKey</a>
+then you loose private key permanently, as well you won't be able to use identity that
+was used with that private key no more.</li>
+</ul>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="create-group.html">createGroup</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><span class="identifier">createGroup</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$createGroup(com.virgilsecurity.common.model.Data, com.virgilsecurity.android.common.model.FindUsersResult)/identifier">identifier</span><span class="symbol">:</span>&nbsp;<span class="identifier">Data</span><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$createGroup(com.virgilsecurity.common.model.Data, com.virgilsecurity.android.common.model.FindUsersResult)/users">users</span><span class="symbol">:</span>&nbsp;<a href="../../com.virgilsecurity.android.common.model/-find-users-result/index.html"><span class="identifier">FindUsersResult</span></a><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">)</span><span class="symbol">: </span><span class="identifier">Result</span><span class="symbol">&lt;</span><a href="../../com.virgilsecurity.android.common.model/-group/index.html"><span class="identifier">Group</span></a><span class="symbol">&gt;</span></code><br/>
+<code><span class="keyword">fun </span><span class="identifier">createGroup</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$createGroup(kotlin.String, com.virgilsecurity.android.common.model.FindUsersResult)/identifier">identifier</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$createGroup(kotlin.String, com.virgilsecurity.android.common.model.FindUsersResult)/users">users</span><span class="symbol">:</span>&nbsp;<a href="../../com.virgilsecurity.android.common.model/-find-users-result/index.html"><span class="identifier">FindUsersResult</span></a><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">)</span><span class="symbol">: </span><span class="identifier">Result</span><span class="symbol">&lt;</span><a href="../../com.virgilsecurity.android.common.model/-group/index.html"><span class="identifier">Group</span></a><span class="symbol">&gt;</span></code>
+<p>Creates group, saves in cloud and locally.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="create-ratchet-channel.html">createRatchetChannel</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><span class="identifier">createRatchetChannel</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$createRatchetChannel(com.virgilsecurity.sdk.cards.Card, kotlin.String)/card">card</span><span class="symbol">:</span>&nbsp;<span class="identifier">Card</span><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$createRatchetChannel(com.virgilsecurity.sdk.cards.Card, kotlin.String)/name">name</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">)</span><span class="symbol">: </span><span class="identifier">Result</span><span class="symbol">&lt;</span><a href="../../com.virgilsecurity.android.common.model.ratchet/-ratchet-channel/index.html"><span class="identifier">RatchetChannel</span></a><span class="symbol">&gt;</span></code>
+<p>Creates double ratchet channel with user, saves it locally.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="create-temporary-channel.html">createTemporaryChannel</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><span class="identifier">createTemporaryChannel</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$createTemporaryChannel(kotlin.String)/identity">identity</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">)</span><span class="symbol">: </span><span class="identifier">Result</span><span class="symbol">&lt;</span><a href="../../com.virgilsecurity.android.common.model.temporary/-temporary-channel/index.html"><span class="identifier">TemporaryChannel</span></a><span class="symbol">&gt;</span></code>
+<p>Creates channel with unregistered user.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="decrypt.html">decrypt</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><s><span class="identifier">decrypt</span></s><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$decrypt(com.virgilsecurity.common.model.Data, com.virgilsecurity.sdk.cards.Card)/data">data</span><span class="symbol">:</span>&nbsp;<span class="identifier">Data</span><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$decrypt(com.virgilsecurity.common.model.Data, com.virgilsecurity.sdk.cards.Card)/user">user</span><span class="symbol">:</span>&nbsp;<span class="identifier">Card</span><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">)</span><span class="symbol">: </span><span class="identifier">Data</span></code><br/>
+<code><span class="keyword">fun </span><s><span class="identifier">decrypt</span></s><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$decrypt(com.virgilsecurity.common.model.Data, com.virgilsecurity.sdk.cards.Card, java.util.Date)/data">data</span><span class="symbol">:</span>&nbsp;<span class="identifier">Data</span><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$decrypt(com.virgilsecurity.common.model.Data, com.virgilsecurity.sdk.cards.Card, java.util.Date)/user">user</span><span class="symbol">:</span>&nbsp;<span class="identifier">Card</span><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$decrypt(com.virgilsecurity.common.model.Data, com.virgilsecurity.sdk.cards.Card, java.util.Date)/date">date</span><span class="symbol">:</span>&nbsp;<a href="https://docs.oracle.com/javase/6/docs/api/java/util/Date.html"><span class="identifier">Date</span></a><span class="symbol">)</span><span class="symbol">: </span><span class="identifier">Data</span></code>
+<p>Decrypts and verifies data from users.</p>
+<code><span class="keyword">fun </span><s><span class="identifier">decrypt</span></s><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$decrypt(java.io.InputStream, java.io.OutputStream)/inputStream">inputStream</span><span class="symbol">:</span>&nbsp;<a href="https://docs.oracle.com/javase/6/docs/api/java/io/InputStream.html"><span class="identifier">InputStream</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$decrypt(java.io.InputStream, java.io.OutputStream)/outputStream">outputStream</span><span class="symbol">:</span>&nbsp;<a href="https://docs.oracle.com/javase/6/docs/api/java/io/OutputStream.html"><span class="identifier">OutputStream</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a></code>
+<p>Decrypts encrypted stream.</p>
+<code><span class="keyword">fun </span><s><span class="identifier">decrypt</span></s><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$decrypt(kotlin.String, com.virgilsecurity.sdk.cards.Card)/text">text</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$decrypt(kotlin.String, com.virgilsecurity.sdk.cards.Card)/user">user</span><span class="symbol">:</span>&nbsp;<span class="identifier">Card</span><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a></code><br/>
+<code><span class="keyword">fun </span><s><span class="identifier">decrypt</span></s><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$decrypt(kotlin.String, com.virgilsecurity.sdk.cards.Card, java.util.Date)/text">text</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$decrypt(kotlin.String, com.virgilsecurity.sdk.cards.Card, java.util.Date)/user">user</span><span class="symbol">:</span>&nbsp;<span class="identifier">Card</span><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$decrypt(kotlin.String, com.virgilsecurity.sdk.cards.Card, java.util.Date)/date">date</span><span class="symbol">:</span>&nbsp;<a href="https://docs.oracle.com/javase/6/docs/api/java/util/Date.html"><span class="identifier">Date</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a></code>
+<p>Decrypts and verifies base64 string from users.</p>
+<code><span class="keyword">fun </span><s><span class="identifier">decrypt</span></s><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$decrypt(kotlin.String, com.virgilsecurity.sdk.crypto.VirgilPublicKey)/base64String">base64String</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$decrypt(kotlin.String, com.virgilsecurity.sdk.crypto.VirgilPublicKey)/sendersKey">sendersKey</span><span class="symbol">:</span>&nbsp;<span class="identifier">VirgilPublicKey</span><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a></code>
+<p>Decrypts and verifies encrypted text that is in base64 <a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a> format.</p>
+<code><span class="keyword">fun </span><s><span class="identifier">decrypt</span></s><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$decrypt(kotlin.ByteArray, com.virgilsecurity.sdk.crypto.VirgilPublicKey)/data">data</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-byte-array/index.html"><span class="identifier">ByteArray</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$decrypt(kotlin.ByteArray, com.virgilsecurity.sdk.crypto.VirgilPublicKey)/sendersKey">sendersKey</span><span class="symbol">:</span>&nbsp;<span class="identifier">VirgilPublicKey</span><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-byte-array/index.html"><span class="identifier">ByteArray</span></a></code>
+<p>Decrypts and verifies encrypted data.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="delete-group.html">deleteGroup</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><span class="identifier">deleteGroup</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$deleteGroup(com.virgilsecurity.common.model.Data)/identifier">identifier</span><span class="symbol">:</span>&nbsp;<span class="identifier">Data</span><span class="symbol">)</span><span class="symbol">: </span><span class="identifier">Completable</span></code>
+<p>Deletes group from cloud (if the user is an initiator) and local storage.</p>
+<code><span class="keyword">fun </span><span class="identifier">deleteGroup</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$deleteGroup(kotlin.String)/identifier">identifier</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">)</span><span class="symbol">: </span><span class="identifier">Completable</span></code>
+<p>Deletes group from cloud and local storage.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="delete-ratchet-channel.html">deleteRatchetChannel</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><span class="identifier">deleteRatchetChannel</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$deleteRatchetChannel(com.virgilsecurity.sdk.cards.Card, kotlin.String)/card">card</span><span class="symbol">:</span>&nbsp;<span class="identifier">Card</span><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$deleteRatchetChannel(com.virgilsecurity.sdk.cards.Card, kotlin.String)/name">name</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">)</span><span class="symbol">: </span><span class="identifier">Completable</span></code>
+<p>Deletes double ratchet channel.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="delete-temporary-channel.html">deleteTemporaryChannel</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><span class="identifier">deleteTemporaryChannel</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$deleteTemporaryChannel(kotlin.String)/identity">identity</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">)</span><span class="symbol">: </span><span class="identifier">Completable</span></code>
+<p>Deletes temporary channel from the cloud (if the user is a creator) and from the
+local storage.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="encrypt.html">encrypt</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><s><span class="identifier">encrypt</span></s><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$encrypt(com.virgilsecurity.common.model.Data, com.virgilsecurity.android.common.model.FindUsersResult)/data">data</span><span class="symbol">:</span>&nbsp;<span class="identifier">Data</span><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$encrypt(com.virgilsecurity.common.model.Data, com.virgilsecurity.android.common.model.FindUsersResult)/users">users</span><span class="symbol">:</span>&nbsp;<a href="../../com.virgilsecurity.android.common.model/-find-users-result/index.html"><span class="identifier">FindUsersResult</span></a><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">)</span><span class="symbol">: </span><span class="identifier">Data</span></code>
+<p>Signs then encrypts data for group of users.</p>
+<code><span class="keyword">fun </span><s><span class="identifier">encrypt</span></s><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$encrypt(java.io.InputStream, java.io.OutputStream, com.virgilsecurity.android.common.model.FindUsersResult)/inputStream">inputStream</span><span class="symbol">:</span>&nbsp;<a href="https://docs.oracle.com/javase/6/docs/api/java/io/InputStream.html"><span class="identifier">InputStream</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$encrypt(java.io.InputStream, java.io.OutputStream, com.virgilsecurity.android.common.model.FindUsersResult)/outputStream">outputStream</span><span class="symbol">:</span>&nbsp;<a href="https://docs.oracle.com/javase/6/docs/api/java/io/OutputStream.html"><span class="identifier">OutputStream</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$encrypt(java.io.InputStream, java.io.OutputStream, com.virgilsecurity.android.common.model.FindUsersResult)/users">users</span><span class="symbol">:</span>&nbsp;<a href="../../com.virgilsecurity.android.common.model/-find-users-result/index.html"><span class="identifier">FindUsersResult</span></a><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a></code><br/>
+<code><span class="keyword">fun </span><s><span class="identifier">encrypt</span></s><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$encrypt(java.io.InputStream, java.io.OutputStream, com.virgilsecurity.sdk.cards.Card)/inputStream">inputStream</span><span class="symbol">:</span>&nbsp;<a href="https://docs.oracle.com/javase/6/docs/api/java/io/InputStream.html"><span class="identifier">InputStream</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$encrypt(java.io.InputStream, java.io.OutputStream, com.virgilsecurity.sdk.cards.Card)/outputStream">outputStream</span><span class="symbol">:</span>&nbsp;<a href="https://docs.oracle.com/javase/6/docs/api/java/io/OutputStream.html"><span class="identifier">OutputStream</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$encrypt(java.io.InputStream, java.io.OutputStream, com.virgilsecurity.sdk.cards.Card)/user">user</span><span class="symbol">:</span>&nbsp;<span class="identifier">Card</span><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a></code>
+<p>Encrypts data stream.</p>
+<code><span class="keyword">fun </span><s><span class="identifier">encrypt</span></s><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$encrypt(kotlin.String, com.virgilsecurity.android.common.model.FindUsersResult)/text">text</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$encrypt(kotlin.String, com.virgilsecurity.android.common.model.FindUsersResult)/users">users</span><span class="symbol">:</span>&nbsp;<a href="../../com.virgilsecurity.android.common.model/-find-users-result/index.html"><span class="identifier">FindUsersResult</span></a><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a></code>
+<p>Signs then encrypts string for group of users.</p>
+<code><span class="keyword">fun </span><s><span class="identifier">encrypt</span></s><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$encrypt(com.virgilsecurity.common.model.Data, com.virgilsecurity.sdk.cards.Card)/data">data</span><span class="symbol">:</span>&nbsp;<span class="identifier">Data</span><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$encrypt(com.virgilsecurity.common.model.Data, com.virgilsecurity.sdk.cards.Card)/user">user</span><span class="symbol">:</span>&nbsp;<span class="identifier">Card</span><span class="symbol">)</span><span class="symbol">: </span><span class="identifier">Data</span></code>
+<p>Signs and encrypts data for user.</p>
+<code><span class="keyword">fun </span><s><span class="identifier">encrypt</span></s><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$encrypt(kotlin.String, com.virgilsecurity.sdk.cards.Card)/text">text</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$encrypt(kotlin.String, com.virgilsecurity.sdk.cards.Card)/user">user</span><span class="symbol">:</span>&nbsp;<span class="identifier">Card</span><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a></code>
+<p>Signs and encrypts string for user.</p>
+<code><span class="keyword">fun </span><s><span class="identifier">encrypt</span></s><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$encrypt(kotlin.String, kotlin.collections.Map((kotlin.String, com.virgilsecurity.sdk.crypto.VirgilPublicKey)))/text">text</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$encrypt(kotlin.String, kotlin.collections.Map((kotlin.String, com.virgilsecurity.sdk.crypto.VirgilPublicKey)))/lookupResult">lookupResult</span><span class="symbol">:</span>&nbsp;<a href="../../com.virgilsecurity.android.common.model/-lookup-result.html"><span class="identifier">LookupResult</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a></code><br/>
+<code><span class="keyword">fun </span><s><span class="identifier">encrypt</span></s><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$encrypt(kotlin.ByteArray, kotlin.collections.Map((kotlin.String, com.virgilsecurity.sdk.crypto.VirgilPublicKey)))/data">data</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-byte-array/index.html"><span class="identifier">ByteArray</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$encrypt(kotlin.ByteArray, kotlin.collections.Map((kotlin.String, com.virgilsecurity.sdk.crypto.VirgilPublicKey)))/lookupResult">lookupResult</span><span class="symbol">:</span>&nbsp;<a href="../../com.virgilsecurity.android.common.model/-lookup-result.html"><span class="identifier">LookupResult</span></a><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-byte-array/index.html"><span class="identifier">ByteArray</span></a></code>
+<p>Signs then encrypts data for a group of users.</p>
+<code><span class="keyword">fun </span><s><span class="identifier">encrypt</span></s><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$encrypt(java.io.InputStream, java.io.OutputStream, kotlin.collections.Map((kotlin.String, com.virgilsecurity.sdk.crypto.VirgilPublicKey)))/inputStream">inputStream</span><span class="symbol">:</span>&nbsp;<a href="https://docs.oracle.com/javase/6/docs/api/java/io/InputStream.html"><span class="identifier">InputStream</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$encrypt(java.io.InputStream, java.io.OutputStream, kotlin.collections.Map((kotlin.String, com.virgilsecurity.sdk.crypto.VirgilPublicKey)))/outputStream">outputStream</span><span class="symbol">:</span>&nbsp;<a href="https://docs.oracle.com/javase/6/docs/api/java/io/OutputStream.html"><span class="identifier">OutputStream</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$encrypt(java.io.InputStream, java.io.OutputStream, kotlin.collections.Map((kotlin.String, com.virgilsecurity.sdk.crypto.VirgilPublicKey)))/lookupResult">lookupResult</span><span class="symbol">:</span>&nbsp;<a href="../../com.virgilsecurity.android.common.model/-lookup-result.html"><span class="identifier">LookupResult</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a></code>
+<p>Encrypts data stream for a group of users.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="find-cached-user.html">findCachedUser</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><span class="identifier">findCachedUser</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$findCachedUser(kotlin.String)/identity">identity</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">)</span><span class="symbol">: </span><span class="identifier">Result</span><span class="symbol">&lt;</span><span class="identifier">Card</span><span class="symbol">?</span><span class="symbol">&gt;</span></code>
+<p>Retrieves card from local storage for given <a href="find-cached-user.html#com.virgilsecurity.android.common.EThreeCore$findCachedUser(kotlin.String)/identity">identity</a>.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="find-cached-users.html">findCachedUsers</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><span class="identifier">findCachedUsers</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$findCachedUsers(kotlin.collections.List((kotlin.String)), kotlin.Boolean)/identities">identities</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-list/index.html"><span class="identifier">List</span></a><span class="symbol">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">&gt;</span><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$findCachedUsers(kotlin.collections.List((kotlin.String)), kotlin.Boolean)/checkResult">checkResult</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html"><span class="identifier">Boolean</span></a>&nbsp;<span class="symbol">=</span>&nbsp;true<span class="symbol">)</span><span class="symbol">: </span><span class="identifier">Result</span><span class="symbol">&lt;</span><a href="../../com.virgilsecurity.android.common.model/-find-users-result/index.html"><span class="identifier">FindUsersResult</span></a><span class="symbol">&gt;</span></code>
+<p>Retrieves cards from local storage for given <a href="find-cached-users.html#com.virgilsecurity.android.common.EThreeCore$findCachedUsers(kotlin.collections.List((kotlin.String)), kotlin.Boolean)/identities">identities</a>.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="find-user.html">findUser</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><span class="identifier">findUser</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$findUser(kotlin.String, kotlin.Boolean)/identity">identity</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$findUser(kotlin.String, kotlin.Boolean)/forceReload">forceReload</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html"><span class="identifier">Boolean</span></a>&nbsp;<span class="symbol">=</span>&nbsp;false<span class="symbol">)</span><span class="symbol">: </span><span class="identifier">Result</span><span class="symbol">&lt;</span><span class="identifier">Card</span><span class="symbol">&gt;</span></code>
+<p>Retrieves user Card from the Virgil Cloud or local storage if exists.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="find-users.html">findUsers</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><span class="identifier">findUsers</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$findUsers(kotlin.collections.List((kotlin.String)), kotlin.Boolean, kotlin.Boolean)/identities">identities</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-list/index.html"><span class="identifier">List</span></a><span class="symbol">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">&gt;</span><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$findUsers(kotlin.collections.List((kotlin.String)), kotlin.Boolean, kotlin.Boolean)/forceReload">forceReload</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html"><span class="identifier">Boolean</span></a>&nbsp;<span class="symbol">=</span>&nbsp;false<span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$findUsers(kotlin.collections.List((kotlin.String)), kotlin.Boolean, kotlin.Boolean)/checkResult">checkResult</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html"><span class="identifier">Boolean</span></a>&nbsp;<span class="symbol">=</span>&nbsp;true<span class="symbol">)</span><span class="symbol">: </span><span class="identifier">Result</span><span class="symbol">&lt;</span><a href="../../com.virgilsecurity.android.common.model/-find-users-result/index.html"><span class="identifier">FindUsersResult</span></a><span class="symbol">&gt;</span></code>
+<p>Retrieves users Cards from the Virgil Cloud or local storage if exists.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="get-group.html">getGroup</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><span class="identifier">getGroup</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$getGroup(com.virgilsecurity.common.model.Data)/identifier">identifier</span><span class="symbol">:</span>&nbsp;<span class="identifier">Data</span><span class="symbol">)</span><span class="symbol">: </span><a href="../../com.virgilsecurity.android.common.model/-group/index.html"><span class="identifier">Group</span></a><span class="symbol">?</span></code><br/>
+<code><span class="keyword">fun </span><span class="identifier">getGroup</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$getGroup(kotlin.String)/identifier">identifier</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="../../com.virgilsecurity.android.common.model/-group/index.html"><span class="identifier">Group</span></a><span class="symbol">?</span></code>
+<p>Returns cached local group.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="get-ratchet-channel.html">getRatchetChannel</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><span class="identifier">getRatchetChannel</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$getRatchetChannel(com.virgilsecurity.sdk.cards.Card, kotlin.String)/card">card</span><span class="symbol">:</span>&nbsp;<span class="identifier">Card</span><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$getRatchetChannel(com.virgilsecurity.sdk.cards.Card, kotlin.String)/name">name</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">)</span><span class="symbol">: </span><a href="../../com.virgilsecurity.android.common.model.ratchet/-ratchet-channel/index.html"><span class="identifier">RatchetChannel</span></a><span class="symbol">?</span></code>
+<p>Retrieves a double ratchet channel from the local storage.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="get-secure-chat.html">getSecureChat</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><span class="identifier">getSecureChat</span><span class="symbol">(</span><span class="symbol">)</span><span class="symbol">: </span><span class="identifier">SecureChat</span></code></td>
+</tr>
+<tr>
+<td>
+<p><a href="get-temporary-channel.html">getTemporaryChannel</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><span class="identifier">getTemporaryChannel</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$getTemporaryChannel(kotlin.String)/identity">identity</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="../../com.virgilsecurity.android.common.model.temporary/-temporary-channel/index.html"><span class="identifier">TemporaryChannel</span></a><span class="symbol">?</span></code>
+<p>Returns cached temporary channel.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="has-local-private-key.html">hasLocalPrivateKey</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><span class="identifier">hasLocalPrivateKey</span><span class="symbol">(</span><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html"><span class="identifier">Boolean</span></a></code>
+<p>Checks whether the private key is present in the local storage of current device.
+Returns <em>true</em> if the key is present in the local key storage otherwise <em>false</em>.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="initialize-core.html">initializeCore</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><span class="identifier">initializeCore</span><span class="symbol">(</span><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a></code>
+<p>Should be called on each new instance of <code>EThreeCore</code> child objects. Is up to developer.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="join-ratchet-channel.html">joinRatchetChannel</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><span class="identifier">joinRatchetChannel</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$joinRatchetChannel(com.virgilsecurity.sdk.cards.Card, kotlin.String)/card">card</span><span class="symbol">:</span>&nbsp;<span class="identifier">Card</span><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$joinRatchetChannel(com.virgilsecurity.sdk.cards.Card, kotlin.String)/name">name</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">)</span><span class="symbol">: </span><span class="identifier">Result</span><span class="symbol">&lt;</span><a href="../../com.virgilsecurity.android.common.model.ratchet/-ratchet-channel/index.html"><span class="identifier">RatchetChannel</span></a><span class="symbol">&gt;</span></code>
+<p>Joins double ratchet channel with user, saves it locally.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="load-group.html">loadGroup</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><span class="identifier">loadGroup</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$loadGroup(com.virgilsecurity.common.model.Data, com.virgilsecurity.sdk.cards.Card)/identifier">identifier</span><span class="symbol">:</span>&nbsp;<span class="identifier">Data</span><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$loadGroup(com.virgilsecurity.common.model.Data, com.virgilsecurity.sdk.cards.Card)/card">card</span><span class="symbol">:</span>&nbsp;<span class="identifier">Card</span><span class="symbol">)</span><span class="symbol">: </span><span class="identifier">Result</span><span class="symbol">&lt;</span><a href="../../com.virgilsecurity.android.common.model/-group/index.html"><span class="identifier">Group</span></a><span class="symbol">&gt;</span></code><br/>
+<code><span class="keyword">fun </span><span class="identifier">loadGroup</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$loadGroup(kotlin.String, com.virgilsecurity.sdk.cards.Card)/identifier">identifier</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$loadGroup(kotlin.String, com.virgilsecurity.sdk.cards.Card)/card">card</span><span class="symbol">:</span>&nbsp;<span class="identifier">Card</span><span class="symbol">)</span><span class="symbol">: </span><span class="identifier">Result</span><span class="symbol">&lt;</span><a href="../../com.virgilsecurity.android.common.model/-group/index.html"><span class="identifier">Group</span></a><span class="symbol">&gt;</span></code>
+<p>Loads group from cloud, saves locally.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="load-temporary-channel.html">loadTemporaryChannel</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><span class="identifier">loadTemporaryChannel</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$loadTemporaryChannel(kotlin.Boolean, kotlin.String)/asCreator">asCreator</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html"><span class="identifier">Boolean</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$loadTemporaryChannel(kotlin.Boolean, kotlin.String)/identity">identity</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">)</span><span class="symbol">: </span><span class="identifier">Result</span><span class="symbol">&lt;</span><a href="../../com.virgilsecurity.android.common.model.temporary/-temporary-channel/index.html"><span class="identifier">TemporaryChannel</span></a><span class="symbol">&gt;</span></code>
+<p>Loads temporary channel by fetching temporary key form Cloud.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="lookup-public-keys.html">lookupPublicKeys</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><s><span class="identifier">lookupPublicKeys</span></s><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$lookupPublicKeys(kotlin.String)/identity">identity</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">)</span><span class="symbol">: </span><span class="identifier">Result</span><span class="symbol">&lt;</span><a href="../../com.virgilsecurity.android.common.model/-lookup-result.html"><span class="identifier">LookupResult</span></a><span class="symbol">&gt;</span></code>
+<p>Retrieves user public key from the cloud for encryption/verification operations.</p>
+<code><span class="keyword">fun </span><s><span class="identifier">lookupPublicKeys</span></s><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$lookupPublicKeys(kotlin.collections.List((kotlin.String)))/identities">identities</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-list/index.html"><span class="identifier">List</span></a><span class="symbol">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">&gt;</span><span class="symbol">)</span><span class="symbol">: </span><span class="identifier">Result</span><span class="symbol">&lt;</span><a href="../../com.virgilsecurity.android.common.model/-lookup-result.html"><span class="identifier">LookupResult</span></a><span class="symbol">&gt;</span></code>
+<p>Retrieves user public keys from the cloud for encryption/verification operations.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="register.html">register</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><span class="identifier">register</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$register(com.virgilsecurity.sdk.crypto.VirgilKeyPair)/keyPair">keyPair</span><span class="symbol">:</span>&nbsp;<span class="identifier">VirgilKeyPair</span><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">)</span><span class="symbol">: </span><span class="identifier">Completable</span></code>
+<p>Publishes the public key in Virgil's Cards Service in case no public key for current
+identity is published yet.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="reset-private-key-backup.html">resetPrivateKeyBackup</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><span class="identifier">resetPrivateKeyBackup</span><span class="symbol">(</span><span class="symbol">)</span><span class="symbol">: </span><span class="identifier">Completable</span></code><br/>
+<code><span class="keyword">fun </span><s><span class="identifier">resetPrivateKeyBackup</span></s><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$resetPrivateKeyBackup(kotlin.String)/password">password</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">)</span><span class="symbol">: </span><span class="identifier">Completable</span></code>
+<p>Deletes Private Key stored on Virgil's cloud. This will disable user to log in from
+other devices.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="restore-private-key.html">restorePrivateKey</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><span class="identifier">restorePrivateKey</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$restorePrivateKey(kotlin.String)/password">password</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">)</span><span class="symbol">: </span><span class="identifier">Completable</span></code>
+<p>Pulls user's private key from the Virgil's cloud, decrypts it with <em>Private key</em> that
+is generated based on provided <a href="restore-private-key.html#com.virgilsecurity.android.common.EThreeCore$restorePrivateKey(kotlin.String)/password">password</a> and saves it to the current private keys
+local storage.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="rotate-private-key.html">rotatePrivateKey</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><span class="identifier">rotatePrivateKey</span><span class="symbol">(</span><span class="symbol">)</span><span class="symbol">: </span><span class="identifier">Completable</span></code>
+<p>Generates new key pair, publishes new public key for current identity and deprecating old
+public key, saves private key to the local storage. All data that was encrypted earlier
+will become undecryptable.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="unregister.html">unregister</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><span class="identifier">unregister</span><span class="symbol">(</span><span class="symbol">)</span><span class="symbol">: </span><span class="identifier">Completable</span></code>
+<p>Revokes the public key for current <em>identity</em> in Virgil's Cards Service. After this operation
+you can call <a href="register.html">EThreeCore.register</a> again.</p>
+</td>
+</tr>
+<tr>
+<td>
+<p><a href="update-cached-users.html">updateCachedUsers</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><span class="identifier">updateCachedUsers</span><span class="symbol">(</span><span class="symbol">)</span><span class="symbol">: </span><span class="identifier">Completable</span></code>
+<p>Updates local cached cards.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<h3>Companion Object Functions</h3>
+<table>
+<tbody>
+<tr>
+<td>
+<p><a href="derive-passwords-internal.html">derivePasswordsInternal</a></p>
+</td>
+<td>
+<code><span class="keyword">fun </span><span class="identifier">derivePasswordsInternal</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore.Companion$derivePasswordsInternal(kotlin.String)/password">password</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="../../com.virgilsecurity.android.common.model/-derived-passwords/index.html"><span class="identifier">DerivedPasswords</span></a></code>
+<p>Derives different passwords for login and for backup from the one provided.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</BODY>
+</HTML>

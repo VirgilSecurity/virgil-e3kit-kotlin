@@ -1,0 +1,24 @@
+<HTML>
+<HEAD>
+<meta charset="UTF-8">
+<title>EThreeCore.cleanup - ethree-common</title>
+<link rel="stylesheet" href="../../../style.css">
+</HEAD>
+<BODY>
+<a href="../../index.html">ethree-common</a>&nbsp;/&nbsp;<a href="../index.html">com.virgilsecurity.android.common</a>&nbsp;/&nbsp;<a href="index.html">EThreeCore</a>&nbsp;/&nbsp;<a href="./cleanup.html">cleanup</a><br/>
+<br/>
+<h1>cleanup</h1>
+<a name="com.virgilsecurity.android.common.EThreeCore$cleanup()"></a>
+<code><span class="keyword">fun </span><span class="identifier">cleanup</span><span class="symbol">(</span><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a></code><ul><li>! <em>WARNING</em> ! If you call this function after <a href="register.html">register</a> without using <a href="backup-private-key.html">backupPrivateKey</a>
+then you loose private key permanently, as well you won't be able to use identity that
+was used with that private key no more.</li>
+</ul>
+<p>Cleans up user's private key from a device - call this function when you want to log your
+user out of the device.</p>
+<p>Can be called only if private key is on the device otherwise
+<a href="../../com.virgilsecurity.android.common.exception/-e-three-exception/-description/-m-i-s-s-i-n-g_-p-r-i-v-a-t-e_-k-e-y.html">EThreeException.Description.MISSING_PRIVATE_KEY</a> exception will be thrown.</p>
+<h3>Exceptions</h3>
+<p><a name="EThreeException.Description.MISSING_PRIVATE_KEY"></a>
+<code>EThreeException.Description.MISSING_PRIVATE_KEY</code> - </p>
+</BODY>
+</HTML>

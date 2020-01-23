@@ -1,0 +1,14 @@
+$dokka.format:html
+$dokka.linkExtension:html
+$dokka.location:com.virgilsecurity.android.common.model$toPublicKeys(kotlin.collections.Map((kotlin.String, com.virgilsecurity.sdk.crypto.VirgilPublicKey)))com.virgilsecurity.android.common.model/kotlin.collections.-map/to-public-keys.html
+com.virgilsecurity.android.common
+com.virgilsecurity.android.common.build
+com.virgilsecurity.android.common.callback
+com.virgilsecurity.android.common.exception
+com.virgilsecurity.android.common.model
+com.virgilsecurity.android.common.model.ratchet
+com.virgilsecurity.android.common.model.temporary
+com.virgilsecurity.android.common.storage.local
+com.virgilsecurity.android.common.storage.sql
+com.virgilsecurity.android.common.storage.sql.dao
+com.virgilsecurity.android.common.util

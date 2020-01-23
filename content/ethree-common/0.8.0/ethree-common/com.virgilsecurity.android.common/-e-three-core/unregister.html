@@ -1,0 +1,21 @@
+<HTML>
+<HEAD>
+<meta charset="UTF-8">
+<title>EThreeCore.unregister - ethree-common</title>
+<link rel="stylesheet" href="../../../style.css">
+</HEAD>
+<BODY>
+<a href="../../index.html">ethree-common</a>&nbsp;/&nbsp;<a href="../index.html">com.virgilsecurity.android.common</a>&nbsp;/&nbsp;<a href="index.html">EThreeCore</a>&nbsp;/&nbsp;<a href="./unregister.html">unregister</a><br/>
+<br/>
+<h1>unregister</h1>
+<a name="com.virgilsecurity.android.common.EThreeCore$unregister()"></a>
+<code><span class="identifier">@Synchronized</span> <span class="keyword">fun </span><span class="identifier">unregister</span><span class="symbol">(</span><span class="symbol">)</span><span class="symbol">: </span><span class="identifier">Completable</span></code>
+<p>Revokes the public key for current <em>identity</em> in Virgil's Cards Service. After this operation
+you can call <a href="register.html">EThreeCore.register</a> again.</p>
+<p>To start execution of the current function, please see <a href="#">Completable</a> description.</p>
+<h3>Exceptions</h3>
+<p><a name="EThreeException"></a>
+<code>EThreeException</code> - (EThreeException.Description.USER_IS_NOT_REGISTERED) if there's no
+public key published yet.</p>
+</BODY>
+</HTML>

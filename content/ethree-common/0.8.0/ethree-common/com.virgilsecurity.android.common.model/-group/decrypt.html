@@ -1,0 +1,36 @@
+<HTML>
+<HEAD>
+<meta charset="UTF-8">
+<title>Group.decrypt - ethree-common</title>
+<link rel="stylesheet" href="../../../style.css">
+</HEAD>
+<BODY>
+<a href="../../index.html">ethree-common</a>&nbsp;/&nbsp;<a href="../index.html">com.virgilsecurity.android.common.model</a>&nbsp;/&nbsp;<a href="index.html">Group</a>&nbsp;/&nbsp;<a href="./decrypt.html">decrypt</a><br/>
+<br/>
+<h1>decrypt</h1>
+<a name="com.virgilsecurity.android.common.model.Group$decrypt(kotlin.ByteArray, com.virgilsecurity.sdk.cards.Card, java.util.Date)"></a>
+<code><span class="keyword">fun </span><span class="identifier">decrypt</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.model.Group$decrypt(kotlin.ByteArray, com.virgilsecurity.sdk.cards.Card, java.util.Date)/data">data</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-byte-array/index.html"><span class="identifier">ByteArray</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.model.Group$decrypt(kotlin.ByteArray, com.virgilsecurity.sdk.cards.Card, java.util.Date)/senderCard">senderCard</span><span class="symbol">:</span>&nbsp;<span class="identifier">Card</span><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.model.Group$decrypt(kotlin.ByteArray, com.virgilsecurity.sdk.cards.Card, java.util.Date)/date">date</span><span class="symbol">:</span>&nbsp;<a href="https://docs.oracle.com/javase/6/docs/api/java/util/Date.html"><span class="identifier">Date</span></a><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-byte-array/index.html"><span class="identifier">ByteArray</span></a></code>
+<p>Decrypts and verifies data from group participant.</p>
+<h3>Parameters</h3>
+<p><a name="data"></a>
+<code>data</code> - encrypted byte array.</p>
+<p><a name="senderCard"></a>
+<code>senderCard</code> - sender Card to verify with.</p>
+<p><a name="date"></a>
+<code>date</code> - date of message. Use it to prevent verifying new messages with old card.</p>
+<p><strong>Return</strong><br/>
+decrypted byte array.</p>
+<a name="com.virgilsecurity.android.common.model.Group$decrypt(kotlin.String, com.virgilsecurity.sdk.cards.Card, java.util.Date)"></a>
+<code><span class="keyword">fun </span><span class="identifier">decrypt</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.model.Group$decrypt(kotlin.String, com.virgilsecurity.sdk.cards.Card, java.util.Date)/text">text</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.model.Group$decrypt(kotlin.String, com.virgilsecurity.sdk.cards.Card, java.util.Date)/senderCard">senderCard</span><span class="symbol">:</span>&nbsp;<span class="identifier">Card</span><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.model.Group$decrypt(kotlin.String, com.virgilsecurity.sdk.cards.Card, java.util.Date)/date">date</span><span class="symbol">:</span>&nbsp;<a href="https://docs.oracle.com/javase/6/docs/api/java/util/Date.html"><span class="identifier">Date</span></a><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a></code>
+<p>Decrypts and verifies base64 string from group participant.</p>
+<h3>Parameters</h3>
+<p><a name="text"></a>
+<code>text</code> - encrypted String.</p>
+<p><a name="senderCard"></a>
+<code>senderCard</code> - sender Card to verify with.</p>
+<p><a name="date"></a>
+<code>date</code> - date of message. Use it to prevent verifying new messages with old card.</p>
+<p><strong>Return</strong><br/>
+decrypted String.</p>
+</BODY>
+</HTML>
