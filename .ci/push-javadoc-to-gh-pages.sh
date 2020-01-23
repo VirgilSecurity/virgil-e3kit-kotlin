@@ -77,17 +77,17 @@ generate_index_page() {
       <h2 style="color:#110B91B0;">User modules</h2>
       <hr/>
       <h3>E3Kit</h3>
-      <ul><li><a href="content/ethree-kotlin/${2}/ethree-kotlin/index.html">${2}</a></li></ul>
+      <ul><li><a href="content/ethree-kotlin/${2}/ethree-kotlin/index.html">${4}</a></li></ul>
 
       <h3>E3Kit Enclave</h3>
-      <ul><li><a href="content/ethree-enclave/${3}/ethree-enclave/index.html">${3}</a></li></ul>
+      <ul><li><a href="content/ethree-enclave/${3}/ethree-enclave/index.html">${4}</a></li></ul>
 
       <p>&nbsp;</p>
       <h2 style="color:#110B91B1;">Internal modules</h2>
       <hr/>
 
       <h3>E3Kit Common</h3>
-      <ul><li><a href="content/ethree-common/${1}/ethree-common/index.html">${1}</a></li></ul>
+      <ul><li><a href="content/ethree-common/${1}/ethree-common/index.html">${4}</a></li></ul>
     </div>
 
     <p>&nbsp;</p>
@@ -139,8 +139,8 @@ if [[ "$TRAVIS_REPO_SLUG" == "VirgilSecurity/virgil-e3kit-kotlin" ]] && [[ "$TRA
   git rm -rf content
 
   # Create main index page for all modules
-  folders=(${commonFolder} ${kotlinFolder} ${enclaveFolder})
-  generate_index_page ${folders[*]}
+  args=(${commonFolder} ${kotlinFolder} ${enclaveFolder} ${version})
+  generate_index_page ${args[*]}
 
   # Move each module docs to actual folder
   mkdir content
