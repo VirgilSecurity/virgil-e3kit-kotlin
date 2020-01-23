@@ -115,12 +115,12 @@ if [[ "$TRAVIS_REPO_SLUG" == "VirgilSecurity/virgil-e3kit-kotlin" ]] && [[ "$TRA
 
   # Create each module docs temporary folder
   mkdir $HOME/javadoc-latest/
-  mkdir $HOME/javadoc-latest/${version}/
-  mkdir $HOME/javadoc-latest/${version}/
-  mkdir $HOME/javadoc-latest/${version}/
-  cp -R ethree-common/build/javadoc/. $HOME/javadoc-latest/${version}/
-  cp -R ethree-kotlin/build/javadoc/. $HOME/javadoc-latest/${version}/
-  cp -R ethree-enclave/build/javadoc/. $HOME/javadoc-latest/${version}/
+  mkdir $HOME/javadoc-latest/"common_v${version}"/
+  mkdir $HOME/javadoc-latest/"kotlin_v${version}"/
+  mkdir $HOME/javadoc-latest/"enclave_v${version}"/
+  cp -R ethree-common/build/javadoc/. $HOME/javadoc-latest/"common_v${version}"/
+  cp -R ethree-kotlin/build/javadoc/. $HOME/javadoc-latest/"kotlin_v${version}"/
+  cp -R ethree-enclave/build/javadoc/. $HOME/javadoc-latest/"enclave_v${version}"/
 
   # Get last gh-pages docs
   cd $HOME
@@ -142,9 +142,9 @@ if [[ "$TRAVIS_REPO_SLUG" == "VirgilSecurity/virgil-e3kit-kotlin" ]] && [[ "$TRA
   mkdir content/ethree-common/
   mkdir content/ethree-kotlin/
   mkdir content/ethree-enclave/
-  mv $HOME/javadoc-latest/${version} content/ethree-common/
-  mv $HOME/javadoc-latest/${version} content/ethree-kotlin/
-  mv $HOME/javadoc-latest/${version} content/ethree-enclave/
+  mv $HOME/javadoc-latest/"common_v${version}" content/ethree-common/
+  mv $HOME/javadoc-latest/"kotlin_v${version}" content/ethree-kotlin/
+  mv $HOME/javadoc-latest/"enclave_v${version}" content/ethree-enclave/
 
   # Add new docs to index and commit
   git add -f .
