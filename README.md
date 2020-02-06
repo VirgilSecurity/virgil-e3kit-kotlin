@@ -2,6 +2,8 @@
 
 [![Build Status](https://travis-ci.com/VirgilSecurity/virgil-e3kit-kotlin.svg?branch=master)](https://travis-ci.com/VirgilSecurity/virgil-e3kit-kotlin)
 [![GitHub license](https://img.shields.io/badge/license-BSD%203--Clause-blue.svg)](https://github.com/VirgilSecurity/virgil/blob/master/LICENSE)
+[![API Reference](https://img.shields.io/badge/API%20reference-e3kit--kotlin-green)](https://virgilsecurity.github.io/virgil-e3kit-kotlin/)
+
 
 
 [Introduction](#introduction) | [Benefits](#benefits) | [Features](#features) | [Installation](#installation) | [Docs](#docs) | [Demo](#demo) | [Samples](#samples) | [License](#license) | [Support](#support)
