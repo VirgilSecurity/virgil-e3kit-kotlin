@@ -3,7 +3,8 @@
 [![Build Status](https://travis-ci.com/VirgilSecurity/virgil-e3kit-kotlin.svg?branch=master)](https://travis-ci.com/VirgilSecurity/virgil-e3kit-kotlin)
 [![GitHub license](https://img.shields.io/badge/license-BSD%203--Clause-blue.svg)](https://github.com/VirgilSecurity/virgil/blob/master/LICENSE)
 
-[Introduction](#introduction) | [SDK Features](#features) | [Installation](#installation) | [Usage Examples](#usage-examples) | [Enable Group Chat](#enable-group-channel) | [Double Ratchet Channel](#double-ratchet-channel) | [Unregistered User Encryption](#unregistered-user-encryption) | [Samples](#samples) | [License](#license) | [Support](#support)
+
+[Introduction](#introduction) | [Benefits](#benefits) | [Features](#features) | [Installation](#installation) | [Docs](#docs) | [Demo](#demo) | [Samples](#samples) | [License](#license) | [Support](#support)
 
 ## Introduction
 
@@ -11,19 +12,19 @@
 
 ## Benefits
 
-- Easy setup and integration into new or existing projects
-- Integration with any CPaaS providers like Nexmo, Firebase, Twilio, PubNub, etc.
+- Easy to setup and integrate into new or existing projects
+- Compatible with any CPaaS provider, including Nexmo, Firebase, Twilio, PubNub and etc.
 - Strong secret keys storage, integration with Keychain
+- Provides GDPR and HIPAA compliance
 
 ## Features
 
-- Strong end-to-end encryption with authorization
-- One-to-one and group encryption
-- Files and stream encryption
-- Recovery features for secret keys
-- Public keys cache features
-- Access encrypted data from multiple user devices
-- One-to-one channel with perfect forward secrecy using the Double Ratchet algorithm
+- Strong one-to-one and group encryption
+- Files and stream end-to-end encryption
+- Data signature and verification as part of the encrypt and decrypt functions
+- Recoverable private encryption keys
+- Access to encrypted data from multiple user devices
+- Perfect forward secrecy with the Double Ratchet algorithm
 
 ## Installation
 
@@ -36,7 +37,11 @@ You can install E3Kit SDK using [Gradle](https://gradle.org/). Please, choose pa
 
 ## Docs
 
+See the [Developer Documentation](https://developer.virgilsecurity.com/docs/e3kit/) to start integrating E3Kit into your project.
+
 ## Demo
+
+[Our quickstart demo](https://developer.virgilsecurity.com/docs/e3kit/get-started/quickstart/) will help you to get started with the Virgil E3Kit quickly, and to learn some common ways to build end-to-end encryption between two fictional characters Alice and Bob.
 
 ## Samples
 
@@ -51,13 +56,14 @@ You can find the code samples for Java and Kotlin here:
 | [`Android Kotlin Back4App`](./samples/android-kotlin-back4app) | 
 | [`Android Kotlin Nexmo`](./samples/android-kotlin-nexmo) | 
 
-You can run the demo to check out the example of how to initialize the SDK, register users and encrypt messages using E3Kit.
+You can run the samples to find out how to initialize the SDK, register users and encrypt messages using E3Kit.
 
 ## License
 
 This library is released under the [3-clause BSD License](LICENSE.md).
 
 ## Support
+
 Our developer support team is here to help you. Find out more information on our [Help Center](https://help.virgilsecurity.com/).
 
 You can find us on [Twitter](https://twitter.com/VirgilSecurity) or send us email support@VirgilSecurity.com.
