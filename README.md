@@ -17,6 +17,7 @@
 - Compatible with any CPaaS provider, including Nexmo, Firebase, Twilio, PubNub and etc.
 - Strong secret keys storage, integration with Keychain
 - Provides GDPR and HIPAA compliance
+- Immune to quantum computers attacks
 
 ## Features
 
@@ -27,6 +28,7 @@
 - Access to encrypted data from multiple user devices
 - Perfect forward secrecy with the Double Ratchet algorithm
 - Encryption for unregistered users
+- Post-quantum cryptography support ([Round5](https://round5.org/) (encryption), [Falcon](https://falcon-sign.info/) (signature) algorithms)
 
 ## Installation
 
