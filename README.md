@@ -28,7 +28,7 @@
 - Access to encrypted data from multiple user devices
 - Perfect forward secrecy with the Double Ratchet algorithm
 - Encryption for unregistered users
-- Post-quantum cryptography support ([Round5](https://round5.org/) (encryption), [Falcon](https://falcon-sign.info/) (signature) algorithms)
+- Post-quantum algorithms support: [Round5](https://round5.org/) (encryption), [Falcon](https://falcon-sign.info/) (signature)
 
 ## Installation
 
