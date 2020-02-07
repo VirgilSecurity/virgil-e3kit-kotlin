@@ -2,7 +2,6 @@
 
 [![Build Status](https://travis-ci.com/VirgilSecurity/virgil-e3kit-kotlin.svg?branch=master)](https://travis-ci.com/VirgilSecurity/virgil-e3kit-kotlin)
 [![GitHub license](https://img.shields.io/badge/license-BSD%203--Clause-blue.svg)](https://github.com/VirgilSecurity/virgil/blob/master/LICENSE)
-[![API Reference](https://img.shields.io/badge/API%20reference-e3kit--kotlin-green)](https://virgilsecurity.github.io/virgil-e3kit-kotlin/)
 
 
 
@@ -37,13 +36,12 @@ You can install E3Kit SDK using [Gradle](https://gradle.org/). Please, choose pa
 | [`E3Kit`](./ethree-kotlin) | Standard package for Android API 21+ (Java/Kotlin) |
 | [`E3Kit`](./ethree-enclave) | Package with [Android Keystore](https://developer.android.com/training/articles/keystore) for Android API 23+ |
 
-## Docs
+## Resources
 
-See the [Developer Documentation](https://developer.virgilsecurity.com/docs/e3kit/) to start integrating E3Kit into your project.
+- [Developer Documentation](https://developer.virgilsecurity.com/docs/e3kit/) - start integrating E3Kit into your project with our detailed guides.
+- [Quickstart Demo](https://developer.virgilsecurity.com/docs/e3kit/get-started/quickstart/) - will help you to get started with the Virgil E3Kit quickly, and to learn some common ways to build end-to-end encryption between two fictional characters Alice and Bob.
+- [E3Kit Kotlin API Reference](https://virgilsecurity.github.io/virgil-e3kit-kotlin/) - E3Kit API reference for the language of your choice.
 
-## Demo
-
-[Our quickstart demo](https://developer.virgilsecurity.com/docs/e3kit/get-started/quickstart/) will help you to get started with the Virgil E3Kit quickly, and to learn some common ways to build end-to-end encryption between two fictional characters Alice and Bob.
 
 ## Samples
 
