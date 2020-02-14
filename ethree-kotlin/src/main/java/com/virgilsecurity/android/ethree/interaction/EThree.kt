@@ -37,7 +37,6 @@ import android.content.Context
 import com.virgilsecurity.android.common.EThreeCore
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.common.callback.OnKeyChangedCallback
-import com.virgilsecurity.android.common.model.EThreeParams
 import com.virgilsecurity.android.common.util.Const.NO_CONTEXT
 import com.virgilsecurity.android.common.util.Defaults
 import com.virgilsecurity.common.model.Result
@@ -77,13 +76,23 @@ class EThree
         initializeCore()
     }
 
-    constructor(params: EThreeParams) : this(params.identity,
-                                             params.tokenCallback,
-                                             params.context,
-                                             params.keyChangedCallback,
-                                             params.keyPairType,
-                                             params.enableRatchet,
-                                             params.keyRotationInterval)
+    constructor(params: com.virgilsecurity.android.common.model.EThreeParams) : this(
+        params.identity,
+        params.tokenCallback,
+        params.context,
+        params.keyChangedCallback,
+        params.keyPairType,
+        params.enableRatchet,
+        params.keyRotationInterval)
+
+    constructor(params: com.virgilsecurity.android.common.model.java.EThreeParams) : this(
+        params.identity,
+        params.tokenCallback,
+        params.context,
+        params.keyChangedCallback,
+        params.keyPairType,
+        params.enableRatchet,
+        params.keyRotationInterval)
 
     @JvmOverloads constructor(
             identity: String,

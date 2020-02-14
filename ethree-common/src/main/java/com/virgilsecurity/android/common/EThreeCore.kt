@@ -42,7 +42,10 @@ import com.virgilsecurity.android.common.exception.*
 import com.virgilsecurity.android.common.manager.GroupManager
 import com.virgilsecurity.android.common.manager.LookupManager
 import com.virgilsecurity.android.common.manager.TempChannelManager
-import com.virgilsecurity.android.common.model.*
+import com.virgilsecurity.android.common.model.DerivedPasswords
+import com.virgilsecurity.android.common.model.FindUsersResult
+import com.virgilsecurity.android.common.model.Group
+import com.virgilsecurity.android.common.model.LookupResult
 import com.virgilsecurity.android.common.model.ratchet.RatchetChannel
 import com.virgilsecurity.android.common.model.temporary.TemporaryChannel
 import com.virgilsecurity.android.common.storage.cloud.CloudKeyManager
@@ -123,14 +126,6 @@ abstract class EThreeCore {
 
     val cardManager: CardManager
     val identity: String
-
-    protected constructor(params: EThreeParams) : this(params.identity,
-                                                       params.tokenCallback,
-                                                       params.keyChangedCallback,
-                                                       params.keyPairType,
-                                                       params.enableRatchet,
-                                                       params.keyRotationInterval,
-                                                       params.context)
 
     protected constructor(identity: String,
                           getTokenCallback: OnGetTokenCallback,
@@ -325,9 +320,9 @@ abstract class EThreeCore {
      * @throws FindUsersException(FindUsersException.Description.CARD_WAS_NOT_FOUND) If card
      * duplicates was found or at least one card was not found.
      */
-    fun findUsers(identities: List<String>,
-                  forceReload: Boolean = false,
-                  checkResult: Boolean = true): Result<FindUsersResult> =
+    @JvmOverloads fun findUsers(identities: List<String>,
+                                forceReload: Boolean = false,
+                                checkResult: Boolean = true): Result<FindUsersResult> =
             searchWorker.findUsers(identities, forceReload, checkResult)
 
     /**
@@ -343,7 +338,7 @@ abstract class EThreeCore {
      * @throws FindUsersException(FindUsersException.Description.CARD_WAS_NOT_FOUND) If card
      * duplicates was found or at least one card was not found.
      */
-    fun findUser(identity: String, forceReload: Boolean = false): Result<Card> =
+    @JvmOverloads fun findUser(identity: String, forceReload: Boolean = false): Result<Card> =
             searchWorker.findUser(identity, forceReload)
 
     /**
@@ -486,7 +481,7 @@ abstract class EThreeCore {
      * @throws GroupException.Description.INVALID_PARTICIPANTS_COUNT If participants count is out
      * of [Group.VALID_PARTICIPANTS_COUNT_RANGE] range.
      */
-    fun createGroup(identifier: Data, users: FindUsersResult? = null): Result<Group> =
+    @JvmOverloads fun createGroup(identifier: Data, users: FindUsersResult? = null): Result<Group> =
             groupWorker.createGroup(identifier, users)
 
     /**
@@ -532,6 +527,7 @@ abstract class EThreeCore {
      *
      * @return New [Group].
      */
+    @JvmOverloads
     fun createGroup(identifier: String, users: FindUsersResult? = null): Result<Group> =
             groupWorker.createGroup(identifier, users)
 
@@ -976,6 +972,7 @@ abstract class EThreeCore {
      * @throws EThreeException(EThreeException.Description.VERIFICATION_FAILED)
      * @throws rethrows [VirgilCrypto.authDecrypt]
      */
+    @JvmOverloads
     fun authDecrypt(inputStream: InputStream, outputStream: OutputStream, user: Card? = null) =
             streamsEncryptWorker.authDecrypt(inputStream, outputStream, user)
 

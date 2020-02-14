@@ -31,19 +31,20 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.ethreeenclave.interaction.model
+package com.virgilsecurity.android.common.model.java
 
 import android.content.Context
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.common.callback.OnKeyChangedCallback
 import com.virgilsecurity.android.common.util.Defaults
+import com.virgilsecurity.sdk.client.CardClient
 import com.virgilsecurity.sdk.common.TimeSpan
 import com.virgilsecurity.sdk.crypto.KeyPairType
 
 /**
- * EThreeParamsEnclave
+ * EThreeParams
  */
-data class EThreeParamsEnclave(
+class EThreeParams(
         // Identity of user.
         val identity: String,
 
@@ -52,15 +53,6 @@ data class EThreeParamsEnclave(
 
         // Context
         val context: Context) {
-
-    // Alias for Android Key Storage
-    var alias: String = "VirgilAndroidKeyStorage"
-
-    // Whether authentication is required
-    var isAuthenticationRequired: Boolean = true
-
-    // Key validity duration
-    var keyValidityDuration: Int = 60 * 5
 
     // Callback to notify the change of User's keys.
     var keyChangedCallback: OnKeyChangedCallback? = null

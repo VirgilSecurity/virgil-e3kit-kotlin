@@ -161,7 +161,7 @@ class Group internal constructor(
      *
      * @return decrypted byte array.
      */
-    fun decrypt(data: ByteArray, senderCard: Card, date: Date? = null): ByteArray {
+    @JvmOverloads fun decrypt(data: ByteArray, senderCard: Card, date: Date? = null): ByteArray {
         require(data.isNotEmpty()) { "\'data\' should not be empty" }
 
         val encrypted = GroupSessionMessage.deserialize(data)
@@ -216,7 +216,7 @@ class Group internal constructor(
      *
      * @return decrypted String.
      */
-    fun decrypt(text: String, senderCard: Card, date: Date? = null): String {
+    @JvmOverloads fun decrypt(text: String, senderCard: Card, date: Date? = null): String {
         require(text.isNotEmpty()) { "\'text\' should not be empty" }
 
         val data: Data

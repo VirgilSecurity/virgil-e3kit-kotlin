@@ -31,30 +31,36 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.virgilsecurity.android.common.model
+package com.virgilsecurity.android.ethreeenclave.interaction.model.java
 
 import android.content.Context
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.common.callback.OnKeyChangedCallback
 import com.virgilsecurity.android.common.util.Defaults
-import com.virgilsecurity.sdk.client.CardClient
 import com.virgilsecurity.sdk.common.TimeSpan
 import com.virgilsecurity.sdk.crypto.KeyPairType
 
 /**
- * EThreeParams
+ * EThreeParamsEnclave
  */
-class EThreeParams(
+data class EThreeParams(
         // Identity of user.
         val identity: String,
 
         // Callback to get Virgil access token.
-        // This method should return valid Json Web Token [String] representation with identity
-        // (in it) of the user which will use this class.
-        val tokenCallback: () -> String,
+        val tokenCallback: OnGetTokenCallback,
 
         // Context
         val context: Context) {
+
+    // Alias for Android Key Storage
+    var alias: String = "VirgilAndroidKeyStorage"
+
+    // Whether authentication is required
+    var isAuthenticationRequired: Boolean = true
+
+    // Key validity duration
+    var keyValidityDuration: Int = 60 * 5
 
     // Callback to notify the change of User's keys.
     var keyChangedCallback: OnKeyChangedCallback? = null
