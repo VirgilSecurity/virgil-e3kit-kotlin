@@ -32,12 +32,7 @@
 
 ## Installation
 
-You can install E3Kit SDK using [Gradle](https://gradle.org/). Please, choose package that suits best for your needs:
-
-| Package | Description |
-|----------|---------|
-| [`E3Kit`](./ethree-kotlin) | Standard package for Android API 21+ (Java/Kotlin) |
-| [`E3Kit`](./ethree-enclave) | Package with [Android Keystore](https://developer.android.com/training/articles/keystore) for Android API 23+ |
+Navigate to [Developer Documentation](https://developer.virgilsecurity.com/docs/e3kit/get-started/setup-client/) to install and initialize Virgil E3Kit.
 
 ## Resources
 
