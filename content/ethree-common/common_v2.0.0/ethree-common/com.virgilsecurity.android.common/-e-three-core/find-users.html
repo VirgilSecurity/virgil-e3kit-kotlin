@@ -1,0 +1,29 @@
+<HTML>
+<HEAD>
+<meta charset="UTF-8">
+<title>EThreeCore.findUsers - ethree-common</title>
+<link rel="stylesheet" href="../../../style.css">
+</HEAD>
+<BODY>
+<a href="../../index.html">ethree-common</a>&nbsp;/&nbsp;<a href="../index.html">com.virgilsecurity.android.common</a>&nbsp;/&nbsp;<a href="index.html">EThreeCore</a>&nbsp;/&nbsp;<a href="./find-users.html">findUsers</a><br/>
+<br/>
+<h1>findUsers</h1>
+<a name="com.virgilsecurity.android.common.EThreeCore$findUsers(kotlin.collections.List((kotlin.String)), kotlin.Boolean, kotlin.Boolean)"></a>
+<code><span class="identifier">@JvmOverloads</span> <span class="keyword">fun </span><span class="identifier">findUsers</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$findUsers(kotlin.collections.List((kotlin.String)), kotlin.Boolean, kotlin.Boolean)/identities">identities</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin.collections/-list/index.html"><span class="identifier">List</span></a><span class="symbol">&lt;</span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">&gt;</span><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$findUsers(kotlin.collections.List((kotlin.String)), kotlin.Boolean, kotlin.Boolean)/forceReload">forceReload</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html"><span class="identifier">Boolean</span></a>&nbsp;<span class="symbol">=</span>&nbsp;false<span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$findUsers(kotlin.collections.List((kotlin.String)), kotlin.Boolean, kotlin.Boolean)/checkResult">checkResult</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-boolean/index.html"><span class="identifier">Boolean</span></a>&nbsp;<span class="symbol">=</span>&nbsp;true<span class="symbol">)</span><span class="symbol">: </span><span class="identifier">Result</span><span class="symbol">&lt;</span><a href="../../com.virgilsecurity.android.common.model/-find-users-result/index.html"><span class="identifier">FindUsersResult</span></a><span class="symbol">&gt;</span></code>
+<p>Retrieves users Cards from the Virgil Cloud or local storage if exists.</p>
+<p>To start execution of the current function, please see <a href="#">Result</a> description.</p>
+<h3>Parameters</h3>
+<p><a name="identities"></a>
+<code>identities</code> - Array of identities to find.</p>
+<p><a name="forceReload"></a>
+<code>forceReload</code> - Will not use local cached cards if <em>true</em>.</p>
+<p><a name="checkResult"></a>
+<code>checkResult</code> - Checks that cards for all identities were found if true.</p>
+<h3>Exceptions</h3>
+<p><a name="FindUsersException"></a>
+<code>FindUsersException</code> - (FindUsersException.Description.CARD_WAS_NOT_FOUND) If card
+duplicates was found or at least one card was not found.</p>
+<p><strong>Return</strong><br/>
+<a href="../../com.virgilsecurity.android.common.model/-find-users-result/index.html">FindUsersResult</a> with found users.</p>
+</BODY>
+</HTML>
