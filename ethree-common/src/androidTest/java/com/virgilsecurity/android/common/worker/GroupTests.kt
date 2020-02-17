@@ -713,6 +713,19 @@ class GroupTests {
         ethree.deleteGroup(fakeId).execute()
     }
 
+    // test021 STE_86
+    @Test fun add_participants() {
+        val ethree2 = createEThree()
+
+        val identifier = UUID.randomUUID().toString()
+        val group = this.ethree.createGroup(identifier).get()
+        val card2 = ethree.findUser(ethree2.identity).get()
+        group.add(card2).execute()
+        val cachedGroup = this.ethree.getGroup(identifier)!!
+
+        assertEquals(cachedGroup.participants.toSet(), setOf(ethree.identity, ethree2.identity))
+    }
+
     private fun createEThree(): EThree {
         val identity = UUID.randomUUID().toString()
         val tokenCallback = object : OnGetTokenCallback {

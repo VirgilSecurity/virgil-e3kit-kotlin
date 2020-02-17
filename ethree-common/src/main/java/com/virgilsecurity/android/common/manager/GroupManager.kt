@@ -97,8 +97,10 @@ internal class GroupManager internal constructor(
                ?: throw GroupException(GroupException.Description.INCONSISTENT_STATE)
     }
 
-    internal fun addAccess(cards: List<Card>, sessionId: Data) =
-            cloudTicketStorage.addRecipients(cards, sessionId)
+    internal fun addAccess(cards: List<Card>, newSet: Set<String>, sessionId: Data) {
+        cloudTicketStorage.addRecipients(cards, sessionId)
+        localGroupStorage.setParticipants(newSet, sessionId)
+    }
 
     internal fun reAddAccess(card: Card, sessionId: Data) =
             cloudTicketStorage.reAddRecipient(card, sessionId)

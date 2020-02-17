@@ -92,11 +92,10 @@ class Group internal constructor(
         return session
     }
 
-    private fun shareTickets(cards: List<Card>) {
+    private fun shareTickets(cards: List<Card>, newSet: Set<String>) {
         val sessionId = this.session.sessionId.toData()
-        groupManager.addAccess(cards, sessionId)
-        val newParticipants = cards.map { it.identity }
-        this.participants.addAll(newParticipants.toSet())
+        groupManager.addAccess(cards, newSet, sessionId)
+        this.participants = newSet.toMutableSet()
     }
 
     private fun addNewTicket(participants: FindUsersResult) {
@@ -162,7 +161,7 @@ class Group internal constructor(
      *
      * @return decrypted byte array.
      */
-    fun decrypt(data: ByteArray, senderCard: Card, date: Date? = null): ByteArray {
+    @JvmOverloads fun decrypt(data: ByteArray, senderCard: Card, date: Date? = null): ByteArray {
         require(data.isNotEmpty()) { "\'data\' should not be empty" }
 
         val encrypted = GroupSessionMessage.deserialize(data)
@@ -217,7 +216,7 @@ class Group internal constructor(
      *
      * @return decrypted String.
      */
-    fun decrypt(text: String, senderCard: Card, date: Date? = null): String {
+    @JvmOverloads fun decrypt(text: String, senderCard: Card, date: Date? = null): String {
         require(text.isNotEmpty()) { "\'text\' should not be empty" }
 
         val data: Data
@@ -276,7 +275,7 @@ class Group internal constructor(
                 addedCards.add(card)
             }
 
-            this@Group.shareTickets(addedCards)
+            this@Group.shareTickets(addedCards, newSet)
         }
     }
 

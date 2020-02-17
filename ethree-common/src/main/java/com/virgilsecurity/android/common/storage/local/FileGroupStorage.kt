@@ -34,6 +34,7 @@
 package com.virgilsecurity.android.common.storage.local
 
 import com.virgilsecurity.android.common.exception.FileGroupStorageException
+import com.virgilsecurity.android.common.exception.GroupException
 import com.virgilsecurity.android.common.exception.RawGroupException
 import com.virgilsecurity.android.common.model.GroupInfo
 import com.virgilsecurity.android.common.model.RawGroup
@@ -109,6 +110,16 @@ internal class FileGroupStorage internal constructor(
     private fun store(info: GroupInfo, subdir: String) {
         val data = info.serialize()
         fileSystemEncrypted.write(data, GROUP_INFO_NAME, subdir)
+    }
+
+    internal fun setParticipants(newParticipants: Set<String>, sessionId: Data) {
+        val tickets = retrieveLastTickets(1, sessionId)
+        val lastTicket = tickets.firstOrNull()
+                         ?: throw GroupException(GroupException.Description.INVALID_GROUP)
+        val newTicket = Ticket(lastTicket.groupMessage, newParticipants)
+        val subdir = sessionId.toHexString()
+
+        store(newTicket, subdir)
     }
 
     internal fun retrieve(sessionId: Data, count: Int): RawGroup {
