@@ -53,6 +53,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileWriter
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -63,8 +65,10 @@ import java.util.concurrent.TimeUnit
 class PeerToPeerTest {
 
     private lateinit var identity: String
+    private lateinit var identity2: String
     private lateinit var crypto: VirgilCrypto
     private lateinit var ethree: EThree
+    private lateinit var ethree2: EThree
 
     @Before fun setup() {
         this.identity = UUID.randomUUID().toString()
@@ -76,8 +80,16 @@ class PeerToPeerTest {
                                  }
                              },
                              TestConfig.context)
-
         assertNotNull(this.ethree)
+
+        this.identity2 = UUID.randomUUID().toString()
+        this.ethree2 = EThree(identity2,
+                object : OnGetTokenCallback {
+                    override fun onGetToken(): String {
+                        return TestUtils.generateTokenString(identity2)
+                    }
+                },
+                TestConfig.context)
     }
 
     // test01 STE_3
@@ -171,10 +183,9 @@ class PeerToPeerTest {
 
         val data = TEXT.toByteArray()
         val inputStream = ByteArrayInputStream(data)
-        val size = data.size
         val outputStream = ByteArrayOutputStream()
 
-        ethree.authEncrypt(inputStream, size, outputStream)
+        ethree.authEncrypt(inputStream, inputStream.available(), outputStream)
         val encryptedData = outputStream.toByteArray()
 
         val inputStreamTwo = ByteArrayInputStream(encryptedData)
