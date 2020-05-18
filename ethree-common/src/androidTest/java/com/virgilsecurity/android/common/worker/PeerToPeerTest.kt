@@ -34,13 +34,17 @@
 package com.virgilsecurity.android.common.worker
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.google.gson.JsonObject
+import com.google.gson.JsonParser
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.common.exception.EThreeException
 import com.virgilsecurity.android.common.model.FindUsersResult
+import com.virgilsecurity.android.common.storage.local.LocalKeyStorage
 import com.virgilsecurity.android.common.utils.TestConfig
 import com.virgilsecurity.android.common.utils.TestUtils
 import com.virgilsecurity.android.ethree.interaction.EThree
 import com.virgilsecurity.common.extension.toData
+import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.sdk.common.TimeSpan
 import com.virgilsecurity.sdk.crypto.KeyPairType
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
@@ -51,10 +55,7 @@ import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
-import java.io.File
-import java.io.FileWriter
+import java.io.*
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -196,6 +197,25 @@ class PeerToPeerTest {
         val decryptedData = outputStreamTwo.toByteArray()
 
         assertArrayEquals(TEXT.toByteArray(), decryptedData)
+    }
+
+    @Test fun encrypt_decrypt_stream_compatibility() {
+        val dataJson = JsonParser.parseReader(InputStreamReader(
+                this.javaClass.classLoader.getResourceAsStream("testProperties/compatibility_data.json"))) as JsonObject
+
+        val keyStorage = DefaultKeyStorage(TestConfig.context.filesDir.absolutePath, "virgil.keystore")
+        val localKeyStorage = LocalKeyStorage(identity, keyStorage, crypto)
+        localKeyStorage.store(Data(ConvertionUtils.base64ToBytes(dataJson["authEncryptFile"].asJsonObject["privateKey"].asString)))
+
+        val encryptedData = ConvertionUtils.base64ToBytes(dataJson["authEncryptFile"].asJsonObject["data"].asString)
+        val encryptedStream = ByteArrayInputStream(encryptedData)
+        val decryptedStream = ByteArrayOutputStream()
+
+        ethree.authDecrypt(encryptedStream, decryptedStream)
+        val decryptedData = decryptedStream.toByteArray()
+
+        val originString = "All work and no pay makes Alexey a dull boy\n".repeat(128)
+        assertArrayEquals(originString.toByteArray(), decryptedData)
     }
 
     // test06 STE_40

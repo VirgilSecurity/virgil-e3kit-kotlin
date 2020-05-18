@@ -35,10 +35,8 @@ package com.virgilsecurity.android.common.utils
 
 import android.content.Context
 import androidx.test.platform.app.InstrumentationRegistry
-import com.virgilsecurity.android.common.BuildConfig
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilPrivateKey
-import com.virgilsecurity.sdk.utils.ConvertionUtils
 import com.virgilsecurity.testcommon.property.EnvPropertyReader
 import com.virgilsecurity.testcommon.utils.PropertyUtils
 import java.io.File
