@@ -35,6 +35,7 @@ package com.virgilsecurity.android.ethree.interaction.sync
 
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.common.exception.EThreeException
+import com.virgilsecurity.android.common.model.EThreeParams
 import com.virgilsecurity.android.ethree.interaction.EThree
 import com.virgilsecurity.android.ethree.utils.TestConfig
 import com.virgilsecurity.android.ethree.utils.TestUtils
@@ -52,8 +53,9 @@ import com.virgilsecurity.sdk.jwt.accessProviders.GeneratorJwtProvider
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
 import com.virgilsecurity.sdk.storage.KeyStorage
 import com.virgilsecurity.sdk.utils.Tuple
-import org.junit.Assert.assertTrue
-import org.junit.Assert.fail
+import org.hamcrest.core.IsEqual
+import org.hamcrest.core.IsNot
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import java.util.*
@@ -201,5 +203,36 @@ class EThreeSyncNegative {
         } catch (throwable: Throwable) {
             assertTrue(throwable is IllegalArgumentException)
         }
+    }
+
+    @Test fun key_rotated_by_other_instance() {
+        /* Initialize EThree and register identity */
+        val eThreeParams = EThreeParams(identity, { jwtGenerator.generateToken(identity).stringRepresentation() }, TestConfig.context)
+        val eThree = EThree(eThreeParams)
+        eThree.register().execute()
+
+        /** Find identity Card and store it's ID for future checks */
+        // Private key that stored in local storage
+        val privateKeyData = keyStorage.load(identity).value
+        val keyPair = TestConfig.virgilCrypto.importPrivateKey(privateKeyData)
+
+        // Get the latest card for identity
+        val cardManager = initCardManager(identity)
+        var cards = cardManager.searchCards(identity)
+        val card = cards.first { it.publicKey.identifier.contentEquals(keyPair.publicKey.identifier) }
+        val cardId = card.identifier
+
+        /* Simulate private key rotation by other eThree instance */
+        val newKeyPair = TestConfig.virgilCrypto.generateKeyPair(eThreeParams.keyPairType)
+
+        // Publish a new card for the same identity
+        cardManager.publishCard(newKeyPair.privateKey, newKeyPair.publicKey, identity, card.previousCardId)
+
+        /* Verify that private key was rotated */
+        // Find a new card that replaces used by this instance
+        val newCard = cardManager.searchCards(identity).first { it.identifier == cardId }
+
+        // If new card exists, private key was rotated by other instance
+        assertNotNull(newCard)
     }
 }

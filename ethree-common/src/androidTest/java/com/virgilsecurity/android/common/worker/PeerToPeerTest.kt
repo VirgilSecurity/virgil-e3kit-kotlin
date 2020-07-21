@@ -33,6 +33,7 @@
 
 package com.virgilsecurity.android.common.worker
 
+import android.util.Log
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
@@ -45,19 +46,23 @@ import com.virgilsecurity.android.common.utils.TestUtils
 import com.virgilsecurity.android.ethree.interaction.EThree
 import com.virgilsecurity.common.extension.toData
 import com.virgilsecurity.common.model.Data
+import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.common.TimeSpan
 import com.virgilsecurity.sdk.crypto.KeyPairType
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.exceptions.VerificationException
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
 import com.virgilsecurity.sdk.utils.ConvertionUtils
+import kotlinx.coroutines.*
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.*
 import java.util.*
+import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.TimeUnit
+import kotlin.random.Random
 
 /**
  * PeerToPeerTest
@@ -130,6 +135,106 @@ class PeerToPeerTest {
         val cardTwo = ethreeTwo.findUser(ethree.identity).get()
         val decryptedTwo = ethreeTwo.authDecrypt(encrypted, cardTwo)
         assertEquals(TEXT, decryptedTwo)
+    }
+
+    @Test fun encrypt_decrypt_many_cards() {
+        ethree.register().execute()
+
+        val totalIdentities = 100
+        val identities = mutableListOf<String>()
+        val ethrees = mutableMapOf<String, EThree>() // identity, EThree
+        val cards = mutableMapOf<String, Card>() // identity, Card
+        for (i in 1..totalIdentities) {
+            val identityTwo = UUID.randomUUID().toString()
+            identities.add(identityTwo)
+
+            val ethreeTwo = EThree(identityTwo,
+                    object : OnGetTokenCallback {
+                        override fun onGetToken(): String {
+                            return TestUtils.generateTokenString(identityTwo)
+                        }
+                    },
+                    TestConfig.context,
+                    enableRatchet = false,
+                    keyRotationInterval = TimeSpan.fromTime(3600, TimeUnit.SECONDS))
+            ethreeTwo.register().execute()
+            ethrees[identityTwo] = ethreeTwo
+
+//            cards[identityTwo] = ethree.findUser(identityTwo).get()
+        }
+
+        // Encrypt many messages
+        val encryptedMessages = mutableListOf<Pair<String, String>>() // from identity, message
+        for (i in 1..1000) {
+            val index = Random.nextInt(0, totalIdentities)
+            val identityTwo = identities[index]
+            val ethreeTwo = ethrees[identityTwo]!!
+
+            val message = TEXT
+            val encryptedMessage = ethreeTwo.authEncrypt(message, ethreeTwo.findUser(identity).get())
+            encryptedMessages.add(Pair(identityTwo, encryptedMessage))
+        }
+
+        // Decrypt many messages at the same time
+        val decryptedMessages = ConcurrentLinkedQueue<String>()
+        runBlocking {
+            encryptedMessages.forEach { pair ->
+                launch(Dispatchers.IO) {
+//                    Log.d(TAG, "Start decryption for ${pair.first}")
+//                    decryptedMessages.add(ethree.authDecrypt(pair.second, cards[pair.first]))
+                    decryptedMessages.add(ethree.authDecrypt(pair.second, ethree.findUser(pair.first).get()))
+//                    Log.d(TAG, "Finished decryption for ${pair.first}")
+                }
+            }
+        }
+
+        Log.d(TAG, "${decryptedMessages.size} of ${encryptedMessages.size} messages decrypted")
+        decryptedMessages.forEach {
+            assertEquals(TEXT, it)
+        }
+    }
+
+    @Test fun ste3_stream() {
+        val identityTwo = UUID.randomUUID().toString()
+        val randombytes = ByteArray(1000000)
+        Random.nextBytes(randombytes)
+
+        ethree.register().execute()
+
+        val ethreeTwo = EThree(identityTwo,
+                object : OnGetTokenCallback {
+                    override fun onGetToken(): String {
+                        return TestUtils.generateTokenString(identityTwo)
+                    }
+                },
+                TestConfig.context,
+                enableRatchet = false,
+                keyRotationInterval = TimeSpan.fromTime(3600, TimeUnit.SECONDS))
+
+        assertNotNull(ethreeTwo)
+
+        ethreeTwo.register().execute()
+
+        val card = ethree.findUser(ethreeTwo.identity).get()
+        assertNotNull(card)
+
+        val encrypted = ethree.authEncrypt(Data(randombytes), card)
+
+        val otherCard = TestUtils.publishCard()
+        ByteArrayInputStream(randombytes).read()
+
+        try {
+            val decryptedStream = ByteArrayOutputStream()
+            ethreeTwo.authDecrypt(ByteArrayInputStream(encrypted.value), decryptedStream, otherCard)
+            fail()
+        } catch (throwable: Throwable) {
+            // We're good
+        }
+
+        val cardTwo = ethreeTwo.findUser(ethree.identity).get()
+        val decryptedStream = ByteArrayOutputStream()
+        ethreeTwo.authDecrypt(ByteArrayInputStream(encrypted.value), decryptedStream, cardTwo)
+        assertArrayEquals(randombytes, decryptedStream.toByteArray())
     }
 
     // test02 STE_4
@@ -391,6 +496,9 @@ class PeerToPeerTest {
     }
 
     companion object {
+        private const val TAG = "PeerToPeerTest"
         private const val TEXT = "Hello, my name is text. I am here to be encrypted (:"
     }
+
+    fun <T> CoroutineScope.asyncIO(ioFun: () -> T) = async(Dispatchers.IO) { ioFun() } // CoroutineDispatcher - runs and schedules coroutines
 }
