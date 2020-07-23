@@ -58,7 +58,9 @@ import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.io.*
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.InputStreamReader
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.TimeUnit
@@ -493,6 +495,63 @@ class PeerToPeerTest {
         } catch (exception: EThreeException) {
             assertTrue(exception.description == EThreeException.Description.VERIFICATION_FAILED)
         }
+    }
+
+    @Test fun encrypt_decrypt_shared_self_decryption() {
+        ethree.register().execute()
+
+        val data = TEXT.toByteArray()
+        val inputStream = ByteArrayInputStream(data)
+        val outputStream = ByteArrayOutputStream()
+
+        val privKeyData = ethree.encryptShared(inputStream, inputStream.available(), outputStream)
+        val encryptedData = outputStream.toByteArray()
+
+        val inputStreamTwo = ByteArrayInputStream(encryptedData)
+        val outputStreamTwo = ByteArrayOutputStream()
+
+        // Decrypt with private key data
+        ethree.decryptShared(inputStreamTwo, outputStreamTwo, privKeyData, null)
+        val decryptedData = outputStreamTwo.toByteArray()
+        assertArrayEquals(TEXT.toByteArray(), decryptedData)
+    }
+
+    @Test fun encrypt_decrypt_shared() {
+        ethree.register().execute()
+
+        val identityTwo = UUID.randomUUID().toString()
+        val ethreeTwo = EThree(identityTwo,
+                object : OnGetTokenCallback {
+                    override fun onGetToken(): String {
+                        return TestUtils.generateTokenString(identityTwo)
+                    }
+                },
+                TestConfig.context)
+        ethreeTwo.register().execute()
+        val cardOne = ethreeTwo.findUser(ethree.identity).get()
+
+        val data = TEXT.toByteArray()
+        val inputStream = ByteArrayInputStream(data)
+        val outputStream = ByteArrayOutputStream()
+
+        val privKeyData = ethree.encryptShared(inputStream, inputStream.available(), outputStream)
+        val privKey = this.crypto.importPrivateKey(privKeyData)
+        val encryptedData = outputStream.toByteArray()
+
+        var inputStreamTwo = ByteArrayInputStream(encryptedData)
+        var outputStreamTwo = ByteArrayOutputStream()
+
+        // Decrypt with private key by card
+        ethreeTwo.decryptShared(inputStreamTwo, outputStreamTwo, privKey.privateKey, cardOne)
+        var decryptedData = outputStreamTwo.toByteArray()
+        assertArrayEquals(TEXT.toByteArray(), decryptedData)
+
+        // Decrypt with private key by public key
+        inputStreamTwo = ByteArrayInputStream(encryptedData)
+        outputStreamTwo = ByteArrayOutputStream()
+        ethreeTwo.decryptShared(inputStreamTwo, outputStreamTwo, privKey.privateKey, cardOne.publicKey)
+        decryptedData = outputStreamTwo.toByteArray()
+        assertArrayEquals(TEXT.toByteArray(), decryptedData)
     }
 
     companion object {

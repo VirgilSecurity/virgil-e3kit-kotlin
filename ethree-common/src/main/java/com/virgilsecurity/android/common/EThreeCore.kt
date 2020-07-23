@@ -1183,6 +1183,20 @@ abstract class EThreeCore {
             p2pWorker.encrypt(inputStream, outputStream, lookupResult)
 
     /**
+     * Encrypts data stream with a generated key.
+     *
+     * @param inputStream Data stream to be encrypted.
+     * @param streamSize: Int,
+     * @param outputStream Stream with encrypted data.
+     *
+     * @throws CryptoException
+     */
+    fun encryptShared(inputStream: InputStream,
+                      streamSize: Int,
+                      outputStream: OutputStream): ByteArray =
+            streamsEncryptWorker.encryptShared(inputStream, streamSize, outputStream)
+
+    /**
      * Decrypts and verifies encrypted text that is in base64 [String] format.
      *
      * - *Important* Automatically includes self key to recipientsKeys.
@@ -1204,6 +1218,24 @@ abstract class EThreeCore {
     @Deprecated("Check 'replace with' section.", ReplaceWith("authDecrypt"))
     fun decrypt(base64String: String, sendersKey: VirgilPublicKey): String =
             p2pWorker.decrypt(base64String, sendersKey)
+
+    fun decryptShared(inputStream: InputStream,
+                      outputStream: OutputStream,
+                      privateKey: VirgilPrivateKey,
+                      senderCard: Card?) =
+            streamsEncryptWorker.decryptShared(inputStream, outputStream, privateKey, senderCard?.publicKey)
+
+    fun decryptShared(inputStream: InputStream,
+                      outputStream: OutputStream,
+                      privateKey: VirgilPrivateKey,
+                      senderPublicKey: VirgilPublicKey?) =
+            streamsEncryptWorker.decryptShared(inputStream, outputStream, privateKey, senderPublicKey)
+
+    fun decryptShared(inputStream: InputStream,
+                      outputStream: OutputStream,
+                      privateKeyData: ByteArray,
+                      senderPublicKeyData: ByteArray?) =
+            streamsEncryptWorker.decryptShared(inputStream, outputStream, privateKeyData, senderPublicKeyData)
 
     /**
      * Decrypts and verifies encrypted data.

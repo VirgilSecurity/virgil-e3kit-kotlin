@@ -39,6 +39,7 @@ import com.virgilsecurity.android.common.storage.local.LocalKeyStorage
 import com.virgilsecurity.common.exception.EmptyArgumentException
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
+import com.virgilsecurity.sdk.crypto.VirgilPrivateKey
 import com.virgilsecurity.sdk.crypto.VirgilPublicKey
 import java.io.InputStream
 import java.io.OutputStream
@@ -94,6 +95,35 @@ internal class StreamsEncryptWorker internal constructor(
         return decryptInternal(inputStream, outputStream, card.publicKey)
     }
 
+    internal fun encryptShared(inputStream: InputStream,
+                             streamSize: Int,
+                             outputStream: OutputStream): ByteArray {
+        val streamKeyPair = this.crypto.generateKeyPair()
+        encryptInternal(inputStream, streamSize, outputStream, listOf(streamKeyPair.publicKey))
+
+        return this.crypto.exportPrivateKey(streamKeyPair.privateKey)
+    }
+
+    internal fun decryptShared(inputStream: InputStream,
+                               outputStream: OutputStream,
+                               privateKey: VirgilPrivateKey,
+                               senderPublicKey: VirgilPublicKey?) {
+        return decryptInternal(inputStream, outputStream, senderPublicKey, privateKey)
+    }
+
+    internal fun decryptShared(inputStream: InputStream,
+                               outputStream: OutputStream,
+                               privateKeyData: ByteArray,
+                               senderPublicKeyData: ByteArray?) {
+        val senderPublicKey = if (senderPublicKeyData != null) {
+            this.crypto.importPublicKey(senderPublicKeyData)
+        } else {
+            null
+        }
+        val streamKeyPair = this.crypto.importPrivateKey(privateKeyData)
+        return decryptInternal(inputStream, outputStream, senderPublicKey, streamKeyPair.privateKey)
+    }
+
     private fun encryptInternal(inputStream: InputStream,
                                 streamSize: Int,
                                 outputStream: OutputStream,
@@ -116,13 +146,15 @@ internal class StreamsEncryptWorker internal constructor(
 
     private fun decryptInternal(inputStream: InputStream,
                                 outputStream: OutputStream,
-                                publicKey: VirgilPublicKey?) {
+                                publicKey: VirgilPublicKey?,
+                                privateKey: VirgilPrivateKey? = null) {
         if (inputStream.available() == 0) throw EmptyArgumentException("inputStream")
 
         val selfKeyPair = localKeyStorage.retrieveKeyPair()
 
         val publicKeyNew = publicKey ?: selfKeyPair.publicKey
+        val privateKeyNew = privateKey ?: selfKeyPair.privateKey
 
-        crypto.authDecrypt(inputStream, outputStream, selfKeyPair.privateKey, publicKeyNew)
+        crypto.authDecrypt(inputStream, outputStream, privateKeyNew, publicKeyNew)
     }
 }
