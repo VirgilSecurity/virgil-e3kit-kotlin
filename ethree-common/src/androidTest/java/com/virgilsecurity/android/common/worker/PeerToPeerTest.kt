@@ -325,6 +325,23 @@ class PeerToPeerTest {
         assertArrayEquals(originString.toByteArray(), decryptedData)
     }
 
+    @Test fun encrypt_decrypt_shared_stream_compatibility() {
+        val dataJson = JsonParser.parseReader(InputStreamReader(
+                this.javaClass.classLoader.getResourceAsStream("testProperties/compatibility_data.json"))) as JsonObject
+        val originString = dataJson["encryptSharedFile"].asJsonObject["originData"].asString
+        val encryptedData = ConvertionUtils.base64ToBytes(dataJson["encryptSharedFile"].asJsonObject["encryptedData"].asString)
+        val fileKeyData = ConvertionUtils.base64ToBytes(dataJson["encryptSharedFile"].asJsonObject["fileKey"].asString)
+        val senderPublicKey = ConvertionUtils.base64ToBytes(dataJson["encryptSharedFile"].asJsonObject["senderPublicKey"].asString)
+
+        val encryptedStream = ByteArrayInputStream(encryptedData)
+        val decryptedStream = ByteArrayOutputStream()
+
+        ethree.decryptShared(encryptedStream, decryptedStream, fileKeyData,  senderPublicKey)
+        val decryptedString = decryptedStream.toString()
+
+        assertEquals(originString, decryptedString)
+    }
+
     // test06 STE_40
     @Test fun decrypt_encrypted_text_with_old_card() {
         val identityTwo = UUID.randomUUID().toString()

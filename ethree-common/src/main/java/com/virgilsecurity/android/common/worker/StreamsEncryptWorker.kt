@@ -96,10 +96,10 @@ internal class StreamsEncryptWorker internal constructor(
     }
 
     internal fun encryptShared(inputStream: InputStream,
-                             streamSize: Int,
+                               inputStreamSize: Int,
                              outputStream: OutputStream): ByteArray {
         val streamKeyPair = this.crypto.generateKeyPair()
-        encryptInternal(inputStream, streamSize, outputStream, listOf(streamKeyPair.publicKey))
+        encryptInternal(inputStream, inputStreamSize, outputStream, listOf(streamKeyPair.publicKey))
 
         return this.crypto.exportPrivateKey(streamKeyPair.privateKey)
     }
@@ -150,10 +150,14 @@ internal class StreamsEncryptWorker internal constructor(
                                 privateKey: VirgilPrivateKey? = null) {
         if (inputStream.available() == 0) throw EmptyArgumentException("inputStream")
 
-        val selfKeyPair = localKeyStorage.retrieveKeyPair()
+        var publicKeyNew = publicKey
+        var privateKeyNew = privateKey
+        if (publicKey == null || privateKey == null) {
+            val selfKeyPair = localKeyStorage.retrieveKeyPair()
 
-        val publicKeyNew = publicKey ?: selfKeyPair.publicKey
-        val privateKeyNew = privateKey ?: selfKeyPair.privateKey
+            publicKeyNew = publicKey ?: selfKeyPair.publicKey
+            privateKeyNew = privateKey ?: selfKeyPair.privateKey
+        }
 
         crypto.authDecrypt(inputStream, outputStream, privateKeyNew, publicKeyNew)
     }

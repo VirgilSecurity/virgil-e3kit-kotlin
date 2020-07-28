@@ -141,7 +141,7 @@ def getGradleOrSystemProperty(String name, Project project) {
 final String BASE_VIRGIL_PACKAGE = 'com.virgilsecurity'
 
 // Packages versions
-final String SDK_VERSION = '2.0.4'
+final String SDK_VERSION = '2.0.5'
 
 subprojects {
     group BASE_VIRGIL_PACKAGE

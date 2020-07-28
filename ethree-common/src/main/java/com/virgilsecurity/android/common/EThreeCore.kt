@@ -1186,15 +1186,15 @@ abstract class EThreeCore {
      * Encrypts data stream with a generated key.
      *
      * @param inputStream Data stream to be encrypted.
-     * @param streamSize: Int,
+     * @param inputStreamSize: Int,
      * @param outputStream Stream with encrypted data.
      *
      * @throws CryptoException
      */
     fun encryptShared(inputStream: InputStream,
-                      streamSize: Int,
+                      inputStreamSize: Int,
                       outputStream: OutputStream): ByteArray =
-            streamsEncryptWorker.encryptShared(inputStream, streamSize, outputStream)
+            streamsEncryptWorker.encryptShared(inputStream, inputStreamSize, outputStream)
 
     /**
      * Decrypts and verifies encrypted text that is in base64 [String] format.
