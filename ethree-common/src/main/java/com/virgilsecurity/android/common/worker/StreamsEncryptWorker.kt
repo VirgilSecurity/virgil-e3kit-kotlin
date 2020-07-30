@@ -120,6 +120,13 @@ internal class StreamsEncryptWorker internal constructor(
         } else {
             null
         }
+        return decryptShared(inputStream, outputStream, privateKeyData, senderPublicKey)
+    }
+
+    internal fun decryptShared(inputStream: InputStream,
+                               outputStream: OutputStream,
+                               privateKeyData: ByteArray,
+                               senderPublicKey: VirgilPublicKey?) {
         val streamKeyPair = this.crypto.importPrivateKey(privateKeyData)
         return decryptInternal(inputStream, outputStream, senderPublicKey, streamKeyPair.privateKey)
     }

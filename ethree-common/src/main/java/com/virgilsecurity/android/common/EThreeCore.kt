@@ -1237,6 +1237,12 @@ abstract class EThreeCore {
                       senderPublicKeyData: ByteArray?) =
             streamsEncryptWorker.decryptShared(inputStream, outputStream, privateKeyData, senderPublicKeyData)
 
+    fun decryptShared(inputStream: InputStream,
+                      outputStream: OutputStream,
+                      privateKeyData: ByteArray,
+                      senderCard: Card) =
+            streamsEncryptWorker.decryptShared(inputStream, outputStream, privateKeyData, senderCard.publicKey)
+
     /**
      * Decrypts and verifies encrypted data.
      *
