@@ -161,8 +161,6 @@ class PeerToPeerTest {
                     keyRotationInterval = TimeSpan.fromTime(3600, TimeUnit.SECONDS))
             ethreeTwo.register().execute()
             ethrees[identityTwo] = ethreeTwo
-
-//            cards[identityTwo] = ethree.findUser(identityTwo).get()
         }
 
         // Encrypt many messages
@@ -182,10 +180,7 @@ class PeerToPeerTest {
         runBlocking {
             encryptedMessages.forEach { pair ->
                 launch(Dispatchers.IO) {
-//                    Log.d(TAG, "Start decryption for ${pair.first}")
-//                    decryptedMessages.add(ethree.authDecrypt(pair.second, cards[pair.first]))
                     decryptedMessages.add(ethree.authDecrypt(pair.second, ethree.findUser(pair.first).get()))
-//                    Log.d(TAG, "Finished decryption for ${pair.first}")
                 }
             }
         }
