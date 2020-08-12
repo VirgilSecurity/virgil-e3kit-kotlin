@@ -1221,21 +1221,9 @@ abstract class EThreeCore {
 
     fun decryptShared(inputStream: InputStream,
                       outputStream: OutputStream,
-                      privateKey: VirgilPrivateKey,
-                      senderCard: Card?) =
-            streamsEncryptWorker.decryptShared(inputStream, outputStream, privateKey, senderCard?.publicKey)
-
-    fun decryptShared(inputStream: InputStream,
-                      outputStream: OutputStream,
-                      privateKey: VirgilPrivateKey,
-                      senderPublicKey: VirgilPublicKey?) =
-            streamsEncryptWorker.decryptShared(inputStream, outputStream, privateKey, senderPublicKey)
-
-    fun decryptShared(inputStream: InputStream,
-                      outputStream: OutputStream,
                       privateKeyData: ByteArray,
-                      senderPublicKeyData: ByteArray?) =
-            streamsEncryptWorker.decryptShared(inputStream, outputStream, privateKeyData, senderPublicKeyData)
+                      senderPublicKey: VirgilPublicKey?) =
+            streamsEncryptWorker.decryptShared(inputStream, outputStream, privateKeyData, senderPublicKey)
 
     fun decryptShared(inputStream: InputStream,
                       outputStream: OutputStream,

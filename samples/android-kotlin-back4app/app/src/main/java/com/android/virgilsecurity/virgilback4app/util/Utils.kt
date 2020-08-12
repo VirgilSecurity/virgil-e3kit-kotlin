@@ -75,6 +75,7 @@ object Utils {
     }
 
     fun resolveError(t: Throwable): String {
+        Log.e("Utils", "Resolving error", t)
         return when (t) {
             is HttpException -> when (t.code()) {
                 Const.Http.BAD_REQUEST -> "Bad Request"

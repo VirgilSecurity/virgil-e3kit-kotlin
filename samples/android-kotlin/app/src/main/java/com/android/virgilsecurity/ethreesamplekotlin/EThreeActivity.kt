@@ -1,16 +1,16 @@
 package com.android.virgilsecurity.ethreesamplekotlin
 
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
 import android.util.Log
 import android.widget.Toast
-import com.virgilsecurity.android.common.data.model.LookupResult
-import com.virgilsecurity.android.ethree.kotlin.callback.OnCompleteListener
-import com.virgilsecurity.android.ethree.kotlin.callback.OnGetTokenCallback
-import com.virgilsecurity.android.ethree.kotlin.callback.OnResultListener
-import com.virgilsecurity.android.ethree.kotlin.interaction.EThree
-import com.virgilsecurity.android.ethree.kotlin.interaction.EThree.Companion.initialize
-import com.virgilsecurity.sdk.utils.ConvertionUtils
+import androidx.appcompat.app.AppCompatActivity
+import com.virgilsecurity.android.common.callback.OnGetTokenCallback
+import com.virgilsecurity.android.common.model.EThreeParams
+import com.virgilsecurity.android.ethree.interaction.EThree
+import com.virgilsecurity.common.callback.OnCompleteListener
+import com.virgilsecurity.common.callback.OnResultListener
+import com.virgilsecurity.common.model.Data
+import com.virgilsecurity.sdk.cards.Card
 import kotlinx.android.synthetic.main.activity_ethree.*
 import org.json.JSONException
 import org.json.JSONObject
@@ -19,6 +19,7 @@ import java.io.InputStreamReader
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.*
+
 
 class EThreeActivity : AppCompatActivity() {
 
@@ -83,15 +84,15 @@ class EThreeActivity : AppCompatActivity() {
         }
     }
 
-    private val onLookupUserTwoListener = object :
-            OnResultListener<LookupResult> {
-        override fun onSuccess(result: LookupResult) {
+    private val onFindUserTwoListener = object :
+            OnResultListener<Card> {
+        override fun onSuccess(result: Card) {
             // Now you have public key of first user, so it's possible to encrypt data for her.
             val text = "Hello \$username"
             val data = "Some Data, possibly photo".toByteArray()
 
             // encrypt method encrypts provided text and converts it to Base64 String format.
-            val encryptedText = eThreeUserTwo!!.encrypt(text, result)
+            val encryptedText = eThreeUserTwo!!.authEncrypt(text, result)
 
             this@EThreeActivity.runOnUiThread {
                 tvText.text = "Success. Sample finished it's work.\n" +
@@ -99,11 +100,11 @@ class EThreeActivity : AppCompatActivity() {
             }
 
             // encrypts provided text and returns encrypted byte array.
-            val encryptedData = eThreeUserTwo!!.encrypt(data, result)
+            val encryptedData = eThreeUserTwo!!.authEncrypt(Data(data), result)
 
             Log.d("EThreeTag", "encryptedText: \n$encryptedText")
             // You can convert byte[] to Base64 String to easily transfer it to the server, or to print, etc.
-            Log.d("EThreeTag", "encryptedData: \n" + ConvertionUtils.toBase64String(encryptedData))
+            Log.d("EThreeTag", "encryptedData: \n" + encryptedData.toBase64String())
 
             // Next you can lookup second user's public key via lookupPublicKeys by the first user and decrypt
             // encrypted for her data. (You have to lookup public key for decrypt to verify that the data
@@ -121,8 +122,8 @@ class EThreeActivity : AppCompatActivity() {
 
     private val onRegisterUserTwoListener = object : OnCompleteListener {
         override fun onSuccess() {
-            // Searching for the public key of first user to be able to encrypt.
-            eThreeUserTwo!!.lookupPublicKeys(identityOne).addCallback(onLookupUserTwoListener)
+            // Searching for the card of first user to be able to encrypt.
+            eThreeUserTwo!!.findUser(identityOne).addCallback(onFindUserTwoListener)
         }
 
         override fun onError(throwable: Throwable) {
@@ -153,22 +154,41 @@ class EThreeActivity : AppCompatActivity() {
     private fun initUserOne() {
         // You start your user authentication/authorization (signUp/signIn) here.
         authenticate(identityOne, object : OnResultListener<String> {
-            override fun onSuccess(value: String) {
+            override fun onSuccess(result: String) {
                 try {
-                    val `object` = JSONObject(value)
+                    val `object` = JSONObject(result)
                     authTokenUserOne = `object`.get("authToken") as String
                 } catch (e: JSONException) {
                     runOnUiThread { Toast.makeText(this@EThreeActivity, e.message, Toast.LENGTH_SHORT).show() }
                 }
 
                 // After you successfully authenticated your user - you have to initialize EThree SDK.
-                // To do this you have to provide context and two listeners.
-                // OnGetTokenCallback should exchange recently received authToken for a Virgil JWT.
-                // OnResultListener<EThree> will give you initialized instance of EThree SDK in onSuccess method.
-                initialize(
-                    this@EThreeActivity,
-                    onGetTokenUserOneCallback
-                ).addCallback(onInitUserOneListener)
+                // To do this you have to provide identity name, a function and context.
+                // The function should exchange recently received authToken for a Virgil JWT.
+                // After you successfully authenticated your user - you have to initialize EThree SDK.
+                // To do this you have to provide identity name, a function and context.
+                // The function should exchange recently received authToken for a Virgil JWT.
+                val params =
+                    EThreeParams(identityOne, {getVirgilJwt(authTokenUserOne)}, this@EThreeActivity)
+                eThreeUserOne = EThree(params)
+
+                // Now you can register your identity
+                try {
+                    eThreeUserOne!!.register().addCallback(onRegisterUserOneListener)
+                } catch (throwable: Throwable) {
+                    Log.e(
+                        TAG,
+                        "User one registration failed",
+                        throwable
+                    )
+                    runOnUiThread {
+                        Toast.makeText(
+                            this@EThreeActivity,
+                            throwable.message,
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
             }
 
             override fun onError(throwable: Throwable) {
@@ -185,18 +205,34 @@ class EThreeActivity : AppCompatActivity() {
     fun initUserTwo() {
         // You start your user authentication/authorization (signUp/signIn) here.
         authenticate(identityTwo, object : OnResultListener<String> {
-            override fun onSuccess(value: String) {
+            override fun onSuccess(result: String) {
                 try {
-                    val `object` = JSONObject(value)
+                    val `object` = JSONObject(result)
                     authTokenUserTwo = `object`.get("authToken") as String
                 } catch (e: JSONException) {
                     runOnUiThread { Toast.makeText(this@EThreeActivity, e.message, Toast.LENGTH_SHORT).show() }
                 }
 
-                initialize(
-                    this@EThreeActivity,
-                    onGetTokenUserTwoCallback
-                ).addCallback(onInitUserTwoListener)
+                val params =
+                    EThreeParams(identityTwo, {getVirgilJwt(authTokenUserTwo)}, this@EThreeActivity)
+                eThreeUserTwo = EThree(params)
+
+                try {
+                    eThreeUserTwo!!.register().addCallback(onRegisterUserTwoListener)
+                } catch (throwable: Throwable) {
+                    Log.e(
+                        TAG,
+                        "User two registration failed",
+                        throwable
+                    )
+                    runOnUiThread {
+                        Toast.makeText(
+                            this@EThreeActivity,
+                            throwable.message,
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
             }
 
             override fun onError(throwable: Throwable) {
@@ -222,7 +258,7 @@ class EThreeActivity : AppCompatActivity() {
             onResultListener: OnResultListener<String>
     ) {
         try {
-            val baseUrl = "http://10.0.2.2:3000/authenticate"
+            val baseUrl = "$SERVER_URL/authenticate"
             val fullUrl = URL(baseUrl)
 
             val urlConnection = fullUrl.openConnection() as HttpURLConnection
@@ -266,12 +302,10 @@ class EThreeActivity : AppCompatActivity() {
      */
     private fun getVirgilJwt(authToken: String?): String {
         try {
-            val baseUrl = "http://10.0.2.2:3000/virgil-jwt"
+            val baseUrl = "$SERVER_URL/virgil-jwt"
             val fullUrl = URL(baseUrl)
 
             val urlConnection = fullUrl.openConnection() as HttpURLConnection
-            urlConnection.doOutput = true
-            urlConnection.doInput = true
             urlConnection.setRequestProperty("Accept", "application/json")
             urlConnection.setRequestProperty("Authorization", "Bearer " + authToken!!)
             urlConnection.requestMethod = "GET"
@@ -296,9 +330,9 @@ class EThreeActivity : AppCompatActivity() {
     }
 
     companion object {
-
+        private const val TAG = "EThreeActivity"
         private val identityOne = UUID.randomUUID().toString()
-
         private val identityTwo = UUID.randomUUID().toString()
+        private val SERVER_URL = "http://10.0.2.2:3000"
     }
 }

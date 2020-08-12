@@ -326,7 +326,8 @@ class PeerToPeerTest {
         val originString = dataJson["encryptSharedFile"].asJsonObject["originData"].asString
         val encryptedData = ConvertionUtils.base64ToBytes(dataJson["encryptSharedFile"].asJsonObject["encryptedData"].asString)
         val fileKeyData = ConvertionUtils.base64ToBytes(dataJson["encryptSharedFile"].asJsonObject["fileKey"].asString)
-        val senderPublicKey = ConvertionUtils.base64ToBytes(dataJson["encryptSharedFile"].asJsonObject["senderPublicKey"].asString)
+        val senderPublicKeyData = ConvertionUtils.base64ToBytes(dataJson["encryptSharedFile"].asJsonObject["senderPublicKey"].asString)
+        val senderPublicKey = this.crypto.importPublicKey(senderPublicKeyData)
 
         val encryptedStream = ByteArrayInputStream(encryptedData)
         val decryptedStream = ByteArrayOutputStream()
@@ -547,21 +548,20 @@ class PeerToPeerTest {
         val outputStream = ByteArrayOutputStream()
 
         val privKeyData = ethree.encryptShared(inputStream, inputStream.available(), outputStream)
-        val privKey = this.crypto.importPrivateKey(privKeyData)
         val encryptedData = outputStream.toByteArray()
 
         var inputStreamTwo = ByteArrayInputStream(encryptedData)
         var outputStreamTwo = ByteArrayOutputStream()
 
         // Decrypt with private key by card
-        ethreeTwo.decryptShared(inputStreamTwo, outputStreamTwo, privKey.privateKey, cardOne)
+        ethreeTwo.decryptShared(inputStreamTwo, outputStreamTwo, privKeyData, cardOne)
         var decryptedData = outputStreamTwo.toByteArray()
         assertArrayEquals(TEXT.toByteArray(), decryptedData)
 
         // Decrypt with private key by public key
         inputStreamTwo = ByteArrayInputStream(encryptedData)
         outputStreamTwo = ByteArrayOutputStream()
-        ethreeTwo.decryptShared(inputStreamTwo, outputStreamTwo, privKey.privateKey, cardOne.publicKey)
+        ethreeTwo.decryptShared(inputStreamTwo, outputStreamTwo, privKeyData, cardOne.publicKey)
         decryptedData = outputStreamTwo.toByteArray()
         assertArrayEquals(TEXT.toByteArray(), decryptedData)
     }

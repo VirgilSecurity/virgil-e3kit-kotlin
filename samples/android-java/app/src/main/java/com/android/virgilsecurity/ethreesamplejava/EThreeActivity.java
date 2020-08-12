@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019, Virgil Security, Inc.
+ * Copyright (c) 2015-2020, Virgil Security, Inc.
  *
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  *
@@ -34,18 +34,20 @@
 package com.android.virgilsecurity.ethreesamplejava;
 
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.virgilsecurity.android.ethree.kotlin.callback.OnCompleteListener;
-import com.virgilsecurity.android.ethree.kotlin.callback.OnGetTokenCallback;
-import com.virgilsecurity.android.ethree.kotlin.callback.OnResultListener;
-import com.virgilsecurity.android.ethree.interaction.EThree;
-import com.virgilsecurity.sdk.crypto.VirgilPublicKey;
-import com.virgilsecurity.sdk.utils.ConvertionUtils;
+import androidx.appcompat.app.AppCompatActivity;
 
+import com.virgilsecurity.android.common.model.EThreeParams;
+import com.virgilsecurity.android.ethree.interaction.EThree;
+import com.virgilsecurity.common.callback.OnCompleteListener;
+import com.virgilsecurity.common.callback.OnResultListener;
+import com.virgilsecurity.common.model.Data;
+import com.virgilsecurity.sdk.cards.Card;
+
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -55,10 +57,15 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.Map;
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
+import kotlin.jvm.functions.Function0;
+
 public class EThreeActivity extends AppCompatActivity {
+
+    private final static String TAG = "EThreeActivity";
+    private final static String SERVER_URL = "http://10.0.2.2:3000";
 
     private TextView tvText;
 
@@ -71,7 +78,8 @@ public class EThreeActivity extends AppCompatActivity {
         tvText = findViewById(R.id.tvTextView);
 
         new Thread(new Runnable() {
-            @Override public void run() {
+            @Override
+            public void run() {
                 // Creating first user so the second user will be able to encrypt data for her.
                 initUserOne();
             }
@@ -86,11 +94,11 @@ public class EThreeActivity extends AppCompatActivity {
     private EThree eThreeUserTwo;
     private String authTokenUserTwo;
 
-
-    // This callback exchanges authToken for a Virgil JWT. So user now authenticated and is able to
+    // This function exchanges authToken for a Virgil JWT. So user now authenticated and is able to
     // interact with Virgil Services (through the E3Kit).
-    private final OnGetTokenCallback onGetTokenUserOneCallback = new OnGetTokenCallback() {
-        @Override public String onGetToken() {
+    private final Function0<String> getAuthTokenUserOne = new Function0<String>() {
+        @Override
+        public String invoke() {
             return getVirgilJwt(authTokenUserOne);
         }
     };
@@ -98,117 +106,95 @@ public class EThreeActivity extends AppCompatActivity {
     // This callback will be called when first user is successfully registered (Her public key is published to Virgil
     // Cards Service).
     private final OnCompleteListener onRegisterUserOneListener = new OnCompleteListener() {
-        @Override public void onSuccess() {
+        @Override
+        public void onSuccess() {
             // First user is registered successfully. Starting work with main user - second (She will encrypt data
             // for the first user).
             initUserTwo();
         }
 
-        @Override public void onError(final Throwable throwable) {
+        @Override
+        public void onError(@NotNull final Throwable throwable) {
+            Log.e(TAG, "User one registration failed", throwable);
             // Error handling
             runOnUiThread(new Runnable() {
-                @Override public void run() {
+                @Override
+                public void run() {
                     Toast.makeText(EThreeActivity.this, throwable.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             });
         }
     };
 
-    private final OnResultListener<EThree> onInitUserOneListener = new OnResultListener<EThree>() {
-        @Override public void onSuccess(EThree result) {
-            // So now you have fully initialized and ready to use EThree instance!
-            eThreeUserOne = result;
-
-            // First user's EThree is initialized. Let's register her so the second user will be able to encrypt
-            // something for her.
-            eThreeUserOne.register().addCallback(onRegisterUserOneListener);
-        }
-
-        @Override public void onError(final Throwable throwable) {
-            // Error handling
-            runOnUiThread(new Runnable() {
-                @Override public void run() {
-                    Toast.makeText(EThreeActivity.this, throwable.getMessage(), Toast.LENGTH_SHORT).show();
-                }
-            });
-        }
-    };
-
-    private final OnGetTokenCallback onGetTokenUserTwoCallback = new OnGetTokenCallback() {
-        @Override public String onGetToken() {
-            return getVirgilJwt(authTokenUserTwo);
-        }
-    };
-
-    private final OnResultListener<Map<String, VirgilPublicKey>> onLookupUserTwoListener =
-            new OnResultListener<Map<String, VirgilPublicKey>>() {
-                @Override public void onSuccess(Map<String, VirgilPublicKey> result) {
+    private final OnResultListener<Card> findUserTwoListener =
+            new OnResultListener<Card>() {
+                @Override
+                public void onSuccess(Card card) {
                     // Now you have public key of first user, so it's possible to encrypt data for her.
                     String text = "Hello $username";
                     byte[] data = "Some Data, possibly photo".getBytes();
 
                     // encrypt method encrypts provided text and converts it to Base64 String format.
-                    final String encryptedText = eThreeUserTwo.encrypt(text, result);
+                    final String encryptedText = eThreeUserTwo.authEncrypt(text, card);
 
                     EThreeActivity.this.runOnUiThread(new Runnable() {
-                        @Override public void run() {
-                            tvText.setText("Success. Sample finished it's work.\n\n" + encryptedText);
+                        @Override
+                        public void run() {
+                            tvText.setText("Success. Sample finished it's work.\n\n " + encryptedText);
                         }
                     });
 
                     // encrypts provided text and returns encrypted byte array.
-                    byte[] encryptedData = eThreeUserTwo.encrypt(data, result);
+                    Data encryptedData = eThreeUserTwo.authEncrypt(new Data(data), card);
 
                     Log.d("EThreeTag", "encryptedText: \n" + encryptedText);
                     // You can convert byte[] to Base64 String to easily transfer it to the server, or to print, etc.
-                    Log.d("EThreeTag", "encryptedData: \n" + ConvertionUtils.toBase64String(encryptedData));
+                    Log.d("EThreeTag", "encryptedData: \n" + encryptedData.toBase64String());
 
-                    // Next you can lookup second user's public key via lookupPublicKeys by the first user and decrypt
-                    // encrypted for her data. (You have to lookup public key for decrypt to verify that the data
+                    // Next you can find second user's card via findUser by the first user and decrypt
+                    // encrypted for her data. (You have to find card for decrypt to verify that the data
                     // was really encrypted by second user).
                     // It is not implemented in this example because it will become overcomplicated because of
                     // two users in something like "one" session. In real-life app you will have only half of these
                     // callbacks - for one current user.
                 }
 
-                @Override public void onError(final Throwable throwable) {
+                @Override
+                public void onError(@NotNull final Throwable throwable) {
+                    Log.e(TAG, "User two lookup failed", throwable);
                     // Error handling
                     runOnUiThread(new Runnable() {
-                        @Override public void run() {
+                        @Override
+                        public void run() {
                             Toast.makeText(EThreeActivity.this, throwable.getMessage(), Toast.LENGTH_SHORT).show();
                         }
                     });
                 }
             };
 
-    private final OnCompleteListener onRegisterUserTwoListener = new OnCompleteListener() {
-        @Override public void onSuccess() {
-            // Searching for the public key of first user to be able to encrypt.
-            eThreeUserTwo.lookupPublicKeys(identityOne).addCallback(onLookupUserTwoListener);
-        }
-
-        @Override public void onError(final Throwable throwable) {
-            // Error handling
-            runOnUiThread(new Runnable() {
-                @Override public void run() {
-                    Toast.makeText(EThreeActivity.this, throwable.getMessage(), Toast.LENGTH_SHORT).show();
-                }
-            });
+    // This function exchanges authToken for a Virgil JWT. So user now authenticated and is able to
+    // interact with Virgil Services (through the E3Kit).
+    private final Function0<String> getAuthTokenUserTwo = new Function0<String>() {
+        @Override
+        public String invoke() {
+            return getVirgilJwt(authTokenUserTwo);
         }
     };
 
-    private final OnResultListener<EThree> onInitUserTwoListener = new OnResultListener<EThree>() {
-        @Override public void onSuccess(EThree result) {
-            // So now you have fully initialized and ready to use EThree instance for second user.
-            eThreeUserTwo = result;
-
-            eThreeUserTwo.register().addCallback(onRegisterUserTwoListener);
+    private final OnCompleteListener onRegisterUserTwoListener = new OnCompleteListener() {
+        @Override
+        public void onSuccess() {
+            // Searching for the public key of first user to be able to encrypt.
+            eThreeUserTwo.findUser(identityOne).addCallback(findUserTwoListener);
         }
 
-        @Override public void onError(final Throwable throwable) {
+        @Override
+        public void onError(@NotNull final Throwable throwable) {
+            Log.e(TAG, "User two registration failed", throwable);
             // Error handling
             runOnUiThread(new Runnable() {
-                @Override public void run() {
+                @Override
+                public void run() {
                     Toast.makeText(EThreeActivity.this, throwable.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             });
@@ -223,29 +209,47 @@ public class EThreeActivity extends AppCompatActivity {
     public void initUserOne() {
         // You start your user authentication/authorization (signUp/signIn) here.
         authenticate(identityOne, new OnResultListener<String>() {
-            @Override public void onSuccess(String value) {
+            @Override
+            public void onSuccess(String value) {
                 try {
                     JSONObject object = new JSONObject(value);
                     authTokenUserOne = (String) object.get("authToken");
                 } catch (final JSONException e) {
+                    Log.e(TAG, "User one Virgil JWT token has wrong format", e);
                     runOnUiThread(new Runnable() {
-                        @Override public void run() {
+                        @Override
+                        public void run() {
                             Toast.makeText(EThreeActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
                         }
                     });
                 }
 
                 // After you successfully authenticated your user - you have to initialize EThree SDK.
-                // To do this you have to provide context and two listeners.
-                // OnGetTokenCallback should exchange recently received authToken for a Virgil JWT.
-                // OnResultListener<EThree> will give you initialized instance of EThree SDK in onSuccess method.
-                EThree.initialize(EThreeActivity.this,
-                                  onGetTokenUserOneCallback).addCallback(onInitUserOneListener);
+                // To do this you have to provide identity name, a function and context.
+                // The function should exchange recently received authToken for a Virgil JWT.
+                EThreeParams params = new EThreeParams(identityOne, getAuthTokenUserOne, EThreeActivity.this);
+                eThreeUserOne = new EThree(params);
+
+                // Now you can register your identity
+                try {
+                    eThreeUserOne.register().addCallback(onRegisterUserOneListener);
+                } catch (final Throwable throwable) {
+                    Log.e(TAG, "User one registration failed", throwable);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(EThreeActivity.this, throwable.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
             }
 
-            @Override public void onError(final Throwable throwable) {
+            @Override
+            public void onError(@NotNull final Throwable throwable) {
+                Log.e(TAG, "User one authentication failed", throwable);
                 runOnUiThread(new Runnable() {
-                    @Override public void run() {
+                    @Override
+                    public void run() {
                         Toast.makeText(EThreeActivity.this, throwable.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
@@ -261,25 +265,47 @@ public class EThreeActivity extends AppCompatActivity {
     public void initUserTwo() {
         // You start your user authentication/authorization (signUp/signIn) here.
         authenticate(identityTwo, new OnResultListener<String>() {
-            @Override public void onSuccess(String value) {
+            @Override
+            public void onSuccess(String value) {
                 try {
                     JSONObject object = new JSONObject(value);
                     authTokenUserTwo = (String) object.get("authToken");
                 } catch (final JSONException e) {
+                    Log.e(TAG, "User two Virgil JWT token has wrong format", e);
                     runOnUiThread(new Runnable() {
-                        @Override public void run() {
+                        @Override
+                        public void run() {
                             Toast.makeText(EThreeActivity.this, e.getMessage(), Toast.LENGTH_SHORT).show();
                         }
                     });
                 }
 
-                EThree.initialize(EThreeActivity.this,
-                                  onGetTokenUserTwoCallback).addCallback(onInitUserTwoListener);
+                // After you successfully authenticated your user - you have to initialize EThree SDK.
+                // To do this you have to provide identity name, a function and context.
+                // The function should exchange recently received authToken for a Virgil JWT.
+                EThreeParams params = new EThreeParams(identityTwo, getAuthTokenUserTwo, EThreeActivity.this);
+                eThreeUserTwo = new EThree(params);
+
+                // Now you can register your identity
+                try {
+                    eThreeUserTwo.register().addCallback(onRegisterUserTwoListener);
+                } catch (final Throwable throwable) {
+                    Log.e(TAG, "User two registration failed", throwable);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(EThreeActivity.this, throwable.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
             }
 
-            @Override public void onError(final Throwable throwable) {
+            @Override
+            public void onError(@NotNull final Throwable throwable) {
+                Log.e(TAG, "User two authentication failed", throwable);
                 runOnUiThread(new Runnable() {
-                    @Override public void run() {
+                    @Override
+                    public void run() {
                         Toast.makeText(EThreeActivity.this, throwable.getMessage(), Toast.LENGTH_SHORT).show();
                     }
                 });
@@ -301,7 +327,7 @@ public class EThreeActivity extends AppCompatActivity {
     private void authenticate(String identity,
                               OnResultListener<String> onResultListener) {
         try {
-            String url = "http://10.0.2.2:3000/authenticate";
+            String url = SERVER_URL + "/authenticate";
             URL object = new URL(url);
 
             HttpURLConnection con = (HttpURLConnection) object.openConnection();
@@ -316,13 +342,13 @@ public class EThreeActivity extends AppCompatActivity {
             cred.put("identity", identity);
 
             OutputStream wr = con.getOutputStream();
-            wr.write(cred.toString().getBytes("UTF-8"));
+            wr.write(cred.toString().getBytes(StandardCharsets.UTF_8));
             wr.close();
 
             StringBuilder sb = new StringBuilder();
             int HttpResult = con.getResponseCode();
             if (HttpResult == HttpURLConnection.HTTP_OK) {
-                BufferedReader br = new BufferedReader(new InputStreamReader(con.getInputStream(), "UTF-8"));
+                BufferedReader br = new BufferedReader(new InputStreamReader(con.getInputStream(), StandardCharsets.UTF_8));
                 String line;
                 while ((line = br.readLine()) != null) {
                     sb.append(line).append("\n");
@@ -341,17 +367,14 @@ public class EThreeActivity extends AppCompatActivity {
      * This method exchanges provided authToken for a Virgil JWT.
      *
      * @param authToken from your authentication system that signals that user is authenticated successfully.
-     *
      * @return Virgil JWT base64 string representation.
      */
     private String getVirgilJwt(String authToken) {
         try {
-            String url = "http://10.0.2.2:3000/virgil-jwt";
+            String url = SERVER_URL + "/virgil-jwt";
             URL object = new URL(url);
 
             HttpURLConnection con = (HttpURLConnection) object.openConnection();
-            con.setDoOutput(true);
-            con.setDoInput(true);
             con.setRequestProperty("Accept", "application/json");
             con.setRequestProperty("Authorization", "Bearer " + authToken);
             con.setRequestMethod("GET");
@@ -359,7 +382,7 @@ public class EThreeActivity extends AppCompatActivity {
             StringBuilder sb = new StringBuilder();
             int HttpResult = con.getResponseCode();
             if (HttpResult == HttpURLConnection.HTTP_OK) {
-                BufferedReader br = new BufferedReader(new InputStreamReader(con.getInputStream(), "UTF-8"));
+                BufferedReader br = new BufferedReader(new InputStreamReader(con.getInputStream(), StandardCharsets.UTF_8));
                 String line;
                 while ((line = br.readLine()) != null) {
                     sb.append(line).append("\n");
