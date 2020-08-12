@@ -1219,12 +1219,34 @@ abstract class EThreeCore {
     fun decrypt(base64String: String, sendersKey: VirgilPublicKey): String =
             p2pWorker.decrypt(base64String, sendersKey)
 
+    /**
+     * Decrypts data stream.
+     *
+     * *Important* Requires private key in local storage, if senderPublicKey is not given
+     *
+     * @param inputStream Stream to be decrypted.
+     * @param outputStream Stream with decrypted data.
+     * @param privateKeyData Serialized private key to decrypt stream.
+     * @param senderPublicKey Sender Public Key to verify with, if null then self public key is used.
+     *
+     * @throws CryptoException
+     */
     fun decryptShared(inputStream: InputStream,
                       outputStream: OutputStream,
                       privateKeyData: ByteArray,
                       senderPublicKey: VirgilPublicKey?) =
             streamsEncryptWorker.decryptShared(inputStream, outputStream, privateKeyData, senderPublicKey)
 
+    /**
+     * Decrypts data stream.
+     *
+     * @param inputStream Stream to be decrypted.
+     * @param outputStream Stream with decrypted data.
+     * @param privateKeyData Serialized private key to decrypt stream.
+     * @param senderCard Sender Card with Public Key to verify with.
+     *
+     * @throws CryptoException
+     */
     fun decryptShared(inputStream: InputStream,
                       outputStream: OutputStream,
                       privateKeyData: ByteArray,
