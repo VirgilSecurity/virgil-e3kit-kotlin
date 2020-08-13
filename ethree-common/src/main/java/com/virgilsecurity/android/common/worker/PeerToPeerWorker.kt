@@ -92,8 +92,6 @@ internal class PeerToPeerWorker internal constructor(
 
     @Deprecated("Check 'replace with' section.", ReplaceWith("authDecrypt"))
     internal fun decrypt(inputStream: InputStream, outputStream: OutputStream) {
-        if (inputStream.available() == 0) throw EmptyArgumentException("inputStream")
-
         val selfKeyPair = localKeyStorage.retrieveKeyPair()
 
         crypto.decrypt(inputStream, outputStream, selfKeyPair.privateKey)

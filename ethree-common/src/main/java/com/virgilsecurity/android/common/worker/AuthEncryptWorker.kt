@@ -77,8 +77,6 @@ internal class AuthEncryptWorker internal constructor(
     }
 
     @JvmOverloads internal fun authDecrypt(text: String, user: Card? = null): String {
-        require(text.isNotEmpty()) { "\'text\' should not be empty" }
-
         val data = try {
             Data.fromBase64String(text)
         } catch (exception: IllegalArgumentException) {
@@ -91,8 +89,6 @@ internal class AuthEncryptWorker internal constructor(
     }
 
     internal fun authDecrypt(text: String, user: Card, date: Date): String {
-        require(text.isNotEmpty()) { "\'text\' should not be empty" }
-
         val data = try {
             Data.fromBase64String(text)
         } catch (exception: IllegalArgumentException) {
@@ -105,8 +101,6 @@ internal class AuthEncryptWorker internal constructor(
     }
 
     @JvmOverloads internal fun authEncrypt(text: String, users: FindUsersResult? = null): String {
-        require(text.isNotEmpty()) { "\'text\' should not be empty" }
-
         if (users != null) require(users.isNotEmpty()) { "Passed empty FindUsersResult" }
 
         val data = try {
@@ -121,8 +115,6 @@ internal class AuthEncryptWorker internal constructor(
             encryptInternal(data, users?.map { it.value.publicKey })
 
     private fun encryptInternal(data: Data, publicKeys: List<VirgilPublicKey>?): Data {
-        require(data.value.isNotEmpty()) { "\'data\' should not be empty." }
-
         val selfKeyPair = localKeyStorage.retrieveKeyPair()
         val pubKeys = mutableListOf(selfKeyPair.publicKey)
 
@@ -137,8 +129,6 @@ internal class AuthEncryptWorker internal constructor(
     }
 
     private fun decryptInternal(data: Data, publicKey: VirgilPublicKey?): Data {
-        require(data.value.isNotEmpty()) { "\'data\' should not be empty." }
-
         val selfKeyPair = localKeyStorage.retrieveKeyPair()
         val pubKey = publicKey ?: selfKeyPair.publicKey
 

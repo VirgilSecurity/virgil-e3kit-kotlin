@@ -36,7 +36,6 @@ package com.virgilsecurity.android.common.worker
 import com.virgilsecurity.android.common.exception.EThreeException
 import com.virgilsecurity.android.common.model.FindUsersResult
 import com.virgilsecurity.android.common.storage.local.LocalKeyStorage
-import com.virgilsecurity.common.exception.EmptyArgumentException
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilPrivateKey
@@ -136,8 +135,6 @@ internal class StreamsEncryptWorker internal constructor(
                                 outputStream: OutputStream,
                                 publicKey: VirgilPublicKey?,
                                 privateKey: VirgilPrivateKey? = null) {
-        if (inputStream.available() == 0) throw EmptyArgumentException("inputStream")
-
         var publicKeyNew = publicKey
         var privateKeyNew = privateKey
         if (publicKey == null || privateKey == null) {

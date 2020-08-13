@@ -50,6 +50,7 @@ import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.common.TimeSpan
 import com.virgilsecurity.sdk.crypto.KeyPairType
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
+import com.virgilsecurity.sdk.crypto.exceptions.CryptoException
 import com.virgilsecurity.sdk.crypto.exceptions.VerificationException
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
 import com.virgilsecurity.sdk.utils.ConvertionUtils
@@ -188,6 +189,54 @@ class PeerToPeerTest {
         Log.d(TAG, "${decryptedMessages.size} of ${encryptedMessages.size} messages decrypted")
         decryptedMessages.forEach {
             assertEquals(TEXT, it)
+        }
+    }
+
+    @Test fun encrypt_decrypt_empty_text() {
+        ethree.register().execute()
+
+        val emptyText = ""
+        val encryptedText = ethree.authEncrypt(emptyText)
+        val decryptedText = ethree.authDecrypt(encryptedText)
+
+        assertEquals(emptyText, decryptedText)
+    }
+
+    @Test fun encrypt_decrypt_empty_data() {
+        ethree.register().execute()
+
+        val identityTwo = UUID.randomUUID().toString()
+        val ethreeTwo = EThree(identityTwo,
+                object : OnGetTokenCallback {
+                    override fun onGetToken(): String {
+                        return TestUtils.generateTokenString(identityTwo)
+                    }
+                },
+                TestConfig.context,
+                enableRatchet = false,
+                keyRotationInterval = TimeSpan.fromTime(3600, TimeUnit.SECONDS))
+        ethreeTwo.register().execute()
+        val card = ethree.findUser(ethreeTwo.identity).get()
+
+        val emptyData = byteArrayOf()
+        val encryptedData = ethree.authEncrypt(Data(emptyData), card)
+
+        val cardTwo = ethreeTwo.findUser(ethree.identity).get()
+        val decryptedData = ethreeTwo.authDecrypt(encryptedData, cardTwo)
+
+        assertArrayEquals(emptyData, decryptedData.value)
+    }
+
+    @Test fun decrypt_empty_text() {
+        ethree.register().execute()
+
+        val emptyText = ""
+        try {
+            ethree.authDecrypt(emptyText)
+            fail("Decryption should fail")
+        }
+        catch (e: CryptoException) {
+            // Expected
         }
     }
 
