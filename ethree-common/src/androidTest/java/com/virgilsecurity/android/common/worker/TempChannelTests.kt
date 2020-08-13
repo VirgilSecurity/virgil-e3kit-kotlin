@@ -259,7 +259,7 @@ class TempChannelTests {
         val compatDataStream = this.javaClass
                 .classLoader
                 ?.getResourceAsStream("compat/compat_data.json")
-        val compatJson = JsonParser().parse(InputStreamReader(compatDataStream)) as JsonObject
+        val compatJson = JsonParser.parseReader(InputStreamReader(compatDataStream)) as JsonObject
         val tempChannelCompatJson = compatJson.getAsJsonObject("TemporaryChannel")
 
         val identity = tempChannelCompatJson.get("Identity").asString

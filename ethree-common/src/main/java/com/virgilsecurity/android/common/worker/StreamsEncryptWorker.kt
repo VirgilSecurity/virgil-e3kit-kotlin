@@ -36,9 +36,9 @@ package com.virgilsecurity.android.common.worker
 import com.virgilsecurity.android.common.exception.EThreeException
 import com.virgilsecurity.android.common.model.FindUsersResult
 import com.virgilsecurity.android.common.storage.local.LocalKeyStorage
-import com.virgilsecurity.common.exception.EmptyArgumentException
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
+import com.virgilsecurity.sdk.crypto.VirgilPrivateKey
 import com.virgilsecurity.sdk.crypto.VirgilPublicKey
 import java.io.InputStream
 import java.io.OutputStream
@@ -94,12 +94,29 @@ internal class StreamsEncryptWorker internal constructor(
         return decryptInternal(inputStream, outputStream, card.publicKey)
     }
 
+    internal fun encryptShared(inputStream: InputStream,
+                               inputStreamSize: Int,
+                             outputStream: OutputStream): ByteArray {
+        val selfKeyPair = localKeyStorage.retrieveKeyPair()
+        val streamKeyPair = this.crypto.generateKeyPair()
+
+        crypto.authEncrypt(inputStream, inputStreamSize, outputStream, selfKeyPair.privateKey, streamKeyPair.publicKey)
+
+        return this.crypto.exportPrivateKey(streamKeyPair.privateKey)
+    }
+
+    internal fun decryptShared(inputStream: InputStream,
+                               outputStream: OutputStream,
+                               privateKeyData: ByteArray,
+                               senderPublicKey: VirgilPublicKey?) {
+        val streamKeyPair = this.crypto.importPrivateKey(privateKeyData)
+        return decryptInternal(inputStream, outputStream, senderPublicKey, streamKeyPair.privateKey)
+    }
+
     private fun encryptInternal(inputStream: InputStream,
                                 streamSize: Int,
                                 outputStream: OutputStream,
                                 publicKeys: List<VirgilPublicKey>?) {
-        if (inputStream.available() == 0) throw EmptyArgumentException("inputStream")
-
         val selfKeyPair = localKeyStorage.retrieveKeyPair()
         val pubKeys = mutableListOf(selfKeyPair.publicKey)
 
@@ -116,13 +133,17 @@ internal class StreamsEncryptWorker internal constructor(
 
     private fun decryptInternal(inputStream: InputStream,
                                 outputStream: OutputStream,
-                                publicKey: VirgilPublicKey?) {
-        if (inputStream.available() == 0) throw EmptyArgumentException("inputStream")
+                                publicKey: VirgilPublicKey?,
+                                privateKey: VirgilPrivateKey? = null) {
+        var publicKeyNew = publicKey
+        var privateKeyNew = privateKey
+        if (publicKey == null || privateKey == null) {
+            val selfKeyPair = localKeyStorage.retrieveKeyPair()
 
-        val selfKeyPair = localKeyStorage.retrieveKeyPair()
+            publicKeyNew = publicKey ?: selfKeyPair.publicKey
+            privateKeyNew = privateKey ?: selfKeyPair.privateKey
+        }
 
-        val publicKeyNew = publicKey ?: selfKeyPair.publicKey
-
-        crypto.authDecrypt(inputStream, outputStream, selfKeyPair.privateKey, publicKeyNew)
+        crypto.authDecrypt(inputStream, outputStream, privateKeyNew, publicKeyNew)
     }
 }

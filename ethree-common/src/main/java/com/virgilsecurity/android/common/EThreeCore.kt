@@ -1183,6 +1183,20 @@ abstract class EThreeCore {
             p2pWorker.encrypt(inputStream, outputStream, lookupResult)
 
     /**
+     * Encrypts data stream with a generated key.
+     *
+     * @param inputStream Data stream to be encrypted.
+     * @param inputStreamSize: Int,
+     * @param outputStream Stream with encrypted data.
+     *
+     * @throws CryptoException
+     */
+    fun encryptShared(inputStream: InputStream,
+                      inputStreamSize: Int,
+                      outputStream: OutputStream): ByteArray =
+            streamsEncryptWorker.encryptShared(inputStream, inputStreamSize, outputStream)
+
+    /**
      * Decrypts and verifies encrypted text that is in base64 [String] format.
      *
      * - *Important* Automatically includes self key to recipientsKeys.
@@ -1204,6 +1218,40 @@ abstract class EThreeCore {
     @Deprecated("Check 'replace with' section.", ReplaceWith("authDecrypt"))
     fun decrypt(base64String: String, sendersKey: VirgilPublicKey): String =
             p2pWorker.decrypt(base64String, sendersKey)
+
+    /**
+     * Decrypts data stream.
+     *
+     * *Important* Requires private key in local storage, if senderPublicKey is not given
+     *
+     * @param inputStream Stream to be decrypted.
+     * @param outputStream Stream with decrypted data.
+     * @param privateKeyData Serialized private key to decrypt stream.
+     * @param senderPublicKey Sender Public Key to verify with, if null then self public key is used.
+     *
+     * @throws CryptoException
+     */
+    fun decryptShared(inputStream: InputStream,
+                      outputStream: OutputStream,
+                      privateKeyData: ByteArray,
+                      senderPublicKey: VirgilPublicKey?) =
+            streamsEncryptWorker.decryptShared(inputStream, outputStream, privateKeyData, senderPublicKey)
+
+    /**
+     * Decrypts data stream.
+     *
+     * @param inputStream Stream to be decrypted.
+     * @param outputStream Stream with decrypted data.
+     * @param privateKeyData Serialized private key to decrypt stream.
+     * @param senderCard Sender Card with Public Key to verify with.
+     *
+     * @throws CryptoException
+     */
+    fun decryptShared(inputStream: InputStream,
+                      outputStream: OutputStream,
+                      privateKeyData: ByteArray,
+                      senderCard: Card) =
+            streamsEncryptWorker.decryptShared(inputStream, outputStream, privateKeyData, senderCard.publicKey)
 
     /**
      * Decrypts and verifies encrypted data.

@@ -34,14 +34,14 @@
 package com.virgilsecurity.android.common.model
 
 import android.os.Parcel
+import android.util.Log
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.virgilsecurity.android.common.exception.GroupException
 import com.virgilsecurity.common.extension.toData
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.sdk.crypto.HashAlgorithm
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
-import org.junit.Assert.assertArrayEquals
-import org.junit.Assert.assertEquals
+import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
 import java.util.*
@@ -83,6 +83,33 @@ class TicketTest {
 
         // Only Serializable Set's are supported
         Ticket(crypto, sessionId, participantsSet)
+    }
+
+    @Test
+    fun ticket_serialize_deserialize() {
+        val crypto = VirgilCrypto()
+        val identifierData = UUID.randomUUID().toString().toData()
+        val sessionId = computeSessionId(identifierData, crypto)
+        val participantsSet = setOf("Bob", "Alice", "Jane")
+        val ticket = Ticket(crypto, sessionId, participantsSet)
+
+        val serializedTicket = ticket.serialize()
+        assertNotNull(serializedTicket)
+        Log.d("Test", serializedTicket.toBase64String())
+
+        val deserializedTicket = Ticket.deserialize(serializedTicket)
+        assertNotNull(deserializedTicket)
+        assertEquals(ticket.groupMessage.epoch, deserializedTicket.groupMessage.epoch)
+        assertArrayEquals(ticket.groupMessage.sessionId, deserializedTicket.groupMessage.sessionId)
+        assertEquals(ticket.participants, deserializedTicket.participants)
+    }
+
+    @Test
+    fun ticket_serialize_deserialize_from_other_jvm() {
+        val serializedTicket = "eyJncm91cE1lc3NhZ2UiOls4LDAsMTgsNzAsMTAsMzIsLTEwLDUyLC04NCwtMTExLC0xMTUsNDAsLTg2LDM3LC03Nyw2NiwtMTAsMjEsNzksLTExNywxMjIsNzksNzAsLTU5LDYzLDExNCwxMjYsLTEyMyw0MywxMTIsMTYsNzIsNjEsMTEyLC0zLC0zNCwxMjIsMTA1LDE2LDAsMjYsMzIsMTE3LDU3LDkwLC01NCw1Myw4Myw0MywtMzgsMjEsNTQsLTk3LDExMSwxMjUsOTEsMTExLC0zMiwxMjEsLTEwNywtNTAsLTU0LC03NywtODIsNDYsMTIzLC05OSwtNDgsMzAsLTM1LDEwMiw3Myw3Miw1MF0sInBhcnRpY2lwYW50cyI6WyJCb2IiLCJBbGljZSIsIkphbmUiXX0="
+        val deserializedTicket = Ticket.deserialize(Data.fromBase64String(serializedTicket))
+        assertNotNull(deserializedTicket)
+        assertEquals(0, deserializedTicket.groupMessage.epoch)
     }
 
     private fun computeSessionId(identifier: Data, crypto: VirgilCrypto): Data {

@@ -33,10 +33,8 @@
 
 package com.virgilsecurity.android.ethree_benchmark
 
-import android.util.Log
 import androidx.benchmark.junit4.BenchmarkRule
 import androidx.benchmark.junit4.measureRepeated
-import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.common.utils.TestConfig

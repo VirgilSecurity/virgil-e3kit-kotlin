@@ -79,7 +79,10 @@ internal class Ticket : Parcelable {
         this.participants = participants
     }
 
-    internal fun serialize(): Data = SerializeUtils.serialize(this)
+    internal fun serialize(): Data {
+        val dto = TicketDto(this.groupMessage.serialize(), this.participants)
+        return SerializeUtils.serialize(dto)
+    }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         val groupMessageData = this.groupMessage.serialize()
@@ -111,9 +114,13 @@ internal class Ticket : Parcelable {
         return result
     }
 
+    private data class TicketDto(val groupMessage: ByteArray, val participants: Set<String>)
+
     companion object {
-        @JvmStatic internal fun deserialize(data: Data): Ticket =
-                SerializeUtils.deserialize(data, Ticket::class.java)
+        @JvmStatic internal fun deserialize(data: Data): Ticket {
+            val dto = SerializeUtils.deserialize(data, TicketDto::class.java)
+            return Ticket(GroupSessionMessage.deserialize(dto.groupMessage), dto.participants)
+        }
 
         @JvmField
         val CREATOR = object : Parcelable.Creator<Ticket> {
