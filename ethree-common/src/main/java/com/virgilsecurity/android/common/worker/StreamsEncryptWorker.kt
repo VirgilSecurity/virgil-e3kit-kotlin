@@ -98,8 +98,6 @@ internal class StreamsEncryptWorker internal constructor(
     internal fun encryptShared(inputStream: InputStream,
                                inputStreamSize: Int,
                              outputStream: OutputStream): ByteArray {
-        if (inputStream.available() == 0) throw EmptyArgumentException("inputStream")
-
         val selfKeyPair = localKeyStorage.retrieveKeyPair()
         val streamKeyPair = this.crypto.generateKeyPair()
 
@@ -120,8 +118,6 @@ internal class StreamsEncryptWorker internal constructor(
                                 streamSize: Int,
                                 outputStream: OutputStream,
                                 publicKeys: List<VirgilPublicKey>?) {
-        if (inputStream.available() == 0) throw EmptyArgumentException("inputStream")
-
         val selfKeyPair = localKeyStorage.retrieveKeyPair()
         val pubKeys = mutableListOf(selfKeyPair.publicKey)
 

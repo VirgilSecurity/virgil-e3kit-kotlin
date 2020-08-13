@@ -301,6 +301,26 @@ class PeerToPeerTest {
         assertArrayEquals(TEXT.toByteArray(), decryptedData)
     }
 
+    @Test fun encrypt_decrypt_empty_stream() {
+        ethree.register().execute()
+
+        val data = byteArrayOf()
+        val inputStream = ByteArrayInputStream(data)
+        val outputStream = ByteArrayOutputStream()
+
+        ethree.authEncrypt(inputStream, inputStream.available(), outputStream)
+        val encryptedData = outputStream.toByteArray()
+
+        val inputStreamTwo = ByteArrayInputStream(encryptedData)
+        val outputStreamTwo = ByteArrayOutputStream()
+
+        ethree.authDecrypt(inputStreamTwo, outputStreamTwo)
+
+        val decryptedData = outputStreamTwo.toByteArray()
+
+        assertArrayEquals(data, decryptedData)
+    }
+
     @Test fun encrypt_decrypt_stream_compatibility() {
         val dataJson = JsonParser.parseReader(InputStreamReader(
                 this.javaClass.classLoader.getResourceAsStream("testProperties/compatibility_data.json"))) as JsonObject

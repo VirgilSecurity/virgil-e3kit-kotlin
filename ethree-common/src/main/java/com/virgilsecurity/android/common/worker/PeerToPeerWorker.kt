@@ -160,8 +160,6 @@ internal class PeerToPeerWorker internal constructor(
     private fun oldEncryptInternal(inputStream: InputStream,
                                 outputStream: OutputStream,
                                 publicKeys: List<VirgilPublicKey>?) {
-        if (inputStream.available() == 0) throw EmptyArgumentException("inputStream")
-
         val selfKeyPair = localKeyStorage.retrieveKeyPair()
         val pubKeys = mutableListOf(selfKeyPair.publicKey)
 
