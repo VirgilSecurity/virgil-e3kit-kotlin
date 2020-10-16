@@ -726,6 +726,31 @@ class GroupTests {
         assertEquals(cachedGroup.participants.toSet(), setOf(ethree.identity, ethree2.identity))
     }
 
+    @Test fun initiator_removes_self_should_fail() {
+        val ethree2 = createEThree()
+        val users = this.ethree.findUsers(listOf(ethree.identity, ethree2.identity)).get()
+        val group = this.ethree.createGroup(groupId, users).get()
+        val card = this.ethree.findUser(ethree.identity).get()
+
+        // Single user removal
+        try {
+            group.remove(card).execute()
+            fail()
+        } catch (exception: GroupException) {
+            assertTrue(exception.description == GroupException.Description.INITIATOR_REMOVAL_FAILED)
+        }
+
+        // Multiple user removal
+        try {
+            val participants = FindUsersResult()
+            participants[this.ethree.identity] = card
+            group.remove(participants).execute()
+            fail()
+        } catch (exception: GroupException) {
+            assertTrue(exception.description == GroupException.Description.INITIATOR_REMOVAL_FAILED)
+        }
+    }
+
     private fun createEThree(): EThree {
         val identity = UUID.randomUUID().toString()
         val tokenCallback = object : OnGetTokenCallback {

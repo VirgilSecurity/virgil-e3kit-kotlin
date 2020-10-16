@@ -309,6 +309,11 @@ class Group internal constructor(
 
             validateParticipantsCount(newSet.size)
 
+            // Group initiator should not be able to remove himself from a group
+            if (participants.containsKey(this@Group.initiator)) {
+                throw GroupException(GroupException.Description.INITIATOR_REMOVAL_FAILED)
+            }
+
             if (newSet == oldSet) {
                 throw GroupException(
                     GroupException.Description.INVALID_CHANGE_PARTICIPANTS
