@@ -33,6 +33,7 @@
 
 package com.virgilsecurity.android.common.storage.cloud
 
+import com.virgilsecurity.android.common.exception.GroupException
 import com.virgilsecurity.android.common.model.Ticket
 import com.virgilsecurity.android.common.storage.local.LocalKeyStorage
 import com.virgilsecurity.android.common.util.Const
@@ -41,6 +42,7 @@ import com.virgilsecurity.common.util.toHexString
 import com.virgilsecurity.crypto.foundation.GroupSessionMessage
 import com.virgilsecurity.keyknox.KeyknoxManager
 import com.virgilsecurity.keyknox.client.*
+import com.virgilsecurity.keyknox.exception.KeyknoxServiceException
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.crypto.VirgilPublicKey
 import com.virgilsecurity.sdk.jwt.contract.AccessTokenProvider
@@ -80,11 +82,26 @@ internal class CloudTicketStorage internal constructor(
                                        sessionId,
                                        "$epoch")
 
-        keyknoxManager.pushValue(params,
-                                 ticketData,
-                                 null,
-                                 publicKeys + selfKeyPair.publicKey,
-                                 selfKeyPair.privateKey)
+        try {
+            keyknoxManager.pushValue(params,
+                    ticketData,
+                    null,
+                    publicKeys + selfKeyPair.publicKey,
+                    selfKeyPair.privateKey)
+        }
+        catch (e: KeyknoxServiceException) {
+            // Maybe the group is already exists
+            var pullParams = KeyknoxPullParams(this.identity, GROUP_SESSION_ROOT, sessionId, "$epoch")
+            val pulledValue = keyknoxManager.pullValue(pullParams,
+                    publicKeys + selfKeyPair.publicKey,
+                    selfKeyPair.privateKey)
+
+            if (pulledValue != null) {
+                throw GroupException(GroupException.Description.GROUP_ALREADY_EXISTS)
+            } else {
+                throw e
+            }
+        }
     }
 
     internal fun getEpochs(sessionId: Data, identity: String): Set<String> {

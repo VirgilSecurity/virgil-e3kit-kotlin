@@ -55,5 +55,6 @@ class GroupException @JvmOverloads constructor(
         GROUP_IS_OUTDATED(ErrorCode.GROUP + 10, "Group is not up to date. Call update or loadGroup."),
         INCONSISTENT_STATE(ErrorCode.GROUP + 11, "Inconsistent state."),
         INITIATOR_REMOVAL_FAILED(ErrorCode.GROUP + 12, "Group initiator is not able to remove himself from a group."),
+        GROUP_ALREADY_EXISTS(ErrorCode.GROUP + 13, "Group with the same ID is already exists."),
     }
 }
