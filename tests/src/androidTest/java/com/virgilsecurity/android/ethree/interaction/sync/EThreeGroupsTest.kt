@@ -34,10 +34,12 @@
 package com.virgilsecurity.android.ethree.interaction.sync
 
 import com.virgilsecurity.android.common.exception.EThreeException
+import com.virgilsecurity.android.common.exception.GroupException
 import com.virgilsecurity.android.common.model.EThreeParams
 import com.virgilsecurity.android.common.model.FindUsersResult
 import com.virgilsecurity.android.ethree.interaction.EThree
 import com.virgilsecurity.android.ethree.utils.TestConfig
+import com.virgilsecurity.keyknox.exception.KeyknoxServiceException
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.model.RawSignedModel
@@ -53,7 +55,7 @@ import com.virgilsecurity.sdk.jwt.accessProviders.GeneratorJwtProvider
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
 import com.virgilsecurity.sdk.storage.KeyStorage
 import com.virgilsecurity.sdk.utils.Tuple
-import junit.framework.Assert
+import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import java.util.*
@@ -119,6 +121,44 @@ class EThreeGroupsTest {
                         checkResult = false
                 ).get()
         val userTimelineGroup = eThree.createGroup("feed-group-${identity}", userCards).get()
+    }
+
+    @Test
+    fun createGroup_alreadyExists_shouldFail() {
+        // Register a set of identities
+        val size = 2
+        val otherUsers: MutableSet<String> = mutableSetOf()
+        for (i in 1..size) {
+            otherUsers.add(UUID.randomUUID().toString())
+        }
+        Assert.assertEquals(size, otherUsers.size)
+
+        otherUsers.forEach { identity ->
+            val cardManager = initCardManager(identity)
+            val rawCard = generateRawCard(identity, cardManager).right
+            cardManager.publishCard(rawCard)
+        }
+
+        // Initialize eThree
+        val params = EThreeParams(identity, {jwtGenerator.generateToken(identity).stringRepresentation()}, TestConfig.context)
+        val eThree = EThree(params)
+        eThree.register().execute()
+
+        val userCards = eThree.findUsers(
+                        otherUsers.toList(),
+                        forceReload = true,
+                        checkResult = false
+                ).get()
+        val createdGroup = eThree.createGroup("feed-group-${identity}", userCards).get()
+        Assert.assertNotNull(createdGroup)
+
+        try {
+            eThree.createGroup("feed-group-${identity}", userCards).get()
+            Assert.fail("Group with the same Id shouldn't be created");
+        }
+        catch (e: GroupException) {
+            Assert.assertEquals(GroupException.Description.GROUP_ALREADY_EXISTS, e.description);
+        }
     }
 
     private fun initCardManager(identity: String): CardManager {

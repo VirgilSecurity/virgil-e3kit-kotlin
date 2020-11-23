@@ -149,6 +149,15 @@ class EThreeBenchmark(
         }
     }
 
+    @Test
+    fun dummy_test() {
+        val state = benchmarkRule.getState()
+
+        while (state.keepRunning()) {
+            UUID.randomUUID()
+        }
+    }
+
     companion object {
         private const val TEXT = "Hello, my name is text. I am here to be encrypted (:"
 

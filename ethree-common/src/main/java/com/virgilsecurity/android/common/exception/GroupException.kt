@@ -54,5 +54,7 @@ class GroupException @JvmOverloads constructor(
         MESSAGE_NOT_FROM_THIS_GROUP(ErrorCode.GROUP + 9, "Message was encrypted in group with different identifier."),
         GROUP_IS_OUTDATED(ErrorCode.GROUP + 10, "Group is not up to date. Call update or loadGroup."),
         INCONSISTENT_STATE(ErrorCode.GROUP + 11, "Inconsistent state."),
+        INITIATOR_REMOVAL_FAILED(ErrorCode.GROUP + 12, "Group initiator is not able to remove himself from a group."),
+        GROUP_ALREADY_EXISTS(ErrorCode.GROUP + 13, "Group with the same ID is already exists."),
     }
 }
