@@ -80,7 +80,7 @@ class EThreeSyncPositive {
     private lateinit var keyStorage: KeyStorage
     private lateinit var crypto: VirgilCrypto
 
-            @Before fun setup() {
+    @Before fun setup() {
         jwtGenerator = JwtGenerator(
             TestConfig.appId,
             TestConfig.appKey,
