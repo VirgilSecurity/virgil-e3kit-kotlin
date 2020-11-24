@@ -36,7 +36,6 @@ package com.virgilsecurity.android.ethree.interaction.sync
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
 import com.virgilsecurity.android.ethree.interaction.EThree
 import com.virgilsecurity.android.ethree.utils.TestConfig
-import com.virgilsecurity.android.ethree.utils.TestUtils
 import com.virgilsecurity.keyknox.KeyknoxManager
 import com.virgilsecurity.keyknox.client.KeyknoxClient
 import com.virgilsecurity.keyknox.cloud.CloudKeyStorage
@@ -79,6 +78,7 @@ class EThreeSyncPositive {
     private lateinit var identity: String
     private lateinit var jwtGenerator: JwtGenerator
     private lateinit var keyStorage: KeyStorage
+    private lateinit var crypto: VirgilCrypto
 
     @Before fun setup() {
         jwtGenerator = JwtGenerator(
@@ -91,6 +91,7 @@ class EThreeSyncPositive {
 
         keyStorage = DefaultKeyStorage(TestConfig.DIRECTORY_PATH, TestConfig.KEYSTORE_NAME)
         identity = UUID.randomUUID().toString()
+        crypto = VirgilCrypto()
     }
 
     private fun initAndRegisterEThree(identity: String): EThree {
@@ -172,6 +173,27 @@ class EThreeSyncPositive {
         assertNotNull(cards)
         assertEquals(1, cards.size)
 
+        eThree.unregister().execute()
+        assertFalse(keyStorage.exists(identity))
+
+        val cardsUnregistered = initCardManager(identity).searchCards(identity)
+        assertEquals(0, cardsUnregistered.size)
+    }
+
+    @Test fun unregister_multiple_cards() {
+        val eThree = initAndRegisterEThree(identity)
+        assertTrue(keyStorage.exists(identity))
+
+        // Register one more card for the same identity
+        val cardManager = initCardManager(identity)
+        val keyPair1: VirgilKeyPair = crypto.generateKeyPair()
+        val card2 = cardManager.publishCard(keyPair1.privateKey, keyPair1.publicKey, identity)
+
+        val cards = initCardManager(identity).searchCards(identity)
+        assertNotNull(cards)
+        assertEquals(2, cards.size)
+
+        // unregister should remove all cards of the identity
         eThree.unregister().execute()
         assertFalse(keyStorage.exists(identity))
 

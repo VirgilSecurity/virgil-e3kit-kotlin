@@ -36,11 +36,14 @@ package com.virgilsecurity.android.ethree.java.interaction;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback;
+import com.virgilsecurity.android.common.exception.FindUsersException;
+import com.virgilsecurity.android.common.model.FindUsersResult;
 import com.virgilsecurity.android.ethree.interaction.EThree;
 import com.virgilsecurity.android.ethree.utils.TestConfig;
 import com.virgilsecurity.android.ethree.utils.TestUtils;
 import com.virgilsecurity.common.callback.OnCompleteListener;
 import com.virgilsecurity.common.callback.OnResultListener;
+import com.virgilsecurity.common.model.Result;
 import com.virgilsecurity.sdk.cards.Card;
 import com.virgilsecurity.sdk.cards.CardManager;
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier;
@@ -49,6 +52,8 @@ import com.virgilsecurity.sdk.client.exceptions.VirgilServiceException;
 import com.virgilsecurity.sdk.common.TimeSpan;
 import com.virgilsecurity.sdk.crypto.VirgilAccessTokenSigner;
 import com.virgilsecurity.sdk.crypto.VirgilCardCrypto;
+import com.virgilsecurity.sdk.crypto.VirgilCrypto;
+import com.virgilsecurity.sdk.crypto.VirgilKeyPair;
 import com.virgilsecurity.sdk.crypto.exceptions.CryptoException;
 import com.virgilsecurity.sdk.jwt.JwtGenerator;
 import com.virgilsecurity.sdk.jwt.accessProviders.GeneratorJwtProvider;
@@ -58,6 +63,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
@@ -169,5 +175,35 @@ public class EThreeTestPositive {
             }
         });
         lock.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS);
+    }
+
+    @Test public void search_for_multicards() throws CryptoException, VirgilServiceException {
+        String identity2 = UUID.randomUUID().toString();
+        VirgilCrypto crypto = new VirgilCrypto();
+        CardManager cardManager = initCardManager(identity2);
+
+        VirgilKeyPair keyPair1 = crypto.generateKeyPair();
+        Card card1 = cardManager.publishCard(keyPair1.getPrivateKey(), keyPair1.getPublicKey(), identity2);
+
+        VirgilKeyPair keyPair2 = crypto.generateKeyPair();
+        Card card2 = cardManager.publishCard(keyPair2.getPrivateKey(), keyPair2.getPublicKey(), identity2);
+
+        // Trying to find a single user's card should fail
+        try {
+            this.eThree.findUser(identity2).get();
+            fail("Duplicate cards exception should be thrown");
+        }
+        catch (FindUsersException e) {
+            assertEquals(FindUsersException.Description.DUPLICATE_CARDS, e.getDescription());
+        }
+
+        try {
+            // Trying to find all user's cards should fail
+            this.eThree.findUsers(Arrays.asList(identity2), true).get();
+            fail("Duplicate cards exception should be thrown");
+        }
+        catch (FindUsersException e) {
+            assertEquals(FindUsersException.Description.DUPLICATE_CARDS, e.getDescription());
+        }
     }
 }

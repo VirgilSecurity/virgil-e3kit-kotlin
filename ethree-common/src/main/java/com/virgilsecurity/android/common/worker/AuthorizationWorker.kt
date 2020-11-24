@@ -71,10 +71,13 @@ internal class AuthorizationWorker internal constructor(
     @Synchronized internal fun unregister() = object : Completable {
         override fun execute() {
             val cards = cardManager.searchCards(this@AuthorizationWorker.identity)
-            val card = cards.firstOrNull()
-                       ?: throw EThreeException(EThreeException.Description.USER_IS_NOT_REGISTERED)
+            if (cards.isEmpty()) {
+                throw EThreeException(EThreeException.Description.USER_IS_NOT_REGISTERED)
+            }
+            cards.forEach { card ->
+                cardManager.revokeCard(card.identifier)
+            }
 
-            cardManager.revokeCard(card.identifier)
             localKeyStorage.delete()
             privateKeyDeleted()
         }
