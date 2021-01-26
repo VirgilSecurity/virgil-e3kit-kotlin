@@ -1,0 +1,33 @@
+<HTML>
+<HEAD>
+<meta charset="UTF-8">
+<title>EThreeCore.createTemporaryChannel - ethree-common</title>
+<link rel="stylesheet" href="../../../style.css">
+</HEAD>
+<BODY>
+<a href="../../index.html">ethree-common</a>&nbsp;/&nbsp;<a href="../index.html">com.virgilsecurity.android.common</a>&nbsp;/&nbsp;<a href="index.html">EThreeCore</a>&nbsp;/&nbsp;<a href="./create-temporary-channel.html">createTemporaryChannel</a><br/>
+<br/>
+<h1>createTemporaryChannel</h1>
+<a name="com.virgilsecurity.android.common.EThreeCore$createTemporaryChannel(kotlin.String)"></a>
+<code><span class="keyword">fun </span><span class="identifier">createTemporaryChannel</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$createTemporaryChannel(kotlin.String)/identity">identity</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">)</span><span class="symbol">: </span><span class="identifier">Result</span><span class="symbol">&lt;</span><a href="../../com.virgilsecurity.android.common.model.temporary/-temporary-channel/index.html"><span class="identifier">TemporaryChannel</span></a><span class="symbol">&gt;</span></code>
+<p>Creates channel with unregistered user.</p>
+<ul><li><em>Important</em> Temporary key for unregistered user is stored unencrypted on Cloud.</li>
+</ul>
+<p>To start execution of the current function, please see <a href="#">Result</a> description.</p>
+<h3>Parameters</h3>
+<p><a name="identity"></a>
+<code>identity</code> - Identity of unregistered user.</p>
+<h3>Exceptions</h3>
+<p><a name="TemporaryChannelException"></a>
+<code>TemporaryChannelException</code> - (TemporaryChannelException.Description
+.SELF_CHANNEL_IS_FORBIDDEN)</p>
+<p><a name="TemporaryChannelException"></a>
+<code>TemporaryChannelException</code> - (TemporaryChannelException.Description.USER_IS_REGISTERED)</p>
+<p><a name="EThreeException"></a>
+<code>EThreeException</code> - (EThreeException.Description.MISSING_PRIVATE_KEY)</p>
+<p><a name="EThreeException"></a>
+<code>EThreeException</code> - (EThreeException.Description.CHANNEL_ALREADY_EXISTS)</p>
+<p><a name="rethrows"></a>
+<code>rethrows</code> - <a href="#">VirgilCrypto.generateKeyPair</a></p>
+</BODY>
+</HTML>

@@ -1,0 +1,43 @@
+<HTML>
+<HEAD>
+<meta charset="UTF-8">
+<title>EThreeCore.decryptShared - ethree-common</title>
+<link rel="stylesheet" href="../../../style.css">
+</HEAD>
+<BODY>
+<a href="../../index.html">ethree-common</a>&nbsp;/&nbsp;<a href="../index.html">com.virgilsecurity.android.common</a>&nbsp;/&nbsp;<a href="index.html">EThreeCore</a>&nbsp;/&nbsp;<a href="./decrypt-shared.html">decryptShared</a><br/>
+<br/>
+<h1>decryptShared</h1>
+<a name="com.virgilsecurity.android.common.EThreeCore$decryptShared(java.io.InputStream, java.io.OutputStream, kotlin.ByteArray, com.virgilsecurity.sdk.crypto.VirgilPublicKey)"></a>
+<code><span class="keyword">fun </span><span class="identifier">decryptShared</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$decryptShared(java.io.InputStream, java.io.OutputStream, kotlin.ByteArray, com.virgilsecurity.sdk.crypto.VirgilPublicKey)/inputStream">inputStream</span><span class="symbol">:</span>&nbsp;<a href="https://docs.oracle.com/javase/6/docs/api/java/io/InputStream.html"><span class="identifier">InputStream</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$decryptShared(java.io.InputStream, java.io.OutputStream, kotlin.ByteArray, com.virgilsecurity.sdk.crypto.VirgilPublicKey)/outputStream">outputStream</span><span class="symbol">:</span>&nbsp;<a href="https://docs.oracle.com/javase/6/docs/api/java/io/OutputStream.html"><span class="identifier">OutputStream</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$decryptShared(java.io.InputStream, java.io.OutputStream, kotlin.ByteArray, com.virgilsecurity.sdk.crypto.VirgilPublicKey)/privateKeyData">privateKeyData</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-byte-array/index.html"><span class="identifier">ByteArray</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$decryptShared(java.io.InputStream, java.io.OutputStream, kotlin.ByteArray, com.virgilsecurity.sdk.crypto.VirgilPublicKey)/senderPublicKey">senderPublicKey</span><span class="symbol">:</span>&nbsp;<span class="identifier">VirgilPublicKey</span><span class="symbol">?</span><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a></code>
+<p>Decrypts data stream.</p>
+<p><em>Important</em> Requires private key in local storage, if senderPublicKey is not given</p>
+<h3>Parameters</h3>
+<p><a name="inputStream"></a>
+<code>inputStream</code> - Stream to be decrypted.</p>
+<p><a name="outputStream"></a>
+<code>outputStream</code> - Stream with decrypted data.</p>
+<p><a name="privateKeyData"></a>
+<code>privateKeyData</code> - Serialized private key to decrypt stream.</p>
+<p><a name="senderPublicKey"></a>
+<code>senderPublicKey</code> - Sender Public Key to verify with, if null then self public key is used.</p>
+<h3>Exceptions</h3>
+<p><a name="CryptoException"></a>
+<code>CryptoException</code> - </p>
+<a name="com.virgilsecurity.android.common.EThreeCore$decryptShared(java.io.InputStream, java.io.OutputStream, kotlin.ByteArray, com.virgilsecurity.sdk.cards.Card)"></a>
+<code><span class="keyword">fun </span><span class="identifier">decryptShared</span><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$decryptShared(java.io.InputStream, java.io.OutputStream, kotlin.ByteArray, com.virgilsecurity.sdk.cards.Card)/inputStream">inputStream</span><span class="symbol">:</span>&nbsp;<a href="https://docs.oracle.com/javase/6/docs/api/java/io/InputStream.html"><span class="identifier">InputStream</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$decryptShared(java.io.InputStream, java.io.OutputStream, kotlin.ByteArray, com.virgilsecurity.sdk.cards.Card)/outputStream">outputStream</span><span class="symbol">:</span>&nbsp;<a href="https://docs.oracle.com/javase/6/docs/api/java/io/OutputStream.html"><span class="identifier">OutputStream</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$decryptShared(java.io.InputStream, java.io.OutputStream, kotlin.ByteArray, com.virgilsecurity.sdk.cards.Card)/privateKeyData">privateKeyData</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-byte-array/index.html"><span class="identifier">ByteArray</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$decryptShared(java.io.InputStream, java.io.OutputStream, kotlin.ByteArray, com.virgilsecurity.sdk.cards.Card)/senderCard">senderCard</span><span class="symbol">:</span>&nbsp;<span class="identifier">Card</span><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a></code>
+<p>Decrypts data stream.</p>
+<h3>Parameters</h3>
+<p><a name="inputStream"></a>
+<code>inputStream</code> - Stream to be decrypted.</p>
+<p><a name="outputStream"></a>
+<code>outputStream</code> - Stream with decrypted data.</p>
+<p><a name="privateKeyData"></a>
+<code>privateKeyData</code> - Serialized private key to decrypt stream.</p>
+<p><a name="senderCard"></a>
+<code>senderCard</code> - Sender Card with Public Key to verify with.</p>
+<h3>Exceptions</h3>
+<p><a name="CryptoException"></a>
+<code>CryptoException</code> - </p>
+</BODY>
+</HTML>
