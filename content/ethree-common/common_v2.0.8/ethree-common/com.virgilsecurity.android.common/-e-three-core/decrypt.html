@@ -1,0 +1,145 @@
+<HTML>
+<HEAD>
+<meta charset="UTF-8">
+<title>EThreeCore.decrypt - ethree-common</title>
+<link rel="stylesheet" href="../../../style.css">
+</HEAD>
+<BODY>
+<a href="../../index.html">ethree-common</a>&nbsp;/&nbsp;<a href="../index.html">com.virgilsecurity.android.common</a>&nbsp;/&nbsp;<a href="index.html">EThreeCore</a>&nbsp;/&nbsp;<a href="./decrypt.html">decrypt</a><br/>
+<br/>
+<h1>decrypt</h1>
+<a name="com.virgilsecurity.android.common.EThreeCore$decrypt(com.virgilsecurity.common.model.Data, com.virgilsecurity.sdk.cards.Card)"></a>
+<code><span class="identifier">@JvmOverloads</span> <span class="keyword">fun </span><s><span class="identifier">decrypt</span></s><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$decrypt(com.virgilsecurity.common.model.Data, com.virgilsecurity.sdk.cards.Card)/data">data</span><span class="symbol">:</span>&nbsp;<span class="identifier">Data</span><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$decrypt(com.virgilsecurity.common.model.Data, com.virgilsecurity.sdk.cards.Card)/user">user</span><span class="symbol">:</span>&nbsp;<span class="identifier">Card</span><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">)</span><span class="symbol">: </span><span class="identifier">Data</span></code><br/>
+<strong>Deprecated:</strong> Check 'replace with' section.<br/>
+<br/>
+<p>Decrypts and verifies data from users.</p>
+<ul><li><em>Important</em> Requires private key in local storage.</li>
+</ul>
+<h3>Parameters</h3>
+<p><a name="data"></a>
+<code>data</code> - Data to decrypt.</p>
+<p><a name="user"></a>
+<code>user</code> - Sender Card with Public Key to verify with. Use null to decrypt and verify.
+from self (Or overloaded method with one param).</p>
+<h3>Exceptions</h3>
+<p><a name="EThreeException"></a>
+<code>EThreeException</code> - (EThreeException.Description.VERIFICATION_FAILED) If verification
+of message failed.</p>
+<p><strong>Return</strong><br/>
+Decrypted Data.</p>
+<a name="com.virgilsecurity.android.common.EThreeCore$decrypt(com.virgilsecurity.common.model.Data, com.virgilsecurity.sdk.cards.Card, java.util.Date)"></a>
+<code><span class="keyword">fun </span><s><span class="identifier">decrypt</span></s><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$decrypt(com.virgilsecurity.common.model.Data, com.virgilsecurity.sdk.cards.Card, java.util.Date)/data">data</span><span class="symbol">:</span>&nbsp;<span class="identifier">Data</span><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$decrypt(com.virgilsecurity.common.model.Data, com.virgilsecurity.sdk.cards.Card, java.util.Date)/user">user</span><span class="symbol">:</span>&nbsp;<span class="identifier">Card</span><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$decrypt(com.virgilsecurity.common.model.Data, com.virgilsecurity.sdk.cards.Card, java.util.Date)/date">date</span><span class="symbol">:</span>&nbsp;<a href="https://docs.oracle.com/javase/6/docs/api/java/util/Date.html"><span class="identifier">Date</span></a><span class="symbol">)</span><span class="symbol">: </span><span class="identifier">Data</span></code><br/>
+<strong>Deprecated:</strong> Check 'replace with' section.<br/>
+<br/>
+<p>Decrypts and verifies data from users.</p>
+<ul><li><em>Important</em> Requires private key in local storage.</li>
+</ul>
+<h3>Parameters</h3>
+<p><a name="data"></a>
+<code>data</code> - Data to decrypt.</p>
+<p><a name="user"></a>
+<code>user</code> - Sender Card with Public Key to verify with.</p>
+<p><a name="date"></a>
+<code>date</code> - Date of encryption to use proper card version.</p>
+<h3>Exceptions</h3>
+<p><a name="EThreeException"></a>
+<code>EThreeException</code> - (EThreeException.Description.VERIFICATION_FAILED) If verification
+of message failed.</p>
+<p><strong>Return</strong><br/>
+Decrypted Data.</p>
+<a name="com.virgilsecurity.android.common.EThreeCore$decrypt(java.io.InputStream, java.io.OutputStream)"></a>
+<code><span class="keyword">fun </span><s><span class="identifier">decrypt</span></s><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$decrypt(java.io.InputStream, java.io.OutputStream)/inputStream">inputStream</span><span class="symbol">:</span>&nbsp;<a href="https://docs.oracle.com/javase/6/docs/api/java/io/InputStream.html"><span class="identifier">InputStream</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$decrypt(java.io.InputStream, java.io.OutputStream)/outputStream">outputStream</span><span class="symbol">:</span>&nbsp;<a href="https://docs.oracle.com/javase/6/docs/api/java/io/OutputStream.html"><span class="identifier">OutputStream</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-unit/index.html"><span class="identifier">Unit</span></a></code><br/>
+<strong>Deprecated:</strong> Check 'replace with' section.<br/>
+<br/>
+<p>Decrypts encrypted stream.</p>
+<ul><li><em>Important</em> Requires private key in local storage.</li>
+</ul>
+<h3>Parameters</h3>
+<p><a name="inputStream"></a>
+<code>inputStream</code> - Stream with encrypted data.</p>
+<p><a name="outputStream"></a>
+<code>outputStream</code> - Stream with decrypted data.</p>
+<h3>Exceptions</h3>
+<p><a name="EThreeException.Description.MISSING_PRIVATE_KEY"></a>
+<code>EThreeException.Description.MISSING_PRIVATE_KEY</code> - </p>
+<p><a name="CryptoException"></a>
+<code>CryptoException</code> - </p>
+<a name="com.virgilsecurity.android.common.EThreeCore$decrypt(kotlin.String, com.virgilsecurity.sdk.cards.Card)"></a>
+<code><span class="identifier">@JvmOverloads</span> <span class="keyword">fun </span><s><span class="identifier">decrypt</span></s><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$decrypt(kotlin.String, com.virgilsecurity.sdk.cards.Card)/text">text</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$decrypt(kotlin.String, com.virgilsecurity.sdk.cards.Card)/user">user</span><span class="symbol">:</span>&nbsp;<span class="identifier">Card</span><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a></code><br/>
+<strong>Deprecated:</strong> Check 'replace with' section.<br/>
+<br/>
+<p>Decrypts and verifies base64 string from users.</p>
+<ul><li><em>Important</em> Requires private key in local storage.</li>
+</ul>
+<h3>Parameters</h3>
+<p><a name="text"></a>
+<code>text</code> - Encrypted String.</p>
+<p><a name="user"></a>
+<code>user</code> - Sender Card with Public Key to verify with. Use null to decrypt and verify
+from self (Or overloaded method with one param).</p>
+<p><strong>Return</strong><br/>
+Decrypted String.</p>
+<a name="com.virgilsecurity.android.common.EThreeCore$decrypt(kotlin.String, com.virgilsecurity.sdk.cards.Card, java.util.Date)"></a>
+<code><span class="keyword">fun </span><s><span class="identifier">decrypt</span></s><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$decrypt(kotlin.String, com.virgilsecurity.sdk.cards.Card, java.util.Date)/text">text</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$decrypt(kotlin.String, com.virgilsecurity.sdk.cards.Card, java.util.Date)/user">user</span><span class="symbol">:</span>&nbsp;<span class="identifier">Card</span><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$decrypt(kotlin.String, com.virgilsecurity.sdk.cards.Card, java.util.Date)/date">date</span><span class="symbol">:</span>&nbsp;<a href="https://docs.oracle.com/javase/6/docs/api/java/util/Date.html"><span class="identifier">Date</span></a><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a></code><br/>
+<strong>Deprecated:</strong> Check 'replace with' section.<br/>
+<br/>
+<p>Decrypts and verifies base64 string from users.</p>
+<ul><li><em>Important</em> Requires private key in local storage.</li>
+</ul>
+<h3>Parameters</h3>
+<p><a name="text"></a>
+<code>text</code> - Encrypted String.</p>
+<p><a name="user"></a>
+<code>user</code> - Sender Card with Public Key to verify with.</p>
+<p><a name="date"></a>
+<code>date</code> - Date of encryption to use proper card version.</p>
+<p><strong>Return</strong><br/>
+Decrypted String.</p>
+<a name="com.virgilsecurity.android.common.EThreeCore$decrypt(kotlin.String, com.virgilsecurity.sdk.crypto.VirgilPublicKey)"></a>
+<code><span class="keyword">fun </span><s><span class="identifier">decrypt</span></s><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$decrypt(kotlin.String, com.virgilsecurity.sdk.crypto.VirgilPublicKey)/base64String">base64String</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$decrypt(kotlin.String, com.virgilsecurity.sdk.crypto.VirgilPublicKey)/sendersKey">sendersKey</span><span class="symbol">:</span>&nbsp;<span class="identifier">VirgilPublicKey</span><span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html"><span class="identifier">String</span></a></code><br/>
+<strong>Deprecated:</strong> Check 'replace with' section.<br/>
+<br/>
+<p>Decrypts and verifies encrypted text that is in base64 <a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-string/index.html">String</a> format.</p>
+<ul><li><em>Important</em> Automatically includes self key to recipientsKeys.</li>
+
+<li><em>Important</em> Requires private key in local storage.</li>
+
+<li><em>Note</em> Avoid key duplication.</li>
+</ul>
+<h3>Parameters</h3>
+<p><a name="base64String"></a>
+<code>base64String</code> - Encrypted String.</p>
+<p><a name="sendersKey"></a>
+<code>sendersKey</code> - Sender PublicKey to verify with.</p>
+<h3>Exceptions</h3>
+<p><a name="EThreeException"></a>
+<code>EThreeException</code> - (EThreeException.Description.VERIFICATION_FAILED) If verification
+of message failed.</p>
+<p><a name="EThreeException.Description.MISSING_PRIVATE_KEY"></a>
+<code>EThreeException.Description.MISSING_PRIVATE_KEY</code> - </p>
+<p><a name="CryptoException"></a>
+<code>CryptoException</code> - </p>
+<p><strong>Return</strong><br/>
+Decrypted String.</p>
+<a name="com.virgilsecurity.android.common.EThreeCore$decrypt(kotlin.ByteArray, com.virgilsecurity.sdk.crypto.VirgilPublicKey)"></a>
+<code><span class="identifier">@JvmOverloads</span> <span class="keyword">fun </span><s><span class="identifier">decrypt</span></s><span class="symbol">(</span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$decrypt(kotlin.ByteArray, com.virgilsecurity.sdk.crypto.VirgilPublicKey)/data">data</span><span class="symbol">:</span>&nbsp;<a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-byte-array/index.html"><span class="identifier">ByteArray</span></a><span class="symbol">, </span><span class="identifier" id="com.virgilsecurity.android.common.EThreeCore$decrypt(kotlin.ByteArray, com.virgilsecurity.sdk.crypto.VirgilPublicKey)/sendersKey">sendersKey</span><span class="symbol">:</span>&nbsp;<span class="identifier">VirgilPublicKey</span><span class="symbol">?</span>&nbsp;<span class="symbol">=</span>&nbsp;null<span class="symbol">)</span><span class="symbol">: </span><a href="https://kotlinlang.org/api/latest/jvm/stdlib/kotlin/-byte-array/index.html"><span class="identifier">ByteArray</span></a></code><br/>
+<strong>Deprecated:</strong> Check 'replace with' section.<br/>
+<br/>
+<p>Decrypts and verifies encrypted data.</p>
+<ul><li><em>Important</em> Requires private key in local storage.</li>
+</ul>
+<h3>Parameters</h3>
+<p><a name="data"></a>
+<code>data</code> - Data to decrypt.</p>
+<p><a name="sendersKey"></a>
+<code>sendersKey</code> - Sender PublicKey to verify with.</p>
+<h3>Exceptions</h3>
+<p><a name="EThreeException"></a>
+<code>EThreeException</code> - (EThreeException.Description.VERIFICATION_FAILED) If verification
+of message failed.</p>
+<p><a name="EThreeException.Description.MISSING_PRIVATE_KEY"></a>
+<code>EThreeException.Description.MISSING_PRIVATE_KEY</code> - </p>
+<p><a name="CryptoException"></a>
+<code>CryptoException</code> - </p>
+</BODY>
+</HTML>

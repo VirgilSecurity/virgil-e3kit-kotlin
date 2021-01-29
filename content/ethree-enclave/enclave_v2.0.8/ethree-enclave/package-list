@@ -1,0 +1,7 @@
+$dokka.format:html
+$dokka.linkExtension:html
+
+com.virgilsecurity.android.ethreeenclave
+com.virgilsecurity.android.ethreeenclave.interaction
+com.virgilsecurity.android.ethreeenclave.interaction.model
+com.virgilsecurity.android.ethreeenclave.interaction.model.java
