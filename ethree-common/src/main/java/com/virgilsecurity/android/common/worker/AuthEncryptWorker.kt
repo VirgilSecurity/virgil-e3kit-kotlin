@@ -38,12 +38,14 @@ import com.virgilsecurity.android.common.model.FindUsersResult
 import com.virgilsecurity.android.common.storage.local.LocalKeyStorage
 import com.virgilsecurity.common.extension.toData
 import com.virgilsecurity.common.model.Data
+import com.virgilsecurity.keyknox.utils.unwrapCompanionClass
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilPublicKey
 import com.virgilsecurity.sdk.crypto.exceptions.VerificationException
 import java.nio.charset.StandardCharsets
 import java.util.*
+import java.util.logging.Logger
 
 /**
  * AuthEncryptWorker
@@ -63,6 +65,7 @@ internal class AuthEncryptWorker internal constructor(
             decryptInternal(data, user?.publicKey)
 
     internal fun authDecrypt(data: Data, user: Card, date: Date): Data {
+        logger.fine("Auth decrypt data with card ${user.identifier}")
         var card = user
 
         while (card.previousCard != null) {
@@ -77,6 +80,7 @@ internal class AuthEncryptWorker internal constructor(
     }
 
     @JvmOverloads internal fun authDecrypt(text: String, user: Card? = null): String {
+        logger.fine("Auth decrypt text with card ${user?.identifier}")
         val data = try {
             Data.fromBase64String(text)
         } catch (exception: IllegalArgumentException) {
@@ -89,6 +93,7 @@ internal class AuthEncryptWorker internal constructor(
     }
 
     internal fun authDecrypt(text: String, user: Card, date: Date): String {
+        logger.fine("Auth decrypt text with card ${user.identifier}")
         val data = try {
             Data.fromBase64String(text)
         } catch (exception: IllegalArgumentException) {
@@ -101,6 +106,7 @@ internal class AuthEncryptWorker internal constructor(
     }
 
     @JvmOverloads internal fun authEncrypt(text: String, users: FindUsersResult? = null): String {
+        logger.fine("Auth encrypt text")
         if (users != null) require(users.isNotEmpty()) { "Passed empty FindUsersResult" }
 
         val data = try {
@@ -142,5 +148,9 @@ internal class AuthEncryptWorker internal constructor(
                 else -> throw exception
             }
         }
+    }
+
+    companion object {
+        private val logger = Logger.getLogger(unwrapCompanionClass(this::class.java).name)
     }
 }

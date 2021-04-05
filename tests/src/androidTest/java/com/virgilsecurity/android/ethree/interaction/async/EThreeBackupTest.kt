@@ -315,6 +315,137 @@ class EThreeBackupTest {
         assertTrue(failedToRestore)
     }
 
+    @Test fun restore_private_key_dublicate() {
+        val identity = UUID.randomUUID().toString()
+        val password = UUID.randomUUID().toString()
+        val keyName = UUID.randomUUID().toString()
+        val keyPassword = UUID.randomUUID().toString()
+
+        val eThreeWithPass = initAndRegisterEThree(identity)
+
+        var waiter = CountDownLatch(1)
+        eThreeWithPass.backupPrivateKey(password).addCallback(object : OnCompleteListener {
+            override fun onSuccess() {
+                Log.d(TAG, "Private key backup success")
+                waiter.countDown()
+            }
+
+            override fun onError(throwable: Throwable) {
+                Log.e(TAG, throwable.message)
+                fail(throwable.message)
+            }
+        })
+        waiter.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
+
+        waiter = CountDownLatch(1)
+        eThreeWithPass.backupPrivateKey(keyName, keyPassword).addCallback(object : OnCompleteListener {
+            override fun onSuccess() {
+                Log.d(TAG, "Private key '${keyName}' backup success")
+                waiter.countDown()
+            }
+
+            override fun onError(throwable: Throwable) {
+                Log.e(TAG, "Private key '${keyName}' backup failed", throwable)
+                fail(throwable.message)
+            }
+        })
+        waiter.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
+
+        eThreeWithPass.cleanup()
+        waiter = CountDownLatch(1)
+        var restoreSuccessful = false
+        eThreeWithPass.restorePrivateKey(keyName, keyPassword).addCallback(object : OnCompleteListener {
+            override fun onSuccess() {
+                Log.d(TAG, "Private key '${keyName}' restored")
+                restoreSuccessful = true
+                waiter.countDown()
+            }
+
+            override fun onError(throwable: Throwable) {
+                Log.e(TAG, throwable.message)
+                fail(throwable.message)
+            }
+        })
+        waiter.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
+        assertTrue(restoreSuccessful)
+
+        eThreeWithPass.cleanup()
+        waiter = CountDownLatch(1)
+        restoreSuccessful = false
+        eThreeWithPass.restorePrivateKey(password).addCallback(object : OnCompleteListener {
+            override fun onSuccess() {
+                Log.d(TAG, "Private key restored")
+                restoreSuccessful = true
+                waiter.countDown()
+            }
+
+            override fun onError(throwable: Throwable) {
+                Log.e(TAG, throwable.message)
+                fail(throwable.message)
+            }
+        })
+        waiter.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
+        assertTrue(restoreSuccessful)
+    }
+
+    @Test fun restore_private_key_with_key_name() {
+        val identity = UUID.randomUUID().toString()
+        val password = UUID.randomUUID().toString()
+        val keyName = UUID.randomUUID().toString()
+
+        val eThreeWithPass = initAndRegisterEThree(identity)
+
+        val waiter = CountDownLatch(1)
+        eThreeWithPass.backupPrivateKey(keyName, password).addCallback(object : OnCompleteListener {
+            override fun onSuccess() {
+                Log.d(TAG, "Backup '${keyName}' private key success")
+                waiter.countDown()
+            }
+
+            override fun onError(throwable: Throwable) {
+                fail(throwable.message)
+            }
+        })
+        waiter.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
+
+        eThreeWithPass.cleanup()
+        val waiterTwo = CountDownLatch(1)
+        var restoreSuccessful = false
+        eThreeWithPass.restorePrivateKey(keyName, password).addCallback(object : OnCompleteListener {
+            override fun onSuccess() {
+                restoreSuccessful = true
+                Log.d(TAG, "Private key '${keyName}' restored")
+                waiterTwo.countDown()
+            }
+
+            override fun onError(throwable: Throwable) {
+                fail(throwable.message)
+            }
+        })
+        waiterTwo.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
+        assertTrue(restoreSuccessful)
+
+        val waiterThree = CountDownLatch(1)
+        var failedToRestore = false
+        eThreeWithPass.restorePrivateKey(keyName, password).addCallback(object : OnCompleteListener {
+            override fun onSuccess() {
+                fail("Illegal state")
+            }
+
+            override fun onError(throwable: Throwable) {
+                Log.d(TAG, "Exception type is: " + throwable.javaClass.canonicalName)
+                if (throwable is EThreeException
+                        && throwable.description == EThreeException.Description.PRIVATE_KEY_EXISTS) {
+                    failedToRestore = true
+                }
+
+                waiterThree.countDown()
+            }
+        })
+        waiterThree.await(TestUtils.REQUEST_TIMEOUT, TimeUnit.SECONDS)
+        assertTrue(failedToRestore)
+    }
+
     // STE-17
     @Test fun change_password() {
         val identity = UUID.randomUUID().toString()
