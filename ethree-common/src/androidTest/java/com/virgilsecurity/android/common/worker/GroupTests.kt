@@ -751,16 +751,53 @@ class GroupTests {
         }
     }
 
-    private fun createEThree(): EThree {
-        val identity = UUID.randomUUID().toString()
+    @Test fun restored_ethree_encryption() {
+        val ethree2 = createEThree()
+
+        val identities = listOf(ethree2.identity)
+
+        val card1 = ethree2.findUser(this.ethree.identity).get()
+
+        // User1 creates group, encrypts
+        val lookup = this.ethree.findUsers(identities).get()
+        val group1 = this.ethree.createGroup(this.groupId, lookup).get()
+
+        val message1 = UUID.randomUUID().toString()
+        val encrypted1 = group1.encrypt(message1)
+        val selfDecrypted1 = group1.decrypt(encrypted1, card1)
+        assertEquals(message1, selfDecrypted1)
+
+        // User2 updates group, decrypts
+        val group2 = ethree2.loadGroup(this.groupId, card1).get()
+        val decrypted1 = group2.decrypt(encrypted1, card1)
+        assertEquals(message1, decrypted1)
+
+        val message2 = UUID.randomUUID().toString()
+        val encrypted2 = group2.encrypt(message2)
+
+        // User1 restarts ethree, decrypts
+        val ethreeRestored = createEThree(this.ethree.identity)
+        val restoredGroup1 = ethreeRestored.getGroup(this.groupId)
+        val restoredDecrypted1 = restoredGroup1?.decrypt(encrypted1, card1)
+        assertEquals(message1, restoredDecrypted1)
+
+        val card2 = ethreeRestored.findUser(ethree2.identity).get()
+        val decrypted2 = restoredGroup1?.decrypt(encrypted2, card2)
+        assertEquals(message2, decrypted2)
+    }
+
+    private fun createEThree(identity: String? = null): EThree {
+        val ethreeIdentity = identity ?: UUID.randomUUID().toString()
         val tokenCallback = object : OnGetTokenCallback {
             override fun onGetToken(): String {
-                return TestUtils.generateTokenString(identity)
+                return TestUtils.generateTokenString(ethreeIdentity)
             }
         }
 
-        val ethree = EThree(identity, tokenCallback, TestConfig.context)
-        ethree.register().execute()
+        val ethree = EThree(ethreeIdentity, tokenCallback, TestConfig.context)
+        if (identity == null) {
+            ethree.register().execute()
+        }
         return ethree
     }
 }

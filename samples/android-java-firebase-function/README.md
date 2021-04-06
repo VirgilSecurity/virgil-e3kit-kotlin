@@ -1,7 +1,7 @@
 ## E3Kit Android Java Firebase function
 
 ### Prerequisites
-  - Android Studio 3.2.1+
+  - Android Studio 4.0.1+
   - [Firebase function](https://github.com/VirgilSecurity/virgil-e3kit-firebase-func) deployed successfully.
 
 ### How to start

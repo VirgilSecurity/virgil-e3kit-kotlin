@@ -36,6 +36,7 @@ package com.virgilsecurity.android.common.worker
 import com.virgilsecurity.android.common.exception.EThreeException
 import com.virgilsecurity.android.common.model.FindUsersResult
 import com.virgilsecurity.android.common.storage.local.LocalKeyStorage
+import com.virgilsecurity.keyknox.utils.unwrapCompanionClass
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilPrivateKey
@@ -43,6 +44,7 @@ import com.virgilsecurity.sdk.crypto.VirgilPublicKey
 import java.io.InputStream
 import java.io.OutputStream
 import java.util.*
+import java.util.logging.Logger
 
 /**
  * AuthEncryptWorker
@@ -81,6 +83,7 @@ internal class StreamsEncryptWorker internal constructor(
                              outputStream: OutputStream,
                              user: Card,
                              date: Date) {
+        logger.fine("Auth decrypt stream with card ${user.identifier}")
         var card = user
 
         while (card.previousCard != null) {
@@ -97,6 +100,7 @@ internal class StreamsEncryptWorker internal constructor(
     internal fun encryptShared(inputStream: InputStream,
                                inputStreamSize: Int,
                              outputStream: OutputStream): ByteArray {
+        logger.fine("Encrypt shared stream")
         val selfKeyPair = localKeyStorage.retrieveKeyPair()
         val streamKeyPair = this.crypto.generateKeyPair()
 
@@ -109,6 +113,7 @@ internal class StreamsEncryptWorker internal constructor(
                                outputStream: OutputStream,
                                privateKeyData: ByteArray,
                                senderPublicKey: VirgilPublicKey?) {
+        logger.fine("Decrypt shared stream with key ${senderPublicKey?.identifier}")
         val streamKeyPair = this.crypto.importPrivateKey(privateKeyData)
         return decryptInternal(inputStream, outputStream, senderPublicKey, streamKeyPair.privateKey)
     }
@@ -145,5 +150,9 @@ internal class StreamsEncryptWorker internal constructor(
         }
 
         crypto.authDecrypt(inputStream, outputStream, privateKeyNew, publicKeyNew)
+    }
+
+    companion object {
+        private val logger = Logger.getLogger(unwrapCompanionClass(this::class.java).name)
     }
 }

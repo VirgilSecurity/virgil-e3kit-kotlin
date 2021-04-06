@@ -44,9 +44,11 @@ import com.virgilsecurity.common.model.Completable
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.keyknox.exception.EntryAlreadyExistsException
 import com.virgilsecurity.keyknox.exception.EntryNotFoundException
+import com.virgilsecurity.keyknox.utils.unwrapCompanionClass
 import com.virgilsecurity.sdk.crypto.HashAlgorithm
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.exceptions.KeyEntryAlreadyExistsException
+import java.util.logging.Logger
 
 /**
  * BackupWorker
@@ -59,13 +61,14 @@ internal class BackupWorker internal constructor(
         private val identity: String
 ) {
 
-    internal fun backupPrivateKey(password: String): Completable = object : Completable {
+    internal fun backupPrivateKey(keyName: String?, password: String): Completable = object : Completable {
         override fun execute() {
+            logger.fine("Backup private key $keyName")
             try {
                 require(password.isNotEmpty()) { "\'password\' should not be empty" }
 
                 val identityKeyPair = localKeyStorage.retrieveKeyPair()
-                keyManagerCloud.store(identityKeyPair.privateKey, password)
+                keyManagerCloud.store(identityKeyPair.privateKey, keyName, password)
             } catch (exception: EntryAlreadyExistsException) {
                 throw EThreeException(EThreeException.Description.PRIVATE_KEY_BACKUP_EXISTS,
                                       exception)
@@ -73,13 +76,14 @@ internal class BackupWorker internal constructor(
         }
     }
 
-    internal fun restorePrivateKey(password: String): Completable = object : Completable {
+    internal fun restorePrivateKey(keyName: String?, password: String): Completable = object : Completable {
         override fun execute() {
+            logger.fine("Restore private key $keyName")
             try {
                 require(password.isNotEmpty()) { "\'password\' should not be empty" }
 
                 val entry = try {
-                    keyManagerCloud.retrieve(password)
+                    keyManagerCloud.retrieve(keyName, password)
                 } catch (exception: EntryNotFoundException) {
                     throw EThreeException(EThreeException.Description.NO_PRIVATE_KEY_BACKUP,
                                           exception)
@@ -102,6 +106,7 @@ internal class BackupWorker internal constructor(
     internal fun changePassword(oldPassword: String,
                                 newPassword: String): Completable = object : Completable {
         override fun execute() {
+            logger.fine("Change password")
             require(oldPassword.isNotEmpty()) { "\'oldPassword\' should not be empty" }
             require(newPassword.isNotEmpty()) { "\'newPassword\' should not be empty" }
             if (oldPassword == newPassword)
@@ -113,6 +118,7 @@ internal class BackupWorker internal constructor(
 
     internal fun resetPrivateKeyBackup(): Completable = object : Completable {
         override fun execute() {
+            logger.fine("Reset private key backup")
             try {
                 keyManagerCloud.deleteAll()
             } catch (exception: EntryNotFoundException) {
@@ -126,6 +132,7 @@ internal class BackupWorker internal constructor(
                 ReplaceWith("Please, use resetPrivateKeyBackup without password instead."))
     internal fun resetPrivateKeyBackup(password: String): Completable = object : Completable {
         override fun execute() {
+            logger.fine("Reset private key backup with password")
             try {
                 keyManagerCloud.delete(password)
             } catch (exception: EntryNotFoundException) {
@@ -133,5 +140,9 @@ internal class BackupWorker internal constructor(
             }
         }
 
+    }
+
+    companion object {
+        private val logger = Logger.getLogger(unwrapCompanionClass(this::class.java).name)
     }
 }
