@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Virgil Security, Inc.
+ * Copyright (c) 2015-2021, Virgil Security, Inc.
  *
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  *
@@ -36,8 +36,10 @@ package com.virgilsecurity.android.common.worker
 import com.virgilsecurity.android.common.exception.EThreeException
 import com.virgilsecurity.android.common.storage.local.LocalKeyStorage
 import com.virgilsecurity.common.model.Completable
+import com.virgilsecurity.keyknox.utils.unwrapCompanionClass
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.crypto.VirgilKeyPair
+import java.util.logging.Logger
 
 /**
  * AuthorizationWorker
@@ -54,6 +56,7 @@ internal class AuthorizationWorker internal constructor(
     @JvmOverloads
     internal fun register(keyPair: VirgilKeyPair? = null) = object : Completable {
         override fun execute() {
+            logger.fine("Register new key pair")
             if (localKeyStorage.exists())
                 throw EThreeException(EThreeException.Description.PRIVATE_KEY_EXISTS)
 
@@ -70,6 +73,7 @@ internal class AuthorizationWorker internal constructor(
 
     @Synchronized internal fun unregister() = object : Completable {
         override fun execute() {
+            logger.fine("Unregister key pair")
             val cards = cardManager.searchCards(this@AuthorizationWorker.identity)
             if (cards.isEmpty()) {
                 throw EThreeException(EThreeException.Description.USER_IS_NOT_REGISTERED)
@@ -85,6 +89,7 @@ internal class AuthorizationWorker internal constructor(
 
     @Synchronized internal fun rotatePrivateKey() = object : Completable {
         override fun execute() {
+            logger.fine("Rotate private key")
             if (localKeyStorage.exists())
                 throw EThreeException(EThreeException.Description.PRIVATE_KEY_EXISTS)
 
@@ -99,7 +104,12 @@ internal class AuthorizationWorker internal constructor(
     internal fun hasLocalPrivateKey() = localKeyStorage.exists()
 
     internal fun cleanup() {
+        logger.fine("Cleanup")
         localKeyStorage.delete()
         privateKeyDeleted()
+    }
+
+    companion object {
+        private val logger = Logger.getLogger(unwrapCompanionClass(this::class.java).name)
     }
 }

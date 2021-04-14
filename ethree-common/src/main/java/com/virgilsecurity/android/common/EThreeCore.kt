@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Virgil Security, Inc.
+ * Copyright (c) 2015-2021, Virgil Security, Inc.
  *
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  *
@@ -134,6 +134,7 @@ abstract class EThreeCore {
                           enableRatchet: Boolean,
                           keyRotationInterval: TimeSpan,
                           context: Context) {
+        logger.fine("Create new EThree instance for $identity")
 
         this.identity = identity
 
@@ -169,6 +170,8 @@ abstract class EThreeCore {
      * is available only after child object of `EThreeCore` is constructed.
      */
     protected fun initializeCore() {
+        logger.finer("Initialize EThree core")
+
         this.localKeyStorage = LocalKeyStorage(identity, keyStorage, crypto)
         this.cloudRatchetStorage = CloudRatchetStorage(accessTokenProvider, localKeyStorage)
 
@@ -401,7 +404,30 @@ abstract class EThreeCore {
      * user's identity is already present in Virgil cloud.
      */
     fun backupPrivateKey(password: String): Completable =
-            backupWorker.backupPrivateKey(password)
+            backupWorker.backupPrivateKey(null, password)
+
+    /**
+     * Encrypts the user's private key using the user's [password] and backs up the encrypted
+     * private key to Virgil's cloud. This enables users to log in from other devices and have
+     * access to their private key to decrypt data.
+     *
+     * Encrypts loaded from private keys local storage user's *Private key* using *Public key*
+     * that is generated based on provided [password] after that backs up encrypted user's
+     * *Private key* to the Virgil's cloud storage.
+     *
+     * Can be called only if private key is on the device otherwise
+     * [EThreeException.Description.MISSING_PRIVATE_KEY] exception will be thrown.
+     *
+     * To start execution of the current function, please see [Completable] description.
+     *
+     * @param keyName Is a name that would be used to store backup in the cloud.
+     *
+     * @throws EThreeException.Description.MISSING_PRIVATE_KEY
+     * @throws EThreeException.Description.PRIVATE_KEY_BACKUP_EXISTS If private key with current
+     * user's identity is already present in Virgil cloud.
+     */
+    fun backupPrivateKey(keyName: String, password: String): Completable =
+            backupWorker.backupPrivateKey(keyName, password)
 
     /**
      * Pulls user's private key from the Virgil's cloud, decrypts it with *Private key* that
@@ -417,7 +443,25 @@ abstract class EThreeCore {
      * already present on the device locally.
      */
     fun restorePrivateKey(password: String): Completable =
-            backupWorker.restorePrivateKey(password)
+            backupWorker.restorePrivateKey(null, password)
+
+    /**
+     * Pulls user's private key from the Virgil's cloud, decrypts it with *Private key* that
+     * is generated based on provided [password] and saves it to the current private keys
+     * local storage.
+     *
+     * To start execution of the current function, please see [Completable] description.
+     *
+     * @param keyName Is a name that been used to store backup in the cloud.
+     *
+     * @throws EThreeException.Description.NO_PRIVATE_KEY_BACKUP If private key backup was not
+     * found.
+     * @throws EThreeException(EThreeException.Description.WRONG_PASSWORD) If [password] is wrong.
+     * @throws EThreeException(EThreeException.Description.PRIVATE_KEY_EXISTS) If private key
+     * already present on the device locally.
+     */
+    fun restorePrivateKey(keyName: String, password: String): Completable =
+            backupWorker.restorePrivateKey(keyName, password)
 
     /**
      * Changes the password on a backed-up private key.
@@ -1273,7 +1317,9 @@ abstract class EThreeCore {
     data class PrivateKeyChangedParams(val card: Card, val isNew: Boolean)
 
     internal fun privateKeyChanged(params: PrivateKeyChangedParams? = null) {
+        logger.finer("Private key changed")
         if (params != null) {
+            logger.finest("Store card in card storage")
             lookupManager.cardStorage.storeCard(params.card)
         }
 
@@ -1288,6 +1334,7 @@ abstract class EThreeCore {
     }
 
     internal fun privateKeyDeleted() {
+        logger.finer("Private key deleted")
         lookupManager.cardStorage.reset()
         groupManager?.localGroupStorage?.reset()
         tempChannelManager?.localStorage?.reset()
@@ -1366,9 +1413,11 @@ abstract class EThreeCore {
     }
 
     private fun setupRatchet(params: PrivateKeyChangedParams? = null, keyPair: VirgilKeyPair) {
+        logger.fine("Setup Ratchet")
         if (!enableRatchet) throw EThreeRatchetException(EThreeRatchetException.Description.RATCHET_IS_DISABLED)
 
         if (params != null) {
+            logger.finer("Setup Ratchet with params. isNew = ${params.isNew}")
             val chat = setupSecureChat(keyPair, params.card)
 
             if (params.isNew) {
@@ -1394,6 +1443,7 @@ abstract class EThreeCore {
 
             scheduleKeysRotation(chat, false)
         } else {
+            logger.finer("Setup Ratchet without params")
             val card = findCachedUser(this.identity).get() ?: throw EThreeRatchetException(
                 EThreeRatchetException.Description.NO_SELF_CARD_LOCALLY
             )
@@ -1419,11 +1469,12 @@ abstract class EThreeCore {
     }
 
     private fun scheduleKeysRotation(chat: SecureChat, startFromNow: Boolean) {
+        logger.finer("Schedule keys rotation. Start from now = $startFromNow")
         val secureChat = getSecureChat()
 
         this.timer = RepeatingTimer(this.keyRotationInterval, startFromNow, object : TimerTask() {
             override fun run() {
-                logger.info("\"Key rotation started\"")
+                logger.info("Key rotation started")
 
                 try {
                     val logs = secureChat.rotateKeys().get()

@@ -41,9 +41,11 @@ import com.virgilsecurity.common.extension.toData
 import com.virgilsecurity.common.model.Completable
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.common.model.Result
+import com.virgilsecurity.keyknox.utils.unwrapCompanionClass
 import com.virgilsecurity.sdk.cards.Card
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import java.nio.charset.StandardCharsets
+import java.util.logging.Logger
 
 /**
  * GroupWorker
@@ -59,6 +61,7 @@ internal class GroupWorker internal constructor(
             object : Result<Group> {
                 override fun get(): Group {
                     require(identifier.value.isNotEmpty()) { "\'identifier\' should not be empty" }
+                    logger.fine("Create group ${identifier.toBase64String()}")
 
                     val sessionId = computeSessionId(identifier)
                     val usersNew = users ?: FindUsersResult()
@@ -74,6 +77,7 @@ internal class GroupWorker internal constructor(
 
     internal fun getGroup(identifier: Data): Group? {
         require(identifier.value.isNotEmpty()) { "\'identifier\' should not be empty" }
+        logger.fine("Get group ${identifier.toBase64String()}")
 
         val sessionId = computeSessionId(identifier)
         return getGroupManager().retrieve(sessionId)
@@ -83,6 +87,7 @@ internal class GroupWorker internal constructor(
             object : Result<Group> {
                 override fun get(): Group {
                     require(identifier.value.isNotEmpty()) { "\'identifier\' should not be empty" }
+                    logger.fine("Load group ${identifier.toBase64String()}")
 
                     val sessionId = computeSessionId(identifier)
                     return getGroupManager().pull(sessionId, card)
@@ -93,6 +98,7 @@ internal class GroupWorker internal constructor(
             object : Completable {
                 override fun execute() {
                     require(identifier.value.isNotEmpty()) { "\'identifier\' should not be empty" }
+                    logger.fine("Delete group ${identifier.toBase64String()}")
 
                     val sessionId = computeSessionId(identifier)
                     getGroupManager().delete(sessionId)
@@ -129,5 +135,9 @@ internal class GroupWorker internal constructor(
         val identifierData = identifier.toData(StandardCharsets.UTF_8)
 
         return deleteGroup(identifierData)
+    }
+
+    companion object {
+        private val logger = Logger.getLogger(unwrapCompanionClass(this::class.java).name)
     }
 }
