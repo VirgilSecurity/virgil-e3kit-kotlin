@@ -205,7 +205,6 @@ public class EThreeActivity extends AppCompatActivity {
                     Log.i(TAG, "User one registration complete");
                     // Searching for the public key of first user to be able to encrypt.
                     eThreeUserTwo.findUser(userOneUid).addCallback(onLookupUserTwoListener);
-                    eThreeUserTwo.encryptShared()
                 }
 
                 @Override
