@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Virgil Security, Inc.
+ * Copyright (c) 2015-2021, Virgil Security, Inc.
  *
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  *
@@ -57,6 +57,7 @@ import com.virgilsecurity.sdk.storage.KeyStorage
 import com.virgilsecurity.sdk.utils.Tuple
 import org.junit.Assert
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -154,6 +155,49 @@ class EThreeGroupsTest {
 
         try {
             eThree.createGroup("feed-group-${identity}", userCards).get()
+            Assert.fail("Group with the same Id shouldn't be created");
+        }
+        catch (e: GroupException) {
+            Assert.assertEquals(GroupException.Description.GROUP_ALREADY_EXISTS, e.description);
+        }
+    }
+
+    @Test
+    @Ignore
+    //FIXME enable when server side ready
+    fun createGroup_alreadyExists_byAnotherUser_shouldFail() {
+        // Register a set of identities
+        val groupId = UUID.randomUUID().toString()
+        val identity2 = UUID.randomUUID().toString()
+
+        // Initialize eThree
+        val params = EThreeParams(identity, {jwtGenerator.generateToken(identity).stringRepresentation()}, TestConfig.context)
+        val eThree = EThree(params)
+        eThree.register().execute()
+
+        val params2 = EThreeParams(identity2, {jwtGenerator.generateToken(identity2).stringRepresentation()}, TestConfig.context)
+        val eThree2 = EThree(params2)
+        eThree2.register().execute()
+
+        val findUsersResult1 = eThree.findUsers(listOf(identity2)).get()
+        val createdGroup1 = eThree.createGroup(groupId, findUsersResult1).get()
+        Assert.assertNotNull(createdGroup1)
+
+        // Remove ->>
+        val findUsersResult2 = eThree.findUsers(listOf(identity)).get()
+        val createdGroup2 = eThree2.createGroup(groupId, findUsersResult2).get()
+
+        val loadedGroup1 = eThree2.loadGroup(groupId, findUsersResult1.values.first()).get()
+        Assert.assertEquals(createdGroup1.initiator, loadedGroup1.initiator)
+
+        val loadedGroup12 = eThree2.getGroup(groupId)
+        Assert.assertNotNull(loadedGroup12)
+        Assert.assertEquals(createdGroup1.initiator, loadedGroup12?.initiator)
+
+        // <<- Remove
+
+        try {
+            val createdGroup2 = eThree2.createGroup(groupId, eThree.findUsers(listOf(identity)).get()).get()
             Assert.fail("Group with the same Id shouldn't be created");
         }
         catch (e: GroupException) {

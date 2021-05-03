@@ -103,7 +103,7 @@ internal class BackupWorker internal constructor(
         }
     }
 
-    internal fun changePassword(oldPassword: String,
+    internal fun changePassword(keyName: String?, oldPassword: String,
                                 newPassword: String): Completable = object : Completable {
         override fun execute() {
             logger.fine("Change password")
@@ -112,7 +112,7 @@ internal class BackupWorker internal constructor(
             if (oldPassword == newPassword)
                 throw EThreeException(EThreeException.Description.SAME_PASSWORD)
 
-            keyManagerCloud.changePassword(oldPassword, newPassword)
+            keyManagerCloud.changePassword(keyName, oldPassword, newPassword)
         }
     }
 
@@ -121,6 +121,18 @@ internal class BackupWorker internal constructor(
             logger.fine("Reset private key backup")
             try {
                 keyManagerCloud.deleteAll()
+            } catch (exception: EntryNotFoundException) {
+                throw EThreeException(EThreeException.Description.MISSING_PRIVATE_KEY, exception)
+            }
+        }
+
+    }
+
+    internal fun resetPrivateKeyBackupWithKeyName(keyName: String): Completable = object : Completable {
+        override fun execute() {
+            logger.fine("Reset private key '${keyName}' backup")
+            try {
+                keyManagerCloud.deleteByKeyName(keyName)
             } catch (exception: EntryNotFoundException) {
                 throw EThreeException(EThreeException.Description.MISSING_PRIVATE_KEY, exception)
             }

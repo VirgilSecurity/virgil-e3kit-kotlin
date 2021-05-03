@@ -58,6 +58,7 @@ import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
 import com.virgilsecurity.sdk.client.HttpClient
 import com.virgilsecurity.sdk.client.VirgilCardClient
 import com.virgilsecurity.sdk.common.TimeSpan
+import com.virgilsecurity.sdk.crypto.KeyPairType
 import com.virgilsecurity.sdk.crypto.VirgilAccessTokenSigner
 import com.virgilsecurity.sdk.crypto.VirgilCardCrypto
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
@@ -788,13 +789,10 @@ class GroupTests {
 
     private fun createEThree(identity: String? = null): EThree {
         val ethreeIdentity = identity ?: UUID.randomUUID().toString()
-        val tokenCallback = object : OnGetTokenCallback {
-            override fun onGetToken(): String {
-                return TestUtils.generateTokenString(ethreeIdentity)
-            }
-        }
 
-        val ethree = EThree(ethreeIdentity, tokenCallback, TestConfig.context)
+        val etheeParams = EThreeParams(ethreeIdentity, {TestUtils.generateTokenString(ethreeIdentity) } , TestConfig.context)
+        etheeParams.keyPairType = KeyPairType.ED25519
+        val ethree = EThree(etheeParams)
         if (identity == null) {
             ethree.register().execute()
         }
