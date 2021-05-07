@@ -284,7 +284,7 @@ class SnippetsTest {
                 }
 
         // If the user wants to change his password for private key backup
-        eThree.changePassword(oldPassword, newPassword).addCallback(changeListener)
+        eThree.changePassword(keyName, oldPassword, newPassword).addCallback(changeListener)
 
         // << Kotlin (Change backup password)
 
@@ -304,7 +304,7 @@ class SnippetsTest {
 
         // If user wants to delete their account, use the following function
         // to delete their private key
-        eThree.resetPrivateKeyBackup().addCallback(resetListener)
+        eThree.resetPrivateKeyBackupWithKeyName(keyName).addCallback(resetListener)
 
         // << Kotlin (Delete backup)
     }

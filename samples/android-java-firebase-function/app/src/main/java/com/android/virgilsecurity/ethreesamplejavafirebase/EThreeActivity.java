@@ -53,6 +53,7 @@ import com.virgilsecurity.common.callback.OnResultListener;
 import com.virgilsecurity.common.model.Data;
 import com.virgilsecurity.sdk.cards.Card;
 
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -74,6 +75,8 @@ public class EThreeActivity extends AppCompatActivity {
     private FirebaseAuth firebaseAuth;
     private TextView tvText;
 
+    private String encryptedText;
+
     // This demo is intended to work with firebase function from this tutorial: https://github.com/VirgilSecurity/virgil-e3kit-firebase-func
     // Don't forget to setup firebase first.
     // Placing this method above fields to easily find an entry point.
@@ -88,53 +91,53 @@ public class EThreeActivity extends AppCompatActivity {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                // Creating first user so the second user will be able to encrypt data for her.
-                initUserOne();
+                // Creating Alice user so the Bob user will be able to encrypt data for her.
+                initAlice();
             }
         }).start();
     }
 
     private static final String EMAIL_POSTFIX = "@somemail.com"; // because we using firebase sign up via email
 
-    private static String identityOne = UUID.randomUUID().toString() + EMAIL_POSTFIX;
-    private static String passwordOne = UUID.randomUUID().toString();
-    private EThree eThreeUserOne;
-    private String authTokenUserOne;
+    private static final String identityAlice = UUID.randomUUID().toString() + EMAIL_POSTFIX;
+    private static final String passwordAlice = UUID.randomUUID().toString();
+    private EThree eThreeAlice;
+    private String authTokenAlice;
     // It e3kit firebase function we using User UID as identity to generate Virgil Jwt instead of email for security reasons
-    private String userOneUid;
+    private String uidAlice;
 
-    private static String identityTwo = UUID.randomUUID().toString() + EMAIL_POSTFIX;
-    private static String passwordTwo = UUID.randomUUID().toString();
-    private EThree eThreeUserTwo;
-    private String authTokenUserTwo;
+    private static final String identityBob = UUID.randomUUID().toString() + EMAIL_POSTFIX;
+    private static final String passwordBob = UUID.randomUUID().toString();
+    private EThree eThreeBob;
+    private String authTokenBob;
     // It e3kit firebase function we using User UID as identity to generate Virgil Jwt instead of email for security reasons
-    private String userTwoUid;
+    private String uidBob;
 
-    // This callback exchanges authToken for a Virgil JWT. So user now authenticated and is able to
+    // This callback exchanges authToken for a Virgil JWT. So Alice now authenticated and is able to
     // interact with Virgil Services (through the E3Kit).
-    private final Function0<String> getAuthTokenUserOne = new Function0<String>() {
+    private final Function0<String> getAuthTokenAlice = new Function0<String>() {
         @Override
         public String invoke() {
-            return getVirgilJwt(authTokenUserOne);
+            return getVirgilJwt(authTokenAlice);
         }
     };
 
-    // This callback will be called when first user is successfully registered (Her public key is published to Virgil
+    // This callback will be called when Alice is successfully registered (Her public key is published to Virgil
     // Cards Service).
-    private final com.virgilsecurity.common.callback.OnCompleteListener onRegisterUserOneListener =
+    private final com.virgilsecurity.common.callback.OnCompleteListener onRegisterAliceListener =
             new com.virgilsecurity.common.callback.OnCompleteListener() {
                 @Override
                 public void onSuccess() {
-                    Log.i(TAG, "User one registered");
-                    // First user is registered successfully. Starting work with main user - second (She will encrypt data
-                    // for the first user).
+                    Log.i(TAG, "Alice registered");
+                    // Alice is registered successfully. Starting work with main user - Bob (He will encrypt data
+                    // for Alice).
                     firebaseAuth.signOut(); // Simulating second session
-                    initUserTwo();
+                    initBob();
                 }
 
                 @Override
                 public void onError(final Throwable throwable) {
-                    Log.e(TAG, "User one registration failed", throwable);
+                    Log.e(TAG, "Alice registration failed", throwable);
 
                     // Error handling
                     runOnUiThread(new Runnable() {
@@ -146,44 +149,38 @@ public class EThreeActivity extends AppCompatActivity {
                 }
             };
 
-    private final Function0<String> getAuthTokenUserTwo = new Function0<String>() {
+    private final Function0<String> getAuthTokenBob = new Function0<String>() {
         @Override
         public String invoke() {
-            return getVirgilJwt(authTokenUserTwo);
+            return getVirgilJwt(authTokenBob);
         }
     };
 
-    private final OnResultListener<Card> onLookupUserTwoListener =
+    private final OnResultListener<Card> onLookupBobListener =
             new OnResultListener<Card>() {
                 @Override
                 public void onSuccess(Card result) {
-                    // Now you have public key of first user, so it's possible to encrypt data for her.
-                    String text = "Hello $username";
+                    // Now you have public key of Alice, so it's possible to encrypt data for her.
+                    String text = "Hello " + identityAlice;
                     byte[] data = "Some Data, possibly photo".getBytes();
 
                     // encrypt method encrypts provided text and converts it to Base64 String format.
-                    final String encryptedText = eThreeUserTwo.authEncrypt(text, result);
-
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            tvText.setText("Success. Sample finished it's work.\n\n" + encryptedText);
-                        }
-                    });
+                    encryptedText = eThreeBob.authEncrypt(text, result);
 
                     // encrypts provided text and returns encrypted byte array.
-                    Data encryptedData = eThreeUserTwo.authEncrypt(new Data(data), result);
+                    Data encryptedData = eThreeBob.authEncrypt(new Data(data), result);
 
                     Log.d("EThreeTag", "encryptedText: \n" + encryptedText);
                     // You can convert byte[] to Base64 String to easily transfer it to the server, or to print, etc.
                     Log.d("EThreeTag", "encryptedData: \n" + encryptedData.toBase64String());
 
-                    // Next you can lookup second user's public key via lookupPublicKeys by the first user and decrypt
+                    // Next you can lookup Bob's public key via findUser by the Alice and decrypt
                     // encrypted for her data. (You have to lookup public key for decrypt to verify that the data
-                    // was really encrypted by second user).
-                    // It is not implemented in this example because it will become overcomplicated because of
-                    // two users in something like "one" session. In real-life app you will have only half of these
-                    // callbacks - for one current user.
+                    // was really encrypted by Bob).
+
+                    // Switch to Alice again
+                    firebaseAuth.signOut();
+                    getBackAlice();
                 }
 
                 @Override
@@ -198,19 +195,18 @@ public class EThreeActivity extends AppCompatActivity {
                 }
             };
 
-    private final com.virgilsecurity.common.callback.OnCompleteListener onRegisterUserTwoListener =
+    private final com.virgilsecurity.common.callback.OnCompleteListener onRegisterBobListener =
             new com.virgilsecurity.common.callback.OnCompleteListener() {
                 @Override
                 public void onSuccess() {
-                    Log.i(TAG, "User one registration complete");
-                    // Searching for the public key of first user to be able to encrypt.
-                    eThreeUserTwo.findUser(userOneUid).addCallback(onLookupUserTwoListener);
-                    eThreeUserTwo.encryptShared()
+                    Log.i(TAG, "Bob registration complete");
+                    // Searching for the public key of Alice to be able to encrypt.
+                    eThreeBob.findUser(uidAlice).addCallback(onLookupBobListener);
                 }
 
                 @Override
                 public void onError(final Throwable throwable) {
-                    Log.e(TAG, "User two registration failed", throwable);
+                    Log.e(TAG, "Bob registration failed", throwable);
                     // Error handling
                     runOnUiThread(new Runnable() {
                         @Override
@@ -226,20 +222,20 @@ public class EThreeActivity extends AppCompatActivity {
      * But for the example purposes we have to have two users to show encrypt/decrypt flow. So you probably will have
      * twice less code.
      */
-    public void initUserOne() {
+    public void initAlice() {
         // You start your user authentication/authorization (signUp/signIn) here.
-        authenticate(identityOne, passwordOne, new OnResultListener<String>() {
+        authenticate(identityAlice, passwordAlice, new OnResultListener<String>() {
             @Override
             public void onSuccess(String value) {
-                authTokenUserOne = value;
+                authTokenAlice = value;
 
                 // After you successfully authenticated your user - you have to initialize EThree SDK.
                 // To do this you have to provide context and two listeners.
                 // OnGetTokenCallback should exchange recently received authToken for a Virgil JWT.
                 // OnResultListener<EThree> will give you initialized instance of EThree SDK in onSuccess method.
-                EThreeParams params = new EThreeParams(userOneUid, getAuthTokenUserOne, EThreeActivity.this);
-                eThreeUserOne = new EThree(params);
-                eThreeUserOne.register().addCallback(onRegisterUserOneListener);
+                EThreeParams params = new EThreeParams(uidAlice, getAuthTokenAlice, EThreeActivity.this);
+                eThreeAlice = new EThree(params);
+                eThreeAlice.register().addCallback(onRegisterAliceListener);
             }
 
             @Override
@@ -254,20 +250,68 @@ public class EThreeActivity extends AppCompatActivity {
         });
     }
 
+    public void getBackAlice() {
+        firebaseAuth.signInWithEmailAndPassword(identityAlice, passwordAlice).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+            @Override
+            public void onComplete(@NonNull Task<AuthResult> task) {
+                if (task.isSuccessful()) {
+                    Log.d(TAG, "Alice logged in back");
+                    firebaseAuth.getCurrentUser().getIdToken(true).addOnCompleteListener(new OnCompleteListener<GetTokenResult>() {
+                        @Override
+                        public void onComplete(@NonNull Task<GetTokenResult> task) {
+                            authTokenAlice = task.getResult().getToken();
+
+                            /* Alice needs sender's Card to decrypt and verify the message */
+                            eThreeAlice.findUser(uidBob).addCallback(new OnResultListener<Card>() {
+                                @Override
+                                public void onSuccess(Card card) {
+                                    /* Now Alice is able to decrypt the message*/
+                                    final String decryptedText = eThreeAlice.authDecrypt(encryptedText, card);
+                                    Log.d("EThreeTag", "decryptedText: \n" + decryptedText);
+
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            tvText.setText("Success. Sample finished it's work.\n\n" + encryptedText + "\n\n" + decryptedText);
+                                        }
+                                    });
+                                }
+
+                                @Override
+                                public void onError(@NotNull Throwable throwable) {
+                                    Log.e(TAG, "Bob's Card not found", throwable);
+                                }
+                            });
+
+                        }
+                    });
+                } else {
+                    // Error handling
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(EThreeActivity.this, "Alice sign in failed", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                }
+            }
+        });
+    }
+
     /**
      * If you use some normal architecture like MVP, MVC, MVVM - you can get rid of the Callback hell. As well
      * you can wrap all callbacks to RxJava and make it really concise. But you can use just callbacks. It's up to you.
      */
-    public void initUserTwo() {
+    public void initBob() {
         // You start your user authentication/authorization (signUp/signIn) here.
-        authenticate(identityTwo, passwordTwo, new OnResultListener<String>() {
+        authenticate(identityBob, passwordBob, new OnResultListener<String>() {
             @Override
             public void onSuccess(String value) {
-                authTokenUserTwo = value;
+                authTokenBob = value;
 
-                EThreeParams params = new EThreeParams(userTwoUid, getAuthTokenUserTwo, EThreeActivity.this);
-                eThreeUserTwo = new EThree(params);
-                eThreeUserTwo.register().addCallback(onRegisterUserTwoListener);
+                EThreeParams params = new EThreeParams(uidBob, getAuthTokenBob, EThreeActivity.this);
+                eThreeBob = new EThree(params);
+                eThreeBob.register().addCallback(onRegisterBobListener);
             }
 
             @Override
@@ -302,10 +346,10 @@ public class EThreeActivity extends AppCompatActivity {
                             Log.i(TAG, "Firebase authentication complete");
                             FirebaseUser user = firebaseAuth.getCurrentUser();
 
-                            if (identity.equals(identityOne)) // Workaround because we have two users in one app
-                                userOneUid = user.getUid();// You won't (shouldn't) have this.
+                            if (identity.equals(identityAlice)) // Workaround because we have two users in one app
+                                uidAlice = user.getUid();// You won't (shouldn't) have this.
                             else
-                                userTwoUid = user.getUid();
+                                uidBob = user.getUid();
 
                             user.getIdToken(true).addOnCompleteListener(new OnCompleteListener<GetTokenResult>() {
                                 @Override
