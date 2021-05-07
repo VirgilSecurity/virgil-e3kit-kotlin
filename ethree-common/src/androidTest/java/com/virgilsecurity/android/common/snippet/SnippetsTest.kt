@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2020, Virgil Security, Inc.
+ * Copyright (c) 2015-2021, Virgil Security, Inc.
  *
  * Lead Maintainer: Virgil Security Inc. <support@virgilsecurity.com>
  *
@@ -35,9 +35,11 @@ package com.virgilsecurity.android.common.snippet
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.virgilsecurity.android.common.callback.OnGetTokenCallback
+import com.virgilsecurity.android.common.model.EThreeParams
 import com.virgilsecurity.android.common.utils.TestConfig
 import com.virgilsecurity.android.common.utils.TestUtils
 import com.virgilsecurity.android.ethree.interaction.EThree
+import com.virgilsecurity.common.callback.OnCompleteListener
 import com.virgilsecurity.common.model.Data
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import org.junit.Assert.assertArrayEquals
@@ -57,13 +59,11 @@ class SnippetsTest {
 
     private lateinit var aliceIdentity: String
     private lateinit var bobIdentity: String
-    private lateinit var crypto: VirgilCrypto
     private lateinit var aliceEthree: EThree
     private lateinit var bobEthree: EThree
 
     @Before
     fun setup() {
-        this.crypto = VirgilCrypto()
         this.aliceIdentity = UUID.randomUUID().toString()
         this.aliceEthree = EThree(aliceIdentity,
                 object : OnGetTokenCallback {
@@ -97,6 +97,216 @@ class SnippetsTest {
         val decryptedData = decryptShared(p2pEncryptedStreamKeyData, groupEncryptedStreamKeyData, encryptedData)
 
         assertArrayEquals("Hello".toByteArray(), decryptedData)
+    }
+
+    @Test
+    fun backup_restore_key() {
+        val identity = UUID.randomUUID().toString()
+        val keyPassword = UUID.randomUUID().toString()
+        val userPassword = UUID.randomUUID().toString()
+        val params = EThreeParams(identity, { TestUtils.generateTokenString(identity) }, TestConfig.context)
+        val eThree = EThree(params)
+
+
+        // Kotlin (Back up key) >>
+
+        val backupListener =
+                object : OnCompleteListener {
+                    override fun onSuccess() {
+                        // private key backup success
+                    }
+
+                    override fun onError(throwable: Throwable) {
+                        // Error handling
+                    }
+                }
+
+        // Backup user's private key to the cloud (encrypted using her password).
+        // This will enable your user to log in from another device and have access
+        // to the same private key there.
+        eThree.backupPrivateKey(keyPassword).addCallback(backupListener)
+
+        // << Kotlin (Back up key)
+
+
+        // Kotlin (Make user's password the backup password) >>
+
+        val derivedPasswords = EThree.derivePasswords(userPassword)
+
+        // This password should be used for backup/restore PrivateKey
+        val backupPassword = derivedPasswords.backupPassword
+
+        // This password should be used for other purposes, e.g user authorization
+        val loginPassword = derivedPasswords.loginPassword
+
+        // << Kotlin (Make user's password the backup password)
+
+
+        assertNotNull(backupPassword)
+        assertNotNull(loginPassword)
+
+
+        // Kotlin (Restore key) >>
+
+        val restoreListener =
+                object : OnCompleteListener {
+                    override fun onSuccess() {
+                        // You're done
+                    }
+
+                    override fun onError(throwable: Throwable) {
+                        // Error handling
+                    }
+                }
+
+        // If user wants to restore her private key from backup in Virgil Cloud.
+        // While user in session - key can be removed and restore multiply times (via cleanup/restorePrivateKey functions).
+        // To know whether private key is present on device now use hasLocalPrivateKey() function:
+        if (!eThree.hasLocalPrivateKey()) {
+            eThree.restorePrivateKey(keyPassword).addCallback(restoreListener)
+        }
+
+        // << Kotlin (Restore key)
+
+
+        val oldPassword = keyPassword
+        val newPassword = UUID.randomUUID().toString()
+
+
+        // Kotlin (Change backup password) >>
+
+        val changeListener =
+                object : OnCompleteListener {
+                    override fun onSuccess() {
+                        // You're done
+                    }
+
+                    override fun onError(throwable: Throwable) {
+                        // Error handling
+                    }
+                }
+
+        // If the user wants to change his password for private key backup
+        eThree.changePassword(oldPassword, newPassword).addCallback(changeListener)
+
+        // << Kotlin (Change backup password)
+
+
+        // Kotlin (Delete backup) >>
+
+        val resetListener =
+                object : OnCompleteListener {
+                    override fun onSuccess() {
+                        // You're done
+                    }
+
+                    override fun onError(throwable: Throwable) {
+                        // Error handling
+                    }
+                }
+
+        // If user wants to delete their account, use the following function
+        // to delete their private key
+        eThree.resetPrivateKeyBackup().addCallback(resetListener)
+
+        // << Kotlin (Delete backup)
+    }
+
+    @Test
+    fun backup_restore_key_with_keyName() {
+        val identity = UUID.randomUUID().toString()
+        val keyName = UUID.randomUUID().toString()
+        val keyPassword = UUID.randomUUID().toString()
+        val userPassword = UUID.randomUUID().toString()
+        val params = EThreeParams(identity, { TestUtils.generateTokenString(identity) }, TestConfig.context)
+        val eThree = EThree(params)
+
+
+        // Kotlin (Back up key) >>
+
+        val backupListener =
+                object : OnCompleteListener {
+                    override fun onSuccess() {
+                        // private key backup success
+                    }
+
+                    override fun onError(throwable: Throwable) {
+                        // Error handling
+                    }
+                }
+
+        // Backup user's private key to the cloud (encrypted using her password).
+        // This will enable your user to log in from another device and have access
+        // to the same private key there.
+        eThree.backupPrivateKey(keyName, keyPassword).addCallback(backupListener)
+
+        // << Kotlin (Back up key)
+
+
+        // Kotlin (Restore key) >>
+
+        val restoreListener =
+                object : OnCompleteListener {
+                    override fun onSuccess() {
+                        // You're done
+                    }
+
+                    override fun onError(throwable: Throwable) {
+                        // Error handling
+                    }
+                }
+
+        // If user wants to restore her private key from backup in Virgil Cloud.
+        // While user in session - key can be removed and restore multiply times (via cleanup/restorePrivateKey functions).
+        // To know whether private key is present on device now use hasLocalPrivateKey() function:
+        if (!eThree.hasLocalPrivateKey()) {
+            eThree.restorePrivateKey(keyName, keyPassword).addCallback(restoreListener)
+        }
+
+        // << Kotlin (Restore key)
+
+
+        val oldPassword = keyPassword
+        val newPassword = UUID.randomUUID().toString()
+
+
+        // Kotlin (Change backup password) >>
+
+        val changeListener =
+                object : OnCompleteListener {
+                    override fun onSuccess() {
+                        // You're done
+                    }
+
+                    override fun onError(throwable: Throwable) {
+                        // Error handling
+                    }
+                }
+
+        // If the user wants to change his password for private key backup
+        eThree.changePassword(oldPassword, newPassword).addCallback(changeListener)
+
+        // << Kotlin (Change backup password)
+
+
+        // Kotlin (Delete backup) >>
+
+        val resetListener =
+                object : OnCompleteListener {
+                    override fun onSuccess() {
+                        // You're done
+                    }
+
+                    override fun onError(throwable: Throwable) {
+                        // Error handling
+                    }
+                }
+
+        // If user wants to delete their account, use the following function
+        // to delete their private key
+        eThree.resetPrivateKeyBackup().addCallback(resetListener)
+
+        // << Kotlin (Delete backup)
     }
 
     private fun encryptShared(): Triple<ByteArray, ByteArray, ByteArray> {

@@ -480,7 +480,26 @@ abstract class EThreeCore {
      */
     fun changePassword(oldPassword: String,
                        newPassword: String): Completable =
-            backupWorker.changePassword(oldPassword, newPassword)
+            backupWorker.changePassword(null, oldPassword, newPassword)
+
+    /**
+     * Changes the password on a backed-up private key.
+     *
+     * Pulls user's private key from the Virgil's cloud storage, decrypts it with *Private key*
+     * that is generated based on provided [oldPassword] after that encrypts user's *Private key*
+     * using *Public key* that is generated based on provided [newPassword] and pushes encrypted
+     * user's *Private key* to the Virgil's cloud storage.
+     *
+     * To start execution of the current function, please see [Completable] description.
+     *
+     * @throws EThreeException(EThreeException.Description.WRONG_PASSWORD) If [oldPassword] is
+     * wrong.
+     * @throws EThreeException(EThreeException.Description.SAME_PASSWORD) If [newPassword] is the
+     * same as [oldPassword].
+     */
+    fun changePassword(keyName: String, oldPassword: String,
+                       newPassword: String): Completable =
+            backupWorker.changePassword(keyName, oldPassword, newPassword)
 
     /**
      * Deletes Private Key stored on Virgil's cloud. This will disable user to log in from
@@ -493,6 +512,18 @@ abstract class EThreeCore {
      */
     fun resetPrivateKeyBackup(): Completable =
             backupWorker.resetPrivateKeyBackup()
+
+    /**
+     * Deletes Private Key stored on Virgil's cloud. This will disable user to log in from
+     * other devices.
+     *
+     * To start execution of the current function, please see [Completable] description.
+     *
+     * @throws EThreeException(EThreeException.Description.WRONG_PASSWORD) If [password] is wrong.
+     * @throws EThreeException.Description.MISSING_PRIVATE_KEY
+     */
+    fun resetPrivateKeyBackupWithKeyName(keyName: String): Completable =
+            backupWorker.resetPrivateKeyBackupWithKeyName(keyName)
 
     /**
      * Deletes Private Key stored on Virgil's cloud. This will disable user to log in from

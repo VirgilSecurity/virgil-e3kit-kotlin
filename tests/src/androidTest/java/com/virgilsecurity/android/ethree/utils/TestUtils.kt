@@ -52,7 +52,7 @@ import java.util.concurrent.TimeUnit
 class TestUtils {
 
     companion object {
-        const val REQUEST_TIMEOUT = 5 * 1000L // 5 seconds
+        const val REQUEST_TIMEOUT = 5L // 5 seconds
 
         fun generateTokenString(identity: String): String =
                 JwtGenerator(
