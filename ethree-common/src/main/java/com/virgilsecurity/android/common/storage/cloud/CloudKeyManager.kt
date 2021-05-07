@@ -38,15 +38,10 @@ import com.virgilsecurity.android.common.exception.EThreeException
 import com.virgilsecurity.android.common.util.Const
 import com.virgilsecurity.android.common.util.Const.VIRGIL_BASE_URL
 import com.virgilsecurity.keyknox.KeyknoxManager
-import com.virgilsecurity.keyknox.client.HttpClient
-import com.virgilsecurity.keyknox.client.KeyknoxClient
-import com.virgilsecurity.keyknox.client.KeyknoxPullParams
-import com.virgilsecurity.keyknox.client.KeyknoxPushParams
+import com.virgilsecurity.keyknox.client.*
 import com.virgilsecurity.keyknox.cloud.CloudEntrySerializer
 import com.virgilsecurity.keyknox.cloud.CloudKeyStorage
-import com.virgilsecurity.keyknox.exception.DecryptionFailedException
-import com.virgilsecurity.keyknox.exception.EntrySavingException
-import com.virgilsecurity.keyknox.exception.KeyknoxCryptoException
+import com.virgilsecurity.keyknox.exception.*
 import com.virgilsecurity.keyknox.model.CloudEntries
 import com.virgilsecurity.keyknox.model.CloudEntry
 import com.virgilsecurity.keyknox.utils.Serializer
@@ -82,7 +77,7 @@ internal class CloudKeyManager internal constructor(
 
         // TODO change VirgilPythiaClient to have tokenProvider inside
         val pythiaClient = VirgilPythiaClient(baseUrl, Const.ETHREE_NAME, Const.ETHREE_NAME,
-                                              VirgilInfo.VERSION)
+                VirgilInfo.VERSION)
         val brainKeyContext = BrainKeyContext.Builder()
                 .setAccessTokenProvider(tokenProvider)
                 .setPythiaClient(pythiaClient)
@@ -105,6 +100,10 @@ internal class CloudKeyManager internal constructor(
             val pullParams = KeyknoxPullParams(this.identity, "e3kit", "backup", keyName)
             val keyknoxValue = this.keyknoxManager.pullValue(pullParams, listOf(brainKeyPair.publicKey), brainKeyPair.privateKey)
 
+            if (keyknoxValue.value.isNotEmpty() || keyknoxValue.meta.isNotEmpty()) {
+                throw EntryAlreadyExistsException()
+            }
+
             val params = KeyknoxPushParams(listOf(this.identity), "e3kit", "backup", keyName)
             val now = Date()
             val entry = CloudEntry(this.identity, exportedIdentityKey, now, now, mapOf())
@@ -120,7 +119,11 @@ internal class CloudKeyManager internal constructor(
             // Retrieve key from keyknox v2
             val brainKeyPair = this.brainKey.generateKeyPair(password)
             val pullParams = KeyknoxPullParams(this.identity, "e3kit", "backup", keyName)
-            val keyknoxValue = this.keyknoxManager.pullValue(pullParams, listOf(brainKeyPair.publicKey), brainKeyPair.privateKey)
+            val keyknoxValue = try {
+                this.keyknoxManager.pullValue(pullParams, listOf(brainKeyPair.publicKey), brainKeyPair.privateKey)
+            } catch (e: DecryptionFailedException) {
+                throw EThreeException(EThreeException.Description.WRONG_PASSWORD)
+            }
             val entry = Serializer.gson.fromJson<CloudEntry>(ConvertionUtils.toString(keyknoxValue.value), CloudEntry::class.java)
             return entry
         }
@@ -130,20 +133,45 @@ internal class CloudKeyManager internal constructor(
         setupCloudKeyStorage(password).delete(identity)
     }
 
+    internal fun deleteByKeyName(keyName: String) {
+        val params = KeyknoxResetParams("e3kit", "backup", keyName)
+        this.keyknoxManager.resetValue(params)
+    }
+
     internal fun deleteAll() {
         this.keyknoxManager.resetValue()
     }
 
-    internal fun changePassword(oldPassword: String, newPassword: String) {
-        val cloudKeyStorage = setupCloudKeyStorage(oldPassword)
+    internal fun changePassword(keyName: String?, oldPassword: String, newPassword: String) {
+        if (keyName == null) {
+            // Change password for key from keyknox v1
+            val cloudKeyStorage = setupCloudKeyStorage(oldPassword)
 
-        val brainKeyPair = this.brainKey.generateKeyPair(newPassword)
+            val brainKeyPair = this.brainKey.generateKeyPair(newPassword)
 
-        try {
-            cloudKeyStorage.updateRecipients(listOf(brainKeyPair.publicKey),
-                                             brainKeyPair.privateKey)
-        } catch (e: KeyknoxCryptoException) {
-            throw EThreeException(EThreeException.Description.WRONG_PASSWORD)
+            try {
+                cloudKeyStorage.updateRecipients(listOf(brainKeyPair.publicKey),
+                        brainKeyPair.privateKey)
+            } catch (e: KeyknoxCryptoException) {
+                throw EThreeException(EThreeException.Description.WRONG_PASSWORD)
+            }
+        } else {
+            // Change password for key from keyknox v2
+            val brainKeyPair = this.brainKey.generateKeyPair(oldPassword)
+            val pullParams = KeyknoxPullParams(this.identity, "e3kit", "backup", keyName)
+            val keyknoxValue = try {
+                this.keyknoxManager.pullValue(pullParams, listOf(brainKeyPair.publicKey), brainKeyPair.privateKey)
+            } catch (e: DecryptionFailedException) {
+                throw EThreeException(EThreeException.Description.WRONG_PASSWORD)
+            }
+
+            if (keyknoxValue.value.isEmpty() || keyknoxValue.meta.isEmpty()) {
+                return
+            }
+
+            val newBrainKeyPair = this.brainKey.generateKeyPair(newPassword)
+            val params = KeyknoxPushParams(listOf(this.identity), "e3kit", "backup", keyName)
+            this.keyknoxManager.pushValue(params, keyknoxValue.value, keyknoxValue.keyknoxHash, listOf(newBrainKeyPair.publicKey), newBrainKeyPair.privateKey)
         }
     }
 
@@ -155,7 +183,7 @@ internal class CloudKeyManager internal constructor(
         val brainKeyPair = this.brainKey.generateKeyPair(password)
 
         val cloudKeyStorage = CloudKeyStorage(this.keyknoxManager, listOf(brainKeyPair.publicKey),
-                                              brainKeyPair.privateKey)
+                brainKeyPair.privateKey)
 
         try {
             cloudKeyStorage.retrieveCloudEntries()
