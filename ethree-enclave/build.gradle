@@ -33,7 +33,7 @@
 
 android {
     defaultConfig {
-        minSdkVersion androidOptions.minSdkVersionEnclave
+        minSdk androidOptions.minSdkVersionEnclave
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles 'proguard-rules.txt'
     }
@@ -49,8 +49,6 @@ dependencies {
     // Kotlin
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$versions.kotlin"
 
-    // Android
-    compileOnly "com.google.android:android:$versions.android"
 }
 
 publishing {

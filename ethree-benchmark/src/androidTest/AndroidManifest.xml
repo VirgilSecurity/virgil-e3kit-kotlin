@@ -33,8 +33,7 @@
   -->
 
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    package="com.virgilsecurity.android.ethree_benchmark">
+    xmlns:tools="http://schemas.android.com/tools">
 
     <!--
       Important: disable debugging for accurate performance results

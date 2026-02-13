@@ -33,7 +33,7 @@
 
 android {
     defaultConfig {
-        minSdkVersion androidOptions.minSdkVersionRegular
+        minSdk androidOptions.minSdkVersionRegular
         applicationId "com.virgilsecurity.android.ethree"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
@@ -50,7 +50,7 @@ dependencies {
 
     // Tests core
     testImplementation "junit:junit:$versions.junit"
-    androidTestImplementation "androidx.test.ext:junit:$versions.testsRunner"
+    androidTestImplementation "androidx.test.ext:junit:$versions.testsExtJunit"
     androidTestImplementation "androidx.test:runner:$versions.testsRunner"
 
     // Virgil test common
@@ -67,4 +67,26 @@ task copyEnvFile(type: Copy) {
 
     from rootProject.projectDir.absolutePath + '/env.json'
     into assetsFolder.absolutePath
+}
+
+def smokeRunner = "com.virgilsecurity.android.ethree.test/androidx.test.runner.AndroidJUnitRunner"
+def smokeRegisterTest = "com.virgilsecurity.android.ethree.interaction.sync.EThreeSyncPositive#init_and_register"
+def smokeEncryptDecryptTest = "com.virgilsecurity.android.ethree.interaction.async.EThreeEncryptionTest#encrypt_decrypt_multiple_keys"
+
+tasks.register("connectedSmokeRegister", GradleBuild) {
+    group = "verification"
+    description = "Runs one Android smoke test: register user flow using connectedDebugAndroidTest."
+    tasks = [":tests:connectedDebugAndroidTest"]
+    startParameter.projectProperties = [
+            "android.testInstrumentationRunnerArguments.class": smokeRegisterTest
+    ]
+}
+
+tasks.register("connectedSmokeEncryptDecrypt", GradleBuild) {
+    group = "verification"
+    description = "Runs one Android smoke test: two-user encrypt/decrypt flow using connectedDebugAndroidTest."
+    tasks = [":tests:connectedDebugAndroidTest"]
+    startParameter.projectProperties = [
+            "android.testInstrumentationRunnerArguments.class": smokeEncryptDecryptTest
+    ]
 }

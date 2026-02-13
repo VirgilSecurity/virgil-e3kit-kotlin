@@ -33,7 +33,7 @@
 
 android {
     defaultConfig {
-        minSdkVersion androidOptions.minSdkVersionRegular
+        minSdk androidOptions.minSdkVersionRegular
         consumerProguardFiles 'proguard-rules.txt'
 
         javaCompileOptions {
@@ -65,9 +65,6 @@ dependencies {
     // Virgil Ratchet
     api "com.virgilsecurity:ratchet-android:$versions.ratchet"
 
-    // Android
-    compileOnly "com.google.android:android:$versions.android"
-
     // Room
     implementation "androidx.room:room-runtime:$versions.room"
     implementation "androidx.room:room-ktx:$versions.room"
@@ -78,7 +75,7 @@ dependencies {
 
     // Tests core
     testImplementation "junit:junit:$versions.junit"
-    androidTestImplementation "androidx.test.ext:junit:$versions.testsRunner"
+    androidTestImplementation "androidx.test.ext:junit:$versions.testsExtJunit"
     androidTestImplementation "androidx.test:runner:$versions.testsRunner"
 
     // Test internal
@@ -88,13 +85,15 @@ dependencies {
     implementation "com.virgilsecurity:test-common:$versions.virgilTestCommon"
 }
 
+def virgilInfoGeneratedDir = file("$buildDir/generated/source/virgilInfo/main")
+def virgilInfoGeneratedFile = file("$virgilInfoGeneratedDir/com/virgilsecurity/android/common/build/VirgilInfo.kt")
+
 task generateVirgilInfo {
-    outputs.dir "$buildDir/generated"
-    doFirst {
-        def versionFile = file("$buildDir/generated/release/com/virgilsecurity/android/common/build/VirgilInfo.kt")
-        versionFile.parentFile.mkdirs()
-        versionFile.text =
-                """
+    outputs.file virgilInfoGeneratedFile
+    doLast {
+        virgilInfoGeneratedFile.parentFile.mkdirs()
+        virgilInfoGeneratedFile.text =
+            """
 package com.virgilsecurity.android.common.build;
 
 object VirgilInfo {
@@ -104,12 +103,19 @@ object VirgilInfo {
     }
 }
 
-project.android.sourceSets.main.java.srcDirs = ["${buildDir}/generated/release/", "src/main/java"]
+project.android.sourceSets.main.java.srcDir virgilInfoGeneratedDir
 
-tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
     dependsOn(generateVirgilInfo)
     dependsOn(copyEnvFile)
     dependsOn(copyCompatDataFile)
+}
+
+// Dokka reads sources (including generated ones) and must run after codegen.
+tasks.withType(org.jetbrains.dokka.gradle.DokkaTask).configureEach {
+    dependsOn(generateVirgilInfo)
+    // Dokka consumes classpath outputs; make KAPT ordering explicit to satisfy Gradle task validation.
+    dependsOn(tasks.matching { it.name == "kaptDebugKotlin" || it.name == "kaptReleaseKotlin" })
 }
 
 publishing {
@@ -132,9 +138,16 @@ task copyEnvFile(type: Copy) {
 }
 
 task copyCompatDataFile(type: Copy) {
+    dependsOn(copyEnvFile)
+
     def resourcesFolder = new File(project.projectDir.absolutePath + '/src/androidTest/resources/compat')
     if (!resourcesFolder.exists()) resourcesFolder.mkdirs()
 
-    from rootProject.projectDir.absolutePath + '/compat_data.json'
+    def rootCompatFile = new File(rootProject.projectDir, 'compat_data.json')
+    if (rootCompatFile.exists()) {
+        from rootCompatFile
+    } else {
+        logger.lifecycle("compat_data.json is missing in project root. Compatibility tests will be skipped.")
+    }
     into resourcesFolder.absolutePath
 }

@@ -109,7 +109,7 @@ public class SnippetsJavaTest {
         EThree eThree = new EThree(params);
 
 
-        // Kotlin (Back up key) >>
+        // Java (Back up key) >>
 
         OnCompleteListener backupListener = new OnCompleteListener() {
             @Override public void onSuccess() {
@@ -126,10 +126,10 @@ public class SnippetsJavaTest {
         // to the same private key there.
         eThree.backupPrivateKey(keyPassword).addCallback(backupListener);
 
-        // << Kotlin (Back up key)
+        // << Java (Back up key)
 
 
-        // Kotlin (Make user's password the backup password) >>
+        // Java (Make user's password the backup password) >>
 
         DerivedPasswords derivedPasswords = EThree.derivePasswords(userPassword);
 
@@ -139,14 +139,14 @@ public class SnippetsJavaTest {
         // This password should be used for other purposes, e.g user authorization
         String loginPassword = derivedPasswords.getLoginPassword();
 
-        // << Kotlin (Make user's password the backup password)
+        // << Java (Make user's password the backup password)
 
 
         assertNotNull(backupPassword);
         assertNotNull(loginPassword);
 
 
-        // Kotlin (Restore key) >>
+        // Java (Restore key) >>
 
         OnCompleteListener restoreListener = new OnCompleteListener() {
             @Override public void onSuccess() {
@@ -165,14 +165,14 @@ public class SnippetsJavaTest {
             eThree.restorePrivateKey(keyPassword).addCallback(restoreListener);
         }
 
-        // << Kotlin (Restore key)
+        // << Java (Restore key)
 
 
         String oldPassword = keyPassword;
         String newPassword = UUID.randomUUID().toString();
 
 
-        // Kotlin (Change backup password) >>
+        // Java (Change backup password) >>
 
         OnCompleteListener changeListener = new OnCompleteListener() {
             @Override public void onSuccess() {
@@ -187,10 +187,10 @@ public class SnippetsJavaTest {
         // If the user wants to change his password for private key backup
         eThree.changePassword(oldPassword, newPassword).addCallback(changeListener);
 
-        // << Kotlin (Change backup password)
+        // << Java (Change backup password)
 
 
-        // Kotlin (Delete backup) >>
+        // Java (Delete backup) >>
 
         OnCompleteListener resetListener = new OnCompleteListener() {
             @Override public void onSuccess() {
@@ -206,7 +206,7 @@ public class SnippetsJavaTest {
         // to delete their private key
         eThree.resetPrivateKeyBackup().addCallback(resetListener);
 
-        // << Kotlin (Delete backup)
+        // << Java (Delete backup)
     }
 
     @Test
@@ -227,7 +227,7 @@ public class SnippetsJavaTest {
         EThree eThree = new EThree(params);
 
 
-        // Kotlin (Back up key) >>
+        // Java (Back up key) >>
 
         OnCompleteListener backupListener = new OnCompleteListener() {
             @Override public void onSuccess() {
@@ -244,10 +244,10 @@ public class SnippetsJavaTest {
         // to the same private key there.
         eThree.backupPrivateKey(keyName, keyPassword).addCallback(backupListener);
 
-        // << Kotlin (Back up key)
+        // << Java (Back up key)
 
 
-        // Kotlin (Restore key) >>
+        // Java (Restore key) >>
 
         OnCompleteListener restoreListener = new OnCompleteListener() {
             @Override public void onSuccess() {
@@ -266,14 +266,14 @@ public class SnippetsJavaTest {
             eThree.restorePrivateKey(keyName, keyPassword).addCallback(restoreListener);
         }
 
-        // << Kotlin (Restore key)
+        // << Java (Restore key)
 
 
         String oldPassword = keyPassword;
         String newPassword = UUID.randomUUID().toString();
 
 
-        // Kotlin (Change backup password) >>
+        // Java (Change backup password) >>
 
         OnCompleteListener changeListener = new OnCompleteListener() {
             @Override public void onSuccess() {
@@ -286,12 +286,12 @@ public class SnippetsJavaTest {
         };
 
         // If the user wants to change his password for private key backup
-        eThree.changePassword(oldPassword, newPassword).addCallback(changeListener);
+        eThree.changePassword(keyName, oldPassword, newPassword).addCallback(changeListener);
 
-        // << Kotlin (Change backup password)
+        // << Java (Change backup password)
 
 
-        // Kotlin (Delete backup) >>
+        // Java (Delete backup) >>
 
         OnCompleteListener resetListener = new OnCompleteListener() {
             @Override public void onSuccess() {
@@ -305,9 +305,9 @@ public class SnippetsJavaTest {
 
         // If user wants to delete their account, use the following function
         // to delete their private key
-        eThree.resetPrivateKeyBackup().addCallback(resetListener);
+        eThree.resetPrivateKeyBackupWithKeyName(keyName).addCallback(resetListener);
 
-        // << Kotlin (Delete backup)
+        // << Java (Delete backup)
     }
 
 }

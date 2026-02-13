@@ -35,7 +35,7 @@ package com.virgilsecurity.android.common.utils
 
 import android.content.Context
 import androidx.test.platform.app.InstrumentationRegistry
-import com.virgilsecurity.android.common.BuildConfig
+import com.virgilsecurity.sdk.crypto.HashAlgorithm
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
 import com.virgilsecurity.sdk.crypto.VirgilPrivateKey
 import com.virgilsecurity.sdk.utils.ConvertionUtils
@@ -48,8 +48,11 @@ class TestConfig {
     companion object {
         private const val APP_ID = "APP_ID"
         private const val APP_PRIVATE_KEY = "APP_PRIVATE_KEY"
+        private const val APP_KEY = "APP_KEY"
         private const val APP_PUBLIC_KEY_ID = "APP_PUBLIC_KEY_ID"
+        private const val APP_KEY_ID = "APP_KEY_ID"
         private const val VIRGIL_SERVICE_ADDRESS = "VIRGIL_SERVICE_ADDRESS"
+        private const val BASE_SERVICE_URL = "BASE_SERVICE_URL"
 
         private const val ENVIRONMENT_PARAMETER = "environment"
 
@@ -79,15 +82,18 @@ class TestConfig {
         }
 
         val virgilCrypto = VirgilCrypto(false)
-        val appId: String by lazy { propertyReader.getProperty(APP_ID) }
+        val appId: String by lazy { requiredProperty(APP_ID) }
         val appKey: VirgilPrivateKey by lazy {
-            with(propertyReader.getProperty(APP_PRIVATE_KEY)) {
+            with(requiredProperty(APP_PRIVATE_KEY, APP_KEY)) {
                 virgilCrypto.importPrivateKey(com.virgilsecurity.crypto.foundation.Base64.decode(this.toByteArray())).privateKey
             }
         }
-        val appPublicKeyId: String by lazy { propertyReader.getProperty(APP_PUBLIC_KEY_ID) }
+        val appPublicKeyId: String by lazy {
+            optionalProperty(APP_PUBLIC_KEY_ID, APP_KEY_ID)
+                ?: derivePublicKeyIdFromPrivateKey(requiredProperty(APP_PRIVATE_KEY, APP_KEY))
+        }
         val virgilServiceAddress: String by lazy {
-            propertyReader.getProperty(VIRGIL_SERVICE_ADDRESS)
+            requiredProperty(VIRGIL_SERVICE_ADDRESS, BASE_SERVICE_URL)
         }
 
         const val VIRGIL_CARDS_SERVICE_PATH = "/card/v5/"
@@ -96,5 +102,38 @@ class TestConfig {
         val DIRECTORY_PATH: String = InstrumentationRegistry.getInstrumentation()
                 .targetContext.filesDir.absolutePath
         const val KEYSTORE_NAME = "virgil.keystore"
+
+        private fun requiredProperty(vararg names: String): String {
+            for (name in names) {
+                try {
+                    return propertyReader.getProperty(name)
+                } catch (_: RuntimeException) {
+                    // Try next key alias.
+                }
+            }
+            error("No property with names: ${names.joinToString()} provided.")
+        }
+
+        private fun optionalProperty(vararg names: String): String? {
+            for (name in names) {
+                try {
+                    return propertyReader.getProperty(name)
+                } catch (_: RuntimeException) {
+                    // Try next key alias.
+                }
+            }
+            return null
+        }
+
+        private fun derivePublicKeyIdFromPrivateKey(privateKeyValue: String): String {
+            val keyPair = virgilCrypto.importPrivateKey(
+                com.virgilsecurity.crypto.foundation.Base64.decode(privateKeyValue.toByteArray())
+            )
+            val publicKeyBase64Bytes = ConvertionUtils.toBase64Bytes(
+                virgilCrypto.exportPublicKey(keyPair.publicKey)
+            )
+            val publicKeyHash = virgilCrypto.computeHash(publicKeyBase64Bytes, HashAlgorithm.SHA512)
+            return ConvertionUtils.toHex(publicKeyHash).substring(0, 32).lowercase()
+        }
     }
 }

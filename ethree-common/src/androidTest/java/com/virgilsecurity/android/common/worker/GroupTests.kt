@@ -67,6 +67,7 @@ import com.virgilsecurity.sdk.jwt.accessProviders.CachingJwtProvider
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
 import com.virgilsecurity.sdk.storage.JsonKeyEntry
 import org.junit.Assert.*
+import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -621,7 +622,10 @@ class GroupTests {
         val compatDataStream = this.javaClass
                 .classLoader
                 ?.getResourceAsStream("compat/compat_data.json")
+        assumeTrue("Missing compat/compat_data.json. Skipping compatibility test.", compatDataStream != null)
         val compatJson = JsonParser().parse(InputStreamReader(compatDataStream)) as JsonObject
+        assumeTrue("compat_data.json does not contain Group section.", compatJson.has("Group"))
+        assumeTrue("compat_data.json does not contain API credentials.", compatJson.has("ApiPrivateKey") && compatJson.has("ApiKeyId") && compatJson.has("AppId"))
         val groupCompatJson = compatJson.getAsJsonObject("Group")
 
         val keyStorage = DefaultKeyStorage(TestConfig.DIRECTORY_PATH, TestConfig.KEYSTORE_NAME)
