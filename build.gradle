@@ -92,7 +92,6 @@ allprojects {
     repositories {
         google()
         mavenCentral()
-        // Legacy artifacts (e.g. Fuel 1.15.1) required by ratchet/pythia are no longer on Maven Central.
         maven {
             url "https://maven.aliyun.com/repository/public"
         }
