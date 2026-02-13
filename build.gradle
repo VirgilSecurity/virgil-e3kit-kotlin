@@ -155,7 +155,7 @@ def getGradleOrSystemProperty(String name, Project project) {
 final String BASE_VIRGIL_PACKAGE = 'com.virgilsecurity'
 
 // Packages versions
-final String SDK_VERSION = '2.1.0-rc2'
+final String SDK_VERSION = '2.1.0'
 
 final Map<String, String> namespaces = [
         'ethree-common'   : 'com.virgilsecurity.android.common',
