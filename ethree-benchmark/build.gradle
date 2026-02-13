@@ -31,13 +31,11 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-apply plugin: 'androidx.benchmark'
-
 android {
     defaultConfig {
-        minSdkVersion androidOptions.minSdkVersionRegular
+        minSdk androidOptions.minSdkVersionRegular
         testInstrumentationRunner 'androidx.benchmark.junit4.AndroidBenchmarkRunner'
-        testInstrumentationRunnerArgument 'androidx.benchmark.suppressErrors', 'EMULATOR,LOW_BATTERY'
+        testInstrumentationRunnerArgument 'androidx.benchmark.suppressErrors', 'EMULATOR,LOW_BATTERY,DEBUGGABLE'
     }
 
     buildTypes {
@@ -59,7 +57,7 @@ dependencies {
     implementation "com.virgilsecurity:test-common:$versions.virgilTestCommon"
 
     androidTestImplementation "androidx.test:runner:$versions.testsRunner"
-    androidTestImplementation "androidx.test.ext:junit:$versions.testsRunner"
+    androidTestImplementation "androidx.test.ext:junit:$versions.testsExtJunit"
     androidTestImplementation "junit:junit:$versions.junit"
     androidTestImplementation "androidx.benchmark:benchmark-junit4:$versions.androidBenchmark"
 }

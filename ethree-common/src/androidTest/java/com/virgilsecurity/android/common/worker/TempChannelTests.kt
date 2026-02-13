@@ -53,6 +53,7 @@ import com.virgilsecurity.sdk.jwt.JwtGenerator
 import com.virgilsecurity.sdk.storage.DefaultKeyStorage
 import org.junit.Assert
 import org.junit.Assert.*
+import org.junit.Assume.assumeTrue
 import org.junit.Before
 import org.junit.Test
 import java.io.InputStreamReader
@@ -259,7 +260,10 @@ class TempChannelTests {
         val compatDataStream = this.javaClass
                 .classLoader
                 ?.getResourceAsStream("compat/compat_data.json")
+        assumeTrue("Missing compat/compat_data.json. Skipping compatibility test.", compatDataStream != null)
         val compatJson = JsonParser.parseReader(InputStreamReader(compatDataStream)) as JsonObject
+        assumeTrue("compat_data.json does not contain TemporaryChannel section.", compatJson.has("TemporaryChannel"))
+        assumeTrue("compat_data.json does not contain API credentials.", compatJson.has("ApiPrivateKey") && compatJson.has("ApiKeyId") && compatJson.has("AppId"))
         val tempChannelCompatJson = compatJson.getAsJsonObject("TemporaryChannel")
 
         val identity = tempChannelCompatJson.get("Identity").asString

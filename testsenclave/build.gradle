@@ -33,7 +33,7 @@
 
 android {
     defaultConfig {
-        minSdkVersion androidOptions.minSdkVersionEnclave
+        minSdk androidOptions.minSdkVersionEnclave
         applicationId "com.virgilsecurity.android.testsenclave"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -53,9 +53,9 @@ dependencies {
 
     // Tests core
     testImplementation "junit:junit:$versions.junit"
-    androidTestImplementation "androidx.test.ext:junit:$versions.testsRunner"
+    androidTestImplementation "androidx.test.ext:junit:$versions.testsExtJunit"
     androidTestImplementation "androidx.test:runner:$versions.testsRunner"
-    androidTestImplementation "androidx.test:rules:$versions.testsRunner"
+    androidTestImplementation "androidx.test:rules:$versions.testsRules"
 
     // Virgil test common
     implementation "com.virgilsecurity:test-common:$versions.virgilTestCommon"

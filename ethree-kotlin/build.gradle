@@ -33,7 +33,7 @@
 
 android {
     defaultConfig {
-        minSdkVersion androidOptions.minSdkVersionRegular
+        minSdk androidOptions.minSdkVersionRegular
         consumerProguardFiles 'proguard-rules.txt'
     }
 }
@@ -45,8 +45,6 @@ dependencies {
     // Kotlin
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$versions.kotlin"
 
-    // Android
-    compileOnly "com.google.android:android:$versions.android"
 }
 
 publishing {
