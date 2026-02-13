@@ -111,6 +111,13 @@ tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
     dependsOn(copyCompatDataFile)
 }
 
+// Dokka reads sources (including generated ones) and must run after codegen.
+tasks.withType(org.jetbrains.dokka.gradle.DokkaTask).configureEach {
+    dependsOn(generateVirgilInfo)
+    // Dokka consumes classpath outputs; make KAPT ordering explicit to satisfy Gradle task validation.
+    dependsOn(tasks.matching { it.name == "kaptDebugKotlin" || it.name == "kaptReleaseKotlin" })
+}
+
 publishing {
     publications {
         mavenJava(MavenPublication) {
