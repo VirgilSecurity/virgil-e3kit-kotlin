@@ -34,10 +34,9 @@
 buildscript {
     ext.versions = [
             // Virgil
-            virgilSdk       : '7.4.0',
-            virgilCrypto    : '0.17.2',
-            pythia          : '0.4.0', // With virgilCrypto 0.17.2
-            ratchet         : '0.3.0', // With virgilCrypto 0.17.2
+            virgilSdk       : '7.5.0',
+            virgilCrypto    : '0.19.0-rc.11',
+            ratchet         : '0.4.0',
 
             // Kotlin
             kotlin          : '1.9.24',
@@ -97,9 +96,6 @@ allprojects {
         }
         maven {
             url "https://jitpack.io"
-        }
-        maven {
-            url "https://jcenter.bintray.com/"
         }
         maven {
             url "https://central.sonatype.com/repository/maven-snapshots/"

@@ -39,20 +39,14 @@ import com.virgilsecurity.android.common.util.Const
 import com.virgilsecurity.android.common.util.Const.VIRGIL_BASE_URL
 import com.virgilsecurity.keyknox.KeyknoxManager
 import com.virgilsecurity.keyknox.client.*
-import com.virgilsecurity.keyknox.cloud.CloudEntrySerializer
 import com.virgilsecurity.keyknox.cloud.CloudKeyStorage
 import com.virgilsecurity.keyknox.exception.*
-import com.virgilsecurity.keyknox.model.CloudEntries
 import com.virgilsecurity.keyknox.model.CloudEntry
 import com.virgilsecurity.keyknox.utils.Serializer
-import com.virgilsecurity.pythia.brainkey.BrainKey
-import com.virgilsecurity.pythia.brainkey.BrainKeyContext
-import com.virgilsecurity.pythia.client.VirgilPythiaClient
-import com.virgilsecurity.pythia.crypto.VirgilPythiaCrypto
 import com.virgilsecurity.sdk.crypto.VirgilCrypto
+import com.virgilsecurity.sdk.crypto.VirgilKeyPair
 import com.virgilsecurity.sdk.crypto.VirgilPrivateKey
 import com.virgilsecurity.sdk.jwt.contract.AccessTokenProvider
-import com.virgilsecurity.sdk.storage.JsonKeyEntry
 import com.virgilsecurity.sdk.utils.ConvertionUtils
 import java.net.URL
 import java.util.*
@@ -68,24 +62,17 @@ internal class CloudKeyManager internal constructor(
 ) {
 
     private val keyknoxManager: KeyknoxManager
-    private val brainKey: BrainKey
+    private val brainkeyHttpClient: BrainkeyHttpClient
 
     init {
         val httpClient = HttpClient(tokenProvider, Const.ETHREE_NAME, VirgilInfo.VERSION)
         val keyknoxClient = KeyknoxClient(httpClient, URL(baseUrl))
         this.keyknoxManager = KeyknoxManager(keyknoxClient)
-
-        // TODO change VirgilPythiaClient to have tokenProvider inside
-        val pythiaClient = VirgilPythiaClient(baseUrl, Const.ETHREE_NAME, Const.ETHREE_NAME,
-                VirgilInfo.VERSION)
-        val brainKeyContext = BrainKeyContext.Builder()
-                .setAccessTokenProvider(tokenProvider)
-                .setPythiaClient(pythiaClient)
-                .setPythiaCrypto(VirgilPythiaCrypto())
-                .build()
-
-        this.brainKey = BrainKey(brainKeyContext)
+        this.brainkeyHttpClient = BrainkeyHttpClient(tokenProvider, baseUrl)
     }
+
+    private fun deriveKeyPair(password: String): VirgilKeyPair =
+        brainkeyHttpClient.deriveKeyPair(password, crypto)
 
     internal fun exists(password: String) = setupCloudKeyStorage(password).exists(identity)
 
@@ -96,7 +83,7 @@ internal class CloudKeyManager internal constructor(
             setupCloudKeyStorage(password).store(this.identity, exportedIdentityKey)
         } else {
             // Store key in keyknox v2
-            val brainKeyPair = this.brainKey.generateKeyPair(password)
+            val brainKeyPair = deriveKeyPair(password)
             val pullParams = KeyknoxPullParams(this.identity, "e3kit", "backup", keyName)
             val keyknoxValue = this.keyknoxManager.pullValue(pullParams, listOf(brainKeyPair.publicKey), brainKeyPair.privateKey)
 
@@ -117,15 +104,14 @@ internal class CloudKeyManager internal constructor(
             return setupCloudKeyStorage(password).retrieve(keyName ?: this.identity)
         } else {
             // Retrieve key from keyknox v2
-            val brainKeyPair = this.brainKey.generateKeyPair(password)
+            val brainKeyPair = deriveKeyPair(password)
             val pullParams = KeyknoxPullParams(this.identity, "e3kit", "backup", keyName)
             val keyknoxValue = try {
                 this.keyknoxManager.pullValue(pullParams, listOf(brainKeyPair.publicKey), brainKeyPair.privateKey)
             } catch (e: DecryptionFailedException) {
                 throw EThreeException(EThreeException.Description.WRONG_PASSWORD)
             }
-            val entry = Serializer.gson.fromJson<CloudEntry>(ConvertionUtils.toString(keyknoxValue.value), CloudEntry::class.java)
-            return entry
+            return Serializer.gson.fromJson(ConvertionUtils.toString(keyknoxValue.value), CloudEntry::class.java)
         }
     }
 
@@ -146,18 +132,15 @@ internal class CloudKeyManager internal constructor(
         if (keyName == null) {
             // Change password for key from keyknox v1
             val cloudKeyStorage = setupCloudKeyStorage(oldPassword)
-
-            val brainKeyPair = this.brainKey.generateKeyPair(newPassword)
-
+            val brainKeyPair = deriveKeyPair(newPassword)
             try {
-                cloudKeyStorage.updateRecipients(listOf(brainKeyPair.publicKey),
-                        brainKeyPair.privateKey)
+                cloudKeyStorage.updateRecipients(listOf(brainKeyPair.publicKey), brainKeyPair.privateKey)
             } catch (e: KeyknoxCryptoException) {
                 throw EThreeException(EThreeException.Description.WRONG_PASSWORD)
             }
         } else {
             // Change password for key from keyknox v2
-            val brainKeyPair = this.brainKey.generateKeyPair(oldPassword)
+            val brainKeyPair = deriveKeyPair(oldPassword)
             val pullParams = KeyknoxPullParams(this.identity, "e3kit", "backup", keyName)
             val keyknoxValue = try {
                 this.keyknoxManager.pullValue(pullParams, listOf(brainKeyPair.publicKey), brainKeyPair.privateKey)
@@ -169,18 +152,18 @@ internal class CloudKeyManager internal constructor(
                 return
             }
 
-            val newBrainKeyPair = this.brainKey.generateKeyPair(newPassword)
+            val newBrainKeyPair = deriveKeyPair(newPassword)
             val params = KeyknoxPushParams(listOf(this.identity), "e3kit", "backup", keyName)
             this.keyknoxManager.pushValue(params, keyknoxValue.value, keyknoxValue.keyknoxHash, listOf(newBrainKeyPair.publicKey), newBrainKeyPair.privateKey)
         }
     }
 
     /**
-     * Initializes [SyncKeyStorage] with default settings, [tokenProvider] and provided
-     * [password] after that returns initialized [SyncKeyStorage] object.
+     * Initializes [CloudKeyStorage] with default settings, [tokenProvider] and provided
+     * [password] after that returns initialized [CloudKeyStorage] object.
      */
     internal fun setupCloudKeyStorage(password: String): CloudKeyStorage {
-        val brainKeyPair = this.brainKey.generateKeyPair(password)
+        val brainKeyPair = deriveKeyPair(password)
 
         val cloudKeyStorage = CloudKeyStorage(this.keyknoxManager, listOf(brainKeyPair.publicKey),
                 brainKeyPair.privateKey)

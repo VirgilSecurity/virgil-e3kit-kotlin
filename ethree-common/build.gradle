@@ -58,9 +58,8 @@ dependencies {
     api "com.virgilsecurity.sdk:sdk-android:$versions.virgilSdk"
     api "com.virgilsecurity.sdk:crypto-android:$versions.virgilSdk"
 
-    // Virgil Pythia
-    api "com.virgilsecurity:pythia-android:$versions.pythia"
-    api "com.virgilsecurity.crypto:pythia-android:$versions.virgilCrypto"
+    // Virgil Crypto Foundation
+    api "com.virgilsecurity.crypto:foundation-android:$versions.virgilCrypto"
 
     // Virgil Ratchet
     api "com.virgilsecurity:ratchet-android:$versions.ratchet"

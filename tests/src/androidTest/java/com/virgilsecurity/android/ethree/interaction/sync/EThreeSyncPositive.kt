@@ -40,11 +40,8 @@ import com.virgilsecurity.keyknox.KeyknoxManager
 import com.virgilsecurity.keyknox.client.KeyknoxClient
 import com.virgilsecurity.keyknox.cloud.CloudKeyStorage
 import com.virgilsecurity.keyknox.crypto.KeyknoxCrypto
+import com.virgilsecurity.android.common.storage.cloud.BrainkeyHttpClient
 import com.virgilsecurity.keyknox.storage.SyncKeyStorage
-import com.virgilsecurity.pythia.brainkey.BrainKey
-import com.virgilsecurity.pythia.brainkey.BrainKeyContext
-import com.virgilsecurity.pythia.client.VirgilPythiaClient
-import com.virgilsecurity.pythia.crypto.VirgilPythiaCrypto
 import com.virgilsecurity.sdk.cards.CardManager
 import com.virgilsecurity.sdk.cards.model.RawSignedModel
 import com.virgilsecurity.sdk.cards.validation.VirgilCardVerifier
@@ -125,12 +122,8 @@ class EThreeSyncPositive {
         val tokenProvider = CachingJwtProvider(CachingJwtProvider.RenewJwtCallback {
             jwtGenerator.generateToken(identity)
         })
-        val brainKeyContext = BrainKeyContext.Builder()
-                .setAccessTokenProvider(tokenProvider)
-                .setPythiaClient(VirgilPythiaClient(TestConfig.virgilServiceAddress))
-                .setPythiaCrypto(VirgilPythiaCrypto())
-                .build()
-        val keyPair = BrainKey(brainKeyContext).generateKeyPair(passwordBrainKey)
+        val keyPair = BrainkeyHttpClient(tokenProvider, TestConfig.virgilServiceAddress)
+                .deriveKeyPair(passwordBrainKey, crypto)
 
         val syncKeyStorage = SyncKeyStorage(
             identity,
