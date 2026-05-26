@@ -195,7 +195,7 @@ class Group internal constructor(
             } else {
                 val sessionId = encrypted.sessionId.toData()
 
-                val tempGroup = this.groupManager.retrieve(sessionId, messageEpoch)
+                val tempGroup = this.groupManager.retrieve(sessionId, messageEpoch.toLong())
                                 ?: throw GroupException(
                                     GroupException.Description.MISSING_CACHED_GROUP
                                 )
