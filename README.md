@@ -1,6 +1,6 @@
 # Virgil E3Kit Android
 
-[![Build Status](https://travis-ci.com/VirgilSecurity/virgil-e3kit-kotlin.svg?branch=master)](https://travis-ci.com/VirgilSecurity/virgil-e3kit-kotlin)
+[![Build Status](https://github.com/VirgilSecurity/virgil-e3kit-kotlin/actions/workflows/build-and-test.yml/badge.svg)](https://github.com/VirgilSecurity/virgil-e3kit-kotlin/actions/workflows/build-and-test.yml)
 [![GitHub license](https://img.shields.io/badge/license-BSD%203--Clause-blue.svg)](https://github.com/VirgilSecurity/virgil/blob/master/LICENSE)
 [![API Reference](https://img.shields.io/badge/API%20reference-e3kit--kotlin-green)](https://virgilsecurity.github.io/virgil-e3kit-kotlin/)
 
@@ -28,7 +28,7 @@
 - Access to encrypted data from multiple user devices
 - Perfect forward secrecy with the Double Ratchet algorithm
 - Encryption for unregistered users
-- Post-quantum algorithms support: [Round5](https://round5.org/) (encryption), [Falcon](https://falcon-sign.info/) (signature)
+- Post-quantum algorithms support: ML-KEM-768 (encryption), [Falcon](https://falcon-sign.info/) (signature)
 
 ## Installation
 
@@ -55,6 +55,20 @@ You can find the code samples for Java and Kotlin here:
 | [`Android Kotlin Nexmo`](./samples/android-kotlin-nexmo) | 
 
 You can run the samples to see how to initialize the SDK, register users and encrypt messages using E3Kit.
+
+## Upgrading from v2.x
+
+**Cloud key backup (password-protected private key) is not compatible between v2.x and v3.0.**
+
+v3.0 switches the backup key derivation from the legacy Pythia protocol to the OPRF brainkey v3 protocol with DLEQ proof verification. These protocols produce different encryption keys, so a backup created by v2.x cannot be restored by v3.0 and vice versa.
+
+**Migration steps for your users:**
+
+1. Upgrade the SDK to v3.0.
+2. After login, call `backupPrivateKey(password)` to create a new backup under the new protocol.
+3. The old v2.x backup entry on Keyknox will remain but is no longer accessible — it can be cleaned up by calling `resetPrivateKeyBackup()` before step 2.
+
+Users who cannot re-backup (e.g. lost access to their device) must re-register with a new key pair.
 
 ## License
 
