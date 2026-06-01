@@ -35,6 +35,7 @@ package com.virgilsecurity.android.common.storage.cloud
 
 import com.google.gson.JsonObject
 import com.virgilsecurity.android.common.build.VirgilInfo
+import com.virgilsecurity.android.common.exception.EThreeException
 import com.virgilsecurity.android.common.util.Const
 import com.virgilsecurity.crypto.foundation.BrainkeyClient
 import com.virgilsecurity.keyknox.client.HttpClient
@@ -48,34 +49,48 @@ import com.virgilsecurity.sdk.jwt.contract.AccessTokenProvider
 import com.virgilsecurity.sdk.utils.ConvertionUtils
 import java.net.URL
 
-/**
- * HTTP client for the Virgil brainkey /pythia/v1/brainkey endpoint.
- * Provides key-pair derivation from a password via the OPRF brainkey protocol.
- * ed25519 is required because KeyknoxCrypto.encrypt signs data with the private key
- * (curve25519/X25519 is key-agreement only and cannot sign).
- */
 class BrainkeyHttpClient(
     tokenProvider: AccessTokenProvider,
     private val baseUrl: String = Const.VIRGIL_BASE_URL
 ) {
     private val httpClient = HttpClient(tokenProvider, Const.ETHREE_NAME, VirgilInfo.VERSION)
 
-    fun harden(blindedPoint: ByteArray): ByteArray {
-        val url = URL("$baseUrl/pythia/v1/brainkey")
-        val body = mapOf("blinded_password" to ConvertionUtils.toBase64String(blindedPoint))
+    private data class HardenResponse(
+        val hardenedPoint: ByteArray,
+        val serverPublicKey: ByteArray,
+        val proofValueC: ByteArray,
+        val proofValueS: ByteArray
+    )
+
+    private fun harden(blindedPoint: ByteArray): HardenResponse {
+        val url = URL("$baseUrl/brainkey/v3/harden")
+        val body = mapOf("blinded_point" to ConvertionUtils.toBase64String(blindedPoint))
         val response = httpClient.send(url, Method.POST, TOKEN_CONTEXT, body, null)
         val json = Serializer.gson.fromJson(response.body, JsonObject::class.java)
-        return ConvertionUtils.base64ToBytes(json.get("seed").asString)
+        return HardenResponse(
+            hardenedPoint = ConvertionUtils.base64ToBytes(json.get("hardened_point").asString),
+            serverPublicKey = ConvertionUtils.base64ToBytes(json.get("server_public_key").asString),
+            proofValueC = ConvertionUtils.base64ToBytes(json.get("proof_value_c").asString),
+            proofValueS = ConvertionUtils.base64ToBytes(json.get("proof_value_s").asString)
+        )
     }
 
     fun deriveKeyPair(password: String, crypto: VirgilCrypto): VirgilKeyPair {
         BrainkeyClient().use { brainkeyClient ->
             brainkeyClient.setupDefaults()
             val blindResult = brainkeyClient.blind(password.toByteArray())
-            val hardenedPoint = harden(blindResult.blindedPoint)
+            val resp = harden(blindResult.blindedPoint)
+            val valid = brainkeyClient.verify(
+                blindResult.blindedPoint,
+                resp.hardenedPoint,
+                resp.serverPublicKey,
+                resp.proofValueC,
+                resp.proofValueS
+            )
+            if (!valid) throw EThreeException(EThreeException.Description.WRONG_PASSWORD)
             val seed = brainkeyClient.deblind(
                 password.toByteArray(),
-                hardenedPoint,
+                resp.hardenedPoint,
                 blindResult.deblindFactor,
                 KEY_NAME
             )
